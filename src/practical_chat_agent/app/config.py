@@ -33,6 +33,64 @@ class Settings(BaseSettings):
 
     openai_api_key: str | None = Field(default=None, validation_alias=AliasChoices("OPENAI_API_KEY"))
     openai_base_url: str | None = Field(default=None, validation_alias=AliasChoices("OPENAI_BASE_URL"))
+    glm_ocr_api_key: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("GLM_OCR_API_KEY", "ZHIPUAI_API_KEY", "ZAI_API_KEY"),
+    )
+    glm_ocr_model: str = Field(default="glm-ocr", validation_alias=AliasChoices("GLM_OCR_MODEL"))
+    desktop_ocr_enabled: bool = Field(
+        default=True,
+        validation_alias=AliasChoices("DESKTOP_OCR_ENABLED"),
+    )
+    desktop_ocr_timeout_seconds: float = Field(
+        default=30.0,
+        validation_alias=AliasChoices("DESKTOP_OCR_TIMEOUT_SECONDS"),
+    )
+    desktop_capture_debug_dir: str = Field(
+        default=".cache/desktop_captures",
+        validation_alias=AliasChoices("DESKTOP_CAPTURE_DEBUG_DIR"),
+    )
+    meeting_transcribe_api_key: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices(
+            "MEETING_TRANSCRIBE_API_KEY",
+            "GLM_OCR_API_KEY",
+            "ZHIPUAI_API_KEY",
+            "ZAI_API_KEY",
+        ),
+    )
+    meeting_transcribe_model: str | None = Field(
+        default="glm-asr-2512",
+        validation_alias=AliasChoices("MEETING_TRANSCRIBE_MODEL"),
+    )
+    meeting_transcribe_enabled: bool = Field(
+        default=True,
+        validation_alias=AliasChoices("MEETING_TRANSCRIBE_ENABLED"),
+    )
+    meeting_transcribe_timeout_seconds: float = Field(
+        default=30.0,
+        validation_alias=AliasChoices("MEETING_TRANSCRIBE_TIMEOUT_SECONDS"),
+    )
+    meeting_capture_debug_dir: str = Field(
+        default=".cache/meeting_captures",
+        validation_alias=AliasChoices("MEETING_CAPTURE_DEBUG_DIR"),
+    )
+    meeting_loopback_sample_rate: int = Field(
+        default=16000,
+        validation_alias=AliasChoices("MEETING_LOOPBACK_SAMPLE_RATE"),
+    )
+    meeting_loopback_default_capture_seconds: float = Field(
+        default=6.0,
+        validation_alias=AliasChoices("MEETING_LOOPBACK_DEFAULT_CAPTURE_SECONDS"),
+    )
+    meeting_loopback_default_chunk_seconds: float = Field(
+        default=5.0,
+        validation_alias=AliasChoices("MEETING_LOOPBACK_DEFAULT_CHUNK_SECONDS"),
+    )
+    meeting_loopback_preferred_speaker_name: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("MEETING_LOOPBACK_PREFERRED_SPEAKER_NAME"),
+    )
 
     @property
     def sqlalchemy_server_uri(self) -> str:
@@ -59,4 +117,3 @@ class Settings(BaseSettings):
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
     return Settings()
-

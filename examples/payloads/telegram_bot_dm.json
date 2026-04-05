@@ -1,0 +1,20 @@
+{
+  "_meta": {
+    "connector_name": "telegram_bot"
+  },
+  "update_id": 1712217600,
+  "agent_id": "agent_anna",
+  "chat": {
+    "id": "dm_demo_001",
+    "type": "private"
+  },
+  "from": {
+    "id": "user_001",
+    "username": "alice"
+  },
+  "message": {
+    "message_id": 10001,
+    "date": 1712217600,
+    "text": "How was your day? I just got off work."
+  }
+}

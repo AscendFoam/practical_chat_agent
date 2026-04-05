@@ -1,0 +1,25 @@
+{
+  "_meta": {
+    "connector_name": "feishu_bot"
+  },
+  "agent_id": "agent_anna",
+  "header": {
+    "event_type": "im.message.receive_v1"
+  },
+  "event": {
+    "sender": {
+      "sender_id": {
+        "open_id": "ou_demo_user_001"
+      },
+      "name": "alice"
+    },
+    "message": {
+      "message_id": "om_demo_10001",
+      "chat_id": "oc_demo_chat_001",
+      "chat_type": "p2p",
+      "message_type": "text",
+      "content": "{\"text\":\"Are you free to chat tonight?\"}",
+      "create_time": "1712217600000"
+    }
+  }
+}

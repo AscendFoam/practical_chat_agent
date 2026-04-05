@@ -42,6 +42,74 @@ class InboundEvent(BaseModel):
     raw: dict[str, Any] = Field(default_factory=dict)
 
 
+class InboundConnectorResult(BaseModel):
+    connector_name: str
+    agent_id: str
+    event: InboundEvent
+    raw_payload: dict[str, Any] = Field(default_factory=dict)
+
+
+class DesktopCapturedMessage(BaseModel):
+    message_id: str = Field(default_factory=lambda: new_id("desktop_msg"))
+    sender_name: str | None = None
+    text: str | None = None
+    occurred_at: datetime | None = None
+    display_time: str | None = None
+    bubble_side: str | None = None
+    bubble_type: str | None = None
+    quoted_text: str | None = None
+    quoted_sender_name: str | None = None
+    raw: dict[str, Any] = Field(default_factory=dict)
+
+
+class DesktopScanResult(BaseModel):
+    connector_name: str
+    platform: Platform
+    account_id: str
+    conversation_hint: str | None = None
+    messages: list[DesktopCapturedMessage] = Field(default_factory=list)
+    notes: list[str] = Field(default_factory=list)
+
+
+class OcrTextBlock(BaseModel):
+    text: str
+    page_index: int = 0
+    label: str | None = None
+    bbox: list[float] = Field(default_factory=list)
+
+
+class OcrDocumentResult(BaseModel):
+    provider: str
+    model: str
+    full_text: str = ""
+    markdown_text: str | None = None
+    blocks: list[OcrTextBlock] = Field(default_factory=list)
+    raw: dict[str, Any] = Field(default_factory=dict)
+
+
+class MeetingTranscriptSegment(BaseModel):
+    segment_id: str = Field(default_factory=lambda: new_id("meeting_seg"))
+    speaker_name: str | None = None
+    text: str
+    display_time: str | None = None
+    started_at: datetime | None = None
+    ended_at: datetime | None = None
+    is_final: bool = True
+    raw: dict[str, Any] = Field(default_factory=dict)
+
+
+class MeetingLivePreview(BaseModel):
+    connector_name: str
+    platform: Platform = Platform.TENCENT_MEETING
+    account_id: str
+    meeting_title: str | None = None
+    capture_backend: str | None = None
+    transcription_backend: str | None = None
+    notes: list[str] = Field(default_factory=list)
+    detected_window: dict[str, Any] = Field(default_factory=dict)
+    segments: list[MeetingTranscriptSegment] = Field(default_factory=list)
+
+
 class AgentProfile(BaseModel):
     agent_id: str
     display_name: str
@@ -105,4 +173,3 @@ class AuditLogEntry(BaseModel):
     status: str
     details: dict[str, Any] = Field(default_factory=dict)
     created_at: datetime = Field(default_factory=utc_now)
-
