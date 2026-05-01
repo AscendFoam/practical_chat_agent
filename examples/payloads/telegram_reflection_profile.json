@@ -1,0 +1,20 @@
+{
+  "_meta": {
+    "connector_name": "telegram_bot"
+  },
+  "update_id": 1712217603,
+  "agent_id": "agent_anna",
+  "chat": {
+    "id": "dm_profile_003",
+    "type": "private"
+  },
+  "from": {
+    "id": "user_profile_003",
+    "username": "nora"
+  },
+  "message": {
+    "message_id": 10004,
+    "date": 1712217603,
+    "text": "I've been feeling pretty anxious about work lately, but I care a lot about doing meaningful things."
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "_meta": {
+    "connector_name": "telegram_bot"
+  },
+  "update_id": 1712217604,
+  "agent_id": "agent_anna",
+  "chat": {
+    "id": "dm_profile_001",
+    "type": "private"
+  },
+  "from": {
+    "id": "user_profile_001",
+    "username": "mika"
+  },
+  "message": {
+    "message_id": 10005,
+    "date": 1712217604,
+    "text": "Do you know any good places for a quiet weekend brunch?"
+  }
+}

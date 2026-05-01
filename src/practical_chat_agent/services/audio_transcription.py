@@ -16,11 +16,15 @@ class ZhipuAudioTranscriptionService:
         model: str | None,
         timeout_seconds: float = 30.0,
         enabled: bool = False,
+        empty_retry_enabled: bool = True,
+        empty_retry_prompt: str | None = None,
     ) -> None:
         self.api_key = (api_key or "").strip() or None
         self.model = (model or "").strip() or None
         self.timeout_seconds = timeout_seconds
         self.enabled = enabled
+        self.empty_retry_enabled = empty_retry_enabled
+        self.empty_retry_prompt = (empty_retry_prompt or "").strip() or None
 
     def availability_reason(self) -> str | None:
         if not self.enabled:

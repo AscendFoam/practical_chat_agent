@@ -82,6 +82,30 @@ class MemoryModel(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
 
+class MemoryProfileModel(Base):
+    __tablename__ = "memory_profiles"
+
+    profile_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    agent_id: Mapped[str] = mapped_column(
+        String(64),
+        ForeignKey("agents.agent_id", ondelete="CASCADE"),
+        index=True,
+    )
+    user_id: Mapped[str] = mapped_column(String(128), index=True)
+    source_event_id: Mapped[str | None] = mapped_column(
+        String(64),
+        ForeignKey("events.event_id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    backend: Mapped[str] = mapped_column(String(128), index=True)
+    model: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    summary: Mapped[str | None] = mapped_column(Text(), nullable=True)
+    memory_count: Mapped[int]
+    snapshot_payload: Mapped[dict[str, Any]] = mapped_column(JSON)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+
+
 class AuditLogModel(Base):
     __tablename__ = "audit_logs"
 
@@ -98,6 +122,117 @@ class AuditLogModel(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
 
 
+class ActionExecutionModel(Base):
+    __tablename__ = "action_executions"
+
+    action_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    agent_id: Mapped[str] = mapped_column(
+        String(64),
+        ForeignKey("agents.agent_id", ondelete="CASCADE"),
+        index=True,
+    )
+    event_id: Mapped[str | None] = mapped_column(
+        String(64),
+        ForeignKey("events.event_id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    kind: Mapped[str] = mapped_column(String(32), index=True)
+    status: Mapped[str] = mapped_column(String(32), index=True)
+    platform: Mapped[str] = mapped_column(String(32), index=True)
+    channel_id: Mapped[str] = mapped_column(String(128), index=True)
+    channel_type: Mapped[str] = mapped_column(String(32))
+    account_id: Mapped[str] = mapped_column(String(128), index=True)
+    actor_id: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
+    connector_name: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    message_text: Mapped[str | None] = mapped_column(Text(), nullable=True)
+    requires_approval: Mapped[bool]
+    policy_decision: Mapped[dict[str, Any]] = mapped_column(JSON)
+    delivery_connector_name: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    delivery_response: Mapped[dict[str, Any]] = mapped_column(JSON)
+    error_message: Mapped[str | None] = mapped_column(Text(), nullable=True)
+    metadata_payload: Mapped[dict[str, Any]] = mapped_column(JSON)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
+
+
+class MeetingSessionModel(Base):
+    __tablename__ = "meeting_sessions"
+
+    session_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    connector_name: Mapped[str] = mapped_column(String(64), index=True)
+    platform: Mapped[str] = mapped_column(String(32), index=True)
+    account_id: Mapped[str] = mapped_column(String(128), index=True)
+    meeting_key: Mapped[str] = mapped_column(String(255), index=True)
+    meeting_title: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    channel_id: Mapped[str] = mapped_column(String(255), index=True)
+    audio_source: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    capture_backend: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    capture_device_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    transcription_backend: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    detected_window: Mapped[dict[str, Any]] = mapped_column(JSON)
+    notes: Mapped[list[str]] = mapped_column(JSON)
+    latest_summary: Mapped[str | None] = mapped_column(Text(), nullable=True)
+    latest_key_points: Mapped[list[str]] = mapped_column(JSON)
+    latest_action_items: Mapped[list[str]] = mapped_column(JSON)
+    latest_follow_up_questions: Mapped[list[str]] = mapped_column(JSON)
+    last_segment_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+
+
+class MeetingSegmentModel(Base):
+    __tablename__ = "meeting_segments"
+
+    segment_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    session_id: Mapped[str] = mapped_column(
+        String(64),
+        ForeignKey("meeting_sessions.session_id", ondelete="CASCADE"),
+        index=True,
+    )
+    connector_name: Mapped[str] = mapped_column(String(64), index=True)
+    platform: Mapped[str] = mapped_column(String(32), index=True)
+    account_id: Mapped[str] = mapped_column(String(128), index=True)
+    chunk_index: Mapped[int | None] = mapped_column(nullable=True)
+    speaker_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    display_time: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    text_body: Mapped[str] = mapped_column(Text())
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True, index=True)
+    ended_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    audio_source: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    capture_device_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    saved_path: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    raw_payload: Mapped[dict[str, Any]] = mapped_column(JSON)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+
+
+class MeetingMinutesModel(Base):
+    __tablename__ = "meeting_minutes"
+
+    minutes_id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    session_id: Mapped[str] = mapped_column(
+        String(64),
+        ForeignKey("meeting_sessions.session_id", ondelete="CASCADE"),
+        index=True,
+    )
+    template: Mapped[str] = mapped_column(String(32), index=True)
+    title: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    backend: Mapped[str] = mapped_column(String(128), index=True)
+    model: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    status: Mapped[str] = mapped_column(String(32), index=True)
+    output_path: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    markdown_body: Mapped[str] = mapped_column(Text())
+    overview: Mapped[str | None] = mapped_column(Text(), nullable=True)
+    background: Mapped[list[str]] = mapped_column(JSON)
+    conclusions: Mapped[list[str]] = mapped_column(JSON)
+    action_items: Mapped[list[str]] = mapped_column(JSON)
+    risks: Mapped[list[str]] = mapped_column(JSON)
+    raw_excerpt_ids: Mapped[list[str]] = mapped_column(JSON)
+    raw_payload: Mapped[dict[str, Any]] = mapped_column(JSON)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+
+
 def create_schema(engine: Engine) -> None:
     Base.metadata.create_all(bind=engine)
-

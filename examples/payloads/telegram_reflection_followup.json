@@ -1,0 +1,20 @@
+{
+  "_meta": {
+    "connector_name": "telegram_bot"
+  },
+  "update_id": 1712217605,
+  "agent_id": "agent_anna",
+  "chat": {
+    "id": "dm_profile_003",
+    "type": "private"
+  },
+  "from": {
+    "id": "user_profile_003",
+    "username": "nora"
+  },
+  "message": {
+    "message_id": 10006,
+    "date": 1712217605,
+    "text": "I'm still feeling a bit overwhelmed today."
+  }
+}
