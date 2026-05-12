@@ -27,7 +27,7 @@
 - `src/practical_chat_agent/connectors/desktop/wechat_desktop.py`
 - `src/practical_chat_agent/connectors/delivery/telegram_bot.py`
 
-注意：最近一次 git 提交是 2026-05-01。`docs/stage_progress_summary.md` 的更新日期是 2026-04-20，因此它已经部分过时。不要只按该总结判断当前进度。
+注意：最近一次较大规模 git 提交是 2026-05-01。`docs/stage_progress_summary.md` 的更新日期是 2026-04-20，因此它已经部分过时。不要只按该总结判断当前进度。
 
 根据 2026-05-01 的 handoff 和代码现状，当前真实状态大致是：
 
