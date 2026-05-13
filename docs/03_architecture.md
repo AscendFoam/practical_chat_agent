@@ -2,131 +2,128 @@
 
 更新日期：2026-05-13
 
-## 1. 当前基础
+## 1. 新架构定位
 
-仓库已有的核心结构：
-
-```text
-src/practical_chat_agent/
-  app/                 Typer CLI, Settings, AppContainer
-  core/                enums, Pydantic models, event bus
-  storage/             repository interfaces and MySQL implementation
-  connectors/
-    inbound/           Telegram, Feishu payload ingestion
-    desktop/           WeChat desktop scan and OCR fallback
-    delivery/          Delivery abstraction and Telegram delivery
-    meeting/           Tencent Meeting connector
-  services/            chat context, suggestions, memory, policy, delivery, meetings
-  runtime/             AgentRuntime turn loop
-  ui/                  meeting live caption window
-```
-
-Important existing flow:
+项目主线切换为：
 
 ```text
-Inbound payload or desktop scan
-  -> InboundEvent
-  -> AgentRuntime
-  -> EventRepository
-  -> MemoryRetrievalService
-  -> ChatContextAssembler
-  -> ChatMemoryExtractionService
-  -> ChatSuggestionService
-  -> ActionExecutionRecord
-  -> PolicyEngine
-  -> ActionDeliveryService
+WeFlow JSONL export
+  -> offline distillation
+  -> evidence-backed memory and contact skill
+  -> relationship-aware reply planning
 ```
 
-## 2. Target WeChat-first Flow
+旧的 iLink/微信扫描代码与任务不删除，但暂不作为当前主线。
+
+## 2. 数据流
 
 ```text
-WeChat iLink new message
-  -> WeChatIlinkInboundConnector
-  -> WeChatIngestionService
-  -> raw_message_payloads
-  -> dedupe
-  -> events
-  -> memory extraction
-  -> contact skill update candidates
-  -> reply suggestion
-  -> action record
-  -> policy
-  -> approval
-  -> WeChatIlinkDeliveryConnector
+private/chat_history/*.jsonl
+  -> ChatHistoryProfiler
+  -> WeFlowJsonlAdapter
+  -> NormalizedEvent
+  -> ConversationChunk
+  -> ChunkSummary
+  -> MemoryFactCandidate
+  -> ContactSkillCandidate
+  -> Review artifact
+  -> Approved skill/memory store
+  -> ReplyPlanner
 ```
 
-T00 POC 已确认的最低事实：
-
-- SDK 包名：`wechatbot-sdk`
-- 已验证版本：`0.2.1`
-- Python import：`from wechatbot import WeChatBot`
-- 登录入口：`login()` 可触发二维码 URL 回调
-
-这些事实只证明 SDK 可以启动到扫码阶段，不代表已完成微信主仓库 connector 设计。
-
-Desktop and import sources should eventually join the same ingestion layer:
+## 3. 计划模块
 
 ```text
-wechat_ilink | wechat_desktop | wechat_import
-  -> normalization
-  -> dedupe
-  -> canonical event
+src/practical_chat_agent/services/chatlog_profile.py
+src/practical_chat_agent/services/chatlog_ingestion.py
+src/practical_chat_agent/services/conversation_chunking.py
+src/practical_chat_agent/services/contact_skill.py
+src/practical_chat_agent/services/reply_planner.py
+src/practical_chat_agent/exporters/contact_skill_markdown.py
 ```
 
-## 3. Connector Boundaries
+第一阶段也可以先用 CLI + service，不必立即新增数据库表。
 
-- `wechat_ilink`: real-time or near-real-time message source after SDK POC passes.
-- `wechat_desktop`: visible-session scan, OCR fallback, and historical補录.
-- `wechat_import`: user-provided exports or manually forwarded history.
+## 4. 复用现有能力
 
-During Sprint 1, `Platform.WECHAT` can remain the platform enum. The connector source should be carried in `event.raw["connector_name"]` until a schema migration adds a first-class column.
+可复用：
 
-## 4. Persistence Boundaries
+- `core.models.InboundEvent` 的思想，但离线 normalized event 需要更明确的 `source_ref`、`sender_role` 和 `contact_id`。
+- `MemoryFact` 作为后续入库目标，但离线 MVP 可先输出 JSONL。
+- `ChatMemoryExtractionService` 的 JSON schema/prompt 风格。
+- `ChatContextAssembler` 的上下文压缩思想。
+- `PolicyEngine` 对 outbound 的保守边界，后续迁移到 reply planner。
 
-Existing persistence should be reused:
+暂不复用或不作为主线：
 
-- `events`: canonical normalized event.
-- `memories`: long-term facts and profile facets.
-- `action_executions`: reviewable outbound action records.
-- `audit_logs`: important state changes and delivery attempts.
+- `WeChatDesktopConnector`
+- iLink SDK sandbox
+- 微信 delivery connector
+- trigger/scheduled actions
 
-Planned WeChat-specific additions:
+## 5. 存储策略
 
-- `platform_accounts`
-- `platform_sessions`
-- `conversation_context_tokens`
-- `raw_message_payloads`
-- `media_assets`
-- `ingest_runs`
-- `contacts`
-- `contact_skills`
-- `trigger_rules`
-- `scheduled_actions`
-
-Until Alembic exists, additive tables are safer than changing existing columns.
-
-## 5. Safety Architecture
-
-Default safety posture:
-
-- inbound processing can run unattended only after connector stability is proven;
-- generated replies are local action records;
-- real delivery requires `PolicyEngine` and approval;
-- group chats default to draft-only;
-- active/proactive triggers are forbidden before Sprint 6;
-- ContactSkill is private context, not a persona impersonation mechanism.
-
-## 6. Configuration Principles
-
-All WeChat iLink features must be disabled by default:
+### 私密产物
 
 ```text
-WECHAT_ILINK_ENABLED=false
-WECHAT_ILINK_CREDENTIAL_DIR=.cache/wechat_ilink
-WECHAT_ILINK_AUTO_RELOGIN=false
-WECHAT_ILINK_SAVE_RAW_PAYLOAD=true
+private/chat_history/
+private/distilled/
+private/review_workbench/
 ```
 
-Workers should avoid importing optional SDK packages at module import time. Optional SDK loading should happen behind connector initialization or command execution so the existing CLI remains usable without the SDK.
+这些路径不提交。
 
-T01 起还需要确认 `wechatbot-sdk 0.2.1` 对 Python 3.11/3.12 的兼容边界。主仓库当前仍应避免把该 SDK 作为强依赖加入 `pyproject.toml`。
+### 可提交合约与脱敏样例
+
+```text
+docs/data_contracts/
+examples/payloads/weflow_redacted_sample.jsonl
+tests/fixtures/weflow_redacted_sample.jsonl
+```
+
+这些文件不得包含真实姓名、手机号、地址、完整原文或可识别联系人。
+
+## 6. ContactSkill 与记忆关系
+
+ContactSkill 是面向“如何与此人沟通”的关系技能，不是联系人人格模拟。
+
+```text
+ContactSkill
+  relationship_state
+  communication_style
+  boundaries
+  preferred_topics
+  avoid_topics
+  reply_strategy
+  evidence_refs
+  review status
+```
+
+MemoryFacts 是更原子化的事实：
+
+```text
+MemoryFact
+  semantic / episodic / relationship / procedural / reflection
+  claim
+  evidence_refs
+  status
+  conflicts_with
+```
+
+运行时应只注入：
+
+- 当前联系人 approved ContactSkill brief。
+- 最近对话窗口。
+- 与当前话题相关的少量 approved memory facts。
+- policy/boundary constraints。
+
+## 7. 安全架构
+
+- 原文不进 git。
+- 可提交 fixture 必须人工脱敏。
+- LLM 输出必须通过 JSON schema 与 evidence refs 校验。
+- 无 evidence 的 claim 直接 rejected 或要求重试。
+- ContactSkill 默认 candidate，需要人工 approve。
+- 回复 planner 只产草稿，不发送。
+- 禁止生成“对方会怎么说”的角色扮演输出。
+

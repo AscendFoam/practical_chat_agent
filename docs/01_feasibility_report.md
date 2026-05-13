@@ -4,68 +4,67 @@
 
 ## 1. 问题定义
 
-目标是把现有多平台 chat/meeting assistant 原型推进为微信优先的社交 agent 工程实验闭环。核心问题不是“能否做一个聊天机器人”，而是能否在个人微信场景下安全、稳定、可审计地完成：
+目标是基于 WeFlow 已导出的私密聊天记录，构建长期关系感知 chat agent 的离线蒸馏与运行时基础。
 
-- 新消息 ingestion。
-- 记忆与联系人 Skill。
-- 回复建议。
-- 人工审批后的受控投递。
+核心挑战：
 
-## 2. 相关工作矩阵
+- 原始 JSONL 字段和消息类型是否可稳定解析。
+- 如何避免把一次性聊天误判为长期关系规律。
+- 如何让每条记忆和 ContactSkill 结论都有证据链。
+- 如何保护 `private/chat_history` 中的敏感内容。
+- 如何在回复生成时利用关系记忆而不冒充联系人。
 
-| 方向 | 优点 | 局限 | 本项目采用方式 |
+## 2. 技术路线对比
+
+| 方案 | 优点 | 问题 | 当前判断 |
 | --- | --- | --- | --- |
-| Telegram/飞书官方 bot | API 稳定、发送安全、易测试 | 不覆盖个人微信 | 保留为回归和对照链路 |
-| 微信桌面扫描/OCR | 不依赖非官方网络 SDK，可补可见历史 | 实时性和稳定性有限 | 作为历史补录和兜底来源 |
-| WeChatBot/iLink SDK | 可能支持个人微信增量消息与 reply | 稳定性、风控和接口变化未知 | 先仓库外 POC，再决定接入 |
-| 长期记忆助手 | 能提升持续对话体验 | 容易产生错记忆和隐私风险 | 必须保留证据、纠错、冻结、删除 |
-| 自动发消息 agent | 闭环完整 | 误发送代价高 | 默认草稿/审批，不做无人值守自动发送 |
+| 继续 iLink/扫码/实时接入 | 可实时收发 | T01 BLOCK，平台风险高，用户已不需要 | 暂停 |
+| 微信桌面扫描/OCR | 已有部分代码 | 读取记录稳定性差，用户已有 WeFlow 导出 | 暂停 |
+| 微调/LoRA | 可学语气 | 难审计、难删除、易泄露隐私 | 不做 |
+| RAG 直接检索原文 | 证据强 | 容易把大量原文塞入上下文，缺关系抽象 | 后续作为组件 |
+| Memory + ContactSkill | 可解释、可审计、可回滚 | 需要设计抽取和 review 流程 | 当前主线 |
+| 离线蒸馏 MVP | 风险低、最快验证核心假设 | 初期不是实时 agent | 当前第一阶段 |
 
-## 3. 最像的 5 个已有工作
+## 3. 可差异化点
 
-1. 官方 bot 平台 assistant：稳定但平台受限。
-2. 桌面自动化聊天助手：可接近真实 IM，但依赖 UI 状态。
-3. 私人知识库/记忆助手：擅长记忆和检索，但没有发送闭环。
-4. CRM/contact intelligence 工具：擅长联系人摘要，但不适合个人社交隐私。
-5. 自动回复机器人：闭环强，但常缺少审批、policy 和可审计性。
+- 本地优先处理 WeFlow 导出，不依赖社交平台实时接口。
+- 用 evidence refs 约束所有事实和关系判断。
+- ContactSkill 用于辅助用户沟通，不用于复刻或冒充联系人。
+- 先做审阅版 JSON/Markdown，再接数据库和运行时。
+- 用户反馈进入记忆生命周期，而不是训练模型权重。
 
-## 4. 可差异化点
+## 4. MVP 实验
 
-- 微信优先，但不把不稳定 SDK 直接污染主仓库。
-- 所有原始事件不可变，记忆、Skill 和建议保留证据链。
-- 默认 human-in-the-loop，真实发送经 `PolicyEngine` 与人工审批。
-- `WeChatDesktopConnector`、iLink、手工导入三类来源最终统一 ingestion。
-- ContactSkill 只辅助用户理解和回复，不冒充联系人。
+输入：
 
-## 5. MVP 实验
+- `private/chat_history/` 中的 WeFlow JSONL。
 
-MVP 分两层：
+输出：
 
-1. Gate 0：仓库外 iLink POC，验证登录、收消息、reply、媒体和 `context_token`。
-2. Gate 1：在主仓库中先用 fixture mapper 接入，再逐步加入真实 SDK adapter，确保关闭微信配置不影响既有功能。
+- `docs/data_contracts/weflow_schema_profile.md`
+- `docs/data_contracts/normalized_event_contract.md`
+- `private/distilled/<run_id>/normalized_events.jsonl`
+- `private/distilled/<run_id>/chunks.jsonl`
+- `private/distilled/<run_id>/memory_facts.jsonl`
+- `private/distilled/<run_id>/contact_skill.candidate.json`
+- `private/distilled/<run_id>/contact_skill.review.md`
 
-当前 Gate 0 进展：
+## 5. 风险
 
-- T00 已验证 SDK 安装、导入、构造和二维码登录入口。
-- 尚未验证扫码后凭据落盘、重启恢复、收消息、reply、媒体和 `context_token`。
-- reviewer 对 T00 给出 `PASS`，两个 non-blocking issue 已接受为 T01 输入项。
+- 原始导出格式不稳定或字段含义不明。
+- sender_role/direction 判断错误导致事实归因错位。
+- LLM 对关系状态过度推断。
+- 私密内容泄露到 docs/examples/tests。
+- 初期过早引入向量库、UI 或复杂 agent 框架，拖慢验证。
 
-## 6. 风险
+## 6. Go / No-Go 判断
 
-- iLink SDK 不稳定或接口变化。
-- 个人微信账号风控。
-- 会话 token 过期导致误发送或发送失败。
-- 记忆或 ContactSkill 保存敏感原文。
-- Worker 越界实现主动发送或 vendor SDK。
-- 目前缺少 Alembic，表结构扩展需要谨慎。
-
-## 7. Go / No-Go 判断
-
-当前判断：`Go with constraints`。
+当前判断：`Go with offline-first constraints`。
 
 约束：
 
-- Sprint 0 不改主仓库业务代码。
-- Sprint 1 先做 fixture mapper 和 disabled-by-default 配置。
-- 真实发送必须等 Sprint 5，且默认审批。
-- 主动触发必须等半自动发送稳定后才进入。
+- T100 不处理原文语义，只做 schema profile 与合约。
+- M1 只选 1 个联系人或小样本做 distillation MVP。
+- M1 不微调、不自动发送、不接实时平台。
+- 所有可提交 fixture 必须脱敏。
+

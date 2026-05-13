@@ -4,122 +4,129 @@
 
 ## 1. 评价目标
 
-验证项目是否从“功能原型”推进到“微信主线 chat agent 工程实验闭环”。评价重点不是模型回答是否好听，而是数据、记忆、联系人理解和发送链路是否可靠、安全、可审计。
+新的评价目标是验证：WeFlow 导出的聊天记录能否被安全、稳定、可审计地蒸馏为长期关系感知 chat agent 所需的结构化资产。
 
-## 2. Gate 评价
+评价重点：
 
-### Gate 0: iLink 是否进入主仓库
+- 数据是否能稳定解析。
+- 隐私是否被保护。
+- 事实和关系判断是否有 evidence refs。
+- ContactSkill 是否有用但不冒充联系人。
+- 回复 planner 是否能有分寸地使用记忆。
+
+## 2. Milestone Gate
+
+### Gate M0: WeFlow 数据合约
 
 必须满足：
 
-- sandbox 可扫码登录。
-- 可收到至少 10 条测试消息。
-- 可解析文本、时间、发送者、会话 ID 或等价字段。
-- 可完成文本 reply。
-- `context_token` 或等价机制的存在、过期和恢复行为记录清楚。
-- 媒体能力至少完成元数据验证。
-- 风险记录完整。
+- 能读取 `private/chat_history` 的 JSONL 文件并输出字段统计。
+- 不把真实聊天原文写入 docs。
+- 明确 normalized event schema。
+- 至少生成一个脱敏 fixture。
+- 明确 source_ref、event_id、sender_role、timestamp、message_type 的规则。
 
 结论：`Allow`、`Conditional` 或 `Block`。
 
-当前进展：
-
-- T00 已通过 review，只覆盖 SDK 安装、导入、构造和二维码登录入口。
-- T01 必须补齐真实扫码、凭据落盘、重启复用和 session 失效验证。
-- T00 不能单独作为 Gate 0 通过证据。
-
-### Gate 1: 是否开启主仓库微信监听
+### Gate M1: 离线蒸馏 MVP
 
 必须满足：
 
-- fixture mapper 测试通过。
-- session/token 表或仓储可写可读。
-- `wechat-ilink-listen --limit n` 不影响 Telegram、飞书、会议和 action CLI。
-- 微信配置关闭时项目仍可启动。
+- 对一个联系人或小样本生成 chunks。
+- chunk summaries 输出 JSON 且可追溯。
+- memory facts 全部带 evidence refs。
+- ContactSkill candidate 有 review Markdown。
+- 人工抽查至少 5 条 fact，证据能命中原始事件。
+- 无私密原文进入可提交目录。
 
-### Gate 2: 是否启用 ContactSkill 注入
-
-必须满足：
-
-- Skill 字段完整。
-- 证据引用可追溯。
-- 可 review/approve/export。
-- 脱敏检查通过。
-- 注入后建议质量提升，且不机械复述。
-
-### Gate 3: 是否开启微信真实发送
+### Gate M2: Memory / Skill Store
 
 必须满足：
 
-- 文本发送端到端成功。
-- 审批前不会发送。
-- token 失效时状态清楚。
-- policy 能处理群聊、安静时段、高频和 avoid topics。
-- 审计日志完整。
+- evidence validator 能拦截不存在或不支持 claim 的 refs。
+- ContactSkill 有 candidate/approved/rejected/frozen/archived 状态。
+- rejected/frozen 不进入 prompt。
+- 能导出 JSON 和 Markdown review artifact。
 
-### Gate 4: 是否开启主动触发
+### Gate M3: Relationship Reply Planner
 
 必须满足：
 
-- 半自动发送稳定。
-- trigger 产生的 action 默认审批或草稿。
-- 可一键禁用。
-- quiet-hours 和退让规则可验证。
+- 输出结构化 ReplyPlan。
+- 至少 3 个候选草稿。
+- 每个草稿有 rationale、引用的 skill/memory 和 risk flags。
+- 不冒充联系人，不生成“对方会怎么说”的角色扮演。
+- 对敏感/边界场景给出保守选项。
+
+### Gate M4: Feedback Loop
+
+必须满足：
+
+- accept/edit/reject/boundary feedback 可记录。
+- edit diff 能生成可审阅的 preference/boundary proposal。
+- 支持 skill/memory version diff、rollback、freeze。
+
+### Gate M5: Hardening
+
+必须满足：
+
+- parser/chunker/evidence validator 有自动化测试。
+- privacy leakage smoke test 通过。
+- 文档、任务板、handoff 与代码状态一致。
 
 ## 3. 指标
 
-### 接入侧
+### 数据层指标
 
-- 登录成功率。
-- 连续 poll 运行时长。
-- 新消息漏收率。
-- 重复消息率。
-- token 失效率。
-- 媒体元数据完整率。
+- JSONL 行解析成功率。
+- timestamp 可解析率。
+- sender_role/direction 判定率。
+- contact_id/conversation_id 稳定率。
+- message_type 覆盖率。
+- 脱敏 fixture 泄漏次数，目标为 0。
 
-### 记忆侧
+### 蒸馏层指标
 
-- 有效记忆写入率。
-- 错误记忆率。
-- 证据可追溯率。
-- 冻结/归档后误用次数。
-- 用户纠错后生效时间。
+- chunk 边界人工可接受率。
+- MemoryFact evidence 命中率。
+- Claim 支持率：证据是否真的支持 claim。
+- 幻觉率：无证据或证据不支持的 claim 比例。
+- ContactSkill 字段完整率。
+- 人工 review 修改量。
 
-### ContactSkill 侧
+### 回复层指标
 
-- 字段完整率。
-- 人工审核通过率。
-- 脱敏违规次数。
-- Skill 注入后的建议自然度。
-- 建议二次编辑距离。
+- 回复自然度。
+- 边界遵守率。
+- 过度主动/过度亲密次数。
+- 引用记忆解释质量。
+- 用户二次编辑距离。
 
-### 发送侧
-
-- 草稿到审批通过率。
-- 审批后发送成功率。
-- policy 阻断准确率。
-- 误发送次数，目标为 0。
-- 群聊草稿降级率。
-
-## 4. 验证分层
-
-- 单元测试：raw payload mapper、dedupe、policy、token 状态、schema roundtrip。
-- fixture 集成测试：脱敏微信 payload replay 到 runtime。
-- 手工真实验证：只使用测试联系人和测试内容。
-- 里程碑审查：每个 milestone 结束由 reviewer 产出 milestone review。
-
-T01 额外验证要求：
-
-- 明确记录 Python 版本与 SDK 兼容性观察。
-- 明确记录 SDK 文档 URL、示例代码和本地版本是否一致。
-
-## 5. 不合格判据
+## 4. 不合格判据
 
 任一情况视为失败或暂停：
 
-- 文档声称能力完成，但没有验证证据。
-- 关闭微信配置后破坏既有功能。
-- 真实发送绕过审批。
-- 未经脱敏保存敏感联系人原文到 ContactSkill。
-- 主动触发在 M6 前出现。
-- SDK vendor 进入主仓库但 Gate 0 未通过。
+- 私密聊天原文进入 `docs/`、`examples/`、`tests/` 或 git 可提交区域。
+- LLM 输出没有 evidence refs。
+- ContactSkill 出现无证据人格判断。
+- 系统试图冒充联系人。
+- 早期阶段引入微调、自动发送或实时社交平台接入。
+- 用户人工 review 认为 ContactSkill 与真实关系认知严重不符。
+
+## 5. T100 验证要求
+
+T100 只做数据合约，不做语义蒸馏。
+
+必须输出：
+
+- `docs/data_contracts/weflow_schema_profile.md`
+- `docs/data_contracts/normalized_event_contract.md`
+- 一个脱敏 sample fixture 或明确说明为何暂不生成。
+
+禁止输出：
+
+- 真实联系人姓名。
+- 完整聊天原文。
+- 原始文件名中可识别的联系人信息。
+- 手机号、地址、身份证、账号 token 等敏感信息。
+

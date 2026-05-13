@@ -6,40 +6,43 @@
 
 | ID | 风险 | 影响 | 当前缓解 |
 | --- | --- | --- | --- |
-| R001 | WeChatBot/iLink SDK 无法稳定登录或收消息 | 微信主线无法进入主仓库 | Sprint 0 仓库外 POC，Gate 0 阻断 |
-| R002 | 个人微信账号风控或平台风险 | 账号安全风险 | 只用测试账号/测试联系人，禁止绕过加密、hook、注入 |
-| R003 | `context_token` 不可用或过期不可控 | reply/send 失败或误路由 | Sprint 0 明确记录 token 行为，M1 建 token 表 |
-| R004 | Worker 提前 vendor SDK 或实现真实发送 | 主仓库污染和误发送风险 | `AGENTS.md` 与任务包禁止，review 阻断 |
-| R005 | 记忆和 ContactSkill 保存敏感原文 | 隐私风险 | 证据引用、脱敏、review/approve 后才能注入 |
-| R006 | 目前缺少 Alembic migration | schema 演进风险 | M1/M2 优先 additive tables，M7 引入 migration |
-| R007 | 关闭微信功能后破坏既有 Telegram/飞书/会议 | 回归风险 | 每个主仓库任务都要求 disabled-by-default 验证 |
-| R008 | 主动触发变成无人值守自动聊天 | 社交和安全风险 | M6 前禁止主动触发，M6 默认审批草稿 |
-| R009 | T00 只在仓库外 `Python 3.12.7` sandbox 验证了安装与二维码阶段，尚未证明目标运行环境和登录后会话恢复稳定 | 可能在 T01/T02 暴露环境差异或会话持久化问题 | 保持主仓库零侵入，T01 先完成扫码、凭据落盘、重启复用和 Python 版本兼容观察 |
+| R001 | WeFlow JSONL 字段结构与预期不一致 | parser 和 normalized event 合约不稳定 | T100 先做 schema profiling，不直接实现蒸馏 |
+| R002 | 私密聊天内容泄露到可提交目录 | 严重隐私风险 | `private/` 受 `.gitignore` 保护；T100 禁止输出原文和真实标识 |
+| R003 | sender_role/direction 判断错误 | 事实归因错位，ContactSkill 失真 | T100 明确方向规则；M1 人工抽查 evidence |
+| R004 | LLM 编造关系判断 | 产生错误记忆和越界回复 | 所有 claim 必须有 evidence refs，validator 拦截无证据输出 |
+| R005 | 单次情绪/聊天被误判为长期模式 | 关系状态过拟合 | M1 区分单次现象与稳定模式，M2 引入 status/review |
+| R006 | 过早引入向量库、UI、实时接入或微调 | 拖慢核心验证 | M0-M1 只做离线 MVP |
+| R007 | ContactSkill 被误用为联系人模拟器 | 冒充/数字克隆风险 | 文档和 planner 明确只辅助用户回复，不模拟联系人 |
+| R008 | 用户手动迁移 docs 后 git 状态复杂 | 误删或覆盖用户文件 | 不 revert 未确认变更，只基于现有路径更新 |
+| R009 | T01 review BLOCK 未修复 | 旧 iLink 路线 Gate 0 不通过 | 用户已决定暂停旧路线，不作为当前阻塞项 |
 
 ## Open Questions
 
 | ID | 问题 | 需要谁回答 | 最晚解决点 |
 | --- | --- | --- | --- |
-| Q002 | sandbox 是否使用测试微信账号，还是用户当前账号？ | 用户/worker | T01 前 |
-| Q003 | `context_token` 是否真实存在，字段名是什么，是否可持久化？ | T02 worker | Gate 0 |
-| Q004 | reply 与主动 send 是否都可用，是否都依赖 token？ | T03 worker | Gate 0 |
-| Q005 | 媒体下载/上传能力最小可用边界是什么？ | T03 worker | Gate 0 |
-| Q006 | 若 iLink 不可行，是否继续强化桌面扫描 + Telegram/飞书闭环？ | 用户/Captain | Gate 0 Block 时 |
-| Q007 | 首个真实微信发送测试联系人是谁？ | 用户 | M5 前 |
-| Q008 | ContactSkill 的脱敏等级默认多严格？ | Captain/用户 | M3 前 |
-| Q009 | `credentials.json` 是在扫码后、确认后还是首次收消息后落盘？重启后是否能直接复用？ | T01 worker | T01 |
-| Q010 | `wechatbot-sdk 0.2.1` 是否明确支持项目常用 Python 3.11，还是仅确认 Python 3.12.7 可用？ | T01 worker | T01 |
-| Q011 | 官方文档 `https://www.wechatbot.dev/en/python` 是否与本地 `wechatbot-sdk 0.2.1` 行为一致？ | T01 worker | T01 |
+| Q100 | WeFlow JSONL 每行核心字段是什么？ | T100 worker | T100 |
+| Q101 | 如何稳定判断 sender_role 是 user/contact/system？ | T100 worker | T100 |
+| Q102 | timestamp 字段格式和时区是什么？ | T100 worker | T100 |
+| Q103 | message_type 覆盖哪些类型：text/image/voice/sticker/system/recalled？ | T100 worker | T100 |
+| Q104 | 是否能生成安全脱敏 fixture？ | T100 worker/reviewer | T100 |
+| Q105 | 第一轮 distillation MVP 选哪个联系人或样本？ | 用户/Captain | T114 前 |
+| Q106 | LLM 抽取使用哪个模型、预算和脱敏策略？ | 用户/Captain | T112 前 |
+| Q107 | ContactSkill review 先用 Markdown 文件还是 CLI？ | Captain | T113 前 |
 
 ## Closed Questions
 
 | ID | 结论 | 关闭依据 |
 | --- | --- | --- |
-| Q001 | SDK 包名为 `wechatbot-sdk`，当前验证版本 `0.2.1`，导入路径为 `from wechatbot import WeChatBot`。 | T00 worker notes + `docs/review/T00_review.md` PASS |
+| Q001 | SDK 包名为 `wechatbot-sdk`，验证版本 `0.2.1`，导入路径为 `from wechatbot import WeChatBot`。 | T00 notes + T00 review |
+| Q002 | 是否继续修微信扫码登录？不继续。 | 用户本轮明确跳过微信聊天记录扫描/SDK路线 |
 
 ## Deferred Items
 
-- Alembic migration：推迟到 M7，除非 M1/M2 schema 变更开始阻碍开发。
-- Feishu delivery connector：当前不是微信主线，除非用户重新要求官方平台 demo。
-- 会议子系统增强：当前暂停作为主线。
-- 朋友圈/动态内容：等 persona、memory、policy 和 delivery 稳定后再讨论。
+- iLink 登录、收消息、reply、媒体和 `context_token` 验证。
+- 微信桌面扫描记录读取。
+- 实时平台接入。
+- 自动发送。
+- 向量数据库和 pgvector。
+- DPO/微调/LoRA。
+- 前端 review UI。
+

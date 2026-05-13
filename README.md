@@ -1,6 +1,6 @@
 # Practical Chat Agent
 
-`practical_chat_agent` is an engineering prototype for a practical social chat agent. The current continuation line is WeChat-first: verify WeChatBot/iLink outside this repository, then connect stable WeChat ingestion, memory, contact skills, and controlled reply delivery into the existing runtime.
+`practical_chat_agent` is an engineering prototype for a practical social chat agent. The current continuation line is offline-first: use WeFlow-exported chat records to build evidence-backed long-term memory, ContactSkill / RelationshipSkill, and relationship-aware reply planning.
 
 ## Current Focus
 
@@ -11,7 +11,7 @@ The source of truth for the next phase is:
 - `docs/07_handoff.md`
 - `docs/08_risks_and_open_questions.md`
 
-The project already has a Python package under `src/practical_chat_agent`, a Typer CLI, MySQL-backed repositories, chat memory/suggestion services, desktop WeChat scanning, meeting support, and a conservative outbound action flow.
+The project already has a Python package under `src/practical_chat_agent`, a Typer CLI, MySQL-backed repositories, chat memory/suggestion services, desktop WeChat scanning, meeting support, and a conservative outbound action flow. The scanning/iLink route is paused; private exported chat logs live under `private/` and must not be committed.
 
 ## Typical Local Commands
 
@@ -27,3 +27,4 @@ $env:PYTHONPATH='src'
 
 Do not print secrets from `.env`. Before editing code, inspect `git status --short` and preserve unrelated user changes.
 
+Do not print or commit chat contents from `private/chat_history/`. Any committed examples or tests must use synthetic or manually redacted fixtures.

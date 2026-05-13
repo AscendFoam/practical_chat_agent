@@ -4,49 +4,57 @@
 
 ## 1. 解决什么问题
 
-用户希望把已有 `practical_chat_agent` 原型继续推进成一个微信优先的个人社交 chat agent。它应能接收微信新消息、理解聊天上下文、维护长期记忆和联系人画像，并在严格审批和 policy 约束下生成或发送回复。
+用户已经通过 WeFlow 导出了微信聊天记录。现在项目要解决的问题是：如何把这些私密、杂乱、长期积累的对话记录，转化为一个本地可控、可审计、具有长期关系感知能力的 chat agent。
+
+这个 agent 的目标不是复刻某个联系人，也不是训练一个数字克隆，而是帮助用户：
+
+- 回忆与某个联系人相关的长期上下文。
+- 理解关系状态、沟通风格和边界。
+- 生成更有分寸、更符合用户意图的回复草稿。
+- 在用户纠错后更新记忆与 ContactSkill。
 
 ## 2. 为什么现在值得做
 
-仓库已经具备可复用底座：统一事件模型、MySQL 仓储、`AgentRuntime`、聊天建议、记忆抽取、微信桌面扫描、Telegram/飞书入站、受控 action/outbound 基础链路和会议子系统。下一阶段不是从零开始，而是把主线收束到“微信数据进入统一智能体闭环”。
+此前 iLink/扫码路线在 T01 被 BLOCK，且用户已明确不再需要微信扫描读取记录。项目现在有更低风险、更直接的数据来源：`private/chat_history/` 下的 WeFlow JSONL 导出。
+
+这使得下一阶段可以绕开平台接入风险，直接验证核心假设：
+
+> 历史对话记录能否被稳定蒸馏为可追溯的 MemoryFacts、ContactSkill 和关系感知回复策略。
 
 ## 3. 最小可验证实验
 
-第一步不是直接改主仓库，而是在仓库外完成 WeChatBot/iLink SDK 隔离 POC：
+MVP：
 
-- 扫码登录。
-- 收到至少 10 条测试消息。
-- 解析消息 ID、联系人/会话 ID、时间、文本和 `context_token` 或等价字段。
-- 完成一次文本 reply。
-- 至少验证媒体元数据读取或明确媒体限制。
-- 形成 `docs/wechat_ilink_poc_notes.md`，给出 Gate 0 进入或暂停结论。
+```text
+WeFlow JSONL
+  -> normalized_events.jsonl
+  -> chunks.jsonl
+  -> chunk_summaries.jsonl
+  -> memory_facts.jsonl
+  -> contact_skill.candidate.json
+  -> contact_skill.review.md
+```
+
+第一步只做 schema profiling 与 normalized event 合约，不做 LLM 抽取。
 
 ## 4. 最相似已有工作
 
-- 官方平台 bot：Telegram/飞书，稳定但不覆盖个人微信。
-- 微信桌面 UI/OCR 扫描：已在仓库中存在，适合可见会话和历史补录，但不适合稳定实时主线。
-- WeChatBot/iLink 类 SDK：可能支持个人微信登录后收发消息，但账号、稳定性、接口变化和平台风险需要先隔离验证。
-- 长期记忆/个人助手类项目：常见问题是记忆无证据、发送越界、自动化过度，本项目必须以证据链和审批流约束。
+- RAG/长期记忆助手：可检索历史，但常缺少关系状态和边界建模。
+- Personal CRM：联系人模型成熟，但多为人工维护。
+- Mem0/Letta/MemoryBank 类记忆系统：记忆层思想可借鉴，但不应早期引入复杂框架。
+- 微调/数字克隆项目：能学风格，但事实不可控、难删除，不适合本项目当前阶段。
 
 ## 5. 失败标准
 
-满足任一条件，应暂停 iLink 主线并回退到桌面扫描或官方平台闭环：
+- 无法从 WeFlow JSONL 稳定解析联系人、时间和方向。
+- 生成的事实没有 evidence refs。
+- ContactSkill 出现无证据的人格判断或冒充倾向。
+- 私密聊天原文被写入可提交目录。
+- 用户 review 后认为 skill 与真实关系认知偏差过大。
 
-- SDK 无法稳定扫码登录或恢复会话。
-- 长轮询漏消息或重复严重，无法建立可靠 ingestion。
-- 无法对测试消息完成受控 reply。
-- `context_token` 或等价会话恢复机制不可用且无安全替代。
-- 账号或平台风险高于可接受范围。
-- Worker 试图在 Sprint 0 直接 vendor SDK 到主仓库。
+## 当前决策
 
-## 当前状态
+`Go to offline distillation MVP`。
 
-当前结论：`Go to isolated POC`。
+暂停 iLink/微信扫描主线，当前唯一任务切到 T100：WeFlow JSONL schema profiling 与 normalized event 合约。
 
-进展：
-
-- T00 已完成并通过 reviewer `PASS`：`wechatbot-sdk 0.2.1` 可在仓库外 sandbox 安装、导入、构造，并能进入二维码登录阶段。
-- Gate 0 尚未通过：仍需完成扫码登录、凭据恢复、收消息、reply、媒体和 `context_token` 验证。
-- 下一唯一任务：T01 登录与 session 生命周期验证。
-
-进入主仓库实现前必须先通过 Gate 0。

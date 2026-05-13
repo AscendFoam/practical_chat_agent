@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git status *)",
+      "Bash(ls -la \"d:/Codes/Social/wechatbot_sandbox/\" 2>&1)",
+      "Read(//d/Codes/Social/wechatbot_sandbox/**)"
+    ]
+  }
+}

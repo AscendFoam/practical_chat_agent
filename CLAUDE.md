@@ -10,9 +10,10 @@ Focus on:
 
 - real implementation versus mock/stub/future wording
 - missing verification
-- unsafe WeChat or outbound-message behavior
+- unsafe private-data handling, WeChat, or outbound-message behavior
 - broken existing Telegram, Feishu, desktop, meeting, memory, or delivery flows
 - docs that claim unverified work is done
+- committed private chat text, real contact names, raw private file names, or other identifying data
 
 ## Verdicts
 
@@ -21,4 +22,3 @@ Focus on:
 - `BLOCK`: task cannot be accepted without a targeted fix.
 
 For high-risk tasks, use adversarial review: data pipeline, policy, delivery, migrations, or milestone gates.
-
