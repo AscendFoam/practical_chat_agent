@@ -1,6 +1,6 @@
 # Eval Protocol
 
-更新日期：2026-05-13
+更新日期：2026-05-14
 
 ## 1. 评价目标
 
@@ -27,6 +27,13 @@
 - 明确 source_ref、event_id、sender_role、timestamp、message_type 的规则。
 
 结论：`Allow`、`Conditional` 或 `Block`。
+
+当前状态：
+
+- T100 已通过 reviewer `PASS`，满足 schema profile、normalized event contract 和脱敏 fixture 的第一步要求。
+- T101 必须补齐隐私脱敏规则、source_ref/raw_ref 规则和红线样例。
+- T102 必须把合约落到只输出 `private/distilled/` 的 normalize CLI。
+- T103 才能给出 M0 总体 Gate 结论。
 
 ### Gate M1: 离线蒸馏 MVP
 
@@ -130,3 +137,19 @@ T100 只做数据合约，不做语义蒸馏。
 - 原始文件名中可识别的联系人信息。
 - 手机号、地址、身份证、账号 token 等敏感信息。
 
+T100 review 状态：`PASS`，见 `docs/review/T100_review.md`。
+
+## 6. T101 验证要求
+
+T101 只做规则与样例，不写代码。
+
+必须输出：
+
+- `docs/data_contracts/privacy_redaction_rules.md`
+- `docs/data_contracts/source_ref_rules.md`
+- 更新后的脱敏 sample fixture，覆盖 source_ref/raw_ref 形态。
+
+禁止输出：
+
+- 真实联系人姓名、真实原始文件名或完整聊天原文。
+- 可反推联系人身份的账号 ID、手机号、地址、token 或媒体路径。

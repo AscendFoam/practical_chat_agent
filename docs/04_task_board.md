@@ -1,6 +1,6 @@
 # Task Board
 
-更新日期：2026-05-13
+更新日期：2026-05-14
 
 ## Board Rules
 
@@ -23,7 +23,7 @@
 
 目标：确认 WeFlow JSONL 可解析，并建立 normalized event 合约和脱敏样例。
 
-- [ ] T100: WeFlow JSONL schema profiling 与 normalized event 合约。任务包：`docs/tasks/M0_weflow_data_contract/T100_schema_profile.md`
+- [x] T100: WeFlow JSONL schema profiling 与 normalized event 合约。review `PASS`。任务包：`docs/tasks/M0_weflow_data_contract/T100_schema_profile.md`
 - [ ] T101: 设计脱敏规则、source_ref 规则和最小红线测试样例。任务包：`docs/tasks/M0_weflow_data_contract/T101_privacy_source_refs.md`
 - [ ] T102: 实现 WeFlow adapter 的最小 normalize CLI。任务包：`docs/tasks/M0_weflow_data_contract/T102_minimal_normalize_cli.md`
 - [ ] T103: M0 review，确认能进入离线蒸馏 MVP。任务包：`docs/tasks/M0_weflow_data_contract/T103_m0_review.md`
@@ -74,11 +74,11 @@
 
 ## Current Unique Task
 
-T100: WeFlow JSONL schema profiling 与 normalized event 合约。
+T101: 设计脱敏规则、source_ref 规则和最小红线测试样例。
 
-任务包：`docs/tasks/M0_weflow_data_contract/T100_schema_profile.md`
+任务包：`docs/tasks/M0_weflow_data_contract/T101_privacy_source_refs.md`
 
-为什么现在做它：用户已决定跳过微信扫描和 iLink 登录，直接使用 WeFlow 导出的 `private/chat_history`。在写解析器、chunker 或 LLM 提取前，必须先搞清 JSONL 字段结构、消息类型、时间戳、方向和联系人映射，并建立不会泄露原文的 normalized event 合约。
+为什么现在做它：T100 已建立 WeFlow schema profile、normalized event contract 和脱敏 fixture，并通过 reviewer `PASS`。在 T102 写 normalize CLI 前，必须把隐私脱敏边界、source_ref/raw_ref 规则和红线样例固定下来，避免私密原文、真实文件名或可识别联系人进入可提交目录。
 
 ## Next Captain Output Required
 
@@ -91,4 +91,3 @@ T100: WeFlow JSONL schema profiling 与 normalized event 合约。
 5. 禁止做的事。
 6. 验证命令或验收标准。
 7. 完成后需要更新的治理文件。
-

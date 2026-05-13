@@ -1,6 +1,6 @@
 # Architecture
 
-更新日期：2026-05-13
+更新日期：2026-05-14
 
 ## 1. 新架构定位
 
@@ -43,6 +43,16 @@ src/practical_chat_agent/exporters/contact_skill_markdown.py
 ```
 
 第一阶段也可以先用 CLI + service，不必立即新增数据库表。
+
+## 3.1 当前实现状态
+
+T100 已通过 review `PASS`，当前只有数据合约和脱敏样例完成：
+
+- `docs/data_contracts/weflow_schema_profile.md`
+- `docs/data_contracts/normalized_event_contract.md`
+- `examples/payloads/weflow_redacted_sample.jsonl`
+
+下一步 T101 只补隐私脱敏规则、source_ref/raw_ref 规则和红线样例；T102 才开始实现最小 normalize CLI。
 
 ## 4. 复用现有能力
 
@@ -126,4 +136,3 @@ MemoryFact
 - ContactSkill 默认 candidate，需要人工 approve。
 - 回复 planner 只产草稿，不发送。
 - 禁止生成“对方会怎么说”的角色扮演输出。
-

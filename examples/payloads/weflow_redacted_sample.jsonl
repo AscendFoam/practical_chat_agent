@@ -1,0 +1,5 @@
+{"_type":"header","chatlab":{"version":"1.0.0","exportedAt":1778630400,"generator":"weflow"},"meta":{"name":"conversation_redacted","platform":"wechat","type":"private","groupAvatar":"avatar_conversation_redacted.png"}}
+{"_type":"member","platformId":"wxid_self_redacted","accountName":"ACCOUNT_SELF","avatar":"avatar_self_redacted.png"}
+{"_type":"member","platformId":"wxid_contact_redacted","accountName":"CONTACT_A","avatar":"avatar_contact_redacted.png"}
+{"_type":"message","sender":"wxid_self_redacted","accountName":"ACCOUNT_SELF","timestamp":1778630401,"type":0,"content":"[SYNTHETIC] neutral sample text from the local user","platformMessageId":"msg_0001"}
+{"_type":"message","sender":"wxid_contact_redacted","accountName":"CONTACT_A","timestamp":1778630460,"type":25,"content":"[SYNTHETIC] reply sample [引用 ACCOUNT_SELF：[SYNTHETIC] neutral sample text from the local user]","platformMessageId":"msg_0002","replyToMessageId":"msg_0001"}

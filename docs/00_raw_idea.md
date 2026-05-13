@@ -1,6 +1,6 @@
 # Raw Idea
 
-更新日期：2026-05-13
+更新日期：2026-05-14
 
 ## 1. 解决什么问题
 
@@ -35,7 +35,7 @@ WeFlow JSONL
   -> contact_skill.review.md
 ```
 
-第一步只做 schema profiling 与 normalized event 合约，不做 LLM 抽取。
+第一步 T100 已完成 schema profiling 与 normalized event 合约，并通过 reviewer `PASS`。下一步 T101 先补齐隐私脱敏规则、source_ref 规则和红线样例，再实现 normalize CLI。
 
 ## 4. 最相似已有工作
 
@@ -56,5 +56,4 @@ WeFlow JSONL
 
 `Go to offline distillation MVP`。
 
-暂停 iLink/微信扫描主线，当前唯一任务切到 T100：WeFlow JSONL schema profiling 与 normalized event 合约。
-
+暂停 iLink/微信扫描主线，T100 已通过 review。当前唯一任务切到 T101：隐私规则、source_ref 规则与最小红线测试样例。

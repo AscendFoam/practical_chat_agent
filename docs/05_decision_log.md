@@ -1,6 +1,6 @@
 # Decision Log
 
-更新日期：2026-05-13
+更新日期：2026-05-14
 
 ## D001: 下一阶段以微信主线为优先
 
@@ -60,3 +60,11 @@
 - 决策：M0-M1 只做离线解析、切块、摘要、事实抽取、ContactSkill candidate 和人工 review。
 - 影响：不引入 LoRA/DPO/微调，不恢复微信 SDK，不建立自动投递功能。
 
+## D008: T100 review PASS，进入 T101 隐私与 source_ref 规则
+
+- 日期：2026-05-14
+- 状态：Accepted
+- 背景：`docs/review/T100_review.md` 给出 `PASS`，确认 T100 已完成 WeFlow schema profile、normalized event contract 和安全脱敏 fixture，且未越界实现 chunker、LLM、数据库或实时微信接入。
+- 决策：T100 标记完成；当前唯一任务切换为 T101。
+- Warning 处理：N01 accepted，Q100/Q104 关闭依据更新为 “T100 worker draft + review PASS”；N02 deferred 到 T102/T150 处理 type=80/chatRecords fixture 覆盖；N03 deferred 到 T102 决定 `event_id` 是否从 SHA-1 升级或补充 SHA-256。
+- 影响：下一步先固定隐私脱敏规则和 source_ref/raw_ref 规则，再允许实现最小 normalize CLI。
