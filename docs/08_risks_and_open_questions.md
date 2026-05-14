@@ -1,6 +1,6 @@
 # Risks And Open Questions
 
-更新日期：2026-05-14
+更新日期：2026-05-15
 
 ## Active Risks
 
@@ -36,6 +36,8 @@
 | R028 | T113 ContactSkill builder 的启发式 tokens/topic/relationship 推断偏当前小样本 | 换联系人或更大样本时，preferred topics、avoid topics、relationship_type 等可能为空或误导 | T113 reviewer 判定不阻塞；T114 必须用样本 run 观察泛化，T120+ 可考虑 LLM-assisted inference |
 | R029 | T113 confidence/closeness/trust 数值由公式生成，未按 evidence quality 加权 | 人工 reviewer 可能误读为精确关系量化，导致过度信任 candidate | T113 reviewer 判定 candidate-only 可接受；T114 检查数字是否显得过度精确，T120+ 重设评分策略 |
 | R030 | T114 样例虽然 evidence chain 完整，但 reflection / reply-strategy 类 claim 已出现“短证据 -> 平滑 paraphrase”压缩 | 若后续样例更复杂，reviewer 可能高估 claim 的稳健度，进而放大 ContactSkill 中的策略推断 | T114 记录为 `Conditional`；M2 前保持 candidate-only / human-review-first，并在更广样例上继续抽查 |
+| R031 | T120 file store 缺少已提交自动化测试 | store model validation、legacy wrapping、load/save round-trip、runtime-ready gate 或 path confinement 未来可能回归 | T120 reviewer 判定不阻塞；T150 必须补对应单测和 path confinement 测试 |
+| R032 | T121 evidence validator 缺少已提交自动化测试 | evidence index、nested `evidence_refs` collection、status gate 或 path confinement 未来可能回归 | T121 reviewer 判定不阻塞；T150 必须补 validator 单测与 good/bad fixture 覆盖 |
 
 ## Open Questions
 
@@ -67,6 +69,8 @@
 | Q106 | LLM 抽取模型、预算和脱敏策略如何处理？T112 已使用配置化 OpenAI-compatible provider/model 路径，并在 prompt 层执行最小 PII token 替换；更完整的 privacy leakage 测试留给 T150。 | `docs/review/T112_review.md` PASS |
 | Q107 | ContactSkill review 采用什么形态？M1 采用 Markdown review artifact，CLI review/approve/export 延后到 T122。 | `docs/review/T113_review.md` PASS_WITH_WARNINGS |
 | Q117 | Gate M1 是否允许进入下一里程碑？允许以 `Conditional` 进入 M2；必须保持 candidate-only / human-review-first，保留 evidence refs/status，并继续跟踪 R028/R029/R030。 | `docs/review/T114_review.md` + `docs/review/M1_review.md` |
+| Q118 | T120 file store 是否足以作为 T121/T122 的基础？足以作为 MVP 基础，但带自动化测试 deferred warning。 | `docs/review/T120_review.md` PASS_WITH_WARNINGS |
+| Q119 | T121 evidence validator 是否足以作为 T122 approval gate 的基础？足以作为 MVP 基础；T122 必须读取 validation report 并禁止 missing refs approval。 | `docs/review/T121_review.md` PASS_WITH_WARNINGS |
 
 ## Deferred Items
 

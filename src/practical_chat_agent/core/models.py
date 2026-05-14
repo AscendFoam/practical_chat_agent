@@ -29,7 +29,9 @@ def utc_now() -> datetime:
 
 
 DistillationStatus = Literal["candidate", "approved", "rejected", "frozen", "archived"]
+DistillationReviewState = Literal["pending_human_review", "reviewed", "unknown"]
 DistillationSensitivity = Literal["low", "medium", "high"]
+DistillationEvidenceValidationStatus = Literal["not_run", "passed", "failed", "partial"]
 DistillationMemoryType = Literal["semantic", "episodic", "relationship", "procedural", "reflection"]
 ContactRelationshipType = Literal["friend", "classmate", "colleague", "family", "unknown"]
 
@@ -337,6 +339,35 @@ class MemoryFactCandidate(BaseModel):
     conflicts_with: list[str] = Field(default_factory=list)
     source_chunk_ids: list[str] = Field(default_factory=list)
 
+    def to_runtime_memory_type(self) -> MemoryType:
+        mapping: dict[DistillationMemoryType, MemoryType] = {
+            "semantic": MemoryType.FACT,
+            "episodic": MemoryType.FACT,
+            "relationship": MemoryType.RELATIONSHIP,
+            "procedural": MemoryType.PREFERENCE,
+            "reflection": MemoryType.REFLECTION,
+        }
+        return mapping[self.memory_type]
+
+    def to_memory_fact(
+        self,
+        *,
+        agent_id: str,
+        user_id: str,
+        scope: MemoryScope = MemoryScope.LONG_TERM,
+    ) -> MemoryFact:
+        return MemoryFact(
+            memory_id=self.memory_id,
+            agent_id=agent_id,
+            user_id=user_id,
+            memory_type=self.to_runtime_memory_type(),
+            scope=scope,
+            salience=self.importance,
+            confidence=self.confidence,
+            fact=self.claim,
+            evidence_refs=list(self.evidence_refs),
+        )
+
 
 class ContactSkillTopicPreference(DistillationClaim):
     topic: str
@@ -412,6 +443,13 @@ class ContactSkillUsageBoundary(BaseModel):
     )
 
 
+class ContactSkillRedactionPolicy(BaseModel):
+    store_raw_quotes: bool = False
+    max_quote_length: int = Field(default=30, ge=0)
+    mask_names: bool = True
+    mask_phone_numbers: bool = True
+
+
 class ContactSkillCandidate(BaseModel):
     schema_version: str = "contact_skill_candidate_v1"
     contact_id: str
@@ -433,14 +471,81 @@ class ContactSkillCandidate(BaseModel):
     reply_strategy: ContactSkillReplyStrategy = Field(default_factory=ContactSkillReplyStrategy)
     usage_boundary: ContactSkillUsageBoundary = Field(default_factory=ContactSkillUsageBoundary)
     review_notes: list[str] = Field(default_factory=list)
-    redaction_policy: dict[str, Any] = Field(
-        default_factory=lambda: {
-            "store_raw_quotes": False,
-            "max_quote_length": 30,
-            "mask_names": True,
-            "mask_phone_numbers": True,
-        },
-    )
+    redaction_policy: ContactSkillRedactionPolicy = Field(default_factory=ContactSkillRedactionPolicy)
+
+
+class DistilledArtifactReviewDecision(BaseModel):
+    review_id: str = Field(default_factory=lambda: new_id("review"))
+    status: DistillationStatus
+    reviewer_id: str | None = None
+    reviewer_name: str | None = None
+    reviewed_at: datetime = Field(default_factory=utc_now)
+    notes: list[str] = Field(default_factory=list)
+    evidence_validation_status: DistillationEvidenceValidationStatus = "not_run"
+
+
+class DistilledArtifactReviewMetadata(BaseModel):
+    review_state: DistillationReviewState = "pending_human_review"
+    reviewed_by_human: bool = False
+    last_decision: DistillationStatus | None = None
+    last_reviewed_at: datetime | None = None
+    last_reviewer_id: str | None = None
+    last_reviewer_name: str | None = None
+    evidence_validation_status: DistillationEvidenceValidationStatus = "not_run"
+    decision_notes: list[str] = Field(default_factory=list)
+    history: list[DistilledArtifactReviewDecision] = Field(default_factory=list)
+
+    def is_runtime_ready(self, *, status: DistillationStatus) -> bool:
+        return status == "approved" and self.reviewed_by_human and self.last_decision == "approved"
+
+
+class DistilledArtifactSourceMetadata(BaseModel):
+    source_run_id: str | None = None
+    source_artifact_path: str | None = None
+    review_artifact_path: str | None = None
+    source_chunk_ids: list[str] = Field(default_factory=list)
+    source_memory_ids: list[str] = Field(default_factory=list)
+    source_event_ids: list[str] = Field(default_factory=list)
+
+
+class MemoryFactStoreRecord(BaseModel):
+    schema_version: str = "memory_fact_store_record_v1"
+    record_id: str = Field(default_factory=lambda: new_id("memstore"))
+    artifact_type: Literal["memory_fact"] = "memory_fact"
+    memory_fact: MemoryFactCandidate
+    source_metadata: DistilledArtifactSourceMetadata = Field(default_factory=DistilledArtifactSourceMetadata)
+    review_metadata: DistilledArtifactReviewMetadata = Field(default_factory=DistilledArtifactReviewMetadata)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
+
+    def is_runtime_ready(self) -> bool:
+        return self.review_metadata.is_runtime_ready(status=self.memory_fact.status)
+
+
+class MemoryFactStoreFile(BaseModel):
+    schema_version: str = "memory_fact_store_v1"
+    generated_at: datetime = Field(default_factory=utc_now)
+    records: list[MemoryFactStoreRecord] = Field(default_factory=list)
+
+
+class ContactSkillStoreRecord(BaseModel):
+    schema_version: str = "contact_skill_store_record_v1"
+    record_id: str = Field(default_factory=lambda: new_id("skillstore"))
+    artifact_type: Literal["contact_skill"] = "contact_skill"
+    contact_skill: ContactSkillCandidate
+    source_metadata: DistilledArtifactSourceMetadata = Field(default_factory=DistilledArtifactSourceMetadata)
+    review_metadata: DistilledArtifactReviewMetadata = Field(default_factory=DistilledArtifactReviewMetadata)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
+
+    def is_runtime_ready(self) -> bool:
+        return self.review_metadata.is_runtime_ready(status=self.contact_skill.status)
+
+
+class ContactSkillStoreFile(BaseModel):
+    schema_version: str = "contact_skill_store_v1"
+    generated_at: datetime = Field(default_factory=utc_now)
+    records: list[ContactSkillStoreRecord] = Field(default_factory=list)
 
 
 class MemoryProfileFacet(BaseModel):

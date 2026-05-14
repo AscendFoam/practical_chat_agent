@@ -1,6 +1,6 @@
 # Eval Protocol
 
-更新日期：2026-05-14
+更新日期：2026-05-15
 
 ## 1. 评价目标
 
@@ -39,6 +39,8 @@
 - T112 已通过 reviewer `PASS`，小样本 summary/fact extraction 与 evidence refs 校验管线已落地。
 - T113 已通过 reviewer `PASS_WITH_WARNINGS`，ContactSkill candidate 与 Markdown review artifact 已落地。
 - T114 已确认 Gate M1 = `Conditional`；M2 可启动，但必须保留 candidate-only / human-review-first 和 evidence refs 条件。
+- T120 已通过 reviewer `PASS_WITH_WARNINGS`，file store models 与 human-review-first runtime gate 已落地；T121 继续补 evidence validator。
+- T121 已通过 reviewer `PASS_WITH_WARNINGS`，read-only evidence validator 和 missing-ref/status gate 已落地；T122 继续实现人工 review/approve/export CLI。
 
 ### Gate M1: 离线蒸馏 MVP
 
@@ -355,3 +357,58 @@ T120 新增离线 memory/skill Pydantic 模型和文件 store，先不接数据�
 - Candidate / approved / rejected / frozen / archived 状态不可被丢失。
 - Evidence refs 不得被压平或丢弃。
 - T113/T114 条件要体现在 store 语义中：candidate-only 默认安全，approved 才能进入后续 runtime。
+
+T120 review 状态：`PASS_WITH_WARNINGS`，见 `docs/review/T120_review.md`。
+
+## 15. T121 验证要求
+
+T121 实现 evidence validator 与 rejected/frozen 状态规则，不做 approve CLI 或 runtime integration。
+
+必须输出：
+
+- 可从 `private/distilled/**` 读取 T120 store 文件与同 run 的 evidence artifacts。
+- 校验 memory/skill record 的 `evidence_refs` 是否存在于 normalized events、chunks、chunk summaries 或 memory facts。
+- 输出 validator report，明确 `passed`、`missing_refs`、`blocked_records` 和状态规则结果。
+- 对 missing refs 或 rejected/frozen/archived 记录给出 approval-blocking 结果。
+
+禁止输出：
+
+- 自动改写 claim 或自动 approve。
+- 把私密原文、raw prompt、raw response 写入可提交目录或 stdout。
+- review/approve/export CLI 的完整人工审阅流程。
+- 数据库 migration、向量库、runtime prompt 注入或自动发送。
+
+必须额外检查：
+
+- Candidate 可以被验证，但不能因此变成 runtime-ready。
+- Approved 记录若 evidence 不存在，必须被 validator 标记为不能进入 approval/runtime。
+- Rejected/frozen/archived 记录不得通过 runtime-ready 或 approval-ready 检查。
+- 验证使用脱敏 synthetic good/bad fixture 或现有 `private/distilled/` 安全样例，不提交 private 输出。
+
+T121 review 状态：`PASS_WITH_WARNINGS`，见 `docs/review/T121_review.md`。
+
+## 16. T122 验证要求
+
+T122 实现 contact-skill / memory store 的人工 review/approve/reject/export CLI，不做 runtime integration。
+
+必须输出：
+
+- CLI 能读取 T120 store 文件和 T121 evidence validation report。
+- CLI 能列出 candidate / approved / rejected / frozen / archived 记录的安全摘要。
+- CLI 能执行人工 review decision：approve、reject、freeze 或 archive，并写入 `review_metadata` history。
+- Approve 必须要求 evidence validation passed 且目标记录无 missing refs。
+- Export Markdown/JSON 只能输出到 `private/distilled/**` 或安全脱敏路径，默认不写可提交目录。
+
+禁止输出：
+
+- 自动 approve 或批量默认 approve。
+- 绕过 T121 evidence validation report。
+- runtime prompt 注入、`ChatContext` 接入、数据库 migration、向量库、自动发送。
+- 私密聊天原文、真实联系人名、真实平台 ID 到 docs/examples/tests/stdout。
+
+必须额外检查：
+
+- Rejected/frozen/archived 不能被 approve 或 runtime-ready。
+- 审阅动作必须保留 reviewer、timestamp、decision、notes 和 evidence validation status。
+- CLI stdout 只打印 counts、record ids、safe relative paths 和状态摘要。
+- 使用 private synthetic fixture 或安全样例验证 approve/reject/freeze/export 路径。

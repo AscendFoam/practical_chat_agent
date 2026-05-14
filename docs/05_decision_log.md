@@ -1,6 +1,6 @@
 # Decision Log
 
-更新日期：2026-05-14
+更新日期：2026-05-15
 
 ## D001: 下一阶段以微信主线为优先
 
@@ -147,3 +147,21 @@
   - T120 必须保留 status 与 evidence refs，并不得引入数据库 migration 或向量库。
   - R028/R029/R030 必须继续活跃到更广样本或后续 store/review 机制能缓解为止。
 - 影响：允许进入 M2，但不得把 M1 写成无条件成功；T120 是文件 store 与模型稳定化任务，不是 runtime integration。
+
+## D017: T120 review PASS_WITH_WARNINGS，进入 T121
+
+- 日期：2026-05-14
+- 状态：Accepted
+- 背景：`docs/review/T120_review.md` 给出 `PASS_WITH_WARNINGS`，确认 T120 已完成离线 memory/skill 文件 store、review metadata、source metadata、legacy artifact wrapping 和 human-review-first `is_runtime_ready()` gate；未引入 CLI、数据库 migration、向量库、runtime prompt 注入或自动 approve。
+- 决策：T120 标记完成；当前唯一任务切换为 T121 Evidence Validator。
+- Warning 处理：N01 accepted，`updated_at` no-op normalization 不影响正确性，T122 更新 review 状态时再明确 timestamp 语义；N02 accepted，两个 service 间 path/helper duplication 对 MVP 可接受，暂不抽基类；N03 accepted，single-record store shape 兼容入口由 Pydantic 校验兜底；N04 accepted，`DistillationMemoryType` 到 runtime `MemoryType` 的粗粒度映射符合 MVP；N05 deferred 到 T150，需补 store model validation、legacy wrapping、load/save round-trip、runtime-ready gate 和 path confinement 自动化测试。
+- 影响：T121 必须只做 evidence validator 与 rejected/frozen 状态规则，不做 approve CLI、runtime integration、数据库或向量库；missing refs 必须阻止 approval。
+
+## D018: T121 review PASS_WITH_WARNINGS，进入 T122
+
+- 日期：2026-05-15
+- 状态：Accepted
+- 背景：`docs/review/T121_review.md` 给出 `PASS_WITH_WARNINGS`，确认 T121 已完成 read-only evidence validator、`chatlog-validate-evidence` CLI、same-run evidence index、nested `evidence_refs` collection、status gate 和 missing-ref approval/runtime blocking；未自动 approve、未做 review/approve CLI、未接数据库、向量库或 runtime prompt。
+- 决策：T121 标记完成；当前唯一任务切换为 T122 Skill Review CLI。
+- Warning 处理：N01 accepted，当前 schema 没有 stable contact skill artifact id，fallback 到 `contact_id` 不影响正确性；N02 accepted/deferred，JSON/JSONL helper 第三次重复对 MVP 可接受，若 T150 或后续重构统一文件 IO 可一并处理；N03 accepted，递归扫描全 payload 的性能对当前数据量无风险；N04 accepted，validator read-only 不写回 store 是正确设计，T122 决定是否写入 `review_metadata.evidence_validation_status`；N05 deferred 到 T150，需补 evidence index、nested refs、status rules、missing refs blocking、human review gate interaction 和 path confinement 自动化测试。
+- 影响：T122 必须把 T121 validation report 作为 approve gate；不得在 missing refs、candidate-only 或未人工审阅情况下绕过 approval/runtime 安全边界。

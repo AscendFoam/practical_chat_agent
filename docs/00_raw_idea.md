@@ -1,6 +1,6 @@
 # Raw Idea
 
-更新日期：2026-05-14
+更新日期：2026-05-15
 
 ## 1. 解决什么问题
 
@@ -35,7 +35,7 @@ WeFlow JSONL
   -> contact_skill.review.md
 ```
 
-T100 已完成 schema profiling 与 normalized event 合约，并通过 reviewer `PASS`。T101 已完成隐私脱敏规则、source_ref 规则和红线样例，并通过 reviewer `PASS`。T102 已完成最小 normalize CLI，并通过 reviewer `PASS`。T103 已接受 Gate M0 = `Conditional`，允许进入 M1 离线蒸馏 MVP。T110 已完成 conversation chunker v0，并通过 reviewer `PASS`。T111 已完成蒸馏输出 schema 和 JSON contract，并通过 reviewer `PASS`。T112 已完成小样本 chunk summary 与 fact extraction 的 LLM/JSON 校验管线，并通过 reviewer `PASS`。T113 已完成 ContactSkill candidate 与 Markdown review artifact，并通过 reviewer `PASS_WITH_WARNINGS`。T114 已确认 Gate M1 = `Conditional`。
+T100 已完成 schema profiling 与 normalized event 合约，并通过 reviewer `PASS`。T101 已完成隐私脱敏规则、source_ref 规则和红线样例，并通过 reviewer `PASS`。T102 已完成最小 normalize CLI，并通过 reviewer `PASS`。T103 已接受 Gate M0 = `Conditional`，允许进入 M1 离线蒸馏 MVP。T110 已完成 conversation chunker v0，并通过 reviewer `PASS`。T111 已完成蒸馏输出 schema 和 JSON contract，并通过 reviewer `PASS`。T112 已完成小样本 chunk summary 与 fact extraction 的 LLM/JSON 校验管线，并通过 reviewer `PASS`。T113 已完成 ContactSkill candidate 与 Markdown review artifact，并通过 reviewer `PASS_WITH_WARNINGS`。T114 已确认 Gate M1 = `Conditional`。T120 已完成离线 memory/skill 文件 store 与 review metadata，并通过 reviewer `PASS_WITH_WARNINGS`。T121 已完成 evidence validator 与状态规则，并通过 reviewer `PASS_WITH_WARNINGS`。
 
 ## 4. 最相似已有工作
 
@@ -56,4 +56,4 @@ T100 已完成 schema profiling 与 normalized event 合约，并通过 reviewer
 
 `Go to offline distillation MVP`。
 
-暂停 iLink/微信扫描主线，M0 已条件通过，M1 已条件通过。当前唯一任务切到 T120：File Store Models。
+暂停 iLink/微信扫描主线，M0 已条件通过，M1 已条件通过。当前唯一任务切到 T122：Skill Review CLI。

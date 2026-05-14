@@ -1,6 +1,6 @@
 # Feasibility Report
 
-更新日期：2026-05-14
+更新日期：2026-05-15
 
 ## 1. 问题定义
 
@@ -72,7 +72,9 @@
 - T112 已通过 reviewer `PASS`，小样本可生成 `chunk_summaries.jsonl` 和 `memory_facts.jsonl`，并在写入前执行 schema/evidence refs 校验。
 - T113 已通过 reviewer `PASS_WITH_WARNINGS`，可生成 candidate 状态的 `contact_skill.candidate.json` 和人工审阅用 `contact_skill.review.md`。
 - T114 已确认 Gate M1 = `Conditional`，M1 artifact chain 能在一个真实小样本上端到端运行，但启发式泛化、confidence 数字和 paraphrase compression 风险必须带入 M2。
-- 当前唯一任务切换为 T120，先建立离线 memory/skill 文件 store 与 Pydantic 模型，不接数据库、不引入向量库。
+- T120 已通过 reviewer `PASS_WITH_WARNINGS`，离线 memory/skill 文件 store、review metadata、source metadata 和 human-review-first gate 已落地；未接数据库、未引入向量库、未做 runtime prompt 注入。
+- T121 已通过 reviewer `PASS_WITH_WARNINGS`，evidence validator、missing-ref approval block、candidate/rejected/frozen/archived 状态规则和 validator report 已落地；未自动 approve、未做 runtime integration。
+- 当前唯一任务切换为 T122，实现 contact-skill review/approve/reject/export CLI，并且 approve 必须受 T121 evidence validation gate 约束。
 - M1 只选 1 个联系人或小样本做 distillation MVP。
 - M1 不微调、不自动发送、不接实时平台。
 - 所有可提交 fixture 必须脱敏。

@@ -1,6 +1,6 @@
 # Task Board
 
-更新日期：2026-05-14
+更新日期：2026-05-15
 
 ## Board Rules
 
@@ -44,8 +44,8 @@
 
 状态：Gate M1 = `Conditional`，允许进入 M2，但必须保留 candidate-only / human-review-first，且继续跟踪 T113/T114 的启发式泛化、confidence 数值和 paraphrase compression 风险。
 
-- [ ] T120: 新增离线 memory/skill Pydantic 模型和文件 store。任务包：`docs/tasks/M2_memory_skill_store/T120_file_store_models.md`
-- [ ] T121: 实现 evidence validator 与 rejected/frozen 状态规则。任务包：`docs/tasks/M2_memory_skill_store/T121_evidence_validator.md`
+- [x] T120: 新增离线 memory/skill Pydantic 模型和文件 store。review `PASS_WITH_WARNINGS`。任务包：`docs/tasks/M2_memory_skill_store/T120_file_store_models.md`
+- [x] T121: 实现 evidence validator 与 rejected/frozen 状态规则。review `PASS_WITH_WARNINGS`。任务包：`docs/tasks/M2_memory_skill_store/T121_evidence_validator.md`
 - [ ] T122: 实现 contact-skill review/approve/export CLI。任务包：`docs/tasks/M2_memory_skill_store/T122_skill_review_cli.md`
 - [ ] T123: 将 approved memory/skill 接入现有 `ChatContext`。任务包：`docs/tasks/M2_memory_skill_store/T123_context_integration.md`
 
@@ -76,11 +76,11 @@
 
 ## Current Unique Task
 
-T120: 新增离线 memory/skill Pydantic 模型和文件 store。
+T122: 实现 contact-skill review/approve/export CLI。
 
-任务包：`docs/tasks/M2_memory_skill_store/T120_file_store_models.md`
+任务包：`docs/tasks/M2_memory_skill_store/T122_skill_review_cli.md`
 
-为什么现在做它：T114 已确认 Gate M1 = `Conditional`，M1 artifact chain 能在真实小样本上端到端运行。下一步需要把 candidate memory/skill 产物纳入稳定的文件 store 和模型加载/保存流程，保留 status 与 evidence refs；本阶段仍不做数据库 migration、向量库或 runtime 注入。
+为什么现在做它：T120 已建立 file store 与 human-review-first gate，T121 已建立 read-only evidence validator 并能阻止 missing refs 进入 approval/runtime。下一步需要提供人工 review/approve/reject/export CLI，把 validator report 纳入审批门槛，但仍不做 runtime integration、数据库 migration 或自动发送。
 
 ## Next Captain Output Required
 

@@ -1,6 +1,6 @@
 # Architecture
 
-更新日期：2026-05-14
+更新日期：2026-05-15
 
 ## 1. 新架构定位
 
@@ -46,7 +46,7 @@ src/practical_chat_agent/exporters/contact_skill_markdown.py
 
 ## 3.1 当前实现状态
 
-T100/T101/T102 已通过 review `PASS`，T103 已接受 Gate M0 = `Conditional`，T110/T111/T112 已通过 review `PASS`，T113 已通过 review `PASS_WITH_WARNINGS`，T114 已确认 Gate M1 = `Conditional`。当前完成的是数据合约、隐私规则、脱敏样例、最小 normalize CLI、conversation chunker v0、蒸馏输出 schema、小样本 summary/fact extraction、ContactSkill review artifact 和 M1 milestone sample review：
+T100/T101/T102 已通过 review `PASS`，T103 已接受 Gate M0 = `Conditional`，T110/T111/T112 已通过 review `PASS`，T113/T120/T121 已通过 review `PASS_WITH_WARNINGS`，T114 已确认 Gate M1 = `Conditional`。当前完成的是数据合约、隐私规则、脱敏样例、最小 normalize CLI、conversation chunker v0、蒸馏输出 schema、小样本 summary/fact extraction、ContactSkill review artifact、M1 milestone sample review，以及 M2 的离线 memory/skill file store 与 evidence validator：
 
 - `docs/data_contracts/weflow_schema_profile.md`
 - `docs/data_contracts/normalized_event_contract.md`
@@ -64,8 +64,9 @@ T100/T101/T102 已通过 review `PASS`，T103 已接受 Gate M0 = `Conditional`�
 - `chatlog-chunk` CLI in `src/practical_chat_agent/app/main.py`
 - `chatlog-distill` CLI in `src/practical_chat_agent/app/main.py`
 - `chatlog-build-contact-skill` CLI in `src/practical_chat_agent/app/main.py`
+- `chatlog-validate-evidence` CLI in `src/practical_chat_agent/app/main.py`
 
-下一步进入 M2 conditional。T120 先新增离线 memory/skill 文件 store 和 Pydantic 模型，保留 candidate/approved/rejected/frozen/archived 状态与 evidence refs；不要接数据库或向量库。
+T120 已新增离线 memory/skill 文件 store 和 Pydantic 模型，保留 candidate/approved/rejected/frozen/archived 状态、evidence refs、source metadata 与 review metadata；T121 已新增 read-only evidence validator，校验 refs 存在性、状态规则和 human-review gate 交互；仍未接数据库或向量库。下一步 T122 做 review/approve/reject/export CLI，approval 必须受 evidence validation report 约束。
 
 ## 4. 复用现有能力
 

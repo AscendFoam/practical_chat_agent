@@ -51,6 +51,10 @@ from practical_chat_agent.services.contact_skill import (
     ContactSkillBuilderError,
     ContactSkillBuilderService,
 )
+from practical_chat_agent.services.evidence_validation import (
+    EvidenceValidationError,
+    EvidenceValidationService,
+)
 from practical_chat_agent.services.meeting_live_loop import MeetingLiveLoopRequest
 from practical_chat_agent.ui.live_caption_window import MeetingLiveCaptionWindow
 
@@ -1714,6 +1718,56 @@ def chatlog_build_contact_skill(
         raise typer.BadParameter(str(exc)) from exc
 
     typer.echo(json.dumps(result.report, ensure_ascii=False, indent=2))
+
+
+@app.command("chatlog-validate-evidence")
+def chatlog_validate_evidence(
+    input_path: Path = typer.Option(
+        Path("private/distilled"),
+        "--input",
+        help="Input private/distilled run directory or store artifact path.",
+    ),
+    output_path: Optional[Path] = typer.Option(
+        None,
+        "--output",
+        help="Optional report path under private/distilled. Defaults to private/distilled/<run_id>/evidence_validation_report.json.",
+    ),
+    dry_run: bool = typer.Option(
+        False,
+        help="Validate evidence refs and print a safe summary without writing a report file.",
+    ),
+) -> None:
+    """Validate evidence refs for memory/contact-skill store records under private/distilled."""
+
+    service = EvidenceValidationService()
+    try:
+        result = service.validate_evidence(
+            input_path=input_path,
+            output_path=output_path,
+            dry_run=dry_run,
+        )
+    except EvidenceValidationError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+
+    summary = result.report["summary"]
+    typer.echo(
+        json.dumps(
+            {
+                "input_path": result.report["input_path"],
+                "run_dir": result.report["run_dir"],
+                "output_path": result.report["output_path"],
+                "evidence_validation_status": summary["evidence_validation_status"],
+                "validated_record_count": summary["validated_record_count"],
+                "records_with_missing_refs": summary["records_with_missing_refs"],
+                "missing_ref_count": summary["missing_ref_count"],
+                "approval_blocked_records": summary["approval_blocked_records"],
+                "runtime_blocked_records": summary["runtime_blocked_records"],
+                "report_written": result.output_path is not None,
+            },
+            ensure_ascii=False,
+            indent=2,
+        ),
+    )
 
 
 @app.command("meeting-live-preview")

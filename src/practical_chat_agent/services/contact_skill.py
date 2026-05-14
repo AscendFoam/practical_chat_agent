@@ -14,8 +14,15 @@ from practical_chat_agent.core.models import (
     ContactSkillPattern,
     ContactSkillRelationshipState,
     ContactSkillReplyStrategy,
+    ContactSkillStoreFile,
+    ContactSkillStoreRecord,
     ContactSkillTopicPreference,
     ContactSkillUserSidePreferences,
+    DistilledArtifactReviewMetadata,
+    DistilledArtifactSourceMetadata,
+    DistillationStatus,
+    MemoryFactStoreFile,
+    MemoryFactStoreRecord,
     MemoryFactCandidate,
 )
 
@@ -51,6 +58,13 @@ class ContactSkillBuildResult:
     candidate: ContactSkillCandidate
     review_markdown: str
     report: dict[str, Any]
+
+
+@dataclass(frozen=True)
+class FileStoreSaveResult:
+    output_path: Path
+    record_count: int
+    statuses: list[DistillationStatus]
 
 
 class ContactSkillBuilderService:
@@ -947,6 +961,272 @@ class ContactSkillBuilderService:
         ordered.sort(key=lambda item: item.confidence, reverse=True)
         return ordered
 
+
+class ContactSkillFileStoreService:
+    """Load and save offline memory/contact-skill stores under private/distilled."""
+
+    MEMORY_STORE_FILENAME = "memory_fact_store.json"
+    CONTACT_SKILL_STORE_FILENAME = "contact_skill_store.json"
+    MEMORY_FACTS_FILENAME = "memory_facts.jsonl"
+    CONTACT_SKILL_CANDIDATE_FILENAME = "contact_skill.candidate.json"
+    CONTACT_SKILL_REVIEW_FILENAME = "contact_skill.review.md"
+
+    def __init__(self) -> None:
+        self._repo_root = Path.cwd().resolve()
+        self._private_distilled_root = (self._repo_root / "private" / "distilled").resolve()
+
+    def load_memory_store(self, *, input_path: Path) -> MemoryFactStoreFile:
+        resolved_input = self._resolve_existing_path(input_path)
+        self._ensure_within_root(
+            candidate=resolved_input,
+            root=self._private_distilled_root,
+            error_message="Input must stay within private/distilled.",
+        )
+        if resolved_input.is_dir():
+            store_path = resolved_input / self.MEMORY_STORE_FILENAME
+            if store_path.is_file():
+                return self._load_memory_store_file(store_path=store_path)
+            facts_path = resolved_input / self.MEMORY_FACTS_FILENAME
+            if facts_path.is_file():
+                return self._wrap_memory_facts_jsonl(facts_path=facts_path)
+            raise ContactSkillBuilderError(
+                "Input directory must contain memory_fact_store.json or memory_facts.jsonl.",
+            )
+        if resolved_input.name == self.MEMORY_FACTS_FILENAME:
+            return self._wrap_memory_facts_jsonl(facts_path=resolved_input)
+        return self._load_memory_store_file(store_path=resolved_input)
+
+    def save_memory_store(
+        self,
+        *,
+        output_path: Path,
+        store: MemoryFactStoreFile,
+    ) -> FileStoreSaveResult:
+        resolved_output = self._resolve_store_output_path(
+            output_path=output_path,
+            default_filename=self.MEMORY_STORE_FILENAME,
+        )
+        normalized_store = MemoryFactStoreFile(
+            records=[
+                record.model_copy(update={"updated_at": record.updated_at})
+                for record in store.records
+            ],
+        )
+        resolved_output.parent.mkdir(parents=True, exist_ok=True)
+        self._write_json(output_path=resolved_output, payload=normalized_store.model_dump(mode="json"))
+        return FileStoreSaveResult(
+            output_path=resolved_output,
+            record_count=len(normalized_store.records),
+            statuses=[record.memory_fact.status for record in normalized_store.records],
+        )
+
+    def load_contact_skill_store(self, *, input_path: Path) -> ContactSkillStoreFile:
+        resolved_input = self._resolve_existing_path(input_path)
+        self._ensure_within_root(
+            candidate=resolved_input,
+            root=self._private_distilled_root,
+            error_message="Input must stay within private/distilled.",
+        )
+        if resolved_input.is_dir():
+            store_path = resolved_input / self.CONTACT_SKILL_STORE_FILENAME
+            if store_path.is_file():
+                return self._load_contact_skill_store_file(store_path=store_path)
+            candidate_path = resolved_input / self.CONTACT_SKILL_CANDIDATE_FILENAME
+            if candidate_path.is_file():
+                return self._wrap_contact_skill_candidate(
+                    candidate_path=candidate_path,
+                    review_artifact_path=resolved_input / self.CONTACT_SKILL_REVIEW_FILENAME,
+                )
+            raise ContactSkillBuilderError(
+                "Input directory must contain contact_skill_store.json or contact_skill.candidate.json.",
+            )
+        if resolved_input.name == self.CONTACT_SKILL_CANDIDATE_FILENAME:
+            return self._wrap_contact_skill_candidate(
+                candidate_path=resolved_input,
+                review_artifact_path=resolved_input.parent / self.CONTACT_SKILL_REVIEW_FILENAME,
+            )
+        return self._load_contact_skill_store_file(store_path=resolved_input)
+
+    def save_contact_skill_store(
+        self,
+        *,
+        output_path: Path,
+        store: ContactSkillStoreFile,
+    ) -> FileStoreSaveResult:
+        resolved_output = self._resolve_store_output_path(
+            output_path=output_path,
+            default_filename=self.CONTACT_SKILL_STORE_FILENAME,
+        )
+        normalized_store = ContactSkillStoreFile(
+            records=[
+                record.model_copy(update={"updated_at": record.updated_at})
+                for record in store.records
+            ],
+        )
+        resolved_output.parent.mkdir(parents=True, exist_ok=True)
+        self._write_json(output_path=resolved_output, payload=normalized_store.model_dump(mode="json"))
+        return FileStoreSaveResult(
+            output_path=resolved_output,
+            record_count=len(normalized_store.records),
+            statuses=[record.contact_skill.status for record in normalized_store.records],
+        )
+
+    def _load_memory_store_file(self, *, store_path: Path) -> MemoryFactStoreFile:
+        payload = self._read_json_object(store_path)
+        if "records" in payload:
+            return MemoryFactStoreFile.model_validate(payload)
+        if "memory_fact" in payload:
+            return MemoryFactStoreFile(records=[MemoryFactStoreRecord.model_validate(payload)])
+        raise ContactSkillBuilderError("Unsupported memory store file shape.")
+
+    def _load_contact_skill_store_file(self, *, store_path: Path) -> ContactSkillStoreFile:
+        payload = self._read_json_object(store_path)
+        if "records" in payload:
+            return ContactSkillStoreFile.model_validate(payload)
+        if "contact_skill" in payload:
+            return ContactSkillStoreFile(records=[ContactSkillStoreRecord.model_validate(payload)])
+        raise ContactSkillBuilderError("Unsupported contact skill store file shape.")
+
+    def _wrap_memory_facts_jsonl(self, *, facts_path: Path) -> MemoryFactStoreFile:
+        source_run_id = self._infer_run_id(path=facts_path)
+        records: list[MemoryFactStoreRecord] = []
+        for fact in self._load_memory_facts_jsonl(facts_path=facts_path):
+            records.append(
+                MemoryFactStoreRecord(
+                    memory_fact=fact,
+                    source_metadata=DistilledArtifactSourceMetadata(
+                        source_run_id=source_run_id,
+                        source_artifact_path=self._safe_relative_path(facts_path),
+                        source_chunk_ids=list(fact.source_chunk_ids),
+                        source_event_ids=self._extract_event_ids(fact.evidence_refs),
+                    ),
+                    review_metadata=self._default_review_metadata(status=fact.status),
+                ),
+            )
+        return MemoryFactStoreFile(records=records)
+
+    def _wrap_contact_skill_candidate(
+        self,
+        *,
+        candidate_path: Path,
+        review_artifact_path: Path | None,
+    ) -> ContactSkillStoreFile:
+        candidate = self._load_contact_skill_candidate(candidate_path=candidate_path)
+        source_run_id = self._infer_run_id(path=candidate_path)
+        review_path = review_artifact_path if review_artifact_path and review_artifact_path.is_file() else None
+        record = ContactSkillStoreRecord(
+            contact_skill=candidate,
+            source_metadata=DistilledArtifactSourceMetadata(
+                source_run_id=source_run_id,
+                source_artifact_path=self._safe_relative_path(candidate_path),
+                review_artifact_path=self._safe_relative_path(review_path),
+                source_chunk_ids=list(candidate.source_chunk_ids),
+                source_memory_ids=list(candidate.source_memory_ids),
+                source_event_ids=self._extract_event_ids(candidate.evidence_refs),
+            ),
+            review_metadata=self._default_review_metadata(status=candidate.status),
+        )
+        return ContactSkillStoreFile(records=[record])
+
+    def _load_memory_facts_jsonl(self, *, facts_path: Path) -> list[MemoryFactCandidate]:
+        facts: list[MemoryFactCandidate] = []
+        with facts_path.open("r", encoding="utf-8") as handle:
+            for line_no, raw_line in enumerate(handle, start=1):
+                line = raw_line.strip()
+                if not line:
+                    continue
+                try:
+                    payload = json.loads(line)
+                except json.JSONDecodeError as exc:
+                    raise ContactSkillBuilderError(
+                        f"memory_facts.jsonl line {line_no} is invalid JSON.",
+                    ) from exc
+                facts.append(MemoryFactCandidate.model_validate(payload))
+        return facts
+
+    def _load_contact_skill_candidate(self, *, candidate_path: Path) -> ContactSkillCandidate:
+        payload = self._read_json_object(candidate_path)
+        return ContactSkillCandidate.model_validate(payload)
+
+    def _read_json_object(self, path: Path) -> dict[str, Any]:
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            raise ContactSkillBuilderError(f"{path.name} is invalid JSON.") from exc
+        if not isinstance(payload, dict):
+            raise ContactSkillBuilderError(f"{path.name} must contain a JSON object.")
+        return payload
+
+    def _write_json(self, *, output_path: Path, payload: dict[str, Any]) -> None:
+        output_path.write_text(
+            json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+
+    def _resolve_existing_path(self, path: Path) -> Path:
+        resolved = (self._repo_root / path).resolve() if not path.is_absolute() else path.resolve()
+        if not resolved.exists():
+            raise ContactSkillBuilderError(f"Input path does not exist: {path}")
+        return resolved
+
+    def _resolve_store_output_path(self, *, output_path: Path, default_filename: str) -> Path:
+        resolved = (self._repo_root / output_path).resolve() if not output_path.is_absolute() else output_path.resolve()
+        if resolved.suffix.casefold() != ".json":
+            resolved = resolved / default_filename
+        self._ensure_within_root(
+            candidate=resolved,
+            root=self._private_distilled_root,
+            error_message="Output must stay within private/distilled.",
+        )
+        return resolved
+
+    @staticmethod
+    def _ensure_within_root(*, candidate: Path, root: Path, error_message: str) -> None:
+        try:
+            candidate.relative_to(root)
+        except ValueError as exc:
+            raise ContactSkillBuilderError(error_message) from exc
+
+    def _safe_relative_path(self, path: Path | None) -> str | None:
+        if path is None:
+            return None
+        try:
+            return str(path.relative_to(self._repo_root)).replace("\\", "/")
+        except ValueError:
+            return str(path).replace("\\", "/")
+
+    def _infer_run_id(self, *, path: Path) -> str | None:
+        relative = self._safe_relative_path(path)
+        if relative is None:
+            return None
+        parts = relative.split("/")
+        if len(parts) >= 3 and parts[0] == "private" and parts[1] == "distilled":
+            return parts[2]
+        return None
+
+    @staticmethod
+    def _extract_event_ids(refs: Iterable[str]) -> list[str]:
+        event_ids: list[str] = []
+        seen: set[str] = set()
+        for ref in refs:
+            if not isinstance(ref, str) or not ref.startswith("evt_"):
+                continue
+            if ref in seen:
+                continue
+            seen.add(ref)
+            event_ids.append(ref)
+        return event_ids
+
+    @staticmethod
+    def _default_review_metadata(*, status: DistillationStatus) -> DistilledArtifactReviewMetadata:
+        if status == "candidate":
+            return DistilledArtifactReviewMetadata()
+        return DistilledArtifactReviewMetadata(
+            review_state="unknown",
+            decision_notes=[
+                "Loaded legacy artifact without explicit review metadata; human approval must be re-established.",
+            ],
+        )
 
 def summarize_distillation_inputs(
     *,
