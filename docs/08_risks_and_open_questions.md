@@ -18,6 +18,7 @@
 | R010 | `meta.type=private` 的导出里仍可能出现大量 `member` 行 | 若简单按成员数判断方向，会导致 `sender_role` 判错 | T100 contract 已要求用跨文件复用身份和 message 高频对来判定 user/contact |
 | R011 | 当前脱敏 fixture 尚未覆盖 `type=80`/`chatRecords` 转发结构 | T102 adapter 可能缺少复杂消息样例，T150 测试覆盖不足 | deferred 到 T102/T150，后续补充合成 fixture，不使用真实原文 |
 | R012 | `event_id` 当前采用 SHA-1 规则可能被误解为安全哈希 | 长期可追溯 ID 规则可能需要更强或更明确的稳定性/隐私说明 | deferred 到 T102，决定保留 SHA-1、升级 SHA-256 或补充命名空间规则 |
+| R013 | T101 的结构化替换 token 仍是规则设计，尚未经过代码实现验证 | T102 若直接实现可能与真实字段或下游 normalized schema 不一致 | deferred 到 T102，实现时校验 token 与实际脱敏需求，并在 run_report 中记录 unsupported/skipped |
 
 ## Open Questions
 
@@ -30,6 +31,7 @@
 | Q106 | LLM 抽取使用哪个模型、预算和脱敏策略？ | 用户/Captain | T112 前 |
 | Q107 | ContactSkill review 先用 Markdown 文件还是 CLI？ | Captain | T113 前 |
 | Q108 | `event_id` 是否应从 SHA-1 升级为 SHA-256，或保留 SHA-1 但加入更明确的 namespaced input 规则？ | Captain / T102 worker | T102 |
+| Q109 | T101 定义的 `[PHONE]`、`[EMAIL]` 等结构化替换 token 是否与 T102 normalize 输出字段和下游蒸馏需求一致？ | T102 worker / reviewer | T102 |
 
 ## Closed Questions
 
@@ -39,6 +41,8 @@
 | Q002 | 是否继续修微信扫码登录？不继续。 | 用户本轮明确跳过微信聊天记录扫描/SDK路线 |
 | Q100 | WeFlow 顶层行类型稳定分为 `header`、`member`、`message`；normalized event 只需要消费 `_type=message`。 | T100 worker draft + `docs/review/T100_review.md` PASS |
 | Q104 | 可以生成安全脱敏 fixture，且最小样例不包含真实内容。 | T100 worker draft + `docs/review/T100_review.md` PASS |
+| Q110 | 是否已有隐私脱敏规则和 source_ref/raw_ref 公开形态？已有，T101 已定义 PII 分类、数据区域边界、字段处理矩阵和 allowed public shape。 | `docs/review/T101_review.md` PASS |
+| Q111 | T101 fixture preview hex 是否需要返修为真实哈希形态？不需要；作为合成 fixture 注释占位可接受。 | `docs/review/T101_review.md` PASS，N02 accepted |
 
 ## Deferred Items
 

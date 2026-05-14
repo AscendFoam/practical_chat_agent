@@ -31,8 +31,8 @@
 当前状态：
 
 - T100 已通过 reviewer `PASS`，满足 schema profile、normalized event contract 和脱敏 fixture 的第一步要求。
-- T101 必须补齐隐私脱敏规则、source_ref/raw_ref 规则和红线样例。
-- T102 必须把合约落到只输出 `private/distilled/` 的 normalize CLI。
+- T101 已通过 reviewer `PASS`，满足隐私脱敏规则、source_ref/raw_ref 规则和红线样例要求。
+- T102 必须把合约落到只输出 `private/distilled/` 的 normalize CLI，并遵守 T101 的字段处理矩阵和公开引用形态。
 - T103 才能给出 M0 总体 Gate 结论。
 
 ### Gate M1: 离线蒸馏 MVP
@@ -153,3 +153,28 @@ T101 只做规则与样例，不写代码。
 
 - 真实联系人姓名、真实原始文件名或完整聊天原文。
 - 可反推联系人身份的账号 ID、手机号、地址、token 或媒体路径。
+
+T101 review 状态：`PASS`，见 `docs/review/T101_review.md`。
+
+## 7. T102 验证要求
+
+T102 开始写最小 normalize CLI，但仍不做语义蒸馏。
+
+必须输出：
+
+- `private/distilled/<run_id>/normalized_events.jsonl`
+- `private/distilled/<run_id>/run_report.json`
+- CLI dry-run 或 limit 小样本验证记录。
+
+禁止输出：
+
+- 任何 normalized event 到 `docs/`、`examples/` 或 `tests/`。
+- stdout 中打印真实聊天原文、真实文件名、真实联系人姓名或真实平台 ID。
+- LLM 调用、chunker、ContactSkill、数据库接入或实时平台接入。
+
+必须额外检查：
+
+- 遵守 `docs/data_contracts/privacy_redaction_rules.md` 的 Field Handling Matrix。
+- 遵守 `docs/data_contracts/source_ref_rules.md` 的 Allowed Public Shape。
+- 对 `type=80` / `chatRecords` 至少形成保守处理或明确 report 中的 skipped/unsupported 记录。
+- 明确 `event_id` 底层 digest 选择，并与 `normalized_event_contract.md`、`source_ref_rules.md` 保持一致。

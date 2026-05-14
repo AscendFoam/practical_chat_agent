@@ -24,7 +24,7 @@
 目标：确认 WeFlow JSONL 可解析，并建立 normalized event 合约和脱敏样例。
 
 - [x] T100: WeFlow JSONL schema profiling 与 normalized event 合约。review `PASS`。任务包：`docs/tasks/M0_weflow_data_contract/T100_schema_profile.md`
-- [ ] T101: 设计脱敏规则、source_ref 规则和最小红线测试样例。任务包：`docs/tasks/M0_weflow_data_contract/T101_privacy_source_refs.md`
+- [x] T101: 设计脱敏规则、source_ref 规则和最小红线测试样例。review `PASS`。任务包：`docs/tasks/M0_weflow_data_contract/T101_privacy_source_refs.md`
 - [ ] T102: 实现 WeFlow adapter 的最小 normalize CLI。任务包：`docs/tasks/M0_weflow_data_contract/T102_minimal_normalize_cli.md`
 - [ ] T103: M0 review，确认能进入离线蒸馏 MVP。任务包：`docs/tasks/M0_weflow_data_contract/T103_m0_review.md`
 
@@ -74,11 +74,11 @@
 
 ## Current Unique Task
 
-T101: 设计脱敏规则、source_ref 规则和最小红线测试样例。
+T102: 实现 WeFlow adapter 的最小 normalize CLI。
 
-任务包：`docs/tasks/M0_weflow_data_contract/T101_privacy_source_refs.md`
+任务包：`docs/tasks/M0_weflow_data_contract/T102_minimal_normalize_cli.md`
 
-为什么现在做它：T100 已建立 WeFlow schema profile、normalized event contract 和脱敏 fixture，并通过 reviewer `PASS`。在 T102 写 normalize CLI 前，必须把隐私脱敏边界、source_ref/raw_ref 规则和红线样例固定下来，避免私密原文、真实文件名或可识别联系人进入可提交目录。
+为什么现在做它：T100/T101 已分别完成数据合约与隐私/source_ref 规则，并通过 reviewer `PASS`。现在可以把合约落到最小可运行 normalize CLI，但输出必须限定在 `private/distilled/`，stdout 和可提交目录不得出现真实原文、真实文件名或可识别联系人。
 
 ## Next Captain Output Required
 

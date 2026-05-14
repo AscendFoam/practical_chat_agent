@@ -68,3 +68,12 @@
 - 决策：T100 标记完成；当前唯一任务切换为 T101。
 - Warning 处理：N01 accepted，Q100/Q104 关闭依据更新为 “T100 worker draft + review PASS”；N02 deferred 到 T102/T150 处理 type=80/chatRecords fixture 覆盖；N03 deferred 到 T102 决定 `event_id` 是否从 SHA-1 升级或补充 SHA-256。
 - 影响：下一步先固定隐私脱敏规则和 source_ref/raw_ref 规则，再允许实现最小 normalize CLI。
+
+## D009: T101 review PASS，进入 T102 最小 normalize CLI
+
+- 日期：2026-05-14
+- 状态：Accepted
+- 背景：`docs/review/T101_review.md` 给出 `PASS`，确认隐私脱敏规则、source_ref/raw_ref 规则和补充 source_ref 预览形态的合成 fixture 均满足任务要求，且未修改 `src/**`、未复制真实原文、未实现脱敏器或 LLM 流程。
+- 决策：T101 标记完成；当前唯一任务切换为 T102。
+- Warning 处理：N01 deferred，继续由 T102/T150 补充 `type=80` 和 `chatRecords` 合成 fixture；N02 accepted，preview hex 值作为 fixture 注释可接受，不要求返修；N03 deferred，T102 实现时校验结构化替换 token 与实际脱敏需求是否对齐。
+- 影响：T102 worker 必须遵守 `privacy_redaction_rules.md` 的 Field Handling Matrix 和 `source_ref_rules.md` 的 Allowed Public Shape，且所有 normalize 输出只能落入 `private/distilled/`。
