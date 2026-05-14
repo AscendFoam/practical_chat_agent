@@ -19,18 +19,18 @@
 - 下一阶段直接做“对话记录驱动的长期关系感知 chat agent”。
 - 当前目标是离线蒸馏 MVP：JSONL -> normalized events -> chunks -> memory facts -> ContactSkill -> review -> relationship-aware reply planner。
 - T100 worker 已产出 schema profile、normalized event contract 和合成脱敏 fixture，并通过 reviewer `PASS`。
-- Captain 已将 T100/T101/T102/T103/T110/T111/T112/T113 标记完成，Current Unique Task 推进到 T114。
+- Captain 已将 T100/T101/T102/T103/T110/T111/T112/T113/T114 标记完成，Gate M1 = `Conditional`，Current Unique Task 推进到 T120。
 - T101 worker 已产出隐私脱敏规则、source_ref 规则和补充了 `source_ref/raw_ref` 预览形态的合成 fixture，并通过 reviewer `PASS`。
 - T102 worker 已产出最小 normalize CLI，并完成 dry-run 与 limit 小样本验证，reviewer 判定 `PASS`。
-- T103 milestone review 已接受 Gate M0 = `Conditional`，允许进入 M1；T110 conversation chunker v0、T111 distillation schemas 和 T112 summary/fact extraction 均已通过 reviewer `PASS`，T113 ContactSkill builder 已通过 reviewer `PASS_WITH_WARNINGS`。
+- T103 milestone review 已接受 Gate M0 = `Conditional`，允许进入 M1；T110 conversation chunker v0、T111 distillation schemas 和 T112 summary/fact extraction 均已通过 reviewer `PASS`，T113 ContactSkill builder 已通过 reviewer `PASS_WITH_WARNINGS`，T114 确认 Gate M1 = `Conditional`。
 
 ## 2. 当前唯一任务
 
-T114: 在一个选定联系人样本上运行 distillation MVP 并人工抽查 evidence。
+T120: 新增离线 memory/skill Pydantic 模型和文件 store。
 
-任务包：`docs/tasks/M1_offline_distillation_mvp/T114_run_mvp_sample.md`
+任务包：`docs/tasks/M2_memory_skill_store/T120_file_store_models.md`
 
-状态：T113 review 已 `PASS_WITH_WARNINGS`，下一步只推荐 T114，不自动执行。T114 是 M1 milestone sample run，需要在选定联系人或小样本上抽查至少 5 条 memory facts 的 evidence 支持度，并给出 Gate M1 verdict: `Allow` / `Conditional` / `Block`。
+状态：Gate M1 = `Conditional`，允许进入 M2，但不能把 M1 写成无条件成功。T120 只做 file store models，必须保留 status 与 evidence refs；不做 migration、不引入向量数据库、不把 candidate 直接接入 runtime。
 
 ## 3. T100 完成记录
 
@@ -250,7 +250,34 @@ M1 必须承接的条件：
   - N04 accepted：`exporters/` 缺少 `__init__.py` 当前不影响 Python 3 namespace package 导入。
   - N05 accepted：未使用 helper 无当前风险，可在 T114+ 移除或使用。
 
-## 11. Worker 启动提示
+## 11. T114 / M1 完成记录
+
+- 文档改动：
+  - `docs/review/T114_milestone_review.md`
+  - `docs/review/T114_review.md`
+  - `docs/review/M1_review.md`
+  - `docs/07_handoff.md`
+  - `docs/08_risks_and_open_questions.md`
+- Worker milestone sample:
+  - sample run directory: `private/distilled/t102_smoke`
+  - artifact chain present: `normalized_events.jsonl`、`chunks.jsonl`、`chunk_summaries.jsonl`、`memory_facts.jsonl`、`contact_skill.candidate.json`、`contact_skill.review.md`、`run_report.json`
+  - sample summary: 12 normalized events, 1 chunk, 1 chunk summary, 7 memory facts, candidate ContactSkill.
+  - worker audited 7/7 memory facts, exceeding the required 5 facts.
+- Reviewer conclusion:
+  - `docs/review/T114_review.md` verdict 为 `PASS_WITH_WARNINGS`。
+  - Gate M1 verdict = `Conditional` confirmed.
+  - Reviewer independently checked all 7 memory facts against normalized events.
+  - All Gate M1 hard requirements passed.
+- Captain milestone review:
+  - `docs/review/M1_review.md` verdict = `Conditional`。
+  - M2 may proceed only with candidate-only / human-review-first semantics.
+- Warning / condition handling:
+  - T114 N01/N02 accepted：minor semantic elevation/paraphrase in candidate-only facts, handled by human review and R030.
+  - T114 N03 accepted：sample too small for generalization, represented by Gate M1 `Conditional`.
+  - T114 N04 accepted：no report inconsistency found; no action.
+  - R028/R029/R030 remain active into M2.
+
+## 12. Worker 启动提示
 
 ```text
 你是 Codex worker。
@@ -262,58 +289,58 @@ M1 必须承接的条件：
 - docs/06_eval_protocol.md
 - docs/04_task_board.md
 - docs/07_handoff.md
-- docs/review/T112_review.md
-- docs/review/T113_review.md
-- docs/tasks/M1_offline_distillation_mvp/T114_run_mvp_sample.md
+- docs/review/T114_review.md
+- docs/review/M1_review.md
+- docs/tasks/M2_memory_skill_store/T120_file_store_models.md
 
 本轮只完成：
-- docs/tasks/M1_offline_distillation_mvp/T114_run_mvp_sample.md
+- docs/tasks/M2_memory_skill_store/T120_file_store_models.md
 
 规则：
 1. 只改 Allowed files。
-2. 不修代码，除非 Captain 另开任务。
-3. 运行或检查选定联系人/小样本的 M1 pipeline outputs。
-4. 随机或有代表性地抽查至少 5 条 memory facts，确认 evidence refs 是否支持 claim。
-5. 不把 `private/distilled/**` 私密产物提交。
-6. 不把联系人真实姓名、真实聊天原文或可识别平台 ID 写入 docs。
-7. 输出 `docs/review/T114_milestone_review.md`，给出 Gate M1 verdict: `Allow` / `Conditional` / `Block`。
-8. 同步更新 `docs/07_handoff.md` 和 `docs/08_risks_and_open_questions.md`。
-9. 特别关注 T113 warnings：启发式泛化、confidence 数字是否过度精确、topic extraction 覆盖率。
+2. 新增离线 memory/skill Pydantic 模型和文件 store，先不强制接数据库。
+3. 必须保留 `status`、`evidence_refs`、source ids 和 review metadata。
+4. 支持 load/save candidate 和 approved skill/memory 文件。
+5. 不做 database migration，不引入向量数据库，不做 runtime prompt 注入。
+6. 不自动 approve，不绕过 human review。
+7. 用脱敏 fixture 或安全样例运行最小 load/save 验证。
+8. 最后报告：改了什么、如何验证、剩余风险。
 ```
 
-## 12. Reviewer 启动提示
+## 13. Reviewer 启动提示
 
 ```text
-你是 Claude Code milestone reviewer。
+你是 Claude Code reviewer。
 
 请先阅读：
 - docs/02_experiment_plan.md
 - docs/04_task_board.md
 - docs/07_handoff.md
 - docs/06_eval_protocol.md
+- docs/review/M1_review.md
 
 只读审查本次 diff，不要修改文件。
 
 重点检查：
-1. T114 是否只做 M1 sample/milestone review，没有越界修代码。
-2. 是否抽查至少 5 条 memory facts，且 evidence refs 真能支持 claim。
-3. ContactSkill review artifact 是否可人工审阅，不含大段原文，不冒充联系人。
-4. 是否正确评估 T113 warnings：启发式泛化、confidence 数值、topic extraction 覆盖率。
-5. 是否有真实聊天原文、真实姓名或可识别平台 ID 进入 docs。
-6. Gate M1 verdict 是否为 `Allow` / `Conditional` / `Block`，且理由充分。
+1. T120 是否只实现 file store models，不做 migration、向量库或 runtime integration。
+2. Candidate / approved / rejected / frozen / archived 状态是否保留。
+3. Evidence refs、source ids、review metadata 是否不丢失。
+4. 是否有真实聊天原文或 private output 进入 docs/examples/tests。
+5. Load/save 验证是否真实运行。
+6. 是否遵守 Gate M1 Conditional 的 candidate-only / human-review-first 条件。
 
-输出 milestone review，并写入 docs/review/T114_milestone_review.md。
+输出 Verdict: PASS / PASS_WITH_WARNINGS / BLOCK，并写入 docs/review/T120_review.md。
 ```
 
-## 13. 下一步顺序
+## 14. 下一步顺序
 
-1. 可提交当前 T113 + Captain 收口文档变更。
-2. 下一轮 worker 只执行 T114，不要自领 T120。
-3. 若 T114 Gate M1 = `Block`，停止 M2，Captain 根据 blocking reasons 拆返修任务。
-4. 若 T114 Gate M1 = `Conditional`，Captain 将条件写入 risks，并决定是否允许进入 M2。
-5. 若 T114 Gate M1 = `Allow`，Captain 推进 M2 的 T120。
+1. 可提交当前 T114 + M1 review + Captain 收口文档变更。
+2. 下一轮 worker 只执行 T120，不要自领 T121。
+3. 若 T120 review `BLOCK`，worker 只修 blocking issue，并最多自动复审一次。
+4. 若 T120 review `PASS` 或 `PASS_WITH_WARNINGS`，Captain 再更新治理文档并推进 T121。
+5. M2 仍为 Conditional；不要把 candidate 产物直接接入 runtime。
 
-## 14. 历史顺序
+## 15. 历史顺序
 
 1. T100 review `PASS`，已完成 schema profile 与 normalized event contract。
 2. T101 review `PASS`，已完成 privacy/source_ref rules。
@@ -323,12 +350,13 @@ M1 必须承接的条件：
 6. T111 review `PASS`，已完成 distillation output schemas 和 JSON contract。
 7. T112 review `PASS`，已完成小样本 summary/fact extraction 与 evidence refs 校验管线。
 8. T113 review `PASS_WITH_WARNINGS`，已完成 ContactSkill candidate builder 和 Markdown review exporter。
+9. T114 review `PASS_WITH_WARNINGS`，Gate M1 = `Conditional`，M2 可条件启动。
 
-## 15. 注意事项
+## 16. 注意事项
 
 - `.gitignore` 中已有 `private/`，保留这个安全措施。
 - 不要还原用户手动迁移 docs 目录结构的操作。
 - 不要读取或输出 `.env`。
 - 不要把 `private/chat_history` 的真实文件名或聊天内容写入 docs。
 - 当前阶段不做微调、不做自动发送、不做微信扫描。
-- M1 可以推进到 T114，但必须带着 T103/T113 的条件继续验证，不要把 conditional 或 warnings 误写成无条件完成。
+- M2 可以推进，但必须带着 Gate M1 Conditional 条件继续验证，不要把 M1 写成无条件完成。

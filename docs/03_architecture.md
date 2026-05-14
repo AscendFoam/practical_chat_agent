@@ -46,7 +46,7 @@ src/practical_chat_agent/exporters/contact_skill_markdown.py
 
 ## 3.1 当前实现状态
 
-T100/T101/T102 已通过 review `PASS`，T103 已接受 Gate M0 = `Conditional`，T110/T111/T112 已通过 review `PASS`，T113 已通过 review `PASS_WITH_WARNINGS`。当前完成的是数据合约、隐私规则、脱敏样例、最小 normalize CLI、conversation chunker v0、蒸馏输出 schema、小样本 summary/fact extraction 和 ContactSkill review artifact：
+T100/T101/T102 已通过 review `PASS`，T103 已接受 Gate M0 = `Conditional`，T110/T111/T112 已通过 review `PASS`，T113 已通过 review `PASS_WITH_WARNINGS`，T114 已确认 Gate M1 = `Conditional`。当前完成的是数据合约、隐私规则、脱敏样例、最小 normalize CLI、conversation chunker v0、蒸馏输出 schema、小样本 summary/fact extraction、ContactSkill review artifact 和 M1 milestone sample review：
 
 - `docs/data_contracts/weflow_schema_profile.md`
 - `docs/data_contracts/normalized_event_contract.md`
@@ -65,7 +65,7 @@ T100/T101/T102 已通过 review `PASS`，T103 已接受 Gate M0 = `Conditional`�
 - `chatlog-distill` CLI in `src/practical_chat_agent/app/main.py`
 - `chatlog-build-contact-skill` CLI in `src/practical_chat_agent/app/main.py`
 
-下一步继续 M1。T114 在选定联系人或小样本上运行离线蒸馏 MVP，并人工抽查至少 5 条 memory facts 的 evidence refs 是否支持 claim；T113 的启发式泛化和 confidence 数值也必须在 T114 中重点观察。
+下一步进入 M2 conditional。T120 先新增离线 memory/skill 文件 store 和 Pydantic 模型，保留 candidate/approved/rejected/frozen/archived 状态与 evidence refs；不要接数据库或向量库。
 
 ## 4. 复用现有能力
 

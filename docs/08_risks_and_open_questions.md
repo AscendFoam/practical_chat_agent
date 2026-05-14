@@ -35,14 +35,13 @@
 | R027 | T112 LLM 管线缺少自动化测试 | schema 校验、evidence refs 范围、PII 脱敏、provider 归一化未来可能回归 | T150 必须补充自动化测试 |
 | R028 | T113 ContactSkill builder 的启发式 tokens/topic/relationship 推断偏当前小样本 | 换联系人或更大样本时，preferred topics、avoid topics、relationship_type 等可能为空或误导 | T113 reviewer 判定不阻塞；T114 必须用样本 run 观察泛化，T120+ 可考虑 LLM-assisted inference |
 | R029 | T113 confidence/closeness/trust 数值由公式生成，未按 evidence quality 加权 | 人工 reviewer 可能误读为精确关系量化，导致过度信任 candidate | T113 reviewer 判定 candidate-only 可接受；T114 检查数字是否显得过度精确，T120+ 重设评分策略 |
+| R030 | T114 样例虽然 evidence chain 完整，但 reflection / reply-strategy 类 claim 已出现“短证据 -> 平滑 paraphrase”压缩 | 若后续样例更复杂，reviewer 可能高估 claim 的稳健度，进而放大 ContactSkill 中的策略推断 | T114 记录为 `Conditional`；M2 前保持 candidate-only / human-review-first，并在更广样例上继续抽查 |
 
 ## Open Questions
 
 | ID | 问题 | 需要谁回答 | 最晚解决点 |
 | --- | --- | --- | --- |
-| Q105 | 第一轮 distillation MVP 选哪个联系人或样本？ | 用户/Captain | T114 前 |
-| Q106 | LLM 抽取使用哪个模型、预算和脱敏策略？ | 用户/Captain | T112 前 |
-| Q107 | ContactSkill review 先用 Markdown 文件还是 CLI？ | Captain | T113 前 |
+| _None_ | _None_ | _None_ | _None_ |
 
 ## Closed Questions
 
@@ -64,6 +63,10 @@
 | Q114 | T111 distillation schemas 是否足以作为 T112 JSON 校验边界？足以作为 MVP schema。 | `docs/review/T111_review.md` PASS |
 | Q115 | T112 summary/fact extraction 是否足以支撑 ContactSkill builder？足以作为 T113 的 MVP 输入。 | `docs/review/T112_review.md` PASS |
 | Q116 | T113 ContactSkill builder 是否足以支撑 M1 sample review？足以作为 T114 MVP 输入，但带启发式和 confidence warning。 | `docs/review/T113_review.md` PASS_WITH_WARNINGS |
+| Q105 | 第一轮 distillation MVP 选哪个联系人或样本？已使用 `private/distilled/t102_smoke` 作为 T114 milestone sample。 | `docs/review/T114_milestone_review.md` worker draft |
+| Q106 | LLM 抽取模型、预算和脱敏策略如何处理？T112 已使用配置化 OpenAI-compatible provider/model 路径，并在 prompt 层执行最小 PII token 替换；更完整的 privacy leakage 测试留给 T150。 | `docs/review/T112_review.md` PASS |
+| Q107 | ContactSkill review 采用什么形态？M1 采用 Markdown review artifact，CLI review/approve/export 延后到 T122。 | `docs/review/T113_review.md` PASS_WITH_WARNINGS |
+| Q117 | Gate M1 是否允许进入下一里程碑？允许以 `Conditional` 进入 M2；必须保持 candidate-only / human-review-first，保留 evidence refs/status，并继续跟踪 R028/R029/R030。 | `docs/review/T114_review.md` + `docs/review/M1_review.md` |
 
 ## Deferred Items
 

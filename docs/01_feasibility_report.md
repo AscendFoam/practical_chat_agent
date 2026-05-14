@@ -71,7 +71,8 @@
 - T111 已通过 reviewer `PASS`，ChunkSummary、MemoryFactCandidate、ContactSkillCandidate schema 和 JSON contract 已可作为 T112 校验边界。
 - T112 已通过 reviewer `PASS`，小样本可生成 `chunk_summaries.jsonl` 和 `memory_facts.jsonl`，并在写入前执行 schema/evidence refs 校验。
 - T113 已通过 reviewer `PASS_WITH_WARNINGS`，可生成 candidate 状态的 `contact_skill.candidate.json` 和人工审阅用 `contact_skill.review.md`。
-- 当前唯一任务切换为 T114，在选定联系人或小样本上运行离线蒸馏 MVP，并人工抽查 evidence 支持度。
+- T114 已确认 Gate M1 = `Conditional`，M1 artifact chain 能在一个真实小样本上端到端运行，但启发式泛化、confidence 数字和 paraphrase compression 风险必须带入 M2。
+- 当前唯一任务切换为 T120，先建立离线 memory/skill 文件 store 与 Pydantic 模型，不接数据库、不引入向量库。
 - M1 只选 1 个联系人或小样本做 distillation MVP。
 - M1 不微调、不自动发送、不接实时平台。
 - 所有可提交 fixture 必须脱敏。

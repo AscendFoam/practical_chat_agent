@@ -134,3 +134,16 @@
 - 决策：T113 标记完成；当前唯一任务切换为 T114 Run MVP Sample。
 - Warning 处理：N01 accepted，重复 `_build_report()` 仅为低影响重复工作；N02 deferred 到 T114/T120+，小样本启发式 token/topic/relationship 推断需要在不同或更大样本上验证；N03 deferred 到 T114/T120+，formulaic confidence/relationship 数值需要人工检查是否显得过度精确；N04 accepted，缺少 `exporters/__init__.py` 不影响当前运行；N05 accepted，未使用 helper 无当前风险。
 - 影响：T114 必须抽查至少 5 条 memory facts 的 evidence 支持度，并额外关注 T113 启发式泛化、confidence 数值可信度、topic 提取覆盖率和 review artifact 是否仍适合人工审阅。
+
+## D016: Gate M1 Conditional，进入 M2/T120
+
+- 日期：2026-05-14
+- 状态：Accepted
+- 背景：`docs/review/T114_review.md` 给出 `PASS_WITH_WARNINGS`，确认 worker 的 Gate M1 verdict = `Conditional`；`docs/review/M1_review.md` 作为 Captain 综合审查，同样确认 M1 可条件进入 M2。
+- 决策：T114 标记完成；Gate M1 = `Conditional`；当前唯一任务切换为 T120 File Store Models。
+- Warning 处理：T114 N01/N02 accepted，candidate-only fact 的轻微语义上提由 human review 兜底；T114 N03 accepted，样本过小是结构限制并由 `Conditional` verdict 表达；T114 N04 accepted，不要求补查 report 字段。新增 R030 继续跟踪 paraphrase compression。
+- 条件：
+  - M2 必须保持 candidate-only / human-review-first，不得把 candidate 或 rejected/frozen 内容直接注入 runtime prompt。
+  - T120 必须保留 status 与 evidence refs，并不得引入数据库 migration 或向量库。
+  - R028/R029/R030 必须继续活跃到更广样本或后续 store/review 机制能缓解为止。
+- 影响：允许进入 M2，但不得把 M1 写成无条件成功；T120 是文件 store 与模型稳定化任务，不是 runtime integration。

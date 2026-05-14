@@ -37,7 +37,8 @@
 - T110 已通过 reviewer `PASS`，conversation chunker v0 已落地。
 - T111 已通过 reviewer `PASS`，蒸馏输出 schema 与 JSON contract 已落地。
 - T112 已通过 reviewer `PASS`，小样本 summary/fact extraction 与 evidence refs 校验管线已落地。
-- T113 已通过 reviewer `PASS_WITH_WARNINGS`，ContactSkill candidate 与 Markdown review artifact 已落地；M1 继续由 T114 做 milestone sample run 和 evidence 抽查。
+- T113 已通过 reviewer `PASS_WITH_WARNINGS`，ContactSkill candidate 与 Markdown review artifact 已落地。
+- T114 已确认 Gate M1 = `Conditional`；M2 可启动，但必须保留 candidate-only / human-review-first 和 evidence refs 条件。
 
 ### Gate M1: 离线蒸馏 MVP
 
@@ -49,6 +50,12 @@
 - ContactSkill candidate 有 review Markdown。
 - 人工抽查至少 5 条 fact，证据能命中原始事件。
 - 无私密原文进入可提交目录。
+
+当前状态：
+
+- Gate M1 = `Conditional`，见 `docs/review/T114_review.md` 和 `docs/review/M1_review.md`。
+- 硬性要求已满足：样本有 chunks、chunk summaries、memory facts、ContactSkill review artifact，且 7/7 memory facts 已被 worker/reviewer 审查 evidence refs。
+- 条件：启发式泛化、formulaic confidence、paraphrase compression 仍需在 M2/M5 跟踪。
 
 ### Gate M2: Memory / Skill Store
 
@@ -323,3 +330,28 @@ T114 是 M1 milestone sample run，不修代码，目标是在选定联系人或
 - ContactSkill review artifact 是否可人工审阅、不过度冒充、不保存大段原文。
 - T113 warnings：heuristic tokens/topic extraction 是否泛化、confidence 数字是否显得过度精确。
 - T112 warnings：仅 chunk_id 级 evidence 的比例、provider shape drift 对结果稳定性的影响。
+
+T114 review 状态：`PASS_WITH_WARNINGS` / Gate M1 = `Conditional`，见 `docs/review/T114_review.md`。
+
+## 14. T120 验证要求
+
+T120 新增离线 memory/skill Pydantic 模型和文件 store，先不接数据库。
+
+必须输出：
+
+- 可加载/保存 candidate 和 approved skill/memory 文件的 file store。
+- 保留 `status`、`evidence_refs`、source ids 和 review metadata。
+- 最小 load/save 验证记录。
+
+禁止输出：
+
+- 数据库 migration。
+- 向量数据库或 pgvector。
+- runtime prompt 注入。
+- 自动 approve 或绕过 human review。
+
+必须额外检查：
+
+- Candidate / approved / rejected / frozen / archived 状态不可被丢失。
+- Evidence refs 不得被压平或丢弃。
+- T113/T114 条件要体现在 store 语义中：candidate-only 默认安全，approved 才能进入后续 runtime。

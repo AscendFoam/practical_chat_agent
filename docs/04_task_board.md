@@ -36,11 +36,13 @@
 - [x] T111: 定义 ChunkSummary、MemoryFactCandidate、ContactSkillCandidate schema。review `PASS`。任务包：`docs/tasks/M1_offline_distillation_mvp/T111_distillation_schemas.md`
 - [x] T112: 实现 chunk summary 与 fact extraction 的 LLM/JSON 校验管线。review `PASS`。任务包：`docs/tasks/M1_offline_distillation_mvp/T112_summary_fact_extraction.md`
 - [x] T113: 实现 ContactSkill builder 与 Markdown review exporter。review `PASS_WITH_WARNINGS`。任务包：`docs/tasks/M1_offline_distillation_mvp/T113_contact_skill_builder.md`
-- [ ] T114: 在一个选定联系人样本上运行 distillation MVP 并人工抽查 evidence。任务包：`docs/tasks/M1_offline_distillation_mvp/T114_run_mvp_sample.md`
+- [x] T114: 在一个选定联系人样本上运行 distillation MVP 并人工抽查 evidence。Gate M1 `Conditional`。review `PASS_WITH_WARNINGS`。任务包：`docs/tasks/M1_offline_distillation_mvp/T114_run_mvp_sample.md`
 
 ## Milestone 2: Memory / Skill Store 与证据校验
 
 目标：把离线产物纳入项目模型、仓储和审阅流。
+
+状态：Gate M1 = `Conditional`，允许进入 M2，但必须保留 candidate-only / human-review-first，且继续跟踪 T113/T114 的启发式泛化、confidence 数值和 paraphrase compression 风险。
 
 - [ ] T120: 新增离线 memory/skill Pydantic 模型和文件 store。任务包：`docs/tasks/M2_memory_skill_store/T120_file_store_models.md`
 - [ ] T121: 实现 evidence validator 与 rejected/frozen 状态规则。任务包：`docs/tasks/M2_memory_skill_store/T121_evidence_validator.md`
@@ -74,11 +76,11 @@
 
 ## Current Unique Task
 
-T114: 在一个选定联系人样本上运行 distillation MVP 并人工抽查 evidence。
+T120: 新增离线 memory/skill Pydantic 模型和文件 store。
 
-任务包：`docs/tasks/M1_offline_distillation_mvp/T114_run_mvp_sample.md`
+任务包：`docs/tasks/M2_memory_skill_store/T120_file_store_models.md`
 
-为什么现在做它：T113 已通过 reviewer `PASS_WITH_WARNINGS`，M1 的离线管线已经能从 normalized events 走到 ContactSkill candidate 和 Markdown review artifact。现在需要用选定联系人或小样本做一次 milestone run，人工抽查至少 5 条 memory facts 的 evidence refs 是否支持 claim，并重点观察 T113 review 提到的启发式泛化、confidence 数值和 topic 提取覆盖问题。
+为什么现在做它：T114 已确认 Gate M1 = `Conditional`，M1 artifact chain 能在真实小样本上端到端运行。下一步需要把 candidate memory/skill 产物纳入稳定的文件 store 和模型加载/保存流程，保留 status 与 evidence refs；本阶段仍不做数据库 migration、向量库或 runtime 注入。
 
 ## Next Captain Output Required
 
