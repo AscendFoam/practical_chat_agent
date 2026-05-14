@@ -19,18 +19,18 @@
 - 下一阶段直接做“对话记录驱动的长期关系感知 chat agent”。
 - 当前目标是离线蒸馏 MVP：JSONL -> normalized events -> chunks -> memory facts -> ContactSkill -> review -> relationship-aware reply planner。
 - T100 worker 已产出 schema profile、normalized event contract 和合成脱敏 fixture，并通过 reviewer `PASS`。
-- Captain 已将 T100/T101/T102/T103/T110/T111 标记完成，Current Unique Task 推进到 T112。
+- Captain 已将 T100/T101/T102/T103/T110/T111/T112 标记完成，Current Unique Task 推进到 T113。
 - T101 worker 已产出隐私脱敏规则、source_ref 规则和补充了 `source_ref/raw_ref` 预览形态的合成 fixture，并通过 reviewer `PASS`。
 - T102 worker 已产出最小 normalize CLI，并完成 dry-run 与 limit 小样本验证，reviewer 判定 `PASS`。
-- T103 milestone review 已接受 Gate M0 = `Conditional`，允许进入 M1；T110 conversation chunker v0 与 T111 distillation schemas 均已通过 reviewer `PASS`。
+- T103 milestone review 已接受 Gate M0 = `Conditional`，允许进入 M1；T110 conversation chunker v0、T111 distillation schemas 和 T112 summary/fact extraction 均已通过 reviewer `PASS`。
 
 ## 2. 当前唯一任务
 
-T112: 实现 chunk summary 与 fact extraction 的 LLM/JSON 校验管线。
+T113: 实现 ContactSkill builder 与 Markdown review exporter。
 
-任务包：`docs/tasks/M1_offline_distillation_mvp/T112_summary_fact_extraction.md`
+任务包：`docs/tasks/M1_offline_distillation_mvp/T113_contact_skill_builder.md`
 
-状态：T111 review 已 `PASS`，下一步只推荐 T112，不自动执行。T112 可以开始小样本 LLM/JSON 抽取，但必须用 T111 schema 校验输出，拒绝无 `evidence_refs` 的 claim，并禁止把私密原文或 LLM 原始输入输出写入可提交目录。
+状态：T112 review 已 `PASS`，下一步只推荐 T113，不自动执行。T113 可以消费 `chunk_summaries.jsonl` 和 `memory_facts.jsonl` 生成 ContactSkill candidate 与 Markdown review artifact，但不得自动 approve、不得保存大段原文、不得生成“模拟联系人说话”的内容。
 
 ## 3. T100 完成记录
 
@@ -183,7 +183,45 @@ M1 必须承接的条件：
   - N04 deferred：`created_at` / `updated_at` 由 T120 store 或产物写入层补充。
   - N05 deferred：Pydantic 约束自动化测试交给 T150。
 
-## 9. Worker 启动提示
+## 9. T112 完成记录
+
+- 代码 / 文档改动：
+  - `src/practical_chat_agent/services/chatlog_distillation.py`
+  - `src/practical_chat_agent/services/contact_skill.py`
+  - `src/practical_chat_agent/app/main.py`
+  - `docs/07_handoff.md`
+  - `docs/08_risks_and_open_questions.md`
+- 已实现内容：
+  - 新增 `ChatlogDistillationService`，消费 `private/distilled/**/chunks.jsonl` 与同目录 `normalized_events.jsonl`。
+  - 新增 `chatlog-distill` CLI，支持 `--input`、`--output`、`--limit`、`--sample`、`--dry-run`。
+  - LLM 请求复用 OpenAI-compatible `/chat/completions` 调用风格。
+  - distillation 输出先做 provider 兼容归一化，再强制校验为 T111 `ChunkSummary` / `MemoryFactCandidate` schema。
+  - evidence refs 必须落在对应 chunk 的 `chunk_id + event_ids` 范围内；越界 refs 会导致 chunk 被拒绝，不写入 accepted 输出。
+  - 产物只写入 `private/distilled/<run_id>/chunk_summaries.jsonl`、`memory_facts.jsonl` 和合并后的 `run_report.json`；不保存 LLM prompt 或 raw response。
+  - `contact_skill.py` 当前仅含轻量辅助函数，为 T113 聚合 refs 预留，不包含 ContactSkill builder、review exporter 或 store 逻辑。
+- 已完成验证：
+  - `& 'C:\ProgramData\anaconda3\envs\practical-chat-agent\python.exe' -m compileall src/practical_chat_agent/services/chatlog_distillation.py src/practical_chat_agent/services/contact_skill.py src/practical_chat_agent/app/main.py`
+  - `$env:PYTHONPATH='src'; & 'C:\ProgramData\anaconda3\envs\practical-chat-agent\python.exe' -m practical_chat_agent.app.main chatlog-distill --input private/distilled/t102_smoke --limit 1`
+  - 首次因沙箱网络限制返回 `remote_request_failed`，worker 没有用 mock 冒充成功；提权复跑后 provider 可达。
+  - 加入 provider 输出兼容归一化后，小样本成功写出 `chunk_summaries.jsonl`、`memory_facts.jsonl`、`run_report.json`。
+  - 当前小样本结果：1 个 selected chunk，1 个 successful chunk，写出 1 条 chunk summary、7 条 memory facts，`distillation.failure_reasons` 为空。
+  - reviewer 确认人工抽查 3+ 条 fact 的 evidence_refs，均能回指当前 chunk 事件。
+- Reviewer 结论：
+  - `docs/review/T112_review.md` verdict 为 `PASS`。
+  - 确认 LLM 输出经过 provider 兼容归一化、T111 schema 校验和 evidence refs 范围校验后才写入。
+  - 确认 prompt/raw response 不写入文件，stdout/report 只含统计和状态码。
+  - 确认产物只写入 `private/distilled/`，没有真实聊天原文进入 docs/examples/tests/stdout。
+  - 确认未越界做 ContactSkill builder、store、数据库 migration、实时平台接入或自动发送。
+- Non-blocking 处理：
+  - N01 deferred：`chunk_id` fallback 是合法粗粒度 evidence，但会降低证据精度；T114 全量/更大样本抽查时关注仅有 chunk_id 的比例。
+  - N02 deferred：provider shape drift 已由 R024 记录；T114/T150 继续验证。
+  - N03 accepted/deferred：sensitivity 关键词兜底作为 MVP 可接受；T150 可补充测试或后续收紧。
+  - N04 accepted/deferred：memory_type fallback 作为 MVP 可接受；T114/T150 观察误分类。
+  - N05 accepted：`contact_skill.py` 轻量辅助不越界，T113 可扩展或重写。
+  - N06 deferred：schema 校验、evidence refs、PII 脱敏、provider 归一化的自动化测试留给 T150。
+  - N07 accepted/deferred：prompt 层 PII token 替换已部分满足 T102 N05；T150 privacy leakage smoke test 继续覆盖。
+
+## 10. Worker 启动提示
 
 ```text
 你是 Codex worker。
@@ -197,25 +235,24 @@ M1 必须承接的条件：
 - docs/07_handoff.md
 - docs/data_contracts/normalized_event_contract.md
 - docs/data_contracts/distillation_output_contract.md
-- docs/review/T111_review.md
-- docs/tasks/M1_offline_distillation_mvp/T112_summary_fact_extraction.md
+- docs/review/T112_review.md
+- docs/tasks/M1_offline_distillation_mvp/T113_contact_skill_builder.md
 
 本轮只完成：
-- docs/tasks/M1_offline_distillation_mvp/T112_summary_fact_extraction.md
+- docs/tasks/M1_offline_distillation_mvp/T113_contact_skill_builder.md
 
 规则：
 1. 只改 Allowed files。
-2. 只实现 chunk summary 与 fact extraction 的 LLM/JSON 校验管线，先支持 limit/sample。
-3. 输出只能写入 `private/distilled/<run_id>/chunk_summaries.jsonl`、`memory_facts.jsonl` 和 `run_report.json`。
-4. LLM 输出必须校验为 T111 schema；缺失 evidence_refs/confidence/sensitivity/status 的输出视为无效。
-5. Evidence refs 必须能回指 T110 chunk/event 范围。
-6. 不保存 LLM 输入/输出原文到可提交目录，不把 private/distilled 内容复制到 docs/examples/tests。
-7. 不做 ContactSkill builder、Markdown review exporter、数据库 migration、实时平台接入或自动发送。
-8. 如果模型不可用，不要用 mock 假装完成；记录阻塞或降级验证结果。
-9. 最后报告：改了什么、如何验证、人工抽查至少 3 条 facts 的结果、剩余风险。
+2. 从 T112 的 `chunk_summaries.jsonl` 和 `memory_facts.jsonl` 生成 `contact_skill.candidate.json` 与 `contact_skill.review.md`。
+3. Candidate 必须有 evidence_refs 和 `status="candidate"`。
+4. Markdown review artifact 面向人工审阅，标出 confidence、sensitivity、evidence refs、边界和禁止用途。
+5. 不自动 approve，不写数据库 migration，不接实时平台，不自动发送。
+6. 不保存大段聊天原文，不把 private/distilled 内容复制到 docs/examples/tests。
+7. 不生成“模拟联系人说话”“对方会怎么说”或 persona clone 内容。
+8. 最后报告：改了什么、如何验证、review artifact 是否可审阅、剩余风险。
 ```
 
-## 10. Reviewer 启动提示
+## 11. Reviewer 启动提示
 
 ```text
 你是 Claude Code reviewer。
@@ -228,26 +265,25 @@ M1 必须承接的条件：
 只读审查本次 diff，不要修改文件。
 
 重点检查：
-1. T112 是否只实现 summary/fact extraction 管线，不越界做 ContactSkill builder 或 store。
-2. LLM 输出是否必须校验为 T111 schema。
-3. 无 evidence_refs/confidence/sensitivity/status 的输出是否会被拒绝。
-4. evidence refs 是否能回指 T110 chunk/event 范围。
-5. 是否有真实聊天原文、LLM 输入原文或 LLM 原始输出进入 docs/examples/tests/stdout。
+1. T113 是否只实现 ContactSkill builder 与 Markdown review exporter。
+2. 是否消费 T112 summaries/facts，且 candidate/review artifact 均保留 evidence_refs。
+3. ContactSkill candidate 是否保持 `status="candidate"`，没有自动 approve。
+4. Markdown review artifact 是否可人工审阅，且不含大段聊天原文。
+5. 是否出现“模拟联系人说话”“对方会怎么说”或 persona clone 内容。
 6. 是否越界写数据库 migration、实时平台接入或自动发送。
-7. 若模型不可用，worker 是否明确记录而不是用 mock 冒充真实完成。
 
-输出 Verdict: PASS / PASS_WITH_WARNINGS / BLOCK，并写入 docs/review/T112_review.md。
+输出 Verdict: PASS / PASS_WITH_WARNINGS / BLOCK，并写入 docs/review/T113_review.md。
 ```
 
-## 11. 下一步顺序
+## 12. 下一步顺序
 
-1. 可提交当前 T111 + Captain 收口文档变更。
-2. 下一轮 worker 只执行 T112，不要自领 T113。
-3. 若 T112 review `BLOCK`，worker 只修 blocking issue，并最多自动复审一次。
-4. 若 T112 review `PASS` 或 `PASS_WITH_WARNINGS`，Captain 再更新 `04_task_board`、`05_decision_log`、`07_handoff`、`08_risks_and_open_questions`。
-5. T113 只有在 T112 review 通过后才能启动。
+1. 可提交当前 T112 + Captain 收口文档变更。
+2. 下一轮 worker 只执行 T113，不要自领 T114。
+3. 若 T113 review `BLOCK`，worker 只修 blocking issue，并最多自动复审一次。
+4. 若 T113 review `PASS` 或 `PASS_WITH_WARNINGS`，Captain 再更新 `04_task_board`、`05_decision_log`、`07_handoff`、`08_risks_and_open_questions`。
+5. T114 只有在 T113 review 通过后才能启动。
 
-## 12. 历史顺序
+## 13. 历史顺序
 
 1. T100 review `PASS`，已完成 schema profile 与 normalized event contract。
 2. T101 review `PASS`，已完成 privacy/source_ref rules。
@@ -255,8 +291,9 @@ M1 必须承接的条件：
 4. T103 Gate M0 = `Conditional` accepted，允许进入 M1。
 5. T110 review `PASS`，已完成 `chatlog-chunk` conversation chunker v0。
 6. T111 review `PASS`，已完成 distillation output schemas 和 JSON contract。
+7. T112 review `PASS`，已完成小样本 summary/fact extraction 与 evidence refs 校验管线。
 
-## 13. 注意事项
+## 14. 注意事项
 
 - `.gitignore` 中已有 `private/`，保留这个安全措施。
 - 不要还原用户手动迁移 docs 目录结构的操作。

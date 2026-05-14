@@ -29,6 +29,10 @@
 | R021 | `DistillationMemoryType` 与现有运行时 `MemoryType` 未统一 | approved memory candidate 入库时可能需要映射，若未处理会造成类型不一致 | T120 负责定义 `MemoryFactCandidate` -> `MemoryFact` 映射 |
 | R022 | T111 candidate schema 暂无 `created_at` / `updated_at` | 文件 store、审阅和版本追踪可能缺少生成/更新时间 | T120 store 或产物写入层补充时间戳 |
 | R023 | T111 Pydantic 约束尚缺自动化测试 | `evidence_refs` 非空、`confidence` 范围等约束未来可能回归 | T150 补合法/非法 JSON 的 Pydantic 校验测试 |
+| R024 | T112 实测发现 provider 返回 JSON 形状会漂移，可能使用 `predicate/object/high` 一类字段，而不是直接命中 T111 schema | 若没有兼容归一化层，真实小样本会在 schema 校验前失败，导致 distillation 无法写出 | T112 已加入 provider 输出归一化层并在 `private/distilled/t102_smoke` 小样本验证通过；T150 仍应补充 provider shape drift 回归测试 |
+| R025 | T112 evidence refs fallback 允许使用 `chunk_id` 作为粗粒度证据 | claim 可能缺少 event_id 级证据，后续人工审阅时证据精度不足 | T112 reviewer 判定不阻塞；T114 统计仅 chunk_id 级 evidence 的比例并人工抽查 |
+| R026 | T112 sensitivity 与 memory_type fallback 使用关键词兜底 | 可能出现敏感度低估或 memory type 误分类 | MVP 可接受；T114/T150 观察误分类并补充测试或收紧规则 |
+| R027 | T112 LLM 管线缺少自动化测试 | schema 校验、evidence refs 范围、PII 脱敏、provider 归一化未来可能回归 | T150 必须补充自动化测试 |
 
 ## Open Questions
 
@@ -56,6 +60,7 @@
 | Q112 | Gate M0 verdict 为 `Conditional`；允许进入 M1，但 T110/T112+/T114/T150 必须承接条件。 | `docs/review/T103_review.md` accepted worker draft |
 | Q113 | T110 conversation chunker v0 是否足以作为 M1 后续输入？足以作为 MVP 输入。 | `docs/review/T110_review.md` PASS |
 | Q114 | T111 distillation schemas 是否足以作为 T112 JSON 校验边界？足以作为 MVP schema。 | `docs/review/T111_review.md` PASS |
+| Q115 | T112 summary/fact extraction 是否足以支撑 ContactSkill builder？足以作为 T113 的 MVP 输入。 | `docs/review/T112_review.md` PASS |
 
 ## Deferred Items
 

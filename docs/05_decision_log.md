@@ -116,3 +116,12 @@
 - 决策：T111 标记完成；当前唯一任务切换为 T112 Summary And Fact Extraction。
 - Reviewer non-blocking issues 处理：N01 accepted，关系/沟通风格字段保留自由字符串以适配 MVP LLM 输出；N02 accepted/deferred，`redaction_policy` 字典形态当前可接受，后续可在 T120/T150 收紧；N03 deferred 到 T120 处理 `DistillationMemoryType` 与现有 `MemoryType` 映射；N04 deferred 到 T120 store 补充 `created_at` / `updated_at`；N05 deferred 到 T150 增加 Pydantic 约束测试。
 - 影响：T112 可以启动，但必须把 LLM 输出校验为 T111 schema，缺失 `evidence_refs`、`confidence`、`sensitivity` 或 `status` 的输出一律视为无效；不得把私密原文或 LLM 原始输入输出写入可提交目录。
+
+## D014: T112 review PASS，进入 T113 ContactSkill builder
+
+- 日期：2026-05-14
+- 状态：Accepted
+- 背景：`docs/review/T112_review.md` 给出 `PASS`，确认 `ChatlogDistillationService` 和 `chatlog-distill` CLI 已能在小样本上消费 T110 chunks/T102 normalized events，调用 OpenAI-compatible LLM，并在写入前完成 provider 输出归一化、T111 schema 校验和 evidence refs 范围校验。
+- 决策：T112 标记完成；当前唯一任务切换为 T113 ContactSkill builder 与 Markdown review exporter。
+- Reviewer non-blocking issues 处理：N01 deferred 到 T114 关注 evidence refs 粒度；N02 deferred 到 T114/T150 关注 provider shape drift；N03 accepted/deferred，MVP sensitivity 关键词兜底可接受，后续 T150 可补测试；N04 accepted/deferred，memory_type fallback 可接受，T114/T150 观察误分类；N05 accepted，`contact_skill.py` 轻量辅助不越界；N06 deferred 到 T150 自动化测试；N07 accepted/deferred，T112 已在 prompt 层部分实现 PII token 替换，后续隐私测试继续覆盖。
+- 影响：T113 可以消费 `chunk_summaries.jsonl` 和 `memory_facts.jsonl` 生成 `contact_skill.candidate.json` 与 `contact_skill.review.md`；仍不得自动 approve、不得保存大段原文、不得生成“模拟联系人说话”的内容。

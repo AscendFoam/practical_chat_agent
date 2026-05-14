@@ -43,6 +43,10 @@ from practical_chat_agent.services.conversation_chunking import (
     ConversationChunkingError,
     ConversationChunkingService,
 )
+from practical_chat_agent.services.chatlog_distillation import (
+    ChatlogDistillationError,
+    ChatlogDistillationService,
+)
 from practical_chat_agent.services.meeting_live_loop import MeetingLiveLoopRequest
 from practical_chat_agent.ui.live_caption_window import MeetingLiveCaptionWindow
 
@@ -1611,6 +1615,60 @@ def chatlog_chunk(
             max_messages_per_chunk=max_messages_per_chunk,
         )
     except ConversationChunkingError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+
+    typer.echo(json.dumps(result.report, ensure_ascii=False, indent=2))
+
+
+@app.command("chatlog-distill")
+def chatlog_distill(
+    input_path: Path = typer.Option(
+        Path("private/distilled"),
+        "--input",
+        help="Input chunks.jsonl file or a private/distilled run directory that contains chunks.jsonl and normalized_events.jsonl.",
+    ),
+    output_dir: Optional[Path] = typer.Option(
+        None,
+        "--output",
+        help="Output directory under private/distilled. Defaults to the input run directory.",
+    ),
+    limit: Optional[int] = typer.Option(
+        None,
+        min=1,
+        help="Distill only the first N selected chunks.",
+    ),
+    sample: Optional[int] = typer.Option(
+        None,
+        min=1,
+        help="Evenly sample N chunks from the input before applying --limit.",
+    ),
+    dry_run: bool = typer.Option(
+        False,
+        help="Process input and print a safe report without writing distillation outputs.",
+    ),
+) -> None:
+    """Distill chat chunks into validated chunk summaries and memory fact candidates."""
+
+    settings = get_settings()
+    model_hint = settings.chat_memory_model or settings.chat_suggestion_model
+    service = ChatlogDistillationService(
+        api_key=settings.openai_api_key,
+        base_url=settings.openai_base_url,
+        model=model_hint,
+        timeout_seconds=max(
+            settings.chat_memory_timeout_seconds,
+            settings.chat_suggestion_timeout_seconds,
+        ),
+    )
+    try:
+        result = service.distill_chunks(
+            input_path=input_path,
+            output_dir=output_dir,
+            limit=limit,
+            sample=sample,
+            dry_run=dry_run,
+        )
+    except ChatlogDistillationError as exc:
         raise typer.BadParameter(str(exc)) from exc
 
     typer.echo(json.dumps(result.report, ensure_ascii=False, indent=2))

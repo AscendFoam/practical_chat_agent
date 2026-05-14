@@ -35,7 +35,8 @@
 - T102 已通过 reviewer `PASS`，最小 normalize CLI 已落地，输出只进入 `private/distilled/`，并遵守 T101 的字段处理矩阵和公开引用形态。
 - T103 已接受 Gate M0 = `Conditional`，允许进入 M1；M0 条件需由 T110/T112+/T114/T150 继续跟踪。
 - T110 已通过 reviewer `PASS`，conversation chunker v0 已落地。
-- T111 已通过 reviewer `PASS`，蒸馏输出 schema 与 JSON contract 已落地；M1 继续由 T112 实现 summary/fact extraction。
+- T111 已通过 reviewer `PASS`，蒸馏输出 schema 与 JSON contract 已落地。
+- T112 已通过 reviewer `PASS`，小样本 summary/fact extraction 与 evidence refs 校验管线已落地；M1 继续由 T113 构建 ContactSkill candidate 和 review artifact。
 
 ### Gate M1: 离线蒸馏 MVP
 
@@ -271,3 +272,28 @@ T112 实现 chunk summary 与 fact extraction 的 LLM/JSON 校验管线，只支
 - evidence refs 必须能回指 T110 chunk/event 范围。
 - 小样本运行后人工抽查至少 3 条 facts。
 - 若模型不可用，必须在 handoff/risks 中明确记录，并不要把 mock 输出当成真实完成。
+
+T112 review 状态：`PASS`，见 `docs/review/T112_review.md`。
+
+## 12. T113 验证要求
+
+T113 实现 ContactSkill builder 与 Markdown review exporter，从 T112 的 chunk summaries 和 memory facts 生成 candidate skill。
+
+必须输出：
+
+- `private/distilled/<run_id>/contact_skill.candidate.json`
+- `private/distilled/<run_id>/contact_skill.review.md`
+- Candidate 必须包含 `evidence_refs` 和 `status="candidate"`。
+
+禁止输出：
+
+- 自动 approve。
+- 大段聊天原文、LLM prompt 或 raw response 到 review artifact 或可提交目录。
+- “模拟联系人说话”“对方会怎么说”或 persona clone 内容。
+- 数据库 migration、实时平台接入或自动发送。
+
+必须额外检查：
+
+- ContactSkill claim 必须能追溯到 T112 memory facts/chunk summaries 的 evidence refs。
+- Markdown review artifact 必须面向人工审阅，清楚标出 confidence、sensitivity、evidence refs 和边界/禁用用途。
+- 小样本构建后人工检查 review artifact 是否不含大段原文、不冒充联系人。
