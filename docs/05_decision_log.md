@@ -98,3 +98,12 @@
   - T110/T114/T150 保留并验证 `sender_role`、timezone fallback、性能/内存相关不确定性。
   - T112+ 任意 LLM-facing 蒸馏步骤继续遵守 T101 的隐私边界，不把私有 normalize 文本直接扩散到可提交产物。
 - 影响：T110 worker 可以启动，但必须承接 M0 条件，尤其是保留不确定性信号、避免私密内容进入可提交目录，并为 T112+/T114/T150 留出验证路径。
+
+## D012: T110 review PASS，进入 T111 蒸馏 schema
+
+- 日期：2026-05-14
+- 状态：Accepted
+- 背景：`docs/review/T110_review.md` 给出 `PASS`，确认 `ConversationChunkingService` 和 `chatlog-chunk` CLI 已完成 conversation chunker v0，输出限制在 `private/distilled/`，未引入 LLM、embedding、ContactSkill、数据库或实时平台接入。
+- 决策：T110 标记完成；当前唯一任务切换为 T111 Distillation Schemas。
+- Reviewer non-blocking issues 处理：因 verdict 为 `PASS`，不要求 worker 返修；N01/N02/N03 作为 accepted observations 进入后续实现注意事项；N04 deferred 到 T150 自动化测试；N05 accepted，`topic_hint` 保持 optional，不阻塞 T111。
+- 影响：T111 必须在 T112 引入 LLM-facing 抽取前定义 ChunkSummary、MemoryFactCandidate、ContactSkillCandidate 的强 schema、JSON contract、evidence_refs 和反 impersonation/数字克隆边界。

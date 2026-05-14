@@ -19,18 +19,18 @@
 - 下一阶段直接做“对话记录驱动的长期关系感知 chat agent”。
 - 当前目标是离线蒸馏 MVP：JSONL -> normalized events -> chunks -> memory facts -> ContactSkill -> review -> relationship-aware reply planner。
 - T100 worker 已产出 schema profile、normalized event contract 和合成脱敏 fixture，并通过 reviewer `PASS`。
-- Captain 已将 T100/T101/T102/T103 标记完成，Current Unique Task 推进到 T110。
+- Captain 已将 T100/T101/T102/T103/T110 标记完成，Current Unique Task 推进到 T111。
 - T101 worker 已产出隐私脱敏规则、source_ref 规则和补充了 `source_ref/raw_ref` 预览形态的合成 fixture，并通过 reviewer `PASS`。
 - T102 worker 已产出最小 normalize CLI，并完成 dry-run 与 limit 小样本验证，reviewer 判定 `PASS`。
-- T103 milestone review 已接受 Gate M0 = `Conditional`，允许进入 M1；下一唯一任务为 T110。
+- T103 milestone review 已接受 Gate M0 = `Conditional`，允许进入 M1；T110 conversation chunker v0 已通过 reviewer `PASS`。
 
 ## 2. 当前唯一任务
 
-T110: 实现 conversation chunker v0。
+T111: 定义 ChunkSummary、MemoryFactCandidate、ContactSkillCandidate schema。
 
-任务包：`docs/tasks/M1_offline_distillation_mvp/T110_chunker_v0.md`
+任务包：`docs/tasks/M1_offline_distillation_mvp/T111_distillation_schemas.md`
 
-状态：可交给 worker 执行。T103 已接受 Gate M0 = `Conditional`，不需要返修。
+状态：T110 review 已 `PASS`，下一步只推荐 T111，不自动执行。T111 是 T112 LLM/JSON 抽取前的 schema 闸门，必须先固定 evidence_refs、confidence、sensitivity、status 与 ContactSkillCandidate 的非 impersonation 边界。
 
 ## 3. T100 完成记录
 
@@ -113,7 +113,36 @@ M1 必须承接的条件：
 - T110/T114/T150 保留并验证 `sender_role`、timezone fallback、性能/内存相关不确定性。
 - T112+ 任意 LLM-facing 蒸馏步骤继续遵守 T101 隐私边界，不把私有 normalize 文本扩散到可提交产物。
 
-## 7. Worker 启动提示
+## 7. T110 完成记录
+
+- 代码改动：
+  - `src/practical_chat_agent/services/conversation_chunking.py`
+  - `src/practical_chat_agent/app/main.py`
+- 已实现内容：
+  - 新增 `ConversationChunkingService`，消费 `private/distilled/**/normalized_events.jsonl`。
+  - 新增 `chatlog-chunk` CLI，默认把 `chunks.jsonl` 和更新后的 `run_report.json` 写回同一个 `private/distilled/<run_id>/` 目录。
+  - chunk v0 仅使用保守边界：`conversation/contact` 变化、时间间隔过大、单 chunk 消息数上限、输入结束。
+  - 每个 chunk 保留 `chunk_id`、`contact_id`、`conversation_id`、`event_ids`、`time_range`、`message_count`、`chunking_reason`。
+  - chunk 级产物继续传递 T102 的不确定性信号：`source_message_type_codes` / `source_message_type_counts`、`message_type_counts`、`interaction_flag_counts`、`risk_flag_counts`、`events_with_interaction_flags`、`events_with_risk_flags`。
+  - 未引入 LLM、embedding、ContactSkill、数据库或实时平台接入；chunk 输出不写聊天原文。
+- 已完成验证：
+  - `& 'C:\ProgramData\anaconda3\envs\practical-chat-agent\python.exe' -m compileall src/practical_chat_agent/services/conversation_chunking.py src/practical_chat_agent/app/main.py`
+  - `$env:PYTHONPATH='src'; & 'C:\ProgramData\anaconda3\envs\practical-chat-agent\python.exe' -m practical_chat_agent.app.main chatlog-chunk --input private/distilled/t102_smoke --limit 12`
+  - 结果：成功写出 `private/distilled/t102_smoke/chunks.jsonl`，并把 chunking 报告写入 `private/distilled/t102_smoke/run_report.json`。
+  - 该小样本共消费 12 条 normalized events，生成 1 个 chunk；`chunking_reason=manual`，`boundary_flags=["end_of_input"]`，且保留了 `type=7` / `type=80` 对应的 mixed/system 风险与交互统计。
+- Reviewer 结论：
+  - `docs/review/T110_review.md` verdict 为 `PASS`。
+  - 确认 T110 只实现 conversation chunker v0，未越界引入 LLM、embedding、ContactSkill、数据库或实时平台。
+  - 确认 chunk 输出不写聊天原文，stdout/report 未发现真实聊天内容泄露。
+  - 确认 T102 的 `source_message_type_code`、`risk_flags`、`interaction_flags`、`message_type`、`sender_role` 等不确定性信号已被保留或汇总传递。
+- Non-blocking 处理：
+  - N01 accepted：`chunking_reason="manual"` 对结构边界表达偏粗，但当前 `boundary_flags` 已保留细节；后续 T112/T150 使用时不要只依赖 reason。
+  - N02 accepted/deferred：non-monotonic timestamp warning 当前只进入 report，不阻塞；若后续样本出现排序问题，由 T150 增加诊断覆盖。
+  - N03 accepted/deferred：`run_report.json` 的 chunking 报告形态足够 MVP 使用；T114/T150 可按实际抽查需求扩展。
+  - N04 deferred：自动化测试仍留给 T150。
+  - N05 accepted：`topic_hint` 是 optional，T110 不生成 topic hint 合理，后续由 T112+ 摘要/语义阶段补足。
+
+## 8. Worker 启动提示
 
 ```text
 你是 Codex worker。
@@ -126,22 +155,24 @@ M1 必须承接的条件：
 - docs/04_task_board.md
 - docs/07_handoff.md
 - docs/data_contracts/normalized_event_contract.md
-- docs/review/T103_review.md
+- docs/review/T110_review.md
+- docs/tasks/M1_offline_distillation_mvp/T111_distillation_schemas.md
 
 本轮只完成：
-- docs/tasks/M1_offline_distillation_mvp/T110_chunker_v0.md
+- docs/tasks/M1_offline_distillation_mvp/T111_distillation_schemas.md
 
 规则：
 1. 只改 Allowed files。
-2. 输入读取 T102 normalized events output，不读取或输出 private/chat_history 原文。
-3. 输出只能写入 private/distilled/<run_id>/。
-4. 不做 LLM 调用，不做 embedding 语义切分，不做 ContactSkill，不接数据库。
-5. 每个 chunk 必须保留 event_ids、time_range、message_count、chunking_reason。
-6. 不要抹平 T102 的 uncertainty 信号：保留或传递 source_message_type_code、risk_flags、interaction_flags。
-7. 最后报告：改了什么、如何验证、剩余风险。
+2. 只定义 ChunkSummary、MemoryFactCandidate、ContactSkillCandidate 的 Pydantic schema 与 JSON contract。
+3. 所有 fact/skill claim 必须支持 evidence_refs、confidence、sensitivity、status。
+4. ContactSkillCandidate 必须明确禁止 persona clone / impersonation 用途。
+5. 不调用 LLM，不生成真实蒸馏结果，不写数据库 migration。
+6. 不读取或输出 private/chat_history 原文，不把 private/distilled 内容复制到可提交目录。
+7. 若修改 Python 模型，运行 compile 验证。
+8. 最后报告：改了什么、如何验证、剩余风险。
 ```
 
-## 8. Reviewer 启动提示
+## 9. Reviewer 启动提示
 
 ```text
 你是 Claude Code reviewer。
@@ -154,32 +185,33 @@ M1 必须承接的条件：
 只读审查本次 diff，不要修改文件。
 
 重点检查：
-1. T110 是否只实现 conversation chunker v0。
-2. 是否有真实聊天原文进入 docs/examples/tests/stdout。
-3. chunks 是否写入 private/distilled/<run_id>/。
-4. chunk 字段是否包含 event_ids、time_range、message_count、chunking_reason。
-5. 是否保留 T102 的 risk_flags/interaction_flags/source_message_type_code 等不确定性信号。
-6. 是否越界使用 LLM、embedding、ContactSkill、数据库或实时平台接入。
+1. T111 是否只定义 distillation schemas 和 JSON contract。
+2. 是否包含 ChunkSummary、MemoryFactCandidate、ContactSkillCandidate 所需字段。
+3. fact/skill claim 是否强制 evidence_refs，并包含 confidence、sensitivity、status。
+4. ContactSkillCandidate 是否明确禁止 persona clone / impersonation。
+5. 是否有真实聊天原文进入 docs/examples/tests/stdout。
+6. 是否越界调用 LLM、生成真实蒸馏结果、写数据库 migration 或接入实时平台。
 
-输出 Verdict: PASS / PASS_WITH_WARNINGS / BLOCK，并写入 docs/review/T110_review.md。
+输出 Verdict: PASS / PASS_WITH_WARNINGS / BLOCK，并写入 docs/review/T111_review.md。
 ```
 
-## 9. 下一步顺序
+## 10. 下一步顺序
 
-1. Worker 执行 T110。
-2. Reviewer 审查 T110 worker 交付。
-3. Captain 根据 review 更新 `04_task_board`、`05_decision_log`、`07_handoff`、`08_risks_and_open_questions`。
-4. 若 T110 review `PASS` 或 `PASS_WITH_WARNINGS`，推进 T111 或按 review 推荐调整。
-5. 若 T110 review `BLOCK`，只修 blocking issue，并最多自动复审一次。
+1. 可提交当前 T110 + Captain 收口文档变更。
+2. 下一轮 worker 只执行 T111，不要自领 T112。
+3. 若 T111 review `BLOCK`，worker 只修 blocking issue，并最多自动复审一次。
+4. 若 T111 review `PASS` 或 `PASS_WITH_WARNINGS`，Captain 再更新 `04_task_board`、`05_decision_log`、`07_handoff`、`08_risks_and_open_questions`。
+5. T112 只有在 T111 schema review 通过后才能启动。
 
-## 10. 历史顺序
+## 11. 历史顺序
 
 1. T100 review `PASS`，已完成 schema profile 与 normalized event contract。
 2. T101 review `PASS`，已完成 privacy/source_ref rules。
 3. T102 review `PASS`，已完成 `chatlog-normalize` 最小 CLI。
 4. T103 Gate M0 = `Conditional` accepted，允许进入 M1。
+5. T110 review `PASS`，已完成 `chatlog-chunk` conversation chunker v0。
 
-## 11. 注意事项
+## 12. 注意事项
 
 - `.gitignore` 中已有 `private/`，保留这个安全措施。
 - 不要还原用户手动迁移 docs 目录结构的操作。

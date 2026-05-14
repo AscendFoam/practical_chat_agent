@@ -32,7 +32,7 @@
 
 目标：从一个联系人或小样本生成 chunks、memory facts、ContactSkill candidate 和 review artifact。
 
-- [ ] T110: 实现 conversation chunker v0。任务包：`docs/tasks/M1_offline_distillation_mvp/T110_chunker_v0.md`
+- [x] T110: 实现 conversation chunker v0。review `PASS`。任务包：`docs/tasks/M1_offline_distillation_mvp/T110_chunker_v0.md`
 - [ ] T111: 定义 ChunkSummary、MemoryFactCandidate、ContactSkillCandidate schema。任务包：`docs/tasks/M1_offline_distillation_mvp/T111_distillation_schemas.md`
 - [ ] T112: 实现 chunk summary 与 fact extraction 的 LLM/JSON 校验管线。任务包：`docs/tasks/M1_offline_distillation_mvp/T112_summary_fact_extraction.md`
 - [ ] T113: 实现 ContactSkill builder 与 Markdown review exporter。任务包：`docs/tasks/M1_offline_distillation_mvp/T113_contact_skill_builder.md`
@@ -74,11 +74,11 @@
 
 ## Current Unique Task
 
-T110: 实现 conversation chunker v0。
+T111: 定义 ChunkSummary、MemoryFactCandidate、ContactSkillCandidate schema。
 
-任务包：`docs/tasks/M1_offline_distillation_mvp/T110_chunker_v0.md`
+任务包：`docs/tasks/M1_offline_distillation_mvp/T111_distillation_schemas.md`
 
-为什么现在做它：T103 reviewer 已接受 Gate M0 = `Conditional`，M0 的 schema/profile/privacy/source_ref/normalize CLI 已足够支撑 M1。T110 是 M1 的自然起点，直接消费 T102 的 `normalized_events.jsonl`，生成后续摘要、事实抽取和 ContactSkill 所需的 chunks。
+为什么现在做它：T110 已通过 reviewer `PASS`，conversation chunker v0 已能消费 T102 的 `normalized_events.jsonl` 并生成后续蒸馏所需的 chunks。T112 的 LLM/JSON 抽取前必须先有严格 schema、evidence_refs、confidence、sensitivity 和 status 约束，避免把计划、幻觉或无证据判断写成事实。
 
 ## Next Captain Output Required
 

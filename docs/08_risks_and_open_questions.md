@@ -21,7 +21,9 @@
 | R013 | T101 的结构化替换 token 未在 normalize 阶段实现 | 若后续 LLM 蒸馏直接使用原文，可能出现 PII 泄露风险 | T102 review 认为 normalize 私有输出保留原文合理；PII token 替换 deferred 到 T112+ 蒸馏阶段 |
 | R014 | T102 normalize 当前双次读取文件并全量缓存 normalized lines | 大规模聊天记录可能出现性能或内存瓶颈 | T103 worker draft 认为对当前 38k 行样本可接受；T110/T150 继续评估是否需要流式化 |
 | R015 | 单文件数据场景下 `sender_role` 推断可能退化 | 其他用户或单联系人样本可能出现 user/contact 归因不稳 | T103 worker draft 认为这不阻塞进入 T110；T114/T150 需用实际样本验证并保留 `risk_flags` 兜底 |
-| R016 | T110 chunker 可能抹平 T102 的不确定性信号 | 后续摘要/事实抽取可能忽略 `risk_flags`、`interaction_flags` 或原始 message type 的不确定性 | T110 必须保留或传递 `source_message_type_code`、`risk_flags`、`interaction_flags` |
+| R016 | T112+ 若不消费 T110 保留的不确定性信号，仍可能在摘要/事实抽取中抹平风险 | 后续摘要/事实抽取可能忽略 `risk_flags`、`interaction_flags` 或原始 message type 的不确定性 | T110 review 已确认 chunker 保留/汇总传递相关信号；T112 schema 与抽取逻辑必须显式承接这些字段 |
+| R017 | T110 chunker 尚缺自动化测试覆盖 | 边界切分、异常 timestamp、report 形态或隐私泄漏可能在后续改动中回归 | T110 reviewer 判定不阻塞；T150 必须补 chunker fixture/unit tests 与 privacy leakage smoke test |
+| R018 | `chunking_reason` 对 conversation/contact 结构边界表达偏粗 | 后续模块若只看 reason 而忽略 `boundary_flags`，可能误解 chunk 边界含义 | T110 reviewer 判定不阻塞；T112/T113/T150 使用 chunk 时应优先读取 `boundary_flags` 和统计字段 |
 
 ## Open Questions
 
@@ -47,6 +49,7 @@
 | Q110 | 是否已有隐私脱敏规则和 source_ref/raw_ref 公开形态？已有，T101 已定义 PII 分类、数据区域边界、字段处理矩阵和 allowed public shape。 | `docs/review/T101_review.md` PASS |
 | Q111 | T101 fixture preview hex 是否需要返修为真实哈希形态？不需要；作为合成 fixture 注释占位可接受。 | `docs/review/T101_review.md` PASS，N02 accepted |
 | Q112 | Gate M0 verdict 为 `Conditional`；允许进入 M1，但 T110/T112+/T114/T150 必须承接条件。 | `docs/review/T103_review.md` accepted worker draft |
+| Q113 | T110 conversation chunker v0 是否足以作为 M1 后续输入？足以作为 MVP 输入。 | `docs/review/T110_review.md` PASS |
 
 ## Deferred Items
 

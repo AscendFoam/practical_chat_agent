@@ -67,7 +67,8 @@
 - T101 已通过 review `PASS`，确认隐私脱敏规则、source_ref/raw_ref 规则和红线样例可以约束 T102。
 - T102 已通过 review `PASS`，确认最小 normalize CLI 可运行，输出限定在 `private/distilled/`，且未做 chunking、LLM、ContactSkill 或数据库接入。
 - T103 milestone review 已接受 Gate M0 = `Conditional`，允许进入 M1，但 T110/T150/T112+/T114 必须承接 M0 条件。
-- T110 是 M1 第一个任务，先实现不使用 LLM 的 conversation chunker v0。
+- T110 已通过 reviewer `PASS`，conversation chunker v0 可生成 `chunks.jsonl` 并保留 T102 的不确定性信号。
+- 当前唯一任务切换为 T111，先定义 ChunkSummary、MemoryFactCandidate、ContactSkillCandidate schema，再进入 LLM 抽取。
 - M1 只选 1 个联系人或小样本做 distillation MVP。
 - M1 不微调、不自动发送、不接实时平台。
 - 所有可提交 fixture 必须脱敏。

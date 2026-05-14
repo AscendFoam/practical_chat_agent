@@ -39,6 +39,10 @@ from practical_chat_agent.services.chatlog_ingestion import (
     ChatlogIngestionService,
     ChatlogNormalizationError,
 )
+from practical_chat_agent.services.conversation_chunking import (
+    ConversationChunkingError,
+    ConversationChunkingService,
+)
 from practical_chat_agent.services.meeting_live_loop import MeetingLiveLoopRequest
 from practical_chat_agent.ui.live_caption_window import MeetingLiveCaptionWindow
 
@@ -1557,6 +1561,56 @@ def chatlog_normalize(
             dry_run=dry_run,
         )
     except ChatlogNormalizationError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+
+    typer.echo(json.dumps(result.report, ensure_ascii=False, indent=2))
+
+
+@app.command("chatlog-chunk")
+def chatlog_chunk(
+    input_path: Path = typer.Option(
+        Path("private/distilled"),
+        "--input",
+        help="Input normalized_events.jsonl file or a private/distilled run directory that contains it.",
+    ),
+    output_dir: Optional[Path] = typer.Option(
+        None,
+        "--output",
+        help="Output directory under private/distilled. Defaults to the input run directory.",
+    ),
+    limit: Optional[int] = typer.Option(
+        None,
+        min=1,
+        help="Chunk only the first N normalized events after filtering.",
+    ),
+    dry_run: bool = typer.Option(
+        False,
+        help="Process input and print a safe report without writing chunk outputs.",
+    ),
+    max_gap_minutes: int = typer.Option(
+        240,
+        min=1,
+        help="Start a new chunk when the gap between adjacent events reaches this many minutes.",
+    ),
+    max_messages_per_chunk: int = typer.Option(
+        80,
+        min=1,
+        help="Start a new chunk when the current chunk reaches this many events.",
+    ),
+) -> None:
+    """Chunk normalized chatlog events into private chunks.jsonl output."""
+
+    service = ConversationChunkingService()
+    try:
+        result = service.chunk_normalized_events(
+            input_path=input_path,
+            output_dir=output_dir,
+            limit=limit,
+            dry_run=dry_run,
+            max_gap_minutes=max_gap_minutes,
+            max_messages_per_chunk=max_messages_per_chunk,
+        )
+    except ConversationChunkingError as exc:
         raise typer.BadParameter(str(exc)) from exc
 
     typer.echo(json.dumps(result.report, ensure_ascii=False, indent=2))

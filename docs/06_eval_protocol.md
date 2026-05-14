@@ -34,6 +34,7 @@
 - T101 已通过 reviewer `PASS`，满足隐私脱敏规则、source_ref/raw_ref 规则和红线样例要求。
 - T102 已通过 reviewer `PASS`，最小 normalize CLI 已落地，输出只进入 `private/distilled/`，并遵守 T101 的字段处理矩阵和公开引用形态。
 - T103 已接受 Gate M0 = `Conditional`，允许进入 M1；M0 条件需由 T110/T112+/T114/T150 继续跟踪。
+- T110 已通过 reviewer `PASS`，conversation chunker v0 已落地；M1 继续由 T111 定义蒸馏输出 schema。
 
 ### Gate M1: 离线蒸馏 MVP
 
@@ -220,3 +221,27 @@ T110 只做 conversation chunker v0，不使用 LLM。
 - 保留或传递 `source_message_type_code`、`risk_flags`、`interaction_flags` 等不确定性信号，避免 chunker 抹平 T102 的保守处理。
 - 对 `type=7`/`type=80` 等 mixed/system 事件采用保守 chunking 策略。
 - 评估是否需要流式处理，避免放大全量内存缓存风险。
+
+T110 review 状态：`PASS`，见 `docs/review/T110_review.md`。
+
+## 10. T111 验证要求
+
+T111 只定义 ChunkSummary、MemoryFactCandidate、ContactSkillCandidate 的 Pydantic schema 和 JSON contract，不调用 LLM。
+
+必须输出：
+
+- `docs/data_contracts/distillation_output_contract.md`
+- `src/practical_chat_agent/core/models.py` 中可复用的 schema 或与现有模型兼容的候选模型定义。
+- ContactSkillCandidate 的用途边界，明确禁止 persona clone / impersonation。
+
+禁止输出：
+
+- LLM 调用、prompt 执行或真实蒸馏结果。
+- 数据库 migration。
+- 私密聊天原文到 `docs/`、`examples/`、`tests/` 或 stdout。
+
+必须额外检查：
+
+- 所有 claim/fact/skill 相关结构都必须支持 `evidence_refs`、`confidence`、`sensitivity`、`status`。
+- schema 应为 T112 的 JSON 校验和 T113 的 review artifact 留出稳定字段。
+- 若修改 Python 模型，必须运行 compile 验证。
