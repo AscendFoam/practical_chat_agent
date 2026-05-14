@@ -125,3 +125,12 @@
 - 决策：T112 标记完成；当前唯一任务切换为 T113 ContactSkill builder 与 Markdown review exporter。
 - Reviewer non-blocking issues 处理：N01 deferred 到 T114 关注 evidence refs 粒度；N02 deferred 到 T114/T150 关注 provider shape drift；N03 accepted/deferred，MVP sensitivity 关键词兜底可接受，后续 T150 可补测试；N04 accepted/deferred，memory_type fallback 可接受，T114/T150 观察误分类；N05 accepted，`contact_skill.py` 轻量辅助不越界；N06 deferred 到 T150 自动化测试；N07 accepted/deferred，T112 已在 prompt 层部分实现 PII token 替换，后续隐私测试继续覆盖。
 - 影响：T113 可以消费 `chunk_summaries.jsonl` 和 `memory_facts.jsonl` 生成 `contact_skill.candidate.json` 与 `contact_skill.review.md`；仍不得自动 approve、不得保存大段原文、不得生成“模拟联系人说话”的内容。
+
+## D015: T113 review PASS_WITH_WARNINGS，进入 T114 MVP sample run
+
+- 日期：2026-05-14
+- 状态：Accepted
+- 背景：`docs/review/T113_review.md` 给出 `PASS_WITH_WARNINGS`，确认 `ContactSkillBuilderService` 和 Markdown exporter 已能消费 T112 outputs，生成 `contact_skill.candidate.json` 与 `contact_skill.review.md`，candidate 保持 `status="candidate"`，保留 evidence refs，且没有自动 approve、冒充联系人、数据库 migration、实时平台接入或自动发送。
+- 决策：T113 标记完成；当前唯一任务切换为 T114 Run MVP Sample。
+- Warning 处理：N01 accepted，重复 `_build_report()` 仅为低影响重复工作；N02 deferred 到 T114/T120+，小样本启发式 token/topic/relationship 推断需要在不同或更大样本上验证；N03 deferred 到 T114/T120+，formulaic confidence/relationship 数值需要人工检查是否显得过度精确；N04 accepted，缺少 `exporters/__init__.py` 不影响当前运行；N05 accepted，未使用 helper 无当前风险。
+- 影响：T114 必须抽查至少 5 条 memory facts 的 evidence 支持度，并额外关注 T113 启发式泛化、confidence 数值可信度、topic 提取覆盖率和 review artifact 是否仍适合人工审阅。

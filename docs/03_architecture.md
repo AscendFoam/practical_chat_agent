@@ -46,7 +46,7 @@ src/practical_chat_agent/exporters/contact_skill_markdown.py
 
 ## 3.1 当前实现状态
 
-T100/T101/T102 已通过 review `PASS`，T103 已接受 Gate M0 = `Conditional`，T110/T111/T112 已通过 review `PASS`。当前完成的是数据合约、隐私规则、脱敏样例、最小 normalize CLI、conversation chunker v0、蒸馏输出 schema 和小样本 summary/fact extraction：
+T100/T101/T102 已通过 review `PASS`，T103 已接受 Gate M0 = `Conditional`，T110/T111/T112 已通过 review `PASS`，T113 已通过 review `PASS_WITH_WARNINGS`。当前完成的是数据合约、隐私规则、脱敏样例、最小 normalize CLI、conversation chunker v0、蒸馏输出 schema、小样本 summary/fact extraction 和 ContactSkill review artifact：
 
 - `docs/data_contracts/weflow_schema_profile.md`
 - `docs/data_contracts/normalized_event_contract.md`
@@ -56,14 +56,16 @@ T100/T101/T102 已通过 review `PASS`，T103 已接受 Gate M0 = `Conditional`�
 - `src/practical_chat_agent/services/chatlog_ingestion.py`
 - `src/practical_chat_agent/services/conversation_chunking.py`
 - `src/practical_chat_agent/services/chatlog_distillation.py`
-- `src/practical_chat_agent/services/contact_skill.py` 中的轻量 refs 聚合辅助
+- `src/practical_chat_agent/services/contact_skill.py`
+- `src/practical_chat_agent/exporters/contact_skill_markdown.py`
 - `src/practical_chat_agent/core/models.py` 中的 distillation candidate schema
 - `docs/data_contracts/distillation_output_contract.md`
 - `chatlog-normalize` CLI in `src/practical_chat_agent/app/main.py`
 - `chatlog-chunk` CLI in `src/practical_chat_agent/app/main.py`
 - `chatlog-distill` CLI in `src/practical_chat_agent/app/main.py`
+- `chatlog-build-contact-skill` CLI in `src/practical_chat_agent/app/main.py`
 
-下一步继续 M1。T113 从 `chunk_summaries.jsonl` 和 `memory_facts.jsonl` 构建 ContactSkill candidate 与 Markdown review artifact；仍不得自动 approve、不得保存大段原文、不得生成模拟联系人说话内容。
+下一步继续 M1。T114 在选定联系人或小样本上运行离线蒸馏 MVP，并人工抽查至少 5 条 memory facts 的 evidence refs 是否支持 claim；T113 的启发式泛化和 confidence 数值也必须在 T114 中重点观察。
 
 ## 4. 复用现有能力
 

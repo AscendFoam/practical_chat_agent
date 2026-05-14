@@ -47,6 +47,10 @@ from practical_chat_agent.services.chatlog_distillation import (
     ChatlogDistillationError,
     ChatlogDistillationService,
 )
+from practical_chat_agent.services.contact_skill import (
+    ContactSkillBuilderError,
+    ContactSkillBuilderService,
+)
 from practical_chat_agent.services.meeting_live_loop import MeetingLiveLoopRequest
 from practical_chat_agent.ui.live_caption_window import MeetingLiveCaptionWindow
 
@@ -1669,6 +1673,44 @@ def chatlog_distill(
             dry_run=dry_run,
         )
     except ChatlogDistillationError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+
+    typer.echo(json.dumps(result.report, ensure_ascii=False, indent=2))
+
+
+@app.command("chatlog-build-contact-skill")
+def chatlog_build_contact_skill(
+    input_path: Path = typer.Option(
+        Path("private/distilled"),
+        "--input",
+        help="Input chunk_summaries.jsonl file or a private/distilled run directory that contains chunk_summaries.jsonl and memory_facts.jsonl.",
+    ),
+    output_dir: Optional[Path] = typer.Option(
+        None,
+        "--output",
+        help="Output directory under private/distilled. Defaults to the input run directory.",
+    ),
+    contact_id: Optional[str] = typer.Option(
+        None,
+        "--contact-id",
+        help="Optional contact id filter. Defaults to the first contact found in the input summaries.",
+    ),
+    dry_run: bool = typer.Option(
+        False,
+        help="Process input and print a safe report without writing contact skill outputs.",
+    ),
+) -> None:
+    """Build a candidate ContactSkill and human-review markdown artifact from distillation outputs."""
+
+    service = ContactSkillBuilderService()
+    try:
+        result = service.build_contact_skill(
+            input_path=input_path,
+            output_dir=output_dir,
+            contact_id=contact_id,
+            dry_run=dry_run,
+        )
+    except ContactSkillBuilderError as exc:
         raise typer.BadParameter(str(exc)) from exc
 
     typer.echo(json.dumps(result.report, ensure_ascii=False, indent=2))

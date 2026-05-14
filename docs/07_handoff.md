@@ -19,18 +19,18 @@
 - 下一阶段直接做“对话记录驱动的长期关系感知 chat agent”。
 - 当前目标是离线蒸馏 MVP：JSONL -> normalized events -> chunks -> memory facts -> ContactSkill -> review -> relationship-aware reply planner。
 - T100 worker 已产出 schema profile、normalized event contract 和合成脱敏 fixture，并通过 reviewer `PASS`。
-- Captain 已将 T100/T101/T102/T103/T110/T111/T112 标记完成，Current Unique Task 推进到 T113。
+- Captain 已将 T100/T101/T102/T103/T110/T111/T112/T113 标记完成，Current Unique Task 推进到 T114。
 - T101 worker 已产出隐私脱敏规则、source_ref 规则和补充了 `source_ref/raw_ref` 预览形态的合成 fixture，并通过 reviewer `PASS`。
 - T102 worker 已产出最小 normalize CLI，并完成 dry-run 与 limit 小样本验证，reviewer 判定 `PASS`。
-- T103 milestone review 已接受 Gate M0 = `Conditional`，允许进入 M1；T110 conversation chunker v0、T111 distillation schemas 和 T112 summary/fact extraction 均已通过 reviewer `PASS`。
+- T103 milestone review 已接受 Gate M0 = `Conditional`，允许进入 M1；T110 conversation chunker v0、T111 distillation schemas 和 T112 summary/fact extraction 均已通过 reviewer `PASS`，T113 ContactSkill builder 已通过 reviewer `PASS_WITH_WARNINGS`。
 
 ## 2. 当前唯一任务
 
-T113: 实现 ContactSkill builder 与 Markdown review exporter。
+T114: 在一个选定联系人样本上运行 distillation MVP 并人工抽查 evidence。
 
-任务包：`docs/tasks/M1_offline_distillation_mvp/T113_contact_skill_builder.md`
+任务包：`docs/tasks/M1_offline_distillation_mvp/T114_run_mvp_sample.md`
 
-状态：T112 review 已 `PASS`，下一步只推荐 T113，不自动执行。T113 可以消费 `chunk_summaries.jsonl` 和 `memory_facts.jsonl` 生成 ContactSkill candidate 与 Markdown review artifact，但不得自动 approve、不得保存大段原文、不得生成“模拟联系人说话”的内容。
+状态：T113 review 已 `PASS_WITH_WARNINGS`，下一步只推荐 T114，不自动执行。T114 是 M1 milestone sample run，需要在选定联系人或小样本上抽查至少 5 条 memory facts 的 evidence 支持度，并给出 Gate M1 verdict: `Allow` / `Conditional` / `Block`。
 
 ## 3. T100 完成记录
 
@@ -221,7 +221,36 @@ M1 必须承接的条件：
   - N06 deferred：schema 校验、evidence refs、PII 脱敏、provider 归一化的自动化测试留给 T150。
   - N07 accepted/deferred：prompt 层 PII token 替换已部分满足 T102 N05；T150 privacy leakage smoke test 继续覆盖。
 
-## 10. Worker 启动提示
+## 10. T113 完成记录
+
+- 代码 / 文档改动：
+  - `src/practical_chat_agent/services/contact_skill.py`
+  - `src/practical_chat_agent/exporters/contact_skill_markdown.py`
+  - `src/practical_chat_agent/app/main.py`
+  - `docs/07_handoff.md`
+- 已实现内容：
+  - `ContactSkillBuilderService` 消费 T112 的 `chunk_summaries.jsonl` 和 `memory_facts.jsonl`，通过 Pydantic `model_validate` 读取上游产物。
+  - 生成 `ContactSkillCandidate`，并强制 `status="candidate"` 与非空 `evidence_refs`。
+  - 输出 `private/distilled/<run_id>/contact_skill.candidate.json` 与 `contact_skill.review.md`。
+  - Markdown review exporter 展示 relationship state、communication style、topics、important events、stable preferences、emotional patterns、reply strategy、usage boundary、evidence refs 与 anti-impersonation reminder。
+  - 新增 `chatlog-build-contact-skill` CLI，支持 `--input`、`--output`、`--contact-id`、`--dry-run`。
+  - 输出限制在 `private/distilled/`；无自动 approve、无 DB migration、无 realtime 平台、无自动发送。
+- 已完成验证：
+  - `& 'C:\ProgramData\anaconda3\envs\practical-chat-agent\python.exe' -m compileall src/practical_chat_agent/services/contact_skill.py src/practical_chat_agent/exporters/contact_skill_markdown.py src/practical_chat_agent/app/main.py`
+  - `$env:PYTHONPATH='src'; & 'C:\ProgramData\anaconda3\envs\practical-chat-agent\python.exe' -m practical_chat_agent.app.main chatlog-build-contact-skill --input private/distilled/t102_smoke`
+  - 样本确认生成 `contact_skill.candidate.json` 与 `contact_skill.review.md`，candidate 状态仍为 `candidate`，review artifact 可读并带 evidence refs / usage boundary。
+- Reviewer 结论：
+  - `docs/review/T113_review.md` verdict 为 `PASS_WITH_WARNINGS`。
+  - 确认未越界自动 approve、保存 raw chat text、生成“contact speaking”内容、写 DB migration、接 realtime platform 或 auto-send。
+  - 确认 evidence chain、candidate 状态、anti-impersonation guardrails 和 review artifact 均满足 T113 任务目标。
+- Warning 处理：
+  - N01 accepted：`_build_report` 重复调用是低影响重复工作，不要求返修。
+  - N02 deferred：启发式 tokens/topic/relationship 推断偏当前小样本，T114 需用更大或不同样本暴露泛化缺口，T120+ 可考虑 LLM-assisted inference。
+  - N03 deferred：confidence / closeness / trust 公式化且非 evidence-weighted，T114 需人工检查是否显得过度精确，T120+ 重新设计。
+  - N04 accepted：`exporters/` 缺少 `__init__.py` 当前不影响 Python 3 namespace package 导入。
+  - N05 accepted：未使用 helper 无当前风险，可在 T114+ 移除或使用。
+
+## 11. Worker 启动提示
 
 ```text
 你是 Codex worker。
@@ -233,57 +262,58 @@ M1 必须承接的条件：
 - docs/06_eval_protocol.md
 - docs/04_task_board.md
 - docs/07_handoff.md
-- docs/data_contracts/normalized_event_contract.md
-- docs/data_contracts/distillation_output_contract.md
 - docs/review/T112_review.md
-- docs/tasks/M1_offline_distillation_mvp/T113_contact_skill_builder.md
+- docs/review/T113_review.md
+- docs/tasks/M1_offline_distillation_mvp/T114_run_mvp_sample.md
 
 本轮只完成：
-- docs/tasks/M1_offline_distillation_mvp/T113_contact_skill_builder.md
+- docs/tasks/M1_offline_distillation_mvp/T114_run_mvp_sample.md
 
 规则：
 1. 只改 Allowed files。
-2. 从 T112 的 `chunk_summaries.jsonl` 和 `memory_facts.jsonl` 生成 `contact_skill.candidate.json` 与 `contact_skill.review.md`。
-3. Candidate 必须有 evidence_refs 和 `status="candidate"`。
-4. Markdown review artifact 面向人工审阅，标出 confidence、sensitivity、evidence refs、边界和禁止用途。
-5. 不自动 approve，不写数据库 migration，不接实时平台，不自动发送。
-6. 不保存大段聊天原文，不把 private/distilled 内容复制到 docs/examples/tests。
-7. 不生成“模拟联系人说话”“对方会怎么说”或 persona clone 内容。
-8. 最后报告：改了什么、如何验证、review artifact 是否可审阅、剩余风险。
+2. 不修代码，除非 Captain 另开任务。
+3. 运行或检查选定联系人/小样本的 M1 pipeline outputs。
+4. 随机或有代表性地抽查至少 5 条 memory facts，确认 evidence refs 是否支持 claim。
+5. 不把 `private/distilled/**` 私密产物提交。
+6. 不把联系人真实姓名、真实聊天原文或可识别平台 ID 写入 docs。
+7. 输出 `docs/review/T114_milestone_review.md`，给出 Gate M1 verdict: `Allow` / `Conditional` / `Block`。
+8. 同步更新 `docs/07_handoff.md` 和 `docs/08_risks_and_open_questions.md`。
+9. 特别关注 T113 warnings：启发式泛化、confidence 数字是否过度精确、topic extraction 覆盖率。
 ```
 
-## 11. Reviewer 启动提示
+## 12. Reviewer 启动提示
 
 ```text
-你是 Claude Code reviewer。
+你是 Claude Code milestone reviewer。
 
 请先阅读：
 - docs/02_experiment_plan.md
 - docs/04_task_board.md
 - docs/07_handoff.md
+- docs/06_eval_protocol.md
 
 只读审查本次 diff，不要修改文件。
 
 重点检查：
-1. T113 是否只实现 ContactSkill builder 与 Markdown review exporter。
-2. 是否消费 T112 summaries/facts，且 candidate/review artifact 均保留 evidence_refs。
-3. ContactSkill candidate 是否保持 `status="candidate"`，没有自动 approve。
-4. Markdown review artifact 是否可人工审阅，且不含大段聊天原文。
-5. 是否出现“模拟联系人说话”“对方会怎么说”或 persona clone 内容。
-6. 是否越界写数据库 migration、实时平台接入或自动发送。
+1. T114 是否只做 M1 sample/milestone review，没有越界修代码。
+2. 是否抽查至少 5 条 memory facts，且 evidence refs 真能支持 claim。
+3. ContactSkill review artifact 是否可人工审阅，不含大段原文，不冒充联系人。
+4. 是否正确评估 T113 warnings：启发式泛化、confidence 数值、topic extraction 覆盖率。
+5. 是否有真实聊天原文、真实姓名或可识别平台 ID 进入 docs。
+6. Gate M1 verdict 是否为 `Allow` / `Conditional` / `Block`，且理由充分。
 
-输出 Verdict: PASS / PASS_WITH_WARNINGS / BLOCK，并写入 docs/review/T113_review.md。
+输出 milestone review，并写入 docs/review/T114_milestone_review.md。
 ```
 
-## 12. 下一步顺序
+## 13. 下一步顺序
 
-1. 可提交当前 T112 + Captain 收口文档变更。
-2. 下一轮 worker 只执行 T113，不要自领 T114。
-3. 若 T113 review `BLOCK`，worker 只修 blocking issue，并最多自动复审一次。
-4. 若 T113 review `PASS` 或 `PASS_WITH_WARNINGS`，Captain 再更新 `04_task_board`、`05_decision_log`、`07_handoff`、`08_risks_and_open_questions`。
-5. T114 只有在 T113 review 通过后才能启动。
+1. 可提交当前 T113 + Captain 收口文档变更。
+2. 下一轮 worker 只执行 T114，不要自领 T120。
+3. 若 T114 Gate M1 = `Block`，停止 M2，Captain 根据 blocking reasons 拆返修任务。
+4. 若 T114 Gate M1 = `Conditional`，Captain 将条件写入 risks，并决定是否允许进入 M2。
+5. 若 T114 Gate M1 = `Allow`，Captain 推进 M2 的 T120。
 
-## 13. 历史顺序
+## 14. 历史顺序
 
 1. T100 review `PASS`，已完成 schema profile 与 normalized event contract。
 2. T101 review `PASS`，已完成 privacy/source_ref rules。
@@ -292,12 +322,13 @@ M1 必须承接的条件：
 5. T110 review `PASS`，已完成 `chatlog-chunk` conversation chunker v0。
 6. T111 review `PASS`，已完成 distillation output schemas 和 JSON contract。
 7. T112 review `PASS`，已完成小样本 summary/fact extraction 与 evidence refs 校验管线。
+8. T113 review `PASS_WITH_WARNINGS`，已完成 ContactSkill candidate builder 和 Markdown review exporter。
 
-## 14. 注意事项
+## 15. 注意事项
 
 - `.gitignore` 中已有 `private/`，保留这个安全措施。
 - 不要还原用户手动迁移 docs 目录结构的操作。
 - 不要读取或输出 `.env`。
 - 不要把 `private/chat_history` 的真实文件名或聊天内容写入 docs。
 - 当前阶段不做微调、不做自动发送、不做微信扫描。
-- M1 可以推进，但必须带着 T103 的 Conditional 条件继续验证，不要把 conditional 误写成无条件完成。
+- M1 可以推进到 T114，但必须带着 T103/T113 的条件继续验证，不要把 conditional 或 warnings 误写成无条件完成。

@@ -33,6 +33,8 @@
 | R025 | T112 evidence refs fallback 允许使用 `chunk_id` 作为粗粒度证据 | claim 可能缺少 event_id 级证据，后续人工审阅时证据精度不足 | T112 reviewer 判定不阻塞；T114 统计仅 chunk_id 级 evidence 的比例并人工抽查 |
 | R026 | T112 sensitivity 与 memory_type fallback 使用关键词兜底 | 可能出现敏感度低估或 memory type 误分类 | MVP 可接受；T114/T150 观察误分类并补充测试或收紧规则 |
 | R027 | T112 LLM 管线缺少自动化测试 | schema 校验、evidence refs 范围、PII 脱敏、provider 归一化未来可能回归 | T150 必须补充自动化测试 |
+| R028 | T113 ContactSkill builder 的启发式 tokens/topic/relationship 推断偏当前小样本 | 换联系人或更大样本时，preferred topics、avoid topics、relationship_type 等可能为空或误导 | T113 reviewer 判定不阻塞；T114 必须用样本 run 观察泛化，T120+ 可考虑 LLM-assisted inference |
+| R029 | T113 confidence/closeness/trust 数值由公式生成，未按 evidence quality 加权 | 人工 reviewer 可能误读为精确关系量化，导致过度信任 candidate | T113 reviewer 判定 candidate-only 可接受；T114 检查数字是否显得过度精确，T120+ 重设评分策略 |
 
 ## Open Questions
 
@@ -61,6 +63,7 @@
 | Q113 | T110 conversation chunker v0 是否足以作为 M1 后续输入？足以作为 MVP 输入。 | `docs/review/T110_review.md` PASS |
 | Q114 | T111 distillation schemas 是否足以作为 T112 JSON 校验边界？足以作为 MVP schema。 | `docs/review/T111_review.md` PASS |
 | Q115 | T112 summary/fact extraction 是否足以支撑 ContactSkill builder？足以作为 T113 的 MVP 输入。 | `docs/review/T112_review.md` PASS |
+| Q116 | T113 ContactSkill builder 是否足以支撑 M1 sample review？足以作为 T114 MVP 输入，但带启发式和 confidence warning。 | `docs/review/T113_review.md` PASS_WITH_WARNINGS |
 
 ## Deferred Items
 

@@ -36,7 +36,8 @@
 - T103 已接受 Gate M0 = `Conditional`，允许进入 M1；M0 条件需由 T110/T112+/T114/T150 继续跟踪。
 - T110 已通过 reviewer `PASS`，conversation chunker v0 已落地。
 - T111 已通过 reviewer `PASS`，蒸馏输出 schema 与 JSON contract 已落地。
-- T112 已通过 reviewer `PASS`，小样本 summary/fact extraction 与 evidence refs 校验管线已落地；M1 继续由 T113 构建 ContactSkill candidate 和 review artifact。
+- T112 已通过 reviewer `PASS`，小样本 summary/fact extraction 与 evidence refs 校验管线已落地。
+- T113 已通过 reviewer `PASS_WITH_WARNINGS`，ContactSkill candidate 与 Markdown review artifact 已落地；M1 继续由 T114 做 milestone sample run 和 evidence 抽查。
 
 ### Gate M1: 离线蒸馏 MVP
 
@@ -297,3 +298,28 @@ T113 实现 ContactSkill builder 与 Markdown review exporter，从 T112 的 chu
 - ContactSkill claim 必须能追溯到 T112 memory facts/chunk summaries 的 evidence refs。
 - Markdown review artifact 必须面向人工审阅，清楚标出 confidence、sensitivity、evidence refs 和边界/禁用用途。
 - 小样本构建后人工检查 review artifact 是否不含大段原文、不冒充联系人。
+
+T113 review 状态：`PASS_WITH_WARNINGS`，见 `docs/review/T113_review.md`。
+
+## 13. T114 验证要求
+
+T114 是 M1 milestone sample run，不修代码，目标是在选定联系人或小样本上评估离线蒸馏 MVP 是否可继续扩大。
+
+必须输出：
+
+- `docs/review/T114_milestone_review.md`
+- Gate M1 verdict: `Allow` / `Conditional` / `Block`
+- 至少 5 条 memory facts 的 evidence accuracy 抽查记录。
+
+禁止输出：
+
+- `private/distilled/**` 中的私密产物到 git。
+- 联系人真实姓名、真实聊天原文或可识别平台 ID 到 docs。
+- 代码修复或新功能实现，除非 Captain 另开任务。
+
+必须额外检查：
+
+- evidence refs 是否真的支持 claim。
+- ContactSkill review artifact 是否可人工审阅、不过度冒充、不保存大段原文。
+- T113 warnings：heuristic tokens/topic extraction 是否泛化、confidence 数字是否显得过度精确。
+- T112 warnings：仅 chunk_id 级 evidence 的比例、provider shape drift 对结果稳定性的影响。

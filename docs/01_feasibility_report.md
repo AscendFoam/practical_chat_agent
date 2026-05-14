@@ -70,7 +70,8 @@
 - T110 已通过 reviewer `PASS`，conversation chunker v0 可生成 `chunks.jsonl` 并保留 T102 的不确定性信号。
 - T111 已通过 reviewer `PASS`，ChunkSummary、MemoryFactCandidate、ContactSkillCandidate schema 和 JSON contract 已可作为 T112 校验边界。
 - T112 已通过 reviewer `PASS`，小样本可生成 `chunk_summaries.jsonl` 和 `memory_facts.jsonl`，并在写入前执行 schema/evidence refs 校验。
-- 当前唯一任务切换为 T113，从 summaries/facts 生成可审阅的 `contact_skill.candidate.json` 和 `contact_skill.review.md`。
+- T113 已通过 reviewer `PASS_WITH_WARNINGS`，可生成 candidate 状态的 `contact_skill.candidate.json` 和人工审阅用 `contact_skill.review.md`。
+- 当前唯一任务切换为 T114，在选定联系人或小样本上运行离线蒸馏 MVP，并人工抽查 evidence 支持度。
 - M1 只选 1 个联系人或小样本做 distillation MVP。
 - M1 不微调、不自动发送、不接实时平台。
 - 所有可提交 fixture 必须脱敏。

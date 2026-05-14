@@ -35,7 +35,7 @@
 - [x] T110: 实现 conversation chunker v0。review `PASS`。任务包：`docs/tasks/M1_offline_distillation_mvp/T110_chunker_v0.md`
 - [x] T111: 定义 ChunkSummary、MemoryFactCandidate、ContactSkillCandidate schema。review `PASS`。任务包：`docs/tasks/M1_offline_distillation_mvp/T111_distillation_schemas.md`
 - [x] T112: 实现 chunk summary 与 fact extraction 的 LLM/JSON 校验管线。review `PASS`。任务包：`docs/tasks/M1_offline_distillation_mvp/T112_summary_fact_extraction.md`
-- [ ] T113: 实现 ContactSkill builder 与 Markdown review exporter。任务包：`docs/tasks/M1_offline_distillation_mvp/T113_contact_skill_builder.md`
+- [x] T113: 实现 ContactSkill builder 与 Markdown review exporter。review `PASS_WITH_WARNINGS`。任务包：`docs/tasks/M1_offline_distillation_mvp/T113_contact_skill_builder.md`
 - [ ] T114: 在一个选定联系人样本上运行 distillation MVP 并人工抽查 evidence。任务包：`docs/tasks/M1_offline_distillation_mvp/T114_run_mvp_sample.md`
 
 ## Milestone 2: Memory / Skill Store 与证据校验
@@ -74,11 +74,11 @@
 
 ## Current Unique Task
 
-T113: 实现 ContactSkill builder 与 Markdown review exporter。
+T114: 在一个选定联系人样本上运行 distillation MVP 并人工抽查 evidence。
 
-任务包：`docs/tasks/M1_offline_distillation_mvp/T113_contact_skill_builder.md`
+任务包：`docs/tasks/M1_offline_distillation_mvp/T114_run_mvp_sample.md`
 
-为什么现在做它：T112 已通过 reviewer `PASS`，小样本已经能生成经过 schema/evidence 校验的 chunk summaries 和 memory fact candidates。下一步需要把这些离线蒸馏产物合成为可人工审阅的 ContactSkill candidate 和 Markdown review artifact，但不得自动 approve、不得保存大段原文、不得生成“模拟联系人说话”的内容。
+为什么现在做它：T113 已通过 reviewer `PASS_WITH_WARNINGS`，M1 的离线管线已经能从 normalized events 走到 ContactSkill candidate 和 Markdown review artifact。现在需要用选定联系人或小样本做一次 milestone run，人工抽查至少 5 条 memory facts 的 evidence refs 是否支持 claim，并重点观察 T113 review 提到的启发式泛化、confidence 数值和 topic 提取覆盖问题。
 
 ## Next Captain Output Required
 
