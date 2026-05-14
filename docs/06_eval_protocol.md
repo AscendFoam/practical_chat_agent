@@ -34,7 +34,8 @@
 - T101 已通过 reviewer `PASS`，满足隐私脱敏规则、source_ref/raw_ref 规则和红线样例要求。
 - T102 已通过 reviewer `PASS`，最小 normalize CLI 已落地，输出只进入 `private/distilled/`，并遵守 T101 的字段处理矩阵和公开引用形态。
 - T103 已接受 Gate M0 = `Conditional`，允许进入 M1；M0 条件需由 T110/T112+/T114/T150 继续跟踪。
-- T110 已通过 reviewer `PASS`，conversation chunker v0 已落地；M1 继续由 T111 定义蒸馏输出 schema。
+- T110 已通过 reviewer `PASS`，conversation chunker v0 已落地。
+- T111 已通过 reviewer `PASS`，蒸馏输出 schema 与 JSON contract 已落地；M1 继续由 T112 实现 summary/fact extraction。
 
 ### Gate M1: 离线蒸馏 MVP
 
@@ -245,3 +246,28 @@ T111 只定义 ChunkSummary、MemoryFactCandidate、ContactSkillCandidate 的 Py
 - 所有 claim/fact/skill 相关结构都必须支持 `evidence_refs`、`confidence`、`sensitivity`、`status`。
 - schema 应为 T112 的 JSON 校验和 T113 的 review artifact 留出稳定字段。
 - 若修改 Python 模型，必须运行 compile 验证。
+
+T111 review 状态：`PASS`，见 `docs/review/T111_review.md`。
+
+## 11. T112 验证要求
+
+T112 实现 chunk summary 与 fact extraction 的 LLM/JSON 校验管线，只支持 limit/sample，不处理全量数据。
+
+必须输出：
+
+- `private/distilled/<run_id>/chunk_summaries.jsonl`
+- `private/distilled/<run_id>/memory_facts.jsonl`
+- `run_report.json` 中记录成功、失败、校验拒绝和 skipped chunks。
+
+禁止输出：
+
+- 私密聊天原文、LLM 输入原文或 LLM 原始输出到 `docs/`、`examples/`、`tests/` 或 stdout。
+- 无 `evidence_refs` 的 fact/claim。
+- ContactSkill builder、review exporter、数据库 migration、实时平台接入或自动发送。
+
+必须额外检查：
+
+- LLM 输出必须校验为 T111 schema；缺失 `evidence_refs`、`confidence`、`sensitivity`、`status` 视为无效。
+- evidence refs 必须能回指 T110 chunk/event 范围。
+- 小样本运行后人工抽查至少 3 条 facts。
+- 若模型不可用，必须在 handoff/risks 中明确记录，并不要把 mock 输出当成真实完成。

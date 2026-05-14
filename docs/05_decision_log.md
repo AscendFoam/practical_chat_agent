@@ -107,3 +107,12 @@
 - 决策：T110 标记完成；当前唯一任务切换为 T111 Distillation Schemas。
 - Reviewer non-blocking issues 处理：因 verdict 为 `PASS`，不要求 worker 返修；N01/N02/N03 作为 accepted observations 进入后续实现注意事项；N04 deferred 到 T150 自动化测试；N05 accepted，`topic_hint` 保持 optional，不阻塞 T111。
 - 影响：T111 必须在 T112 引入 LLM-facing 抽取前定义 ChunkSummary、MemoryFactCandidate、ContactSkillCandidate 的强 schema、JSON contract、evidence_refs 和反 impersonation/数字克隆边界。
+
+## D013: T111 review PASS，进入 T112 摘要与事实抽取
+
+- 日期：2026-05-14
+- 状态：Accepted
+- 背景：`docs/review/T111_review.md` 给出 `PASS`，确认 `ChunkSummary`、`MemoryFactCandidate`、`ContactSkillCandidate` 及辅助 schema 已在 `core.models` 中定义，`docs/data_contracts/distillation_output_contract.md` 已固定 JSON contract、状态/敏感度约定和 anti-impersonation 边界。
+- 决策：T111 标记完成；当前唯一任务切换为 T112 Summary And Fact Extraction。
+- Reviewer non-blocking issues 处理：N01 accepted，关系/沟通风格字段保留自由字符串以适配 MVP LLM 输出；N02 accepted/deferred，`redaction_policy` 字典形态当前可接受，后续可在 T120/T150 收紧；N03 deferred 到 T120 处理 `DistillationMemoryType` 与现有 `MemoryType` 映射；N04 deferred 到 T120 store 补充 `created_at` / `updated_at`；N05 deferred 到 T150 增加 Pydantic 约束测试。
+- 影响：T112 可以启动，但必须把 LLM 输出校验为 T111 schema，缺失 `evidence_refs`、`confidence`、`sensitivity` 或 `status` 的输出一律视为无效；不得把私密原文或 LLM 原始输入输出写入可提交目录。

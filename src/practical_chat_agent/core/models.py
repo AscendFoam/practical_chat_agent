@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -26,6 +26,12 @@ from practical_chat_agent.core.ids import new_id
 
 def utc_now() -> datetime:
     return datetime.now(timezone.utc)
+
+
+DistillationStatus = Literal["candidate", "approved", "rejected", "frozen", "archived"]
+DistillationSensitivity = Literal["low", "medium", "high"]
+DistillationMemoryType = Literal["semantic", "episodic", "relationship", "procedural", "reflection"]
+ContactRelationshipType = Literal["friend", "classmate", "colleague", "family", "unknown"]
 
 
 class InboundEvent(BaseModel):
@@ -280,6 +286,161 @@ class MemoryFact(BaseModel):
     evidence_refs: list[str] = Field(default_factory=list)
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now)
+
+
+class DistillationClaim(BaseModel):
+    claim: str
+    evidence_refs: list[str] = Field(..., min_length=1)
+    confidence: float = Field(..., ge=0.0, le=1.0)
+    sensitivity: DistillationSensitivity
+    status: DistillationStatus
+    rationale: str | None = None
+
+
+class ChunkSummaryObservation(DistillationClaim):
+    observation_type: str = "general"
+
+
+class ChunkSummary(BaseModel):
+    chunk_id: str
+    contact_id: str
+    conversation_id: str
+    time_range: list[str | None] = Field(default_factory=list)
+    event_ids: list[str] = Field(default_factory=list)
+    message_count: int = Field(default=0, ge=0)
+    chunking_reason: str
+    summary: str
+    topics: list[str] = Field(default_factory=list)
+    evidence_refs: list[str] = Field(..., min_length=1)
+    confidence: float = Field(..., ge=0.0, le=1.0)
+    sensitivity: DistillationSensitivity
+    status: DistillationStatus
+    important_facts: list[DistillationClaim] = Field(default_factory=list)
+    communication_observations: list[ChunkSummaryObservation] = Field(default_factory=list)
+    risk_notes: list[str] = Field(default_factory=list)
+    source_message_type_codes: list[int] = Field(default_factory=list)
+    interaction_flags: list[str] = Field(default_factory=list)
+    risk_flags: list[str] = Field(default_factory=list)
+
+
+class MemoryFactCandidate(BaseModel):
+    memory_id: str = Field(default_factory=lambda: new_id("mem"))
+    memory_type: DistillationMemoryType
+    subject_id: str
+    claim: str
+    evidence_refs: list[str] = Field(..., min_length=1)
+    confidence: float = Field(..., ge=0.0, le=1.0)
+    importance: float = Field(..., ge=0.0, le=1.0)
+    sensitivity: DistillationSensitivity
+    status: DistillationStatus
+    rationale: str | None = None
+    conflicts_with: list[str] = Field(default_factory=list)
+    source_chunk_ids: list[str] = Field(default_factory=list)
+
+
+class ContactSkillTopicPreference(DistillationClaim):
+    topic: str
+    reason: str | None = None
+
+
+class ContactSkillPattern(DistillationClaim):
+    pattern: str
+
+
+class ContactSkillImportantEvent(DistillationClaim):
+    event: str
+    date: str | None = None
+    importance: float = Field(default=0.5, ge=0.0, le=1.0)
+
+
+class ContactSkillRelationshipState(BaseModel):
+    current_status: str = "unknown"
+    closeness: float = Field(default=0.0, ge=0.0, le=1.0)
+    trust_level: float = Field(default=0.0, ge=0.0, le=1.0)
+    interaction_frequency: str = "unknown"
+    initiative_balance: str = "unknown"
+    confidence: float = Field(..., ge=0.0, le=1.0)
+    evidence_refs: list[str] = Field(..., min_length=1)
+    sensitivity: DistillationSensitivity
+    status: DistillationStatus
+
+
+class ContactSkillCommunicationStyle(BaseModel):
+    message_length: str = "unknown"
+    tone: str = "unknown"
+    response_latency: str = "unknown"
+    directness: str = "unknown"
+    confidence: float = Field(..., ge=0.0, le=1.0)
+    evidence_refs: list[str] = Field(..., min_length=1)
+    sensitivity: DistillationSensitivity
+    status: DistillationStatus
+
+
+class ContactSkillUserSidePreferences(BaseModel):
+    user_goal: str | None = None
+    boundaries: list[str] = Field(default_factory=list)
+    preferred_reply_style: str | None = None
+
+
+class ContactSkillReplyStrategy(BaseModel):
+    default: str | None = None
+    when_contact_is_cold: str | None = None
+    when_contact_opens_topic: str | None = None
+    for_sensitive_topics: str | None = None
+
+
+class ContactSkillUsageBoundary(BaseModel):
+    allowed_uses: list[str] = Field(
+        default_factory=lambda: [
+            "reply_assistance",
+            "context_retrieval",
+            "human_review",
+        ],
+    )
+    disallowed_uses: list[str] = Field(
+        default_factory=lambda: [
+            "persona_clone",
+            "impersonation",
+            "autonomous_contact_simulation",
+        ],
+    )
+    notes: list[str] = Field(
+        default_factory=lambda: [
+            "ContactSkillCandidate exists to help the user communicate with better context and boundaries.",
+            "It must not be used to imitate, replace, or autonomously speak as the real contact.",
+        ],
+    )
+
+
+class ContactSkillCandidate(BaseModel):
+    schema_version: str = "contact_skill_candidate_v1"
+    contact_id: str
+    relationship_type: ContactRelationshipType
+    status: DistillationStatus
+    confidence: float = Field(..., ge=0.0, le=1.0)
+    sensitivity: DistillationSensitivity
+    evidence_refs: list[str] = Field(..., min_length=1)
+    source_chunk_ids: list[str] = Field(default_factory=list)
+    source_memory_ids: list[str] = Field(default_factory=list)
+    relationship_state: ContactSkillRelationshipState
+    communication_style: ContactSkillCommunicationStyle
+    preferred_topics: list[ContactSkillTopicPreference] = Field(default_factory=list)
+    avoid_topics: list[ContactSkillTopicPreference] = Field(default_factory=list)
+    important_events: list[ContactSkillImportantEvent] = Field(default_factory=list)
+    stable_preferences: list[ContactSkillPattern] = Field(default_factory=list)
+    emotional_patterns: list[ContactSkillPattern] = Field(default_factory=list)
+    user_side_preferences: ContactSkillUserSidePreferences = Field(default_factory=ContactSkillUserSidePreferences)
+    reply_strategy: ContactSkillReplyStrategy = Field(default_factory=ContactSkillReplyStrategy)
+    usage_boundary: ContactSkillUsageBoundary = Field(default_factory=ContactSkillUsageBoundary)
+    review_notes: list[str] = Field(default_factory=list)
+    redaction_policy: dict[str, Any] = Field(
+        default_factory=lambda: {
+            "store_raw_quotes": False,
+            "max_quote_length": 30,
+            "mask_names": True,
+            "mask_phone_numbers": True,
+        },
+    )
 
 
 class MemoryProfileFacet(BaseModel):

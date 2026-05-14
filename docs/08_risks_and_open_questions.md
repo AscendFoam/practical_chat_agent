@@ -24,6 +24,11 @@
 | R016 | T112+ 若不消费 T110 保留的不确定性信号，仍可能在摘要/事实抽取中抹平风险 | 后续摘要/事实抽取可能忽略 `risk_flags`、`interaction_flags` 或原始 message type 的不确定性 | T110 review 已确认 chunker 保留/汇总传递相关信号；T112 schema 与抽取逻辑必须显式承接这些字段 |
 | R017 | T110 chunker 尚缺自动化测试覆盖 | 边界切分、异常 timestamp、report 形态或隐私泄漏可能在后续改动中回归 | T110 reviewer 判定不阻塞；T150 必须补 chunker fixture/unit tests 与 privacy leakage smoke test |
 | R018 | `chunking_reason` 对 conversation/contact 结构边界表达偏粗 | 后续模块若只看 reason 而忽略 `boundary_flags`，可能误解 chunk 边界含义 | T110 reviewer 判定不阻塞；T112/T113/T150 使用 chunk 时应优先读取 `boundary_flags` 和统计字段 |
+| R019 | T111 schema 的部分 ContactSkill 风格字段仍是自由字符串 | 后续 LLM 输出可能出现枚举漂移，影响 review 和统计一致性 | T111 reviewer 判定 MVP 可接受；T112/T113 记录实际输出形态，T150 或后续 schema 收紧为 `Literal` |
+| R020 | `redaction_policy` 当前为 `dict[str, Any]` | 缺少字段级校验，后续 store/review 可能出现策略键不一致 | T111 reviewer 判定不阻塞；T120/T150 可改为结构化 Pydantic model |
+| R021 | `DistillationMemoryType` 与现有运行时 `MemoryType` 未统一 | approved memory candidate 入库时可能需要映射，若未处理会造成类型不一致 | T120 负责定义 `MemoryFactCandidate` -> `MemoryFact` 映射 |
+| R022 | T111 candidate schema 暂无 `created_at` / `updated_at` | 文件 store、审阅和版本追踪可能缺少生成/更新时间 | T120 store 或产物写入层补充时间戳 |
+| R023 | T111 Pydantic 约束尚缺自动化测试 | `evidence_refs` 非空、`confidence` 范围等约束未来可能回归 | T150 补合法/非法 JSON 的 Pydantic 校验测试 |
 
 ## Open Questions
 
@@ -50,6 +55,7 @@
 | Q111 | T101 fixture preview hex 是否需要返修为真实哈希形态？不需要；作为合成 fixture 注释占位可接受。 | `docs/review/T101_review.md` PASS，N02 accepted |
 | Q112 | Gate M0 verdict 为 `Conditional`；允许进入 M1，但 T110/T112+/T114/T150 必须承接条件。 | `docs/review/T103_review.md` accepted worker draft |
 | Q113 | T110 conversation chunker v0 是否足以作为 M1 后续输入？足以作为 MVP 输入。 | `docs/review/T110_review.md` PASS |
+| Q114 | T111 distillation schemas 是否足以作为 T112 JSON 校验边界？足以作为 MVP schema。 | `docs/review/T111_review.md` PASS |
 
 ## Deferred Items
 
