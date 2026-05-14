@@ -16,22 +16,20 @@
 | R008 | 用户手动迁移 docs 后 git 状态复杂 | 误删或覆盖用户文件 | 不 revert 未确认变更，只基于现有路径更新 |
 | R009 | T01 review BLOCK 未修复 | 旧 iLink 路线 Gate 0 不通过 | 用户已决定暂停旧路线，不作为当前阻塞项 |
 | R010 | `meta.type=private` 的导出里仍可能出现大量 `member` 行 | 若简单按成员数判断方向，会导致 `sender_role` 判错 | T100 contract 已要求用跨文件复用身份和 message 高频对来判定 user/contact |
-| R011 | 当前脱敏 fixture 尚未覆盖 `type=80`/`chatRecords` 转发结构 | T102 adapter 可能缺少复杂消息样例，T150 测试覆盖不足 | deferred 到 T102/T150，后续补充合成 fixture，不使用真实原文 |
-| R012 | `event_id` 当前采用 SHA-1 规则可能被误解为安全哈希 | 长期可追溯 ID 规则可能需要更强或更明确的稳定性/隐私说明 | deferred 到 T102，决定保留 SHA-1、升级 SHA-256 或补充命名空间规则 |
-| R013 | T101 的结构化替换 token 仍是规则设计，尚未经过代码实现验证 | T102 若直接实现可能与真实字段或下游 normalized schema 不一致 | deferred 到 T102，实现时校验 token 与实际脱敏需求，并在 run_report 中记录 unsupported/skipped |
+| R011 | 当前脱敏 fixture 仍未覆盖 `type=80`/`chatRecords` 的合成输入样例 | T150 前的测试覆盖仍可能不足 | T102 CLI 已对 `type=80` 与 `chatRecords` 做保守处理；后续在 T150 补充 fixture |
+| R012 | `event_id` 当前最小实现继续采用 SHA-1 命名空间输入 | 长期可追溯 ID 规则可能需要更强或更明确的稳定性/隐私说明 | T102 已落地最小可运行版本；若 reviewer 要求更强摘要，可在 T103/T150 前调整 |
+| R013 | T101 的结构化替换 token 未在 normalize 阶段实现 | 若后续 LLM 蒸馏直接使用原文，可能出现 PII 泄露风险 | T102 review 认为 normalize 私有输出保留原文合理；PII token 替换 deferred 到 T112+ 蒸馏阶段 |
+| R014 | T102 normalize 当前双次读取文件并全量缓存 normalized lines | 大规模聊天记录可能出现性能或内存瓶颈 | 当前 38k 行可接受；deferred 到 T110/T150 考虑流式处理 |
+| R015 | 单文件数据场景下 `sender_role` 推断可能退化 | 其他用户或单联系人样本可能出现 user/contact 归因不稳 | T102 有 warning/risk_flags 兜底；deferred 到 T114/T150 用实际样本验证 |
 
 ## Open Questions
 
 | ID | 问题 | 需要谁回答 | 最晚解决点 |
 | --- | --- | --- | --- |
-| Q101 | 在存在额外 `member` 行时，如何把私聊导出的 `sender_role` 判定做得足够稳健？ | T102 worker / reviewer | T102 |
-| Q102 | normalized event 输出时区应默认 `Asia/Shanghai`，还是同时保留 UTC 与本地时间？ | Captain / T102 worker | T102 |
-| Q103 | `type=7` 与稀有 `type=4/23/24/99` 应如何进一步细分？ | T102 worker | T102 |
 | Q105 | 第一轮 distillation MVP 选哪个联系人或样本？ | 用户/Captain | T114 前 |
 | Q106 | LLM 抽取使用哪个模型、预算和脱敏策略？ | 用户/Captain | T112 前 |
 | Q107 | ContactSkill review 先用 Markdown 文件还是 CLI？ | Captain | T113 前 |
-| Q108 | `event_id` 是否应从 SHA-1 升级为 SHA-256，或保留 SHA-1 但加入更明确的 namespaced input 规则？ | Captain / T102 worker | T102 |
-| Q109 | T101 定义的 `[PHONE]`、`[EMAIL]` 等结构化替换 token 是否与 T102 normalize 输出字段和下游蒸馏需求一致？ | T102 worker / reviewer | T102 |
+| Q112 | T103 Gate M0 应给出 Allow、Conditional 还是 Block？ | T103 milestone reviewer / Captain | T103 |
 
 ## Closed Questions
 
@@ -41,6 +39,11 @@
 | Q002 | 是否继续修微信扫码登录？不继续。 | 用户本轮明确跳过微信聊天记录扫描/SDK路线 |
 | Q100 | WeFlow 顶层行类型稳定分为 `header`、`member`、`message`；normalized event 只需要消费 `_type=message`。 | T100 worker draft + `docs/review/T100_review.md` PASS |
 | Q104 | 可以生成安全脱敏 fixture，且最小样例不包含真实内容。 | T100 worker draft + `docs/review/T100_review.md` PASS |
+| Q101 | T102 使用跨文件 member 对复用、message 高频对、type=80 系统检测、unknown 兜底和 risk_flags 来判定 `sender_role`。 | `docs/review/T102_review.md` PASS |
+| Q102 | T102 最小实现默认使用 `Asia/Shanghai` 渲染 normalized timestamp，并保留 `timestamp_epoch_s`。 | `docs/review/T102_review.md` PASS |
+| Q103 | T102 最小实现将 `type=7` 保守映射为 `mixed`，将 `type=4/23/24/99` 保守映射为 `unknown`。 | `docs/review/T102_review.md` PASS |
+| Q108 | `event_id` 在 T102 保留 SHA-1，但加入 `weflow` 命名空间输入；MVP 可接受，未来可升级。 | `docs/review/T102_review.md` PASS |
+| Q109 | T101 的 `[PHONE]`、`[EMAIL]` 等结构化替换 token 不在 normalize 阶段实现，推迟到 T112+ 蒸馏阶段。 | `docs/review/T102_review.md` PASS |
 | Q110 | 是否已有隐私脱敏规则和 source_ref/raw_ref 公开形态？已有，T101 已定义 PII 分类、数据区域边界、字段处理矩阵和 allowed public shape。 | `docs/review/T101_review.md` PASS |
 | Q111 | T101 fixture preview hex 是否需要返修为真实哈希形态？不需要；作为合成 fixture 注释占位可接受。 | `docs/review/T101_review.md` PASS，N02 accepted |
 

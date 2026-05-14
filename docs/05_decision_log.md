@@ -77,3 +77,12 @@
 - 决策：T101 标记完成；当前唯一任务切换为 T102。
 - Warning 处理：N01 deferred，继续由 T102/T150 补充 `type=80` 和 `chatRecords` 合成 fixture；N02 accepted，preview hex 值作为 fixture 注释可接受，不要求返修；N03 deferred，T102 实现时校验结构化替换 token 与实际脱敏需求是否对齐。
 - 影响：T102 worker 必须遵守 `privacy_redaction_rules.md` 的 Field Handling Matrix 和 `source_ref_rules.md` 的 Allowed Public Shape，且所有 normalize 输出只能落入 `private/distilled/`。
+
+## D010: T102 review PASS，进入 T103 M0 review
+
+- 日期：2026-05-14
+- 状态：Accepted
+- 背景：`docs/review/T102_review.md` 给出 `PASS`，确认 `chatlog-normalize` CLI 可运行，输入限制在 `private/chat_history/`，输出限制在 `private/distilled/`，stdout/report 不泄露真实原文、真实文件名、真实联系人或真实平台 ID。
+- 决策：T102 标记完成；当前唯一任务切换为 T103 M0 review。
+- Warning 处理：N01 deferred 到 T103/T150 评估 timezone fallback warning；N02/N03 deferred 到 T110/T150 考虑流式处理与内存写入；N04 accepted，系统消息关键词作为 MVP 兜底可接受；N05 deferred 到 T112+ 蒸馏阶段处理 PII token 替换；N06 deferred 到 T114/T150 验证单文件 sender_role 稳健性。
+- 影响：下一步不直接进入 M1 worker 实现，而是先做 T103 gate review，决定 M0 是否 `Allow`、`Conditional` 或 `Block`。

@@ -46,15 +46,17 @@ src/practical_chat_agent/exporters/contact_skill_markdown.py
 
 ## 3.1 当前实现状态
 
-T100/T101 已通过 review `PASS`，当前完成的是数据合约、隐私规则和脱敏样例：
+T100/T101/T102 已通过 review `PASS`，当前完成的是数据合约、隐私规则、脱敏样例和最小 normalize CLI：
 
 - `docs/data_contracts/weflow_schema_profile.md`
 - `docs/data_contracts/normalized_event_contract.md`
 - `docs/data_contracts/privacy_redaction_rules.md`
 - `docs/data_contracts/source_ref_rules.md`
 - `examples/payloads/weflow_redacted_sample.jsonl`
+- `src/practical_chat_agent/services/chatlog_ingestion.py`
+- `chatlog-normalize` CLI in `src/practical_chat_agent/app/main.py`
 
-下一步 T102 开始实现最小 normalize CLI；仍不得做 chunking、LLM、ContactSkill 或数据库接入。
+下一步 T103 做 M0 milestone review；若 gate allow/conditional，后续才进入 M1 chunking 与蒸馏任务。
 
 ## 4. 复用现有能力
 

@@ -19,16 +19,17 @@
 - 下一阶段直接做“对话记录驱动的长期关系感知 chat agent”。
 - 当前目标是离线蒸馏 MVP：JSONL -> normalized events -> chunks -> memory facts -> ContactSkill -> review -> relationship-aware reply planner。
 - T100 worker 已产出 schema profile、normalized event contract 和合成脱敏 fixture，并通过 reviewer `PASS`。
-- Captain 已将 T100/T101 标记完成，Current Unique Task 推进到 T102。
+- Captain 已将 T100/T101/T102 标记完成，Current Unique Task 推进到 T103。
 - T101 worker 已产出隐私脱敏规则、source_ref 规则和补充了 `source_ref/raw_ref` 预览形态的合成 fixture，并通过 reviewer `PASS`。
+- T102 worker 已产出最小 normalize CLI，并完成 dry-run 与 limit 小样本验证，reviewer 判定 `PASS`。
 
 ## 2. 当前唯一任务
 
-T102: 实现 WeFlow adapter 的最小 normalize CLI。
+T103: M0 review，确认能进入离线蒸馏 MVP。
 
-任务包：`docs/tasks/M0_weflow_data_contract/T102_minimal_normalize_cli.md`
+任务包：`docs/tasks/M0_weflow_data_contract/T103_m0_review.md`
 
-状态：可交给 worker 执行。T101 已 review `PASS`，不需要 worker 返修。
+状态：可交给 milestone reviewer 执行。T102 已 review `PASS`，不需要 worker 返修。
 
 ## 3. T100 完成记录
 
@@ -73,37 +74,59 @@ T102 必须遵守：
 - normalize 输出只能进入 `private/distilled/`。
 - stdout 和可提交目录不得出现真实聊天原文、真实文件名、真实联系人姓名或真实平台 ID。
 
-## 5. Worker 启动提示
+## 5. T102 完成记录
+
+- `src/practical_chat_agent/services/chatlog_ingestion.py`
+- `src/practical_chat_agent/app/main.py`
+
+Reviewer 结论：
+
+- `docs/review/T102_review.md` verdict 为 `PASS`。
+- N01 deferred：无效 timezone 静默降级 warning 留给 T103/T150 判断是否需要补。
+- N02/N03 deferred：双次读取和全量内存缓存留给 T110/T150 处理。
+- N04 accepted：系统消息关键词硬编码作为 MVP 兜底可接受。
+- N05 deferred：结构化 PII token 替换推迟到 T112+ 蒸馏阶段。
+- N06 deferred：单文件 sender_role 稳健性留给 T114/T150 验证。
+
+已验证：
+
+- `chatlog-normalize` 支持 `--input`、`--output`、`--limit`、`--dry-run`、`--timezone-name`。
+- 输入限制在 `private/chat_history/**`，输出限制在 `private/distilled/**`。
+- stdout/report 不包含真实原文、真实文件名、真实联系人姓名或真实平台 ID。
+- normalized event 字段与 T100/T101 合约对齐。
+
+## 6. Milestone Reviewer 启动提示
 
 ```text
-你是 Codex worker。
+你是 milestone reviewer。
 
 请先阅读：
 - README.md
 - AGENTS.md
 - docs/02_experiment_plan.md
+- docs/06_eval_protocol.md
 - docs/04_task_board.md
 - docs/07_handoff.md
-- docs/reference/gpt关于后续chat agent设计的思路.md
-- docs/deep_research_reports/对话记录驱动的长期关系感知chat agent.md
+- docs/review/T100_review.md
+- docs/review/T101_review.md
+- docs/review/T102_review.md
 
 本轮只完成：
-- docs/tasks/M0_weflow_data_contract/T102_minimal_normalize_cli.md
+- docs/tasks/M0_weflow_data_contract/T103_m0_review.md
 
 规则：
-1. 只改 Allowed files。
-2. 读取 T100/T101 outputs，遵守 privacy_redaction_rules 和 source_ref_rules。
-3. 可以读取 private/chat_history 生成 normalized events，但输出只能写入 private/distilled/<run_id>/。
-4. stdout、docs、examples、tests 不得出现真实原文、真实姓名、真实原始文件名或真实平台 ID。
-5. 不做 LLM 抽取，不做 chunker，不做 ContactSkill，不接数据库，不做实时微信接入。
-6. 支持 dry-run 或 limit 小样本验证；对 type=80/chatRecords 至少保守处理或在 report 中标记 unsupported/skipped。
-7. 最后报告：改了什么、如何验证、剩余风险。
+1. 不写代码。
+2. 不读取或输出 private/chat_history 原文。
+3. 综合 T100-T102 产物和 review，给出 Gate M0 verdict: Allow / Conditional / Block。
+4. 明确是否可以进入 M1。
+5. 若 verdict 不是 Block，推荐下一唯一任务但不要执行。
+6. 写入 docs/review/T103_milestone_review.md，并按任务包更新治理文档。
 ```
 
-## 6. Reviewer 启动提示
+## 7. Reviewer 启动提示
 
 ```text
-你是 Claude Code reviewer。
+你是 Claude Code reviewer / milestone reviewer。
 
 请先阅读：
 - docs/02_experiment_plan.md
@@ -113,30 +136,29 @@ T102 必须遵守：
 只读审查本次 diff，不要修改文件。
 
 重点检查：
-1. 是否泄露 private/chat_history 的真实聊天原文、真实联系人姓名或可识别文件名。
-2. normalize CLI 是否只输出到 private/distilled/。
-3. stdout/run_report 是否避免真实原文、真实文件名、真实平台 ID。
-4. 是否遵守 privacy_redaction_rules 和 source_ref_rules。
-5. 是否越界实现了 LLM 抽取、chunker、ContactSkill、数据库或实时微信接入。
-6. 文档是否把计划写成已完成事实。
+1. T100-T102 是否满足 M0 Gate。
+2. 是否有真实聊天原文、真实联系人姓名、真实文件名或真实平台 ID 进入可提交目录。
+3. T102 CLI 是否足以支撑 M1 chunker 输入。
+4. T102 non-blocking issues 是否需要作为 M1 进入条件。
+5. 文档与 task board 是否一致。
 
-输出 Verdict: PASS / PASS_WITH_WARNINGS / BLOCK，并写入 docs/review/T102_review.md。
+输出 Gate M0 verdict: Allow / Conditional / Block，并写入 docs/review/T103_milestone_review.md。
 ```
 
-## 7. 下一步顺序
+## 8. 下一步顺序
 
-1. Worker 执行 T102。
-2. Reviewer 审查 T102 worker 交付。
-3. Captain 根据 review 更新 `04_task_board`、`05_decision_log`、`07_handoff`，并按需要处理风险文档。
-4. 若 T102 review `PASS` 或 `PASS_WITH_WARNINGS`，推进 T103 M0 review。
-5. 若 T102 review `BLOCK`，只修 blocking issue，并最多自动复审一次。
+1. Milestone reviewer 执行 T103。
+2. Captain 根据 review 更新 `04_task_board`、`05_decision_log`、`07_handoff`，并按需要处理风险文档。
+3. 若 Gate M0 `Allow` 或 `Conditional`，推荐 M1 下一任务但不执行。
+4. 若 Gate M0 `Block`，停止并交给用户裁决或创建修复任务包。
 
-## 8. 历史顺序
+## 9. 历史顺序
 
 1. T100 review `PASS`，已完成 schema profile 与 normalized event contract。
 2. T101 review `PASS`，已完成 privacy/source_ref rules。
+3. T102 review `PASS`，已完成 `chatlog-normalize` 最小 CLI。
 
-## 9. 注意事项
+## 10. 注意事项
 
 - `.gitignore` 中已有 `private/`，保留这个安全措施。
 - 不要还原用户手动迁移 docs 目录结构的操作。

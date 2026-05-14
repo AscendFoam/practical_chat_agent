@@ -32,8 +32,8 @@
 
 - T100 已通过 reviewer `PASS`，满足 schema profile、normalized event contract 和脱敏 fixture 的第一步要求。
 - T101 已通过 reviewer `PASS`，满足隐私脱敏规则、source_ref/raw_ref 规则和红线样例要求。
-- T102 必须把合约落到只输出 `private/distilled/` 的 normalize CLI，并遵守 T101 的字段处理矩阵和公开引用形态。
-- T103 才能给出 M0 总体 Gate 结论。
+- T102 已通过 reviewer `PASS`，最小 normalize CLI 已落地，输出只进入 `private/distilled/`，并遵守 T101 的字段处理矩阵和公开引用形态。
+- T103 是当前唯一任务，需要给出 M0 总体 Gate 结论。
 
 ### Gate M1: 离线蒸馏 MVP
 
@@ -178,3 +178,22 @@ T102 开始写最小 normalize CLI，但仍不做语义蒸馏。
 - 遵守 `docs/data_contracts/source_ref_rules.md` 的 Allowed Public Shape。
 - 对 `type=80` / `chatRecords` 至少形成保守处理或明确 report 中的 skipped/unsupported 记录。
 - 明确 `event_id` 底层 digest 选择，并与 `normalized_event_contract.md`、`source_ref_rules.md` 保持一致。
+
+T102 review 状态：`PASS`，见 `docs/review/T102_review.md`。
+
+## 8. T103 验证要求
+
+T103 是 M0 milestone review，不写代码。
+
+必须输出：
+
+- `docs/review/T103_milestone_review.md`
+- Gate M0 verdict: `Allow` / `Conditional` / `Block`
+- 若进入 M1，明确下一唯一任务。
+
+必须检查：
+
+- T100-T102 的 review 结论和遗留风险。
+- 是否有真实聊天原文、真实文件名、真实联系人或真实平台 ID 进入可提交目录。
+- normalize CLI 是否足够支持 M1 chunking 的输入。
+- T102 non-blocking issues 是否需要在进入 M1 前设置条件。

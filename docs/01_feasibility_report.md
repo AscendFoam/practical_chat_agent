@@ -65,7 +65,8 @@
 
 - T100 已通过 review `PASS`，确认 WeFlow schema profile、normalized event contract 和脱敏 fixture 可以作为 M0 后续输入。
 - T101 已通过 review `PASS`，确认隐私脱敏规则、source_ref/raw_ref 规则和红线样例可以约束 T102。
-- T102 只实现最小 normalize CLI，输出限定在 `private/distilled/`，不做 chunking、LLM、ContactSkill 或数据库接入。
+- T102 已通过 review `PASS`，确认最小 normalize CLI 可运行，输出限定在 `private/distilled/`，且未做 chunking、LLM、ContactSkill 或数据库接入。
+- T103 需要做 M0 milestone review，综合 T100-T102 判断是否可以进入 M1 离线蒸馏 MVP。
 - M1 只选 1 个联系人或小样本做 distillation MVP。
 - M1 不微调、不自动发送、不接实时平台。
 - 所有可提交 fixture 必须脱敏。

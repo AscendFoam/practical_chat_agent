@@ -35,6 +35,10 @@ from practical_chat_agent.core.models import (
     MemoryProfileRecord,
     MemoryProfileSnapshot,
 )
+from practical_chat_agent.services.chatlog_ingestion import (
+    ChatlogIngestionService,
+    ChatlogNormalizationError,
+)
 from practical_chat_agent.services.meeting_live_loop import MeetingLiveLoopRequest
 from practical_chat_agent.ui.live_caption_window import MeetingLiveCaptionWindow
 
@@ -95,6 +99,11 @@ _RISK_HINTS = (
 )
 
 _FIXTURE_TARGET_MARKERS = ("fixture", "stage", "test")
+
+
+def _default_chatlog_output_dir() -> Path:
+    run_id = datetime.now(timezone.utc).strftime("weflow_normalize_%Y%m%d_%H%M%S")
+    return Path("private") / "distilled" / run_id
 
 
 def _parse_datetime_option(value: Optional[str], *, option_name: str) -> datetime | None:
@@ -1502,6 +1511,55 @@ def desktop_scan_preview(
         save_capture=save_capture,
     )
     typer.echo(json.dumps(result.model_dump(mode="json"), indent=2))
+
+
+@app.command("chatlog-normalize")
+def chatlog_normalize(
+    input_path: Path = typer.Option(
+        Path("private/chat_history"),
+        "--input",
+        help="Input WeFlow JSONL file or directory under private/chat_history.",
+    ),
+    output_dir: Optional[Path] = typer.Option(
+        None,
+        "--output",
+        help="Output directory under private/distilled. Required unless --dry-run.",
+    ),
+    limit: Optional[int] = typer.Option(
+        None,
+        min=1,
+        help="Normalize only the first N message rows after filtering.",
+    ),
+    dry_run: bool = typer.Option(
+        False,
+        help="Process input and print a safe report without writing normalized outputs.",
+    ),
+    timezone_name: Optional[str] = typer.Option(
+        None,
+        help="Timezone used for normalized timestamp rendering. Defaults to configured outbound timezone.",
+    ),
+) -> None:
+    """Normalize WeFlow JSONL exports into private normalized_events.jsonl output."""
+
+    resolved_output_dir = output_dir
+    if not dry_run and resolved_output_dir is None:
+        resolved_output_dir = _default_chatlog_output_dir()
+
+    settings = get_settings()
+    service = ChatlogIngestionService(
+        timezone_name=timezone_name or settings.outbound_policy_timezone,
+    )
+    try:
+        result = service.normalize_weflow_exports(
+            input_path=input_path,
+            output_dir=resolved_output_dir,
+            limit=limit,
+            dry_run=dry_run,
+        )
+    except ChatlogNormalizationError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+
+    typer.echo(json.dumps(result.report, ensure_ascii=False, indent=2))
 
 
 @app.command("meeting-live-preview")
