@@ -86,3 +86,15 @@
 - 决策：T102 标记完成；当前唯一任务切换为 T103 M0 review。
 - Warning 处理：N01 deferred 到 T103/T150 评估 timezone fallback warning；N02/N03 deferred 到 T110/T150 考虑流式处理与内存写入；N04 accepted，系统消息关键词作为 MVP 兜底可接受；N05 deferred 到 T112+ 蒸馏阶段处理 PII token 替换；N06 deferred 到 T114/T150 验证单文件 sender_role 稳健性。
 - 影响：下一步不直接进入 M1 worker 实现，而是先做 T103 gate review，决定 M0 是否 `Allow`、`Conditional` 或 `Block`。
+
+## D011: T103 Gate M0 Conditional，进入 T110
+
+- 日期：2026-05-14
+- 状态：Accepted
+- 背景：`docs/review/T103_milestone_review.md` 已汇总 T100-T102 的产物与 review 结论；`docs/review/T103_review.md` 接受 worker 草案，确认 Gate M0 = `Conditional`。T100/T101/T102 均已 reviewer `PASS`，M0 硬性条件已满足，但仍有若干明确记录的非阻塞问题需要带入 M1。
+- 决策：Gate M0 = `Conditional`；允许进入 M1，当前唯一任务切换为 T110 conversation chunker v0。
+- 条件：
+  - T110/T150 继续覆盖 `type=80` / `chatRecords` 的保守处理与测试。
+  - T110/T114/T150 保留并验证 `sender_role`、timezone fallback、性能/内存相关不确定性。
+  - T112+ 任意 LLM-facing 蒸馏步骤继续遵守 T101 的隐私边界，不把私有 normalize 文本直接扩散到可提交产物。
+- 影响：T110 worker 可以启动，但必须承接 M0 条件，尤其是保留不确定性信号、避免私密内容进入可提交目录，并为 T112+/T114/T150 留出验证路径。

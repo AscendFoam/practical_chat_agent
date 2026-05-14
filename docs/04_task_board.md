@@ -26,7 +26,7 @@
 - [x] T100: WeFlow JSONL schema profiling 与 normalized event 合约。review `PASS`。任务包：`docs/tasks/M0_weflow_data_contract/T100_schema_profile.md`
 - [x] T101: 设计脱敏规则、source_ref 规则和最小红线测试样例。review `PASS`。任务包：`docs/tasks/M0_weflow_data_contract/T101_privacy_source_refs.md`
 - [x] T102: 实现 WeFlow adapter 的最小 normalize CLI。review `PASS`。任务包：`docs/tasks/M0_weflow_data_contract/T102_minimal_normalize_cli.md`
-- [ ] T103: M0 review，确认能进入离线蒸馏 MVP。任务包：`docs/tasks/M0_weflow_data_contract/T103_m0_review.md`
+- [x] T103: M0 review，Gate M0 `Conditional`，允许进入 M1。review `PASS_WITH_WARNINGS` / `Conditional accepted`。任务包：`docs/tasks/M0_weflow_data_contract/T103_m0_review.md`
 
 ## Milestone 1: 离线蒸馏 MVP
 
@@ -74,11 +74,11 @@
 
 ## Current Unique Task
 
-T103: M0 review，确认能进入离线蒸馏 MVP。
+T110: 实现 conversation chunker v0。
 
-任务包：`docs/tasks/M0_weflow_data_contract/T103_m0_review.md`
+任务包：`docs/tasks/M1_offline_distillation_mvp/T110_chunker_v0.md`
 
-为什么现在做它：T100/T101/T102 已分别完成 schema profile、隐私/source_ref 规则和最小 normalize CLI，并通过 reviewer `PASS`。现在需要做 M0 milestone review，确认 WeFlow 数据合约与隐私护栏是否足以进入 M1 离线蒸馏 MVP。
+为什么现在做它：T103 reviewer 已接受 Gate M0 = `Conditional`，M0 的 schema/profile/privacy/source_ref/normalize CLI 已足够支撑 M1。T110 是 M1 的自然起点，直接消费 T102 的 `normalized_events.jsonl`，生成后续摘要、事实抽取和 ContactSkill 所需的 chunks。
 
 ## Next Captain Output Required
 

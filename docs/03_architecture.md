@@ -46,7 +46,7 @@ src/practical_chat_agent/exporters/contact_skill_markdown.py
 
 ## 3.1 当前实现状态
 
-T100/T101/T102 已通过 review `PASS`，当前完成的是数据合约、隐私规则、脱敏样例和最小 normalize CLI：
+T100/T101/T102 已通过 review `PASS`，T103 已接受 Gate M0 = `Conditional`。当前完成的是数据合约、隐私规则、脱敏样例和最小 normalize CLI：
 
 - `docs/data_contracts/weflow_schema_profile.md`
 - `docs/data_contracts/normalized_event_contract.md`
@@ -56,7 +56,7 @@ T100/T101/T102 已通过 review `PASS`，当前完成的是数据合约、隐私
 - `src/practical_chat_agent/services/chatlog_ingestion.py`
 - `chatlog-normalize` CLI in `src/practical_chat_agent/app/main.py`
 
-下一步 T103 做 M0 milestone review；若 gate allow/conditional，后续才进入 M1 chunking 与蒸馏任务。
+下一步进入 M1。T110 先实现不使用 LLM 的 conversation chunker v0，并继续保留 `source_message_type_code`、`risk_flags`、`interaction_flags` 等不确定性信号。
 
 ## 4. 复用现有能力
 

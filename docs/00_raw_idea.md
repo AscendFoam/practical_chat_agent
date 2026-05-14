@@ -35,7 +35,7 @@ WeFlow JSONL
   -> contact_skill.review.md
 ```
 
-T100 已完成 schema profiling 与 normalized event 合约，并通过 reviewer `PASS`。T101 已完成隐私脱敏规则、source_ref 规则和红线样例，并通过 reviewer `PASS`。T102 已完成最小 normalize CLI，并通过 reviewer `PASS`。下一步 T103 做 M0 milestone review，判断是否进入 M1 离线蒸馏 MVP。
+T100 已完成 schema profiling 与 normalized event 合约，并通过 reviewer `PASS`。T101 已完成隐私脱敏规则、source_ref 规则和红线样例，并通过 reviewer `PASS`。T102 已完成最小 normalize CLI，并通过 reviewer `PASS`。T103 已接受 Gate M0 = `Conditional`，允许进入 M1 离线蒸馏 MVP。
 
 ## 4. 最相似已有工作
 
@@ -56,4 +56,4 @@ T100 已完成 schema profiling 与 normalized event 合约，并通过 reviewer
 
 `Go to offline distillation MVP`。
 
-暂停 iLink/微信扫描主线，T100/T101/T102 已通过 review。当前唯一任务切到 T103：M0 review。
+暂停 iLink/微信扫描主线，M0 已条件通过。当前唯一任务切到 T110：conversation chunker v0。

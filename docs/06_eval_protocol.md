@@ -33,7 +33,7 @@
 - T100 已通过 reviewer `PASS`，满足 schema profile、normalized event contract 和脱敏 fixture 的第一步要求。
 - T101 已通过 reviewer `PASS`，满足隐私脱敏规则、source_ref/raw_ref 规则和红线样例要求。
 - T102 已通过 reviewer `PASS`，最小 normalize CLI 已落地，输出只进入 `private/distilled/`，并遵守 T101 的字段处理矩阵和公开引用形态。
-- T103 是当前唯一任务，需要给出 M0 总体 Gate 结论。
+- T103 已接受 Gate M0 = `Conditional`，允许进入 M1；M0 条件需由 T110/T112+/T114/T150 继续跟踪。
 
 ### Gate M1: 离线蒸馏 MVP
 
@@ -197,3 +197,26 @@ T103 是 M0 milestone review，不写代码。
 - 是否有真实聊天原文、真实文件名、真实联系人或真实平台 ID 进入可提交目录。
 - normalize CLI 是否足够支持 M1 chunking 的输入。
 - T102 non-blocking issues 是否需要在进入 M1 前设置条件。
+
+T103 review 状态：Gate M0 = `Conditional` accepted，见 `docs/review/T103_review.md`。
+
+## 9. T110 验证要求
+
+T110 只做 conversation chunker v0，不使用 LLM。
+
+必须输出：
+
+- `private/distilled/<run_id>/chunks.jsonl`
+- chunk run report 或等价统计。
+- 每个 chunk 至少有 `chunk_id`、`contact_id`、`conversation_id`、`event_ids`、`time_range`、`message_count`、`chunking_reason`。
+
+禁止输出：
+
+- 私密聊天原文到 `docs/`、`examples/`、`tests/` 或 stdout。
+- LLM 调用、embedding 语义切分、ContactSkill、数据库或实时平台接入。
+
+必须额外检查：
+
+- 保留或传递 `source_message_type_code`、`risk_flags`、`interaction_flags` 等不确定性信号，避免 chunker 抹平 T102 的保守处理。
+- 对 `type=7`/`type=80` 等 mixed/system 事件采用保守 chunking 策略。
+- 评估是否需要流式处理，避免放大全量内存缓存风险。
