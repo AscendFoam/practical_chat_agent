@@ -38,6 +38,7 @@
 | R030 | T114 样例虽然 evidence chain 完整，但 reflection / reply-strategy 类 claim 已出现“短证据 -> 平滑 paraphrase”压缩 | 若后续样例更复杂，reviewer 可能高估 claim 的稳健度，进而放大 ContactSkill 中的策略推断 | T114 记录为 `Conditional`；M2 前保持 candidate-only / human-review-first，并在更广样例上继续抽查 |
 | R031 | T120 file store 缺少已提交自动化测试 | store model validation、legacy wrapping、load/save round-trip、runtime-ready gate 或 path confinement 未来可能回归 | T120 reviewer 判定不阻塞；T150 必须补对应单测和 path confinement 测试 |
 | R032 | T121 evidence validator 缺少已提交自动化测试 | evidence index、nested `evidence_refs` collection、status gate 或 path confinement 未来可能回归 | T121 reviewer 判定不阻塞；T150 必须补 validator 单测与 good/bad fixture 覆盖 |
+| R033 | T122 review CLI 缺少已提交自动化测试 | approval gate、reject/freeze/archive、review history、stable record_id 或 export confinement 未来可能回归 | T122 reviewer 判定不阻塞；T150 必须补 full approval lifecycle 与 no-auto-approve 测试 |
 
 ## Open Questions
 
@@ -71,6 +72,7 @@
 | Q117 | Gate M1 是否允许进入下一里程碑？允许以 `Conditional` 进入 M2；必须保持 candidate-only / human-review-first，保留 evidence refs/status，并继续跟踪 R028/R029/R030。 | `docs/review/T114_review.md` + `docs/review/M1_review.md` |
 | Q118 | T120 file store 是否足以作为 T121/T122 的基础？足以作为 MVP 基础，但带自动化测试 deferred warning。 | `docs/review/T120_review.md` PASS_WITH_WARNINGS |
 | Q119 | T121 evidence validator 是否足以作为 T122 approval gate 的基础？足以作为 MVP 基础；T122 必须读取 validation report 并禁止 missing refs approval。 | `docs/review/T121_review.md` PASS_WITH_WARNINGS |
+| Q120 | T122 review CLI 是否足以作为 T123 context integration 的准入基础？足以作为 MVP 基础；T123 必须只读取 approved + runtime-ready records。 | `docs/review/T122_review.md` PASS_WITH_WARNINGS |
 
 ## Deferred Items
 

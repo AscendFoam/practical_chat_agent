@@ -19,20 +19,21 @@
 - 下一阶段直接做“对话记录驱动的长期关系感知 chat agent”。
 - 当前目标是离线蒸馏 MVP：JSONL -> normalized events -> chunks -> memory facts -> ContactSkill -> review -> relationship-aware reply planner。
 - T100 worker 已产出 schema profile、normalized event contract 和合成脱敏 fixture，并通过 reviewer `PASS`。
-- Captain 已将 T100/T101/T102/T103/T110/T111/T112/T113/T114/T120/T121 标记完成，Gate M1 = `Conditional`，Current Unique Task 推进到 T122。
+- Captain 已将 T100/T101/T102/T103/T110/T111/T112/T113/T114/T120/T121/T122 标记完成，Gate M1 = `Conditional`，Current Unique Task 推进到 T123。
 - T101 worker 已产出隐私脱敏规则、source_ref 规则和补充了 `source_ref/raw_ref` 预览形态的合成 fixture，并通过 reviewer `PASS`。
 - T102 worker 已产出最小 normalize CLI，并完成 dry-run 与 limit 小样本验证，reviewer 判定 `PASS`。
 - T103 milestone review 已接受 Gate M0 = `Conditional`，允许进入 M1；T110 conversation chunker v0、T111 distillation schemas 和 T112 summary/fact extraction 均已通过 reviewer `PASS`，T113 ContactSkill builder 已通过 reviewer `PASS_WITH_WARNINGS`，T114 确认 Gate M1 = `Conditional`。
 - T120 file store models 已通过 reviewer `PASS_WITH_WARNINGS`，允许进入 T121。
 - T121 evidence validator 已通过 reviewer `PASS_WITH_WARNINGS`，允许进入 T122。
+- T122 skill review CLI 已通过 reviewer `PASS_WITH_WARNINGS`，允许进入 T123。
 
 ## 2. 当前唯一任务
 
-T122: 实现 contact-skill review/approve/export CLI。
+T123: 将 approved memory/skill 接入现有 `ChatContext`。
 
-任务包：`docs/tasks/M2_memory_skill_store/T122_skill_review_cli.md`
+任务包：`docs/tasks/M2_memory_skill_store/T123_context_integration.md`
 
-状态：T121 已通过 `PASS_WITH_WARNINGS`，M2 继续保持 Gate M1 = `Conditional`。T122 只做人工 review/approve/reject/freeze/export CLI；approve 必须受 T121 evidence validation report 约束；不做 runtime integration、不接数据库、不引入向量数据库、不做自动发送。
+状态：T122 已通过 `PASS_WITH_WARNINGS`，M2 继续保持 Gate M1 = `Conditional`。T123 只读取 approved + runtime-ready store records，并生成 compact `ChatContext` brief；不注入 candidate/rejected/frozen/archived，不做 ReplyPlanner、不接数据库、不引入向量数据库、不自动发送。
 
 ## 3. T100 完成记录
 
@@ -396,7 +397,99 @@ M1 必须承接的条件：
   - T122 approve 必须读取或要求通过 T121 evidence validation report。
   - T122 不得在 missing refs、未 human review 或 rejected/frozen/archived 状态下绕过 gate。
 
-## 14. Worker 启动提示
+## 14. T122 完成记录
+
+- 代码 / 文档改动：
+  - `src/practical_chat_agent/services/contact_skill.py`
+  - `src/practical_chat_agent/exporters/contact_skill_markdown.py`
+  - `src/practical_chat_agent/app/main.py`
+  - `docs/07_handoff.md`
+- 已实现内容：
+  - 新增 `ContactSkillStoreReviewService`，支持 list/apply decision/export review artifact。
+  - 新增 `chatlog-review-store` CLI with actions:
+  - `list`
+  - `approve`
+  - `reject`
+  - `freeze`
+  - `archive`
+  - `export`
+  - T122 scope kept to private file-store review only:
+    - no runtime integration
+    - no DB migration
+    - no vector DB
+    - no LLM call
+    - no auto-send
+  - Review flow implemented:
+    - input/output confined to `private/distilled/**`
+    - safe record listing with record id, artifact type/id, status, review state, evidence validation status, approval/runtime-ready summary, and safe relative path
+    - `approve` requires T121 `evidence_validation_report.json`
+    - `approve` blocks on report status != `passed`
+    - `approve` blocks on target-record missing refs
+    - `approve` blocks for current status in `rejected` / `frozen` / `archived`
+    - `reject` / `freeze` / `archive` update payload status plus review metadata/history and keep runtime-ready false
+    - decision metadata writes reviewer id/name, reviewed timestamp, notes, and evidence validation status into `review_metadata`
+    - export writes markdown safe summaries only under `private/distilled/**`
+  - legacy wrapped records now get deterministic stable `record_id` values derived from run id + artifact id, so T121 report lookup and T122 CLI targeting stay stable across reloads.
+  - store save preserves store-level `generated_at`.
+- Private fixtures / safe samples used:
+  - safe sample: `private/distilled/t102_smoke`
+  - missing-ref sample: `private/distilled/t121_missing_ref_fixture`
+  - T122 private verification fixtures:
+    - `private/distilled/t122_pass_fixture`
+    - `private/distilled/t122_reject_fixture`
+    - `private/distilled/t122_freeze_fixture`
+
+- 已完成验证：
+  - compile:
+    - `& 'C:\ProgramData\anaconda3\envs\practical-chat-agent\python.exe' -m compileall src\practical_chat_agent\app\main.py src\practical_chat_agent\services\contact_skill.py src\practical_chat_agent\exporters\contact_skill_markdown.py`
+    - result: passed
+  - safe list:
+    - `chatlog-review-store --input private/distilled/t120_store_smoke/store --action list`
+    - result: stdout only contains safe ids, status fields, counts, and private-relative paths
+  - passed validation fixture:
+    - `chatlog-validate-evidence --input private/distilled/t122_pass_fixture`
+    - result: `evidence_validation_status = passed`
+  - approve happy path:
+    - `chatlog-review-store --input private/distilled/t122_pass_fixture --action approve --record-id skillstore_bae8944df32d64b2 --reviewer-id worker_t122 --reviewer-name 'T122 Reviewer' --note 'Approved after passed evidence validation.'`
+    - result: wrote `private/distilled/t122_pass_fixture/contact_skill_store.json`
+    - confirmed `status = approved`, `reviewed_by_human = true`, `last_decision = approved`, reviewer fields set, `last_reviewed_at` populated, `evidence_validation_status = passed`, decision appended to `history`, and `updated_at` advanced
+  - reject path:
+    - `chatlog-validate-evidence --input private/distilled/t122_reject_fixture`
+    - `chatlog-review-store --input private/distilled/t122_reject_fixture --action reject --record-id skillstore_0edb3e3030c16049 --reviewer-id worker_t122 --reviewer-name 'T122 Reviewer' --note 'Rejected for narrower human rewrite before approval.'`
+    - result: wrote `private/distilled/t122_reject_fixture/contact_skill_store.json`
+    - confirmed `status = rejected`, decision appended, runtime-ready summary remained false
+  - freeze path:
+    - `chatlog-validate-evidence --input private/distilled/t122_freeze_fixture`
+    - `chatlog-review-store --input private/distilled/t122_freeze_fixture --action freeze --record-id skillstore_4e33506d02e1e966 --reviewer-id worker_t122 --reviewer-name 'T122 Reviewer' --note 'Frozen pending broader sample review.'`
+    - result: wrote `private/distilled/t122_freeze_fixture/contact_skill_store.json`
+    - confirmed `status = frozen`, decision appended, runtime-ready summary remained false
+  - missing-ref approve block:
+    - `chatlog-review-store --input private/distilled/t121_missing_ref_fixture --action approve --record-id memstore_37bae56b191844de --reviewer-id worker_t122 --reviewer-name 'T122 Reviewer' --note 'Should be blocked by missing refs.'`
+    - result: correctly blocked with `Approve is blocked because the target record still has missing evidence refs in the validation report.`
+    - checked target fixture file stayed unchanged after the blocked command
+  - export path:
+    - `chatlog-review-store --input private/distilled/t122_pass_fixture --action export --output private/distilled/t122_pass_fixture/review_exports`
+    - result: wrote `private/distilled/t122_pass_fixture/review_exports/store_review_export.md`
+    - checked exported markdown contains safe review metadata only, not raw chat transcript output
+
+- Reviewer 结论：
+  - `docs/review/T122_review.md` verdict 为 `PASS_WITH_WARNINGS`。
+  - 确认 T122 只实现 private file-store review CLI，不做 auto-approve、runtime integration、DB migration、vector DB、LLM、auto-send 或 `private/chat_history` 读取。
+  - 确认 approve gate 完整：需要 T121 validation report、report `passed`、target record present、0 missing refs、checked refs > 0，并阻止 rejected/frozen/archived re-approval。
+  - 确认 review metadata history、safe export、path confinement、stable record_id 和 no private data stdout 均满足任务包。
+- Warning 处理：
+  - N01 accepted：`del current_status` 是低影响接口/风格问题，不影响 correctness。
+  - N02 accepted：递归更新所有合法 `status` 字段符合当前 schema；若未来 schema 出现不同语义的 status 字段再重审。
+  - N03 accepted：`store_runtime_ready` 提前计算只是轻微 style note。
+  - N04 accepted/deferred：review service 访问 file store private helpers 对 MVP 可接受；未来可抽 public file/path utility。
+  - N05 accepted：mutable `_StoreWorkspace` 当前局部可控。
+  - N06 deferred：自动化测试留给 T150，新增 R033 跟踪 approval gate、reject/freeze/archive、review history、recursive status update、export path confinement、stable record_id 和 no-auto-approve 测试。
+- 当前注意点：
+  - T123 必须只读取 approved + runtime-ready records。
+  - T123 不得注入 candidate/rejected/frozen/archived，不得加载完整 skill 或全部 memory 到 prompt。
+  - T122 intentionally does not implement reopen; rejected/frozen/archived records remain non-approvable in this scope.
+
+## 15. Worker 启动提示
 
 ```text
 你是 Codex worker。
@@ -408,25 +501,25 @@ M1 必须承接的条件：
 - docs/06_eval_protocol.md
 - docs/04_task_board.md
 - docs/07_handoff.md
-- docs/review/T121_review.md
+- docs/review/T122_review.md
 - docs/review/M1_review.md
-- docs/tasks/M2_memory_skill_store/T122_skill_review_cli.md
+- docs/tasks/M2_memory_skill_store/T123_context_integration.md
 
 本轮只完成：
-- docs/tasks/M2_memory_skill_store/T122_skill_review_cli.md
+- docs/tasks/M2_memory_skill_store/T123_context_integration.md
 
 规则：
 1. 只改 Allowed files。
-2. 实现人工 review/approve/reject/freeze/export CLI。
-3. Approve 必须要求 T121 evidence validation passed，且目标 record 无 missing refs。
-4. 审阅动作必须写入 `review_metadata` history，保留 reviewer、timestamp、decision、notes 和 evidence validation status。
-5. 不做 runtime integration，不改 `ChatContext`，不接数据库，不引入向量数据库，不自动发送。
-6. 不自动 approve，不批量默认 approve，不绕过 human review。
-7. 用脱敏 synthetic fixture 或安全 private 样例验证 approve/reject/freeze/export。
+2. 将 approved + runtime-ready memory/skill store records 以 compact brief 接入 `ChatContext` 或 context assembly。
+3. 必须调用/遵守 T120 `is_runtime_ready()` gate。
+4. Candidate/rejected/frozen/archived/missing-evidence/not-human-reviewed records 不得进入 context。
+5. 不做 ReplyPlanner，不自动发送，不接数据库，不引入向量数据库。
+6. 不注入完整 skill JSON、全部 memory facts 或大段原文。
+7. 用 synthetic approved/rejected/frozen/candidate fixture 或安全 private 样例验证筛选。
 8. 最后报告：改了什么、如何验证、剩余风险。
 ```
 
-## 15. Reviewer 启动提示
+## 16. Reviewer 启动提示
 
 ```text
 你是 Claude Code reviewer。
@@ -437,31 +530,31 @@ M1 必须承接的条件：
 - docs/07_handoff.md
 - docs/06_eval_protocol.md
 - docs/review/M1_review.md
-- docs/review/T121_review.md
+- docs/review/T122_review.md
 
 只读审查本次 diff，不要修改文件。
 
 重点检查：
-1. T122 是否只实现 review/approve/reject/freeze/export CLI，不做 runtime integration、migration、向量库或自动发送。
-2. Approve 是否必须经过 T121 evidence validation passed 且目标 record 无 missing refs。
-3. Candidate/rejected/frozen/archived 是否不能绕过 human-review-first 和 runtime gate。
-4. Review metadata history 是否保留 reviewer、timestamp、decision、notes 和 evidence validation status。
-5. Export 是否只写 private/safe path，不把真实聊天原文或 private output 写入 docs/examples/tests/stdout。
-6. CLI stdout 是否只打印 safe record ids、counts、status 和 relative private paths。
-7. Good/bad fixture 或安全样例验证是否真实运行。
+1. T123 是否只做 context integration，不做 ReplyPlanner、auto-send、DB migration、向量库或 realtime integration。
+2. 是否只读取 approved + runtime-ready records，并调用/遵守 `is_runtime_ready()`。
+3. Candidate/rejected/frozen/archived/missing-evidence/not-human-reviewed 是否被排除。
+4. Compact brief 是否避免大段原文、完整 skill JSON 或全部 memory facts。
+5. 现有无 store/无 skill flow 是否仍兼容。
+6. 是否有真实聊天原文或 private output 进入 docs/examples/tests/stdout。
+7. Synthetic fixture 或安全样例验证是否真实运行。
 
-输出 Verdict: PASS / PASS_WITH_WARNINGS / BLOCK，并写入 docs/review/T122_review.md。
+输出 Verdict: PASS / PASS_WITH_WARNINGS / BLOCK，并写入 docs/review/T123_review.md。
 ```
 
-## 16. 下一步顺序
+## 17. 下一步顺序
 
-1. 可提交当前 T121 worker/reviewer 代码与 Captain 收口文档变更。
-2. 下一轮 worker 只执行 T122，不要自领 T123。
-3. 若 T122 review `BLOCK`，worker 只修 blocking issue，并最多自动复审一次。
-4. 若 T122 review `PASS` 或 `PASS_WITH_WARNINGS`，Captain 再更新治理文档并推进 T123。
+1. 可提交当前 T122 worker/reviewer 代码与 Captain 收口文档变更。
+2. 下一轮 worker 只执行 T123，不要自领 T130。
+3. 若 T123 review `BLOCK`，worker 只修 blocking issue，并最多自动复审一次。
+4. 若 T123 review `PASS` 或 `PASS_WITH_WARNINGS`，Captain 再更新治理文档并决定 M2 gate 是否需要 milestone review 或进入 M3/T130。
 5. M2 仍为 Conditional；不要把 candidate 产物直接接入 runtime。
 
-## 17. 历史顺序
+## 18. 历史顺序
 
 1. T100 review `PASS`，已完成 schema profile 与 normalized event contract。
 2. T101 review `PASS`，已完成 privacy/source_ref rules。
@@ -474,8 +567,9 @@ M1 必须承接的条件：
 9. T114 review `PASS_WITH_WARNINGS`，Gate M1 = `Conditional`，M2 可条件启动。
 10. T120 review `PASS_WITH_WARNINGS`，已完成 file store models 与 human-review-first gate。
 11. T121 review `PASS_WITH_WARNINGS`，已完成 evidence validator 与 missing-ref/status gate。
+12. T122 review `PASS_WITH_WARNINGS`，已完成 skill review CLI 与 approval gate。
 
-## 18. 注意事项
+## 19. 注意事项
 
 - `.gitignore` 中已有 `private/`，保留这个安全措施。
 - 不要还原用户手动迁移 docs 目录结构的操作。

@@ -46,7 +46,7 @@
 
 - [x] T120: 新增离线 memory/skill Pydantic 模型和文件 store。review `PASS_WITH_WARNINGS`。任务包：`docs/tasks/M2_memory_skill_store/T120_file_store_models.md`
 - [x] T121: 实现 evidence validator 与 rejected/frozen 状态规则。review `PASS_WITH_WARNINGS`。任务包：`docs/tasks/M2_memory_skill_store/T121_evidence_validator.md`
-- [ ] T122: 实现 contact-skill review/approve/export CLI。任务包：`docs/tasks/M2_memory_skill_store/T122_skill_review_cli.md`
+- [x] T122: 实现 contact-skill review/approve/export CLI。review `PASS_WITH_WARNINGS`。任务包：`docs/tasks/M2_memory_skill_store/T122_skill_review_cli.md`
 - [ ] T123: 将 approved memory/skill 接入现有 `ChatContext`。任务包：`docs/tasks/M2_memory_skill_store/T123_context_integration.md`
 
 ## Milestone 3: 联系人感知 Reply Planner
@@ -76,11 +76,11 @@
 
 ## Current Unique Task
 
-T122: 实现 contact-skill review/approve/export CLI。
+T123: 将 approved memory/skill 接入现有 `ChatContext`。
 
-任务包：`docs/tasks/M2_memory_skill_store/T122_skill_review_cli.md`
+任务包：`docs/tasks/M2_memory_skill_store/T123_context_integration.md`
 
-为什么现在做它：T120 已建立 file store 与 human-review-first gate，T121 已建立 read-only evidence validator 并能阻止 missing refs 进入 approval/runtime。下一步需要提供人工 review/approve/reject/export CLI，把 validator report 纳入审批门槛，但仍不做 runtime integration、数据库 migration 或自动发送。
+为什么现在做它：T120-T122 已建立 file store、evidence validation 和人工 approval workflow。下一步需要让现有上下文组装层能读取 approved + runtime-ready records，并生成 compact contact skill / memory brief；本轮仍不做 ReplyPlanner、不自动发送、不接数据库或向量库。
 
 ## Next Captain Output Required
 

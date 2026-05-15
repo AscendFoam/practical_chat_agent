@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from typing import Any
 
 from practical_chat_agent.core.models import (
     ChunkSummary,
@@ -184,6 +185,69 @@ def render_contact_skill_review_markdown(
     return "\n".join(lines).rstrip() + "\n"
 
 
+def render_store_review_markdown(
+    *,
+    input_path: str,
+    run_dir: str,
+    validation_report_path: str | None,
+    validation_report_found: bool,
+    records: list[dict[str, Any]],
+) -> str:
+    lines = [
+        "# Store Review Export",
+        "",
+        "Candidate-only / human-review-first workflow snapshot.",
+        "",
+        "## Overview",
+        "",
+        f"- Input path: `{input_path}`",
+        f"- Run dir: `{run_dir}`",
+        f"- Validation report found: `{validation_report_found}`",
+        f"- Validation report path: `{validation_report_path or 'not_found'}`",
+        f"- Record count: `{len(records)}`",
+        "",
+        "## Records",
+        "",
+    ]
+    if not records:
+        lines.append("- No records matched the requested scope.")
+        return "\n".join(lines).rstrip() + "\n"
+
+    for record in records:
+        approval_ready = _render_gate_value(record.get("approval_ready_after_validation"))
+        runtime_ready = _render_gate_value(record.get("runtime_ready_after_validation"))
+        missing_ref_count = record.get("missing_ref_count")
+        missing_ref_text = "`unknown`" if missing_ref_count is None else f"`{missing_ref_count}`"
+        lines.extend(
+            [
+                f"### `{record.get('record_id', 'unknown_record')}`",
+                "",
+                f"- Artifact type: `{record.get('artifact_type', 'unknown')}`",
+                f"- Artifact id: `{record.get('artifact_id', 'unknown')}`",
+                f"- Status: `{record.get('status', 'unknown')}`",
+                f"- Review state: `{record.get('review_state', 'unknown')}`",
+                f"- Reviewed by human: `{bool(record.get('reviewed_by_human', False))}`",
+                f"- Last decision: `{record.get('last_decision') or 'none'}`",
+                f"- Evidence validation status: `{record.get('evidence_validation_status', 'not_run')}`",
+                f"- Approval ready after validation: {approval_ready}",
+                f"- Runtime ready after validation: {runtime_ready}",
+                f"- Missing ref count: {missing_ref_text}",
+                f"- Safe path: `{record.get('safe_path', 'unknown')}`",
+                f"- Review artifact path: `{record.get('review_artifact_path') or 'none'}`",
+            ],
+        )
+        approval_block_reasons = record.get("approval_block_reasons") or []
+        runtime_block_reasons = record.get("runtime_block_reasons") or []
+        lines.append(
+            f"- Approval block reasons: {_format_reason_list(approval_block_reasons)}",
+        )
+        lines.append(
+            f"- Runtime block reasons: {_format_reason_list(runtime_block_reasons)}",
+        )
+        lines.append("")
+    return "\n".join(lines).rstrip() + "\n"
+
+
 def _render_topic_preferences(
     items: list[ContactSkillTopicPreference],
     *,
@@ -244,6 +308,18 @@ def _format_refs(refs: list[str], *, limit: int = 8) -> str:
     shown = refs[:limit]
     suffix = "" if len(refs) <= limit else f" (+{len(refs) - limit} more)"
     return ", ".join(f"`{ref}`" for ref in shown) + suffix
+
+
+def _format_reason_list(reasons: list[str]) -> str:
+    if not reasons:
+        return "`none`"
+    return ", ".join(f"`{reason}`" for reason in reasons)
+
+
+def _render_gate_value(value: bool | None) -> str:
+    if value is None:
+        return "`unknown`"
+    return f"`{value}`"
 
 
 def _safe_text(text: str, *, max_length: int = 120) -> str:

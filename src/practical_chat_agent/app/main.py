@@ -50,6 +50,8 @@ from practical_chat_agent.services.chatlog_distillation import (
 from practical_chat_agent.services.contact_skill import (
     ContactSkillBuilderError,
     ContactSkillBuilderService,
+    ContactSkillStoreReviewError,
+    ContactSkillStoreReviewService,
 )
 from practical_chat_agent.services.evidence_validation import (
     EvidenceValidationError,
@@ -120,6 +122,15 @@ _FIXTURE_TARGET_MARKERS = ("fixture", "stage", "test")
 def _default_chatlog_output_dir() -> Path:
     run_id = datetime.now(timezone.utc).strftime("weflow_normalize_%Y%m%d_%H%M%S")
     return Path("private") / "distilled" / run_id
+
+
+def _safe_cli_path(path: Path | None) -> str | None:
+    if path is None:
+        return None
+    try:
+        return str(path.resolve().relative_to(Path.cwd().resolve())).replace("\\", "/")
+    except ValueError:
+        return str(path).replace("\\", "/")
 
 
 def _parse_datetime_option(value: Optional[str], *, option_name: str) -> datetime | None:
@@ -1768,6 +1779,164 @@ def chatlog_validate_evidence(
             indent=2,
         ),
     )
+
+
+@app.command("chatlog-review-store")
+def chatlog_review_store(
+    input_path: Path = typer.Option(
+        Path("private/distilled"),
+        "--input",
+        help="Input private/distilled run directory or store artifact path.",
+    ),
+    action: str = typer.Option(
+        "list",
+        "--action",
+        help="One of: list, approve, reject, freeze, archive, export.",
+    ),
+    record_id: Optional[str] = typer.Option(
+        None,
+        "--record-id",
+        help="Record id required for approve/reject/freeze/archive. Optional for export to filter one record.",
+    ),
+    reviewer_id: Optional[str] = typer.Option(
+        None,
+        "--reviewer-id",
+        help="Reviewer id for human decisions.",
+    ),
+    reviewer_name: Optional[str] = typer.Option(
+        None,
+        "--reviewer-name",
+        help="Reviewer display name for human decisions.",
+    ),
+    note: list[str] = typer.Option(
+        None,
+        "--note",
+        help="Repeatable human review note. Safe summaries only.",
+    ),
+    validation_report: Optional[Path] = typer.Option(
+        None,
+        "--validation-report",
+        help="Optional explicit evidence_validation_report.json path under private/distilled.",
+    ),
+    output_path: Optional[Path] = typer.Option(
+        None,
+        "--output",
+        help="Optional output path under private/distilled for JSON store write-back or Markdown export.",
+    ),
+) -> None:
+    """List, review, and export private distilled store records with human-review-first gates."""
+
+    service = ContactSkillStoreReviewService()
+    normalized_action = action.strip().lower()
+    try:
+        if normalized_action == "list":
+            result = service.list_store_records(
+                input_path=input_path,
+                validation_report_path=validation_report,
+            )
+            typer.echo(
+                json.dumps(
+                    {
+                        "action": "list",
+                        "input_path": _safe_cli_path(result.input_path),
+                        "run_dir": _safe_cli_path(result.run_dir),
+                        "validation_report_path": _safe_cli_path(result.validation_report_path),
+                        "validation_report_found": result.validation_report_found,
+                        "record_count": len(result.records),
+                        "records": [
+                            {
+                                "record_id": record.record_id,
+                                "artifact_type": record.artifact_type,
+                                "artifact_id": record.artifact_id,
+                                "status": record.status,
+                                "review_state": record.review_state,
+                                "reviewed_by_human": record.reviewed_by_human,
+                                "last_decision": record.last_decision,
+                                "evidence_validation_status": record.evidence_validation_status,
+                                "approval_ready_after_validation": record.approval_ready_after_validation,
+                                "runtime_ready_after_validation": record.runtime_ready_after_validation,
+                                "missing_ref_count": record.missing_ref_count,
+                                "safe_path": record.safe_path,
+                            }
+                            for record in result.records
+                        ],
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                ),
+            )
+            return
+
+        if normalized_action == "export":
+            result = service.export_review_artifact(
+                input_path=input_path,
+                output_path=output_path,
+                record_id=record_id,
+                validation_report_path=validation_report,
+            )
+            typer.echo(
+                json.dumps(
+                    {
+                        "action": "export",
+                        "input_path": _safe_cli_path(result.input_path),
+                        "run_dir": _safe_cli_path(result.run_dir),
+                        "validation_report_path": _safe_cli_path(result.validation_report_path),
+                        "output_path": _safe_cli_path(result.output_path),
+                        "record_count": result.record_count,
+                        "record_ids": result.record_ids,
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                ),
+            )
+            return
+
+        if normalized_action in {"approve", "reject", "freeze", "archive"}:
+            if not record_id:
+                raise typer.BadParameter("--record-id is required for review decisions.")
+            result = service.apply_record_decision(
+                input_path=input_path,
+                record_id=record_id,
+                decision=normalized_action,
+                reviewer_id=reviewer_id,
+                reviewer_name=reviewer_name,
+                notes=note,
+                validation_report_path=validation_report,
+                output_path=output_path,
+            )
+            typer.echo(
+                json.dumps(
+                    {
+                        "action": normalized_action,
+                        "decision": result.decision,
+                        "input_path": _safe_cli_path(result.input_path),
+                        "run_dir": _safe_cli_path(result.run_dir),
+                        "validation_report_path": _safe_cli_path(result.validation_report_path),
+                        "saved_output_path": _safe_cli_path(result.saved_output_path),
+                        "record": {
+                            "record_id": result.record.record_id,
+                            "artifact_type": result.record.artifact_type,
+                            "artifact_id": result.record.artifact_id,
+                            "status": result.record.status,
+                            "review_state": result.record.review_state,
+                            "reviewed_by_human": result.record.reviewed_by_human,
+                            "last_decision": result.record.last_decision,
+                            "evidence_validation_status": result.record.evidence_validation_status,
+                            "approval_ready_after_validation": result.record.approval_ready_after_validation,
+                            "runtime_ready_after_validation": result.record.runtime_ready_after_validation,
+                            "missing_ref_count": result.record.missing_ref_count,
+                            "safe_path": result.record.safe_path,
+                        },
+                    },
+                    ensure_ascii=False,
+                    indent=2,
+                ),
+            )
+            return
+
+        raise typer.BadParameter("Unknown action. Use list, approve, reject, freeze, archive, or export.")
+    except ContactSkillStoreReviewError as exc:
+        raise typer.BadParameter(str(exc)) from exc
 
 
 @app.command("meeting-live-preview")

@@ -165,3 +165,12 @@
 - 决策：T121 标记完成；当前唯一任务切换为 T122 Skill Review CLI。
 - Warning 处理：N01 accepted，当前 schema 没有 stable contact skill artifact id，fallback 到 `contact_id` 不影响正确性；N02 accepted/deferred，JSON/JSONL helper 第三次重复对 MVP 可接受，若 T150 或后续重构统一文件 IO 可一并处理；N03 accepted，递归扫描全 payload 的性能对当前数据量无风险；N04 accepted，validator read-only 不写回 store 是正确设计，T122 决定是否写入 `review_metadata.evidence_validation_status`；N05 deferred 到 T150，需补 evidence index、nested refs、status rules、missing refs blocking、human review gate interaction 和 path confinement 自动化测试。
 - 影响：T122 必须把 T121 validation report 作为 approve gate；不得在 missing refs、candidate-only 或未人工审阅情况下绕过 approval/runtime 安全边界。
+
+## D019: T122 review PASS_WITH_WARNINGS，进入 T123
+
+- 日期：2026-05-15
+- 状态：Accepted
+- 背景：`docs/review/T122_review.md` 给出 `PASS_WITH_WARNINGS`，确认 T122 已完成 `chatlog-review-store` CLI、`ContactSkillStoreReviewService`、approval gate、review metadata history、safe export 和 stable record_id；approve 需要 T121 report passed、目标 record present、0 missing refs、checked refs > 0，且拒绝 rejected/frozen/archived re-approval；未做 runtime integration、数据库、向量库、LLM 或自动发送。
+- 决策：T122 标记完成；当前唯一任务切换为 T123 Context Integration。
+- Warning 处理：N01 accepted，`del current_status` 是低影响接口/风格问题；N02 accepted，递归更新所有合法 `status` 字段符合当前 schema，未来 schema 若出现不同语义再重审；N03 accepted，`store_runtime_ready` 提前计算只是轻微 style note；N04 accepted/deferred，review service 访问 file store private helpers 对 MVP 可接受，未来可抽公共 file IO/path utility；N05 accepted，mutable `_StoreWorkspace` 当前局部可控；N06 deferred 到 T150，需补 approval gate、reject/freeze/archive flow、review metadata history、recursive status update、export path confinement、stable record_id 和 no-auto-approve 测试。
+- 影响：T123 必须只读取 approved + runtime-ready store records，生成 compact `ChatContext` brief；不得注入 candidate/rejected/frozen/archived，不得把大段原文放入 prompt，不得实现 ReplyPlanner 或自动发送。

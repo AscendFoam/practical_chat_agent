@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+import hashlib
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable
@@ -19,11 +20,13 @@ from practical_chat_agent.core.models import (
     ContactSkillTopicPreference,
     ContactSkillUserSidePreferences,
     DistilledArtifactReviewMetadata,
+    DistilledArtifactReviewDecision,
     DistilledArtifactSourceMetadata,
     DistillationStatus,
     MemoryFactStoreFile,
     MemoryFactStoreRecord,
     MemoryFactCandidate,
+    utc_now,
 )
 
 _CONCERN_TOKENS = (
@@ -65,6 +68,83 @@ class FileStoreSaveResult:
     output_path: Path
     record_count: int
     statuses: list[DistillationStatus]
+
+
+@dataclass(frozen=True)
+class StoreRecordSummary:
+    record_id: str
+    artifact_type: str
+    artifact_id: str
+    status: DistillationStatus
+    review_state: str
+    reviewed_by_human: bool
+    last_decision: DistillationStatus | None
+    evidence_validation_status: str
+    approval_ready_after_validation: bool | None
+    runtime_ready_after_validation: bool | None
+    missing_ref_count: int | None
+    safe_path: str
+    review_artifact_path: str | None
+    approval_block_reasons: list[str]
+    runtime_block_reasons: list[str]
+
+
+@dataclass(frozen=True)
+class StoreReviewListResult:
+    input_path: Path
+    run_dir: Path
+    validation_report_path: Path | None
+    validation_report_found: bool
+    records: list[StoreRecordSummary]
+
+
+@dataclass(frozen=True)
+class StoreReviewDecisionResult:
+    decision: DistillationStatus
+    input_path: Path
+    run_dir: Path
+    validation_report_path: Path | None
+    saved_output_path: Path
+    record: StoreRecordSummary
+
+
+@dataclass(frozen=True)
+class StoreReviewExportResult:
+    input_path: Path
+    run_dir: Path
+    validation_report_path: Path | None
+    output_path: Path
+    record_count: int
+    record_ids: list[str]
+
+
+@dataclass
+class _StoreWorkspace:
+    input_path: Path
+    run_dir: Path
+    memory_store: MemoryFactStoreFile | None = None
+    memory_input_path: Path | None = None
+    memory_output_path: Path | None = None
+    contact_skill_store: ContactSkillStoreFile | None = None
+    contact_skill_input_path: Path | None = None
+    contact_skill_output_path: Path | None = None
+
+
+@dataclass(frozen=True)
+class _StoreRecordHandle:
+    store_kind: str
+    index: int
+    input_path: Path
+    output_path: Path
+    record: MemoryFactStoreRecord | ContactSkillStoreRecord
+
+
+@dataclass(frozen=True)
+class _ValidationReportContext:
+    report: dict[str, Any] | None
+    report_path: Path | None
+    summary_status: str
+    records_by_id: dict[str, dict[str, Any]]
 
 
 class ContactSkillBuilderService:
@@ -1007,6 +1087,7 @@ class ContactSkillFileStoreService:
             default_filename=self.MEMORY_STORE_FILENAME,
         )
         normalized_store = MemoryFactStoreFile(
+            generated_at=store.generated_at,
             records=[
                 record.model_copy(update={"updated_at": record.updated_at})
                 for record in store.records
@@ -1058,6 +1139,7 @@ class ContactSkillFileStoreService:
             default_filename=self.CONTACT_SKILL_STORE_FILENAME,
         )
         normalized_store = ContactSkillStoreFile(
+            generated_at=store.generated_at,
             records=[
                 record.model_copy(update={"updated_at": record.updated_at})
                 for record in store.records
@@ -1093,6 +1175,10 @@ class ContactSkillFileStoreService:
         for fact in self._load_memory_facts_jsonl(facts_path=facts_path):
             records.append(
                 MemoryFactStoreRecord(
+                    record_id=self._stable_store_record_id(
+                        prefix="memstore",
+                        seed=f"memory_fact:{source_run_id or 'unknown'}:{fact.memory_id}",
+                    ),
                     memory_fact=fact,
                     source_metadata=DistilledArtifactSourceMetadata(
                         source_run_id=source_run_id,
@@ -1115,6 +1201,10 @@ class ContactSkillFileStoreService:
         source_run_id = self._infer_run_id(path=candidate_path)
         review_path = review_artifact_path if review_artifact_path and review_artifact_path.is_file() else None
         record = ContactSkillStoreRecord(
+            record_id=self._stable_store_record_id(
+                prefix="skillstore",
+                seed=f"contact_skill:{source_run_id or 'unknown'}:{candidate.contact_id}",
+            ),
             contact_skill=candidate,
             source_metadata=DistilledArtifactSourceMetadata(
                 source_run_id=source_run_id,
@@ -1218,6 +1308,11 @@ class ContactSkillFileStoreService:
         return event_ids
 
     @staticmethod
+    def _stable_store_record_id(*, prefix: str, seed: str) -> str:
+        digest = hashlib.sha1(seed.encode("utf-8")).hexdigest()[:16]
+        return f"{prefix}_{digest}"
+
+    @staticmethod
     def _default_review_metadata(*, status: DistillationStatus) -> DistilledArtifactReviewMetadata:
         if status == "candidate":
             return DistilledArtifactReviewMetadata()
@@ -1227,6 +1322,719 @@ class ContactSkillFileStoreService:
                 "Loaded legacy artifact without explicit review metadata; human approval must be re-established.",
             ],
         )
+
+
+class ContactSkillStoreReviewError(ValueError):
+    """Raised when a store review request cannot be completed safely."""
+
+
+class ContactSkillStoreReviewService:
+    """List, review, and export private distilled store records."""
+
+    VALIDATION_REPORT_FILENAME = "evidence_validation_report.json"
+    DEFAULT_EXPORT_FILENAME = "store_review_export.md"
+    REVIEW_ACTIONS = {
+        "approve": "approved",
+        "reject": "rejected",
+        "freeze": "frozen",
+        "archive": "archived",
+    }
+
+    def __init__(self) -> None:
+        self._store_service = ContactSkillFileStoreService()
+        self._repo_root = self._store_service._repo_root
+        self._private_distilled_root = self._store_service._private_distilled_root
+
+    def list_store_records(
+        self,
+        *,
+        input_path: Path,
+        validation_report_path: Path | None = None,
+    ) -> StoreReviewListResult:
+        workspace = self._load_workspace(input_path=input_path)
+        validation_context = self._load_validation_report(
+            workspace=workspace,
+            validation_report_path=validation_report_path,
+            required=False,
+        )
+        records = [self._build_record_summary(handle=handle, validation_context=validation_context) for handle in self._iter_record_handles(workspace)]
+        return StoreReviewListResult(
+            input_path=workspace.input_path,
+            run_dir=workspace.run_dir,
+            validation_report_path=validation_context.report_path,
+            validation_report_found=validation_context.report is not None,
+            records=records,
+        )
+
+    def apply_record_decision(
+        self,
+        *,
+        input_path: Path,
+        record_id: str,
+        decision: str,
+        reviewer_id: str | None,
+        reviewer_name: str | None,
+        notes: list[str] | None,
+        validation_report_path: Path | None = None,
+        output_path: Path | None = None,
+    ) -> StoreReviewDecisionResult:
+        if not reviewer_id and not reviewer_name:
+            raise ContactSkillStoreReviewError("A human reviewer id or name is required for review decisions.")
+        normalized_decision = self._normalize_decision(decision)
+        workspace = self._load_workspace(input_path=input_path)
+        validation_context = self._load_validation_report(
+            workspace=workspace,
+            validation_report_path=validation_report_path,
+            required=normalized_decision == "approved",
+        )
+        record_handle = self._find_record_handle(workspace=workspace, record_id=record_id)
+        validation_record = validation_context.records_by_id.get(record_id)
+        if normalized_decision == "approved":
+            self._assert_approval_allowed(
+                record_handle=record_handle,
+                validation_context=validation_context,
+                validation_record=validation_record,
+            )
+
+        cleaned_notes = self._clean_notes(notes)
+        evidence_validation_status = self._resolve_evidence_validation_status(
+            current_status=self._record_status(record_handle.record),
+            review_metadata_status=self._record_review_metadata(record_handle.record).evidence_validation_status,
+            validation_context=validation_context,
+            validation_record=validation_record,
+        )
+        reviewed_at = utc_now()
+        updated_record = self._apply_decision_to_record(
+            record=record_handle.record,
+            decision=normalized_decision,
+            reviewer_id=reviewer_id,
+            reviewer_name=reviewer_name,
+            reviewed_at=reviewed_at,
+            notes=cleaned_notes,
+            evidence_validation_status=evidence_validation_status,
+        )
+        self._write_back_record(
+            workspace=workspace,
+            record_handle=record_handle,
+            updated_record=updated_record,
+        )
+        saved_output_path = self._save_workspace_record(
+            workspace=workspace,
+            record_handle=record_handle,
+            output_path=output_path,
+        )
+        updated_handle = self._find_record_handle(workspace=workspace, record_id=record_id)
+        summary = self._build_record_summary(handle=updated_handle, validation_context=validation_context)
+        return StoreReviewDecisionResult(
+            decision=normalized_decision,
+            input_path=workspace.input_path,
+            run_dir=workspace.run_dir,
+            validation_report_path=validation_context.report_path,
+            saved_output_path=saved_output_path,
+            record=summary,
+        )
+
+    def export_review_artifact(
+        self,
+        *,
+        input_path: Path,
+        output_path: Path | None = None,
+        record_id: str | None = None,
+        validation_report_path: Path | None = None,
+    ) -> StoreReviewExportResult:
+        list_result = self.list_store_records(
+            input_path=input_path,
+            validation_report_path=validation_report_path,
+        )
+        selected_records = list_result.records
+        if record_id is not None:
+            selected_records = [record for record in selected_records if record.record_id == record_id]
+            if not selected_records:
+                raise ContactSkillStoreReviewError(f"Record not found: {record_id}")
+        resolved_output = self._resolve_markdown_output_path(
+            output_path=output_path,
+            run_dir=list_result.run_dir,
+            record_id=record_id,
+        )
+        from practical_chat_agent.exporters.contact_skill_markdown import (  # noqa: PLC0415
+            render_store_review_markdown,
+        )
+
+        markdown = render_store_review_markdown(
+            input_path=self._store_service._safe_relative_path(list_result.input_path) or str(list_result.input_path),
+            run_dir=self._store_service._safe_relative_path(list_result.run_dir) or str(list_result.run_dir),
+            validation_report_path=self._store_service._safe_relative_path(list_result.validation_report_path),
+            validation_report_found=list_result.validation_report_found,
+            records=[self._record_summary_to_dict(record) for record in selected_records],
+        )
+        resolved_output.parent.mkdir(parents=True, exist_ok=True)
+        resolved_output.write_text(markdown, encoding="utf-8")
+        return StoreReviewExportResult(
+            input_path=list_result.input_path,
+            run_dir=list_result.run_dir,
+            validation_report_path=list_result.validation_report_path,
+            output_path=resolved_output,
+            record_count=len(selected_records),
+            record_ids=[record.record_id for record in selected_records],
+        )
+
+    def _load_workspace(self, *, input_path: Path) -> _StoreWorkspace:
+        resolved_input = self._store_service._resolve_existing_path(input_path)
+        self._store_service._ensure_within_root(
+            candidate=resolved_input,
+            root=self._private_distilled_root,
+            error_message="Input must stay within private/distilled.",
+        )
+        workspace = _StoreWorkspace(
+            input_path=resolved_input,
+            run_dir=self._resolve_run_dir(path=resolved_input),
+        )
+        if resolved_input.is_dir():
+            memory_input_path = self._detect_memory_input_path(resolved_input)
+            contact_skill_input_path = self._detect_contact_skill_input_path(resolved_input)
+            if memory_input_path is not None:
+                workspace.memory_input_path = memory_input_path
+                workspace.memory_output_path = resolved_input / self._store_service.MEMORY_STORE_FILENAME
+                workspace.memory_store = self._store_service.load_memory_store(input_path=memory_input_path)
+            if contact_skill_input_path is not None:
+                workspace.contact_skill_input_path = contact_skill_input_path
+                workspace.contact_skill_output_path = resolved_input / self._store_service.CONTACT_SKILL_STORE_FILENAME
+                workspace.contact_skill_store = self._store_service.load_contact_skill_store(
+                    input_path=contact_skill_input_path,
+                )
+        elif resolved_input.name in {
+            self._store_service.MEMORY_STORE_FILENAME,
+            self._store_service.MEMORY_FACTS_FILENAME,
+        }:
+            workspace.memory_input_path = resolved_input
+            workspace.memory_output_path = (
+                resolved_input
+                if resolved_input.name == self._store_service.MEMORY_STORE_FILENAME
+                else resolved_input.parent / self._store_service.MEMORY_STORE_FILENAME
+            )
+            workspace.memory_store = self._store_service.load_memory_store(input_path=resolved_input)
+        elif resolved_input.name in {
+            self._store_service.CONTACT_SKILL_STORE_FILENAME,
+            self._store_service.CONTACT_SKILL_CANDIDATE_FILENAME,
+        }:
+            workspace.contact_skill_input_path = resolved_input
+            workspace.contact_skill_output_path = (
+                resolved_input
+                if resolved_input.name == self._store_service.CONTACT_SKILL_STORE_FILENAME
+                else resolved_input.parent / self._store_service.CONTACT_SKILL_STORE_FILENAME
+            )
+            workspace.contact_skill_store = self._store_service.load_contact_skill_store(input_path=resolved_input)
+        else:
+            raise ContactSkillStoreReviewError(
+                "Input must be a private/distilled run directory or a memory/contact-skill store artifact path.",
+            )
+
+        if workspace.memory_store is None and workspace.contact_skill_store is None:
+            raise ContactSkillStoreReviewError(
+                "No memory or contact-skill store artifacts were found under the requested path.",
+            )
+        return workspace
+
+    def _load_validation_report(
+        self,
+        *,
+        workspace: _StoreWorkspace,
+        validation_report_path: Path | None,
+        required: bool,
+    ) -> _ValidationReportContext:
+        resolved_report_path: Path | None = None
+        if validation_report_path is not None:
+            resolved_report_path = self._store_service._resolve_existing_path(validation_report_path)
+            self._store_service._ensure_within_root(
+                candidate=resolved_report_path,
+                root=self._private_distilled_root,
+                error_message="Validation report must stay within private/distilled.",
+            )
+        else:
+            candidate = workspace.run_dir / self.VALIDATION_REPORT_FILENAME
+            if candidate.is_file():
+                resolved_report_path = candidate
+
+        if resolved_report_path is None:
+            if required:
+                raise ContactSkillStoreReviewError(
+                    "Approve requires an evidence_validation_report.json under the same private/distilled run directory "
+                    "or an explicit --validation-report path.",
+                )
+            return _ValidationReportContext(
+                report=None,
+                report_path=None,
+                summary_status="not_run",
+                records_by_id={},
+            )
+
+        report = self._store_service._read_json_object(resolved_report_path)
+        expected_run_dir = self._store_service._safe_relative_path(workspace.run_dir)
+        report_run_dir = report.get("run_dir")
+        if expected_run_dir is not None and report_run_dir not in {None, expected_run_dir}:
+            raise ContactSkillStoreReviewError(
+                "Validation report does not match the requested private/distilled run directory.",
+            )
+        summary = report.get("summary")
+        records = report.get("records")
+        if not isinstance(summary, dict) or not isinstance(records, list):
+            raise ContactSkillStoreReviewError("Validation report is missing summary or records.")
+        records_by_id = {
+            item["record_id"]: item
+            for item in records
+            if isinstance(item, dict) and isinstance(item.get("record_id"), str)
+        }
+        summary_status = summary.get("evidence_validation_status", "not_run")
+        if not isinstance(summary_status, str):
+            summary_status = "not_run"
+        return _ValidationReportContext(
+            report=report,
+            report_path=resolved_report_path,
+            summary_status=summary_status,
+            records_by_id=records_by_id,
+        )
+
+    def _iter_record_handles(self, workspace: _StoreWorkspace) -> Iterable[_StoreRecordHandle]:
+        if workspace.memory_store is not None and workspace.memory_input_path is not None and workspace.memory_output_path is not None:
+            for index, record in enumerate(workspace.memory_store.records):
+                yield _StoreRecordHandle(
+                    store_kind="memory",
+                    index=index,
+                    input_path=workspace.memory_input_path,
+                    output_path=workspace.memory_output_path,
+                    record=record,
+                )
+        if (
+            workspace.contact_skill_store is not None
+            and workspace.contact_skill_input_path is not None
+            and workspace.contact_skill_output_path is not None
+        ):
+            for index, record in enumerate(workspace.contact_skill_store.records):
+                yield _StoreRecordHandle(
+                    store_kind="contact_skill",
+                    index=index,
+                    input_path=workspace.contact_skill_input_path,
+                    output_path=workspace.contact_skill_output_path,
+                    record=record,
+                )
+
+    def _find_record_handle(self, *, workspace: _StoreWorkspace, record_id: str) -> _StoreRecordHandle:
+        for handle in self._iter_record_handles(workspace):
+            if handle.record.record_id == record_id:
+                return handle
+        raise ContactSkillStoreReviewError(f"Record not found: {record_id}")
+
+    def _build_record_summary(
+        self,
+        *,
+        handle: _StoreRecordHandle,
+        validation_context: _ValidationReportContext,
+    ) -> StoreRecordSummary:
+        validation_record = validation_context.records_by_id.get(handle.record.record_id)
+        gate_summary = self._build_gate_summary(
+            record=handle.record,
+            validation_context=validation_context,
+            validation_record=validation_record,
+        )
+        review_metadata = self._record_review_metadata(handle.record)
+        return StoreRecordSummary(
+            record_id=handle.record.record_id,
+            artifact_type=self._record_artifact_type(handle.record),
+            artifact_id=self._record_artifact_id(handle.record),
+            status=self._record_status(handle.record),
+            review_state=review_metadata.review_state,
+            reviewed_by_human=review_metadata.reviewed_by_human,
+            last_decision=review_metadata.last_decision,
+            evidence_validation_status=self._resolve_evidence_validation_status(
+                current_status=self._record_status(handle.record),
+                review_metadata_status=review_metadata.evidence_validation_status,
+                validation_context=validation_context,
+                validation_record=validation_record,
+            ),
+            approval_ready_after_validation=gate_summary["approval_ready_after_validation"],
+            runtime_ready_after_validation=gate_summary["runtime_ready_after_validation"],
+            missing_ref_count=gate_summary["missing_ref_count"],
+            safe_path=self._store_service._safe_relative_path(handle.input_path) or str(handle.input_path),
+            review_artifact_path=handle.record.source_metadata.review_artifact_path,
+            approval_block_reasons=gate_summary["approval_block_reasons"],
+            runtime_block_reasons=gate_summary["runtime_block_reasons"],
+        )
+
+    def _build_gate_summary(
+        self,
+        *,
+        record: MemoryFactStoreRecord | ContactSkillStoreRecord,
+        validation_context: _ValidationReportContext,
+        validation_record: dict[str, Any] | None,
+    ) -> dict[str, Any]:
+        if validation_context.report is None:
+            return {
+                "approval_ready_after_validation": None,
+                "runtime_ready_after_validation": None,
+                "missing_ref_count": None,
+                "approval_block_reasons": [],
+                "runtime_block_reasons": [],
+            }
+        if validation_record is None:
+            return {
+                "approval_ready_after_validation": None,
+                "runtime_ready_after_validation": None,
+                "missing_ref_count": None,
+                "approval_block_reasons": ["record_not_present_in_validation_report"],
+                "runtime_block_reasons": ["record_not_present_in_validation_report"],
+            }
+
+        status = self._record_status(record)
+        store_runtime_ready = record.is_runtime_ready()
+        checked_ref_count = int(validation_record.get("checked_ref_count", 0))
+        missing_refs = validation_record.get("missing_refs", [])
+        missing_ref_count = int(validation_record.get("missing_ref_count", len(missing_refs)))
+
+        approval_block_reasons: list[str] = []
+        runtime_block_reasons: list[str] = []
+        if validation_context.summary_status != "passed":
+            approval_block_reasons.append("validation_report_not_passed")
+            runtime_block_reasons.append("validation_report_not_passed")
+        if checked_ref_count == 0:
+            approval_block_reasons.append("no_evidence_refs_found")
+            runtime_block_reasons.append("no_evidence_refs_found")
+        if missing_ref_count > 0:
+            approval_block_reasons.append("missing_evidence_refs")
+            runtime_block_reasons.append("missing_evidence_refs")
+        if status == "candidate":
+            approval_block_reasons.append("candidate_not_approval_ready_by_default")
+            runtime_block_reasons.append("candidate_not_runtime_ready")
+        elif status in {"rejected", "frozen", "archived"}:
+            approval_block_reasons.append(f"status_{status}_not_approval_ready")
+            runtime_block_reasons.append(f"status_{status}_never_runtime_ready")
+        elif status == "approved" and not store_runtime_ready:
+            runtime_block_reasons.append("human_review_runtime_gate_not_satisfied")
+
+        approval_block_reasons = self._unique_strings(approval_block_reasons)
+        runtime_block_reasons = self._unique_strings(runtime_block_reasons)
+        approval_ready = status == "approved" and not approval_block_reasons
+        runtime_ready = status == "approved" and not runtime_block_reasons
+        return {
+            "approval_ready_after_validation": approval_ready,
+            "runtime_ready_after_validation": runtime_ready,
+            "missing_ref_count": missing_ref_count,
+            "approval_block_reasons": approval_block_reasons,
+            "runtime_block_reasons": runtime_block_reasons,
+        }
+
+    def _assert_approval_allowed(
+        self,
+        *,
+        record_handle: _StoreRecordHandle,
+        validation_context: _ValidationReportContext,
+        validation_record: dict[str, Any] | None,
+    ) -> None:
+        current_status = self._record_status(record_handle.record)
+        if current_status in {"rejected", "frozen", "archived"}:
+            raise ContactSkillStoreReviewError(
+                f"Approve is blocked for records with status={current_status}. Reopen is not implemented in T122.",
+            )
+        if validation_context.report is None or validation_context.report_path is None:
+            raise ContactSkillStoreReviewError("Approve requires a validation report.")
+        if validation_record is None:
+            raise ContactSkillStoreReviewError(
+                "Approve requires the target record to appear in the validation report for the same run directory.",
+            )
+        missing_ref_count = int(validation_record.get("missing_ref_count", 0))
+        if missing_ref_count > 0:
+            raise ContactSkillStoreReviewError(
+                "Approve is blocked because the target record still has missing evidence refs in the validation report.",
+            )
+        checked_ref_count = int(validation_record.get("checked_ref_count", 0))
+        if checked_ref_count == 0:
+            raise ContactSkillStoreReviewError(
+                "Approve is blocked because the target record has no validated evidence refs.",
+            )
+        if validation_context.summary_status != "passed":
+            raise ContactSkillStoreReviewError(
+                f"Approve requires a passed validation report, got status={validation_context.summary_status}.",
+            )
+
+    def _apply_decision_to_record(
+        self,
+        *,
+        record: MemoryFactStoreRecord | ContactSkillStoreRecord,
+        decision: DistillationStatus,
+        reviewer_id: str | None,
+        reviewer_name: str | None,
+        reviewed_at: Any,
+        notes: list[str],
+        evidence_validation_status: str,
+    ) -> MemoryFactStoreRecord | ContactSkillStoreRecord:
+        updated_metadata = self._update_review_metadata(
+            review_metadata=record.review_metadata,
+            decision=decision,
+            reviewer_id=reviewer_id,
+            reviewer_name=reviewer_name,
+            reviewed_at=reviewed_at,
+            notes=notes,
+            evidence_validation_status=evidence_validation_status,
+        )
+        if isinstance(record, MemoryFactStoreRecord):
+            updated_payload = self._update_candidate_status(record.memory_fact.model_dump(mode="json"), status=decision)
+            return record.model_copy(
+                update={
+                    "memory_fact": MemoryFactCandidate.model_validate(updated_payload),
+                    "review_metadata": updated_metadata,
+                    "updated_at": reviewed_at,
+                },
+            )
+        updated_payload = self._update_candidate_status(record.contact_skill.model_dump(mode="json"), status=decision)
+        return record.model_copy(
+            update={
+                "contact_skill": ContactSkillCandidate.model_validate(updated_payload),
+                "review_metadata": updated_metadata,
+                "updated_at": reviewed_at,
+            },
+        )
+
+    def _update_review_metadata(
+        self,
+        *,
+        review_metadata: DistilledArtifactReviewMetadata,
+        decision: DistillationStatus,
+        reviewer_id: str | None,
+        reviewer_name: str | None,
+        reviewed_at: Any,
+        notes: list[str],
+        evidence_validation_status: str,
+    ) -> DistilledArtifactReviewMetadata:
+        cleaned_notes = notes or [f"Human decision recorded: {decision}."]
+        decision_record = DistilledArtifactReviewDecision(
+            status=decision,
+            reviewer_id=reviewer_id,
+            reviewer_name=reviewer_name,
+            reviewed_at=reviewed_at,
+            notes=cleaned_notes,
+            evidence_validation_status=evidence_validation_status,
+        )
+        return review_metadata.model_copy(
+            update={
+                "review_state": "reviewed",
+                "reviewed_by_human": True,
+                "last_decision": decision,
+                "last_reviewed_at": reviewed_at,
+                "last_reviewer_id": reviewer_id,
+                "last_reviewer_name": reviewer_name,
+                "evidence_validation_status": evidence_validation_status,
+                "decision_notes": list(review_metadata.decision_notes) + cleaned_notes,
+                "history": list(review_metadata.history) + [decision_record],
+            },
+        )
+
+    def _write_back_record(
+        self,
+        *,
+        workspace: _StoreWorkspace,
+        record_handle: _StoreRecordHandle,
+        updated_record: MemoryFactStoreRecord | ContactSkillStoreRecord,
+    ) -> None:
+        if record_handle.store_kind == "memory":
+            if workspace.memory_store is None:
+                raise ContactSkillStoreReviewError("Memory store is not loaded.")
+            records = list(workspace.memory_store.records)
+            records[record_handle.index] = updated_record
+            workspace.memory_store = workspace.memory_store.model_copy(update={"records": records})
+            return
+        if workspace.contact_skill_store is None:
+            raise ContactSkillStoreReviewError("Contact-skill store is not loaded.")
+        records = list(workspace.contact_skill_store.records)
+        records[record_handle.index] = updated_record
+        workspace.contact_skill_store = workspace.contact_skill_store.model_copy(update={"records": records})
+
+    def _save_workspace_record(
+        self,
+        *,
+        workspace: _StoreWorkspace,
+        record_handle: _StoreRecordHandle,
+        output_path: Path | None,
+    ) -> Path:
+        if record_handle.store_kind == "memory":
+            if workspace.memory_store is None or workspace.memory_output_path is None:
+                raise ContactSkillStoreReviewError("Memory store is not available for saving.")
+            target_path = output_path or workspace.memory_output_path
+            return self._store_service.save_memory_store(
+                output_path=target_path,
+                store=workspace.memory_store,
+            ).output_path
+        if workspace.contact_skill_store is None or workspace.contact_skill_output_path is None:
+            raise ContactSkillStoreReviewError("Contact-skill store is not available for saving.")
+        target_path = output_path or workspace.contact_skill_output_path
+        return self._store_service.save_contact_skill_store(
+            output_path=target_path,
+            store=workspace.contact_skill_store,
+        ).output_path
+
+    def _resolve_markdown_output_path(
+        self,
+        *,
+        output_path: Path | None,
+        run_dir: Path,
+        record_id: str | None,
+    ) -> Path:
+        default_filename = (
+            f"store_review_{record_id}.md"
+            if record_id is not None
+            else self.DEFAULT_EXPORT_FILENAME
+        )
+        base_path = output_path or (run_dir / default_filename)
+        resolved = (self._repo_root / base_path).resolve() if not base_path.is_absolute() else base_path.resolve()
+        if resolved.suffix.casefold() != ".md":
+            resolved = resolved / default_filename
+        self._store_service._ensure_within_root(
+            candidate=resolved,
+            root=self._private_distilled_root,
+            error_message="Export output must stay within private/distilled.",
+        )
+        return resolved
+
+    def _resolve_run_dir(self, *, path: Path) -> Path:
+        try:
+            relative = path.relative_to(self._private_distilled_root)
+        except ValueError as exc:
+            raise ContactSkillStoreReviewError("Input must stay within private/distilled.") from exc
+        if not relative.parts:
+            return self._private_distilled_root
+        return self._private_distilled_root / relative.parts[0]
+
+    def _detect_memory_input_path(self, directory: Path) -> Path | None:
+        store_path = directory / self._store_service.MEMORY_STORE_FILENAME
+        if store_path.is_file():
+            return store_path
+        legacy_path = directory / self._store_service.MEMORY_FACTS_FILENAME
+        if legacy_path.is_file():
+            return legacy_path
+        return None
+
+    def _detect_contact_skill_input_path(self, directory: Path) -> Path | None:
+        store_path = directory / self._store_service.CONTACT_SKILL_STORE_FILENAME
+        if store_path.is_file():
+            return store_path
+        legacy_path = directory / self._store_service.CONTACT_SKILL_CANDIDATE_FILENAME
+        if legacy_path.is_file():
+            return legacy_path
+        return None
+
+    def _normalize_decision(self, decision: str) -> DistillationStatus:
+        normalized = decision.strip().lower()
+        resolved = self.REVIEW_ACTIONS.get(normalized)
+        if resolved is None:
+            raise ContactSkillStoreReviewError(
+                "Decision must be one of approve, reject, freeze, or archive.",
+            )
+        return resolved
+
+    @staticmethod
+    def _clean_notes(notes: list[str] | None) -> list[str]:
+        if not notes:
+            return []
+        cleaned: list[str] = []
+        for note in notes:
+            stripped = " ".join(note.split()).strip()
+            if stripped:
+                cleaned.append(stripped)
+        return cleaned
+
+    @staticmethod
+    def _record_artifact_type(record: MemoryFactStoreRecord | ContactSkillStoreRecord) -> str:
+        return record.artifact_type
+
+    @staticmethod
+    def _record_artifact_id(record: MemoryFactStoreRecord | ContactSkillStoreRecord) -> str:
+        if isinstance(record, MemoryFactStoreRecord):
+            return record.memory_fact.memory_id
+        return record.contact_skill.contact_id
+
+    @staticmethod
+    def _record_status(record: MemoryFactStoreRecord | ContactSkillStoreRecord) -> DistillationStatus:
+        if isinstance(record, MemoryFactStoreRecord):
+            return record.memory_fact.status
+        return record.contact_skill.status
+
+    @staticmethod
+    def _record_review_metadata(record: MemoryFactStoreRecord | ContactSkillStoreRecord) -> DistilledArtifactReviewMetadata:
+        return record.review_metadata
+
+    @staticmethod
+    def _resolve_evidence_validation_status(
+        *,
+        current_status: DistillationStatus,
+        review_metadata_status: str,
+        validation_context: _ValidationReportContext,
+        validation_record: dict[str, Any] | None,
+    ) -> str:
+        del current_status
+        if validation_context.report is None:
+            return review_metadata_status or "not_run"
+        if validation_record is None:
+            return "partial"
+        missing_ref_count = int(validation_record.get("missing_ref_count", 0))
+        checked_ref_count = int(validation_record.get("checked_ref_count", 0))
+        if checked_ref_count == 0 or missing_ref_count > 0:
+            return "failed"
+        if validation_context.summary_status == "passed":
+            return "passed"
+        if validation_context.summary_status == "failed":
+            return "partial"
+        return validation_context.summary_status or "not_run"
+
+    @classmethod
+    def _update_candidate_status(cls, value: Any, *, status: DistillationStatus) -> Any:
+        if isinstance(value, dict):
+            updated: dict[str, Any] = {}
+            for key, item in value.items():
+                if key == "status" and isinstance(item, str) and item in {
+                    "candidate",
+                    "approved",
+                    "rejected",
+                    "frozen",
+                    "archived",
+                }:
+                    updated[key] = status
+                else:
+                    updated[key] = cls._update_candidate_status(item, status=status)
+            return updated
+        if isinstance(value, list):
+            return [cls._update_candidate_status(item, status=status) for item in value]
+        return value
+
+    @staticmethod
+    def _unique_strings(values: Iterable[str]) -> list[str]:
+        seen: set[str] = set()
+        ordered: list[str] = []
+        for value in values:
+            if not isinstance(value, str) or not value:
+                continue
+            if value in seen:
+                continue
+            seen.add(value)
+            ordered.append(value)
+        return ordered
+
+    @staticmethod
+    def _record_summary_to_dict(record: StoreRecordSummary) -> dict[str, Any]:
+        return {
+            "record_id": record.record_id,
+            "artifact_type": record.artifact_type,
+            "artifact_id": record.artifact_id,
+            "status": record.status,
+            "review_state": record.review_state,
+            "reviewed_by_human": record.reviewed_by_human,
+            "last_decision": record.last_decision,
+            "evidence_validation_status": record.evidence_validation_status,
+            "approval_ready_after_validation": record.approval_ready_after_validation,
+            "runtime_ready_after_validation": record.runtime_ready_after_validation,
+            "missing_ref_count": record.missing_ref_count,
+            "safe_path": record.safe_path,
+            "review_artifact_path": record.review_artifact_path,
+            "approval_block_reasons": record.approval_block_reasons,
+            "runtime_block_reasons": record.runtime_block_reasons,
+        }
 
 def summarize_distillation_inputs(
     *,

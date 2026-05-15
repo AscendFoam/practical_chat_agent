@@ -41,6 +41,7 @@
 - T114 已确认 Gate M1 = `Conditional`；M2 可启动，但必须保留 candidate-only / human-review-first 和 evidence refs 条件。
 - T120 已通过 reviewer `PASS_WITH_WARNINGS`，file store models 与 human-review-first runtime gate 已落地；T121 继续补 evidence validator。
 - T121 已通过 reviewer `PASS_WITH_WARNINGS`，read-only evidence validator 和 missing-ref/status gate 已落地；T122 继续实现人工 review/approve/export CLI。
+- T122 已通过 reviewer `PASS_WITH_WARNINGS`，人工 review/approve/reject/freeze/export CLI 与 approval gate 已落地；T123 继续做 approved/runtime-ready context integration。
 
 ### Gate M1: 离线蒸馏 MVP
 
@@ -412,3 +413,30 @@ T122 实现 contact-skill / memory store 的人工 review/approve/reject/export 
 - 审阅动作必须保留 reviewer、timestamp、decision、notes 和 evidence validation status。
 - CLI stdout 只打印 counts、record ids、safe relative paths 和状态摘要。
 - 使用 private synthetic fixture 或安全样例验证 approve/reject/freeze/export 路径。
+
+T122 review 状态：`PASS_WITH_WARNINGS`，见 `docs/review/T122_review.md`。
+
+## 17. T123 验证要求
+
+T123 将 approved + runtime-ready memory/skill store records 以 compact brief 形式接入 `ChatContext`，不做 ReplyPlanner。
+
+必须输出：
+
+- `ChatContext` 或等价 context assembly 结果能携带 compact contact skill brief 和 approved memory brief。
+- 只读取 `is_runtime_ready() == True` 且 status/review metadata 合格的 records。
+- Candidate / rejected / frozen / archived / missing-evidence / not-human-reviewed records 一律不进入 context。
+- Brief 必须是压缩摘要，不包含大段原文或 raw chat transcript。
+- 现有无 skill/store 的上下文流程保持兼容。
+
+禁止输出：
+
+- 直接注入完整 `contact_skill.candidate.json` 或全部 memory facts。
+- 注入 candidate/rejected/frozen/archived records。
+- ReplyPlanner、自动发送、实时平台接入、数据库 migration、向量库。
+- 私密聊天原文、真实联系人名、真实平台 ID 到 docs/examples/tests/stdout。
+
+必须额外检查：
+
+- 使用 private synthetic approved/rejected/frozen/candidate fixture 验证筛选。
+- Compile 或现有 demo-turn/context assembly 验证通过。
+- 输出 context 中只包含 safe compact brief、record ids、evidence refs 或安全摘要。
