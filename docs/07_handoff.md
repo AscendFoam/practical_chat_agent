@@ -577,3 +577,39 @@ M1 必须承接的条件：
 - 不要把 `private/chat_history` 的真实文件名或聊天内容写入 docs。
 - 当前阶段不做微调、不做自动发送、不做微信扫描。
 - M2 可以推进，但必须带着 Gate M1 Conditional 条件继续验证，不要把 M1 写成无条件完成。
+
+## 20. T123 Completion Record
+
+- Files changed:
+  - `src/practical_chat_agent/core/models.py`
+  - `src/practical_chat_agent/services/chat_context.py`
+  - `src/practical_chat_agent/app/container.py`
+  - `docs/07_handoff.md`
+- Implemented:
+  - Added `approved_store_context` to `ChatContext`.
+  - Added compact store brief models: `ApprovedStoreContext`, `ApprovedContactSkillBrief`, and `ApprovedMemoryFactBrief`.
+  - Extended `ChatContextAssembler` with optional approved-store loading from `private/distilled/**`.
+  - Context assembly now adds compact approved-store hints into `summary` and `memory_retrieval_notes`.
+  - Filtering is conservative: only records that are approved, human-reviewed, evidence-valid, and `is_runtime_ready() == True` can enter runtime context.
+  - Candidate, rejected, frozen, archived, missing-evidence, and not-human-reviewed records are excluded.
+  - The brief stays compact: short relationship summary, short strategy / boundary reminders, record ids, and evidence refs only. No raw transcript, no full JSON dump, no runtime prompt injection.
+  - `AppContainer` now supports optional injection through `PRACTICAL_CHAT_APPROVED_STORE_PATH` and `PRACTICAL_CHAT_APPROVED_MEMORY_LIMIT`.
+- Verification:
+  - Compile passed:
+    - `& 'C:\ProgramData\anaconda3\envs\practical-chat-agent\python.exe' -m compileall src/practical_chat_agent/services/chat_context.py src/practical_chat_agent/core/models.py src/practical_chat_agent/app/container.py`
+  - Approved fixture:
+    - fixture: `private/distilled/t123_approved_fixture`
+    - result: `approved_store_context.status = loaded`
+    - loaded one approved contact-skill brief with safe record id / evidence refs, and summary / retrieval notes included compact approved-store hints
+  - Exclusion fixture:
+    - fixture: `private/distilled/t123_exclusion_fixture`
+    - result: `approved_store_context.status = no_runtime_ready_records`
+    - rejected store record did not enter context
+  - Compatibility fixture:
+    - fixture: `private/distilled/t123_memory_only_fixture`
+    - result: approved contact-skill brief loaded correctly; approved memory record with missing refs stayed excluded
+  - No-store compatibility:
+    - direct `ChatContextAssembler()` run with no store path
+    - result: `approved_store_context.status = not_configured`, and existing context assembly behavior stayed unchanged
+- Remaining risk / assumption:
+  - Current private fixtures verify the positive contact-skill path and the exclusion path. They do not yet provide a runtime-ready approved memory-only sample, so the positive memory-brief branch remains unobserved and should be re-checked when such a safe fixture exists.

@@ -34,6 +34,13 @@ DistillationSensitivity = Literal["low", "medium", "high"]
 DistillationEvidenceValidationStatus = Literal["not_run", "passed", "failed", "partial"]
 DistillationMemoryType = Literal["semantic", "episodic", "relationship", "procedural", "reflection"]
 ContactRelationshipType = Literal["friend", "classmate", "colleague", "family", "unknown"]
+ApprovedStoreContextStatus = Literal[
+    "not_configured",
+    "store_path_missing",
+    "validation_report_missing",
+    "no_runtime_ready_records",
+    "loaded",
+]
 
 
 class InboundEvent(BaseModel):
@@ -583,6 +590,36 @@ class MemoryProfileRecord(BaseModel):
     created_at: datetime = Field(default_factory=utc_now)
 
 
+class ApprovedMemoryFactBrief(BaseModel):
+    record_id: str
+    memory_id: str
+    memory_type: DistillationMemoryType
+    claim: str
+    evidence_refs: list[str] = Field(default_factory=list)
+
+
+class ApprovedContactSkillBrief(BaseModel):
+    record_id: str
+    contact_id: str
+    relationship_type: ContactRelationshipType
+    relationship_summary: str
+    strategy_hints: list[str] = Field(default_factory=list)
+    boundary_reminders: list[str] = Field(default_factory=list)
+    evidence_refs: list[str] = Field(default_factory=list)
+
+
+class ApprovedStoreContext(BaseModel):
+    status: ApprovedStoreContextStatus = "not_configured"
+    source_path: str | None = None
+    validation_report_path: str | None = None
+    contact_id: str | None = None
+    contact_skill: ApprovedContactSkillBrief | None = None
+    memory_facts: list[ApprovedMemoryFactBrief] = Field(default_factory=list)
+    source_record_ids: list[str] = Field(default_factory=list)
+    evidence_refs: list[str] = Field(default_factory=list)
+    notes: list[str] = Field(default_factory=list)
+
+
 class ChatContextEvent(BaseModel):
     event_id: str
     actor_id: str
@@ -612,6 +649,7 @@ class ChatContext(BaseModel):
     memory_candidate_count: int = 0
     memory_profile: MemoryProfileSnapshot = Field(default_factory=MemoryProfileSnapshot)
     memory_retrieval_notes: list[str] = Field(default_factory=list)
+    approved_store_context: ApprovedStoreContext = Field(default_factory=ApprovedStoreContext)
     summary: str | None = None
 
 

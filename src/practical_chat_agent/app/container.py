@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import os
+from pathlib import Path
 
 from practical_chat_agent.app.config import Settings, get_settings
 from practical_chat_agent.connectors.delivery.base import DeliveryConnector
@@ -165,9 +167,19 @@ class AppContainer:
         action_repository = SqlAlchemyActionRepository(session_factory)
         audit_repository = SqlAlchemyAuditRepository(session_factory)
         meeting_repository = SqlAlchemyMeetingRepository(session_factory)
+        approved_store_path = os.environ.get("PRACTICAL_CHAT_APPROVED_STORE_PATH")
+        approved_memory_limit_raw = os.environ.get("PRACTICAL_CHAT_APPROVED_MEMORY_LIMIT")
+        approved_memory_limit = 4
+        if approved_memory_limit_raw:
+            try:
+                approved_memory_limit = max(int(approved_memory_limit_raw), 1)
+            except ValueError:
+                approved_memory_limit = 4
         chat_context_assembler = ChatContextAssembler(
             recent_events_limit=resolved_settings.chat_context_recent_events,
             memory_hits_limit=resolved_settings.chat_context_memory_hits,
+            approved_store_path=Path(approved_store_path) if approved_store_path else None,
+            approved_memory_limit=approved_memory_limit,
         )
         memory_retrieval_service = MemoryRetrievalService(
             selection_limit=resolved_settings.chat_context_memory_hits,
