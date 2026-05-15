@@ -440,3 +440,8 @@ T123 将 approved + runtime-ready memory/skill store records 以 compact brief �
 - 使用 private synthetic approved/rejected/frozen/candidate fixture 验证筛选。
 - Compile 或现有 demo-turn/context assembly 验证通过。
 - 输出 context 中只包含 safe compact brief、record ids、evidence refs 或安全摘要。
+
+当前状态：
+- T130 已完成，review verdict = `PASS_WITH_WARNINGS`。
+- 结构层已确认支持 3+ candidates、T123 compact brief 和 review-only contract。
+- T131 需要显式校验 `priority_rank` 唯一性和 `contact_id` 对齐，不能依赖静默假设。

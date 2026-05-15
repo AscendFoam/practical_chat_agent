@@ -39,6 +39,7 @@
 | R031 | T120 file store 缺少已提交自动化测试 | store model validation、legacy wrapping、load/save round-trip、runtime-ready gate 或 path confinement 未来可能回归 | T120 reviewer 判定不阻塞；T150 必须补对应单测和 path confinement 测试 |
 | R032 | T121 evidence validator 缺少已提交自动化测试 | evidence index、nested `evidence_refs` collection、status gate 或 path confinement 未来可能回归 | T121 reviewer 判定不阻塞；T150 必须补 validator 单测与 good/bad fixture 覆盖 |
 | R033 | T122 review CLI 缺少已提交自动化测试 | approval gate、reject/freeze/archive、review history、stable record_id 或 export confinement 未来可能回归 | T122 reviewer 判定不阻塞；T150 必须补 full approval lifecycle 与 no-auto-approve 测试 |
+| R034 | T130 ReplyPlan 可能出现重复 `priority_rank`，且 `ReplyPlanSourceContext` 可能与 `ReplyPlan.contact_id` 在组装时错位 | T131 若不显式校验，候选排序会歧义，或出现跨联系人上下文串线 | T131 需要在组装阶段校验唯一排序和 contact 对齐；若后续证实无需约束，可再关闭 |
 
 ## Open Questions
 

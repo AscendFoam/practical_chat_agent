@@ -174,3 +174,12 @@
 - 决策：T122 标记完成；当前唯一任务切换为 T123 Context Integration。
 - Warning 处理：N01 accepted，`del current_status` 是低影响接口/风格问题；N02 accepted，递归更新所有合法 `status` 字段符合当前 schema，未来 schema 若出现不同语义再重审；N03 accepted，`store_runtime_ready` 提前计算只是轻微 style note；N04 accepted/deferred，review service 访问 file store private helpers 对 MVP 可接受，未来可抽公共 file IO/path utility；N05 accepted，mutable `_StoreWorkspace` 当前局部可控；N06 deferred 到 T150，需补 approval gate、reject/freeze/archive flow、review metadata history、recursive status update、export path confinement、stable record_id 和 no-auto-approve 测试。
 - 影响：T123 必须只读取 approved + runtime-ready store records，生成 compact `ChatContext` brief；不得注入 candidate/rejected/frozen/archived，不得把大段原文放入 prompt，不得实现 ReplyPlanner 或自动发送。
+
+## D020: T130 review PASS_WITH_WARNINGS，进入 T131
+
+- 日期：2026-05-15
+- 状态：Accepted
+- 背景：`docs/review/T130_review.md` 给出 `PASS_WITH_WARNINGS`，确认 T130 已完成 ReplyPlan schema 与 prompt contract：支持 3+ candidates、per-candidate rationale / refs / risk flags / boundary reminders，兼容 T123 compact approved-store context，且没有引入 LLM 调用、发送逻辑、数据库、向量库或私密原文泄露。
+- 决策：T130 标记完成；当前唯一任务切换为 T131 Relationship-Aware Reply Planner。
+- Warning 处理：N01 accepted，单值 `ReplyPlanMode` 当前符合 review-only scope；N02 deferred 到 R034，T131 必须保证候选 `priority_rank` 稳定且不冲突；N03 accepted，`approach_label` 自由字符串对 MVP 可接受；N04 deferred 到 R034，T131 必须校验 `ReplyPlan.contact_id` 与 source context / T123 approved-store context 对齐。
+- 影响：T131 可以实现 planner service/CLI，但必须继续保持 review-only、人类确认优先、只消费 approved + runtime-ready compact context，不得自动发送或绕过 T123/T130 的安全边界。

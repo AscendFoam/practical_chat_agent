@@ -19,21 +19,22 @@
 - 下一阶段直接做“对话记录驱动的长期关系感知 chat agent”。
 - 当前目标是离线蒸馏 MVP：JSONL -> normalized events -> chunks -> memory facts -> ContactSkill -> review -> relationship-aware reply planner。
 - T100 worker 已产出 schema profile、normalized event contract 和合成脱敏 fixture，并通过 reviewer `PASS`。
-- Captain 已将 T100/T101/T102/T103/T110/T111/T112/T113/T114/T120/T121/T122 标记完成，Gate M1 = `Conditional`，Current Unique Task 推进到 T123。
+- Captain 已将 T100/T101/T102/T103/T110/T111/T112/T113/T114/T120/T121/T122/T123/T130 标记完成，Gate M1 = `Conditional`，Current Unique Task 推进到 T131。
 - T101 worker 已产出隐私脱敏规则、source_ref 规则和补充了 `source_ref/raw_ref` 预览形态的合成 fixture，并通过 reviewer `PASS`。
 - T102 worker 已产出最小 normalize CLI，并完成 dry-run 与 limit 小样本验证，reviewer 判定 `PASS`。
 - T103 milestone review 已接受 Gate M0 = `Conditional`，允许进入 M1；T110 conversation chunker v0、T111 distillation schemas 和 T112 summary/fact extraction 均已通过 reviewer `PASS`，T113 ContactSkill builder 已通过 reviewer `PASS_WITH_WARNINGS`，T114 确认 Gate M1 = `Conditional`。
 - T120 file store models 已通过 reviewer `PASS_WITH_WARNINGS`，允许进入 T121。
 - T121 evidence validator 已通过 reviewer `PASS_WITH_WARNINGS`，允许进入 T122。
 - T122 skill review CLI 已通过 reviewer `PASS_WITH_WARNINGS`，允许进入 T123。
+- T123 context integration 已通过 reviewer `PASS_WITH_WARNINGS`，T130 ReplyPlan schema 已通过 reviewer `PASS_WITH_WARNINGS`，允许进入 T131。
 
 ## 2. 当前唯一任务
 
-T123: 将 approved memory/skill 接入现有 `ChatContext`。
+T131: 实现 relationship-aware ReplyPlanner。
 
-任务包：`docs/tasks/M2_memory_skill_store/T123_context_integration.md`
+任务包：`docs/tasks/M3_relationship_reply_planner/T131_reply_planner.md`
 
-状态：T122 已通过 `PASS_WITH_WARNINGS`，M2 继续保持 Gate M1 = `Conditional`。T123 只读取 approved + runtime-ready store records，并生成 compact `ChatContext` brief；不注入 candidate/rejected/frozen/archived，不做 ReplyPlanner、不接数据库、不引入向量数据库、不自动发送。
+状态：T130 已通过 `PASS_WITH_WARNINGS`，ReplyPlan schema 与 prompt contract 已可用。T131 只消费 approved + runtime-ready 的 compact `ChatContext`，输出 review-only 的 3+ 候选回复草稿；不自动发送、不接数据库、不引入向量数据库、不回读原始聊天记录。
 
 ## 3. T100 完成记录
 
@@ -501,21 +502,22 @@ M1 必须承接的条件：
 - docs/06_eval_protocol.md
 - docs/04_task_board.md
 - docs/07_handoff.md
-- docs/review/T122_review.md
-- docs/review/M1_review.md
-- docs/tasks/M2_memory_skill_store/T123_context_integration.md
+- docs/review/T123_review.md
+- docs/review/T130_review.md
+- docs/data_contracts/reply_plan_contract.md
+- docs/tasks/M3_relationship_reply_planner/T131_reply_planner.md
 
 本轮只完成：
-- docs/tasks/M2_memory_skill_store/T123_context_integration.md
+- docs/tasks/M3_relationship_reply_planner/T131_reply_planner.md
 
 规则：
 1. 只改 Allowed files。
-2. 将 approved + runtime-ready memory/skill store records 以 compact brief 接入 `ChatContext` 或 context assembly。
-3. 必须调用/遵守 T120 `is_runtime_ready()` gate。
-4. Candidate/rejected/frozen/archived/missing-evidence/not-human-reviewed records 不得进入 context。
-5. 不做 ReplyPlanner，不自动发送，不接数据库，不引入向量数据库。
+2. 消费 T123 compact `ChatContext` / approved-store brief，输出 T130 `ReplyPlan`。
+3. 生成至少 3 个候选草稿，每个候选必须有 rationale、refs、risk flags、boundary reminders。
+4. 必须处理 T130 review warnings：`priority_rank` 唯一，`contact_id` 与 source context 对齐。
+5. 不自动发送，不接数据库，不引入向量数据库，不读取 `private/chat_history/`。
 6. 不注入完整 skill JSON、全部 memory facts 或大段原文。
-7. 用 synthetic approved/rejected/frozen/candidate fixture 或安全 private 样例验证筛选。
+7. 用 synthetic 或安全 redacted fixture 验证。
 8. 最后报告：改了什么、如何验证、剩余风险。
 ```
 
@@ -529,30 +531,31 @@ M1 必须承接的条件：
 - docs/04_task_board.md
 - docs/07_handoff.md
 - docs/06_eval_protocol.md
-- docs/review/M1_review.md
-- docs/review/T122_review.md
+- docs/review/T123_review.md
+- docs/review/T130_review.md
+- docs/data_contracts/reply_plan_contract.md
 
 只读审查本次 diff，不要修改文件。
 
 重点检查：
-1. T123 是否只做 context integration，不做 ReplyPlanner、auto-send、DB migration、向量库或 realtime integration。
-2. 是否只读取 approved + runtime-ready records，并调用/遵守 `is_runtime_ready()`。
-3. Candidate/rejected/frozen/archived/missing-evidence/not-human-reviewed 是否被排除。
-4. Compact brief 是否避免大段原文、完整 skill JSON 或全部 memory facts。
-5. 现有无 store/无 skill flow 是否仍兼容。
+1. T131 是否只实现 review-only ReplyPlanner，不做 auto-send、DB migration、向量库或 realtime integration。
+2. 是否只消费 T123 compact approved-store context，不读取 raw transcript 或完整 store JSON。
+3. 是否输出 T130 `ReplyPlan`，且至少包含 3 个可区分候选。
+4. 每个候选是否有 rationale、refs、risk flags、boundary reminders。
+5. `priority_rank` 是否唯一，`contact_id` 是否与 source context 对齐。
 6. 是否有真实聊天原文或 private output 进入 docs/examples/tests/stdout。
 7. Synthetic fixture 或安全样例验证是否真实运行。
 
-输出 Verdict: PASS / PASS_WITH_WARNINGS / BLOCK，并写入 docs/review/T123_review.md。
+输出 Verdict: PASS / PASS_WITH_WARNINGS / BLOCK，并写入 docs/review/T131_review.md。
 ```
 
 ## 17. 下一步顺序
 
-1. 可提交当前 T122 worker/reviewer 代码与 Captain 收口文档变更。
-2. 下一轮 worker 只执行 T123，不要自领 T130。
-3. 若 T123 review `BLOCK`，worker 只修 blocking issue，并最多自动复审一次。
-4. 若 T123 review `PASS` 或 `PASS_WITH_WARNINGS`，Captain 再更新治理文档并决定 M2 gate 是否需要 milestone review 或进入 M3/T130。
-5. M2 仍为 Conditional；不要把 candidate 产物直接接入 runtime。
+1. 可提交当前 T130 worker/reviewer 代码与 Captain 收口文档变更。
+2. 下一轮 worker 只执行 T131，不要自领 T132。
+3. 若 T131 review `BLOCK`，worker 只修 blocking issue，并最多自动复审一次。
+4. 若 T131 review `PASS` 或 `PASS_WITH_WARNINGS`，Captain 再更新治理文档并决定是否进入 T132 policy/boundary validation。
+5. M3 仍保持 review-only；不要实现自动发送或实时平台接入。
 
 ## 18. 历史顺序
 
@@ -568,6 +571,8 @@ M1 必须承接的条件：
 10. T120 review `PASS_WITH_WARNINGS`，已完成 file store models 与 human-review-first gate。
 11. T121 review `PASS_WITH_WARNINGS`，已完成 evidence validator 与 missing-ref/status gate。
 12. T122 review `PASS_WITH_WARNINGS`，已完成 skill review CLI 与 approval gate。
+13. T123 review `PASS_WITH_WARNINGS`，已完成 approved-store compact `ChatContext` integration。
+14. T130 review `PASS_WITH_WARNINGS`，已完成 ReplyPlan schema 与 prompt contract。
 
 ## 19. 注意事项
 
@@ -613,3 +618,84 @@ M1 必须承接的条件：
     - result: `approved_store_context.status = not_configured`, and existing context assembly behavior stayed unchanged
 - Remaining risk / assumption:
   - Current private fixtures verify the positive contact-skill path and the exclusion path. They do not yet provide a runtime-ready approved memory-only sample, so the positive memory-brief branch remains unobserved and should be re-checked when such a safe fixture exists.
+
+## 21. T130 Completion Record
+
+- Files changed:
+  - `src/practical_chat_agent/core/models.py`
+  - `docs/data_contracts/reply_plan_contract.md`
+  - `docs/07_handoff.md`
+- Implemented:
+  - Added strongly typed reply-planning models:
+    - `ReplyPlanContextRef`
+    - `ReplyPlanSourceContext`
+    - `ReplyPlanCandidate`
+    - `ReplyPlan`
+  - Added `ReplyPlanMode = "candidate_review_only"` to make the review-only usage explicit.
+  - Added `ReplyPlanContextRefType` so candidates can cite:
+    - approved contact-skill record ids
+    - approved memory-fact record ids
+    - approved store evidence refs
+    - recent event ids
+    - runtime memory hit ids
+    - policy-boundary refs
+  - `ReplyPlan` requires:
+    - `contact_id`
+    - `source_context`
+    - `policy_boundary_summary`
+    - `notes_on_candidate_differences`
+    - at least 3 `candidates`
+  - Each `ReplyPlanCandidate` requires:
+    - `draft_text`
+    - `rationale`
+    - at least 1 `supporting_context_ref`
+    - at least 1 `boundary_reminder`
+    - optional `risk_flags` and `confidence`
+  - Added `docs/data_contracts/reply_plan_contract.md` to document:
+    - review-only usage boundary
+    - anti-impersonation rule
+    - conservative handling for uncertain/sensitive cases
+    - compatibility with T123 `approved_store_context`
+    - JSON shape and field semantics for T131/T132
+- How T130 ties back to T123:
+  - `ReplyPlanSourceContext.approved_store_status` directly reuses T123 `ApprovedStoreContextStatus`.
+  - `ReplyPlanSourceContext` accepts T123 compact ids and refs:
+    - `approved_contact_skill_record_id`
+    - `approved_memory_record_ids`
+    - `approved_store_evidence_refs`
+  - The contract therefore consumes the compact approved-store brief from `ChatContext` instead of requiring full store JSON or raw transcript text.
+- Verification:
+  - Compile passed:
+    - `& 'C:\ProgramData\anaconda3\envs\practical-chat-agent\python.exe' -m compileall src/practical_chat_agent/core/models.py`
+  - Synthetic model validation passed with a safe inline sample:
+    - validated one `ReplyPlan` containing 3 candidates
+    - confirmed candidates can cite T123-style approved-store record ids / evidence refs
+    - confirmed raw transcript text is not required by the schema
+    - confirmed `approved_store_status="loaded"` is compatible with T123 context status values
+- Remaining risk / assumption:
+  - T130 defines the contract only. It does not yet prove that T131 generation logic will consistently populate distinct, high-quality candidates from real runtime context.
+  - T123 reviewer warning about contact-id alignment still applies: T131 should verify that runtime `contact_id` routing stays aligned with approved-store records when the planner is wired in.
+
+- Review decision:
+  - `docs/review/T130_review.md` verdict = `PASS_WITH_WARNINGS`.
+  - Warning handling:
+    - N01 accepted: single-value `ReplyPlanMode` is correct for current review-only scope.
+    - N02 deferred to R034: T131 must enforce stable unique `priority_rank` values.
+    - N03 accepted: free-form `approach_label` is acceptable for MVP.
+    - N04 deferred to R034: T131 must verify `contact_id` alignment during assembly.
+  - Captain decision: T130 is complete; T131 is the next Current Unique Task.
+
+## 22. T131 Kickoff Notes
+
+- Task package:
+  - `docs/tasks/M3_relationship_reply_planner/T131_reply_planner.md`
+- Worker focus:
+  - Implement a review-only ReplyPlanner service or CLI.
+  - Consume only compact approved-store context from T123.
+  - Output T130 `ReplyPlan` with at least 3 candidates.
+  - Preserve safety: no raw transcript, no send logic, no DB, no vector DB.
+- Reviewer focus:
+  - Candidate distinctness.
+  - Cited refs and boundary reminders.
+  - Unique ranking and contact/source alignment.
+  - No scope creep into automatic sending or platform integration.

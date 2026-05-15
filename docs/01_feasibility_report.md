@@ -79,3 +79,5 @@
 - M1 只选 1 个联系人或小样本做 distillation MVP。
 - M1 不微调、不自动发送、不接实时平台。
 - 所有可提交 fixture 必须脱敏。
+
+补充判断：T130 已完成并通过 `PASS_WITH_WARNINGS`，ReplyPlan schema 与 prompt contract 已经可行；后续风险主要转移到 T131 的组装质量与候选差异化，而不是结构本身。

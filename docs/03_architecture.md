@@ -151,3 +151,5 @@ MemoryFact
 - ContactSkill 默认 candidate，需要人工 approve。
 - 回复 planner 只产草稿，不发送。
 - 禁止生成“对方会怎么说”的角色扮演输出。
+
+T130 完成后，M3 的结构边界也已固定：ReplyPlan 只消费 compact `ChatContext` 和 approved-store brief，不回读原始聊天记录，不把 reply generation 和 send 混在一起。

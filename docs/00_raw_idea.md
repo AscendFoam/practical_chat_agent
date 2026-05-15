@@ -57,3 +57,5 @@ T100 已完成 schema profiling 与 normalized event 合约，并通过 reviewer
 `Go to offline distillation MVP`。
 
 暂停 iLink/微信扫描主线，M0 已条件通过，M1 已条件通过。当前唯一任务切到 T123：Context Integration。
+
+2026-05-15 之后，T123 和 T130 已完成，当前唯一任务转入 T131 ReplyPlanner。核心约束不变：offline-first、review-only、只消费 approved + runtime-ready 的 compact context。

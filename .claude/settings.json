@@ -4,7 +4,10 @@
       "Bash(git status *)",
       "Bash(ls -la \"d:/Codes/Social/wechatbot_sandbox/\" 2>&1)",
       "Read(//d/Codes/Social/wechatbot_sandbox/**)",
-      "Bash(python -c \"import sys,json; lines=[l.strip\\(\\) for l in sys.stdin if l.strip\\(\\)]; print\\(f'parsed_lines={len\\(lines\\)}'\\); [json.loads\\(l\\) for l in lines]; print\\('all_valid_json=True'\\)\")"
+      "Bash(python -c \"import sys,json; lines=[l.strip\\(\\) for l in sys.stdin if l.strip\\(\\)]; print\\(f'parsed_lines={len\\(lines\\)}'\\); [json.loads\\(l\\) for l in lines]; print\\('all_valid_json=True'\\)\")",
+      "Bash(/c/ProgramData/anaconda3/envs/practical-chat-agent/python.exe -m compileall src/practical_chat_agent/core/models.py)",
+      "Bash(ls 'd:\\\\\\\\Codes\\\\\\\\Social\\\\\\\\practical_chat_agent\\\\\\\\docs\\\\\\\\review')",
+      "Read(//d/Codes/Social/practical_chat_agent/docs/review/**)"
     ]
   }
 }

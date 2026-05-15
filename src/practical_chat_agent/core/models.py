@@ -41,6 +41,15 @@ ApprovedStoreContextStatus = Literal[
     "no_runtime_ready_records",
     "loaded",
 ]
+ReplyPlanMode = Literal["candidate_review_only"]
+ReplyPlanContextRefType = Literal[
+    "approved_contact_skill_record",
+    "approved_memory_fact_record",
+    "approved_store_evidence_ref",
+    "recent_event",
+    "memory_hit",
+    "policy_boundary",
+]
 
 
 class InboundEvent(BaseModel):
@@ -651,6 +660,44 @@ class ChatContext(BaseModel):
     memory_retrieval_notes: list[str] = Field(default_factory=list)
     approved_store_context: ApprovedStoreContext = Field(default_factory=ApprovedStoreContext)
     summary: str | None = None
+
+
+class ReplyPlanContextRef(BaseModel):
+    ref_type: ReplyPlanContextRefType
+    ref_id: str = Field(..., min_length=1)
+    note: str | None = None
+
+
+class ReplyPlanSourceContext(BaseModel):
+    approved_store_status: ApprovedStoreContextStatus = "not_configured"
+    chat_context_summary: str | None = None
+    recent_event_ids: list[str] = Field(default_factory=list)
+    memory_hit_ids: list[str] = Field(default_factory=list)
+    approved_contact_skill_record_id: str | None = None
+    approved_memory_record_ids: list[str] = Field(default_factory=list)
+    approved_store_evidence_refs: list[str] = Field(default_factory=list)
+
+
+class ReplyPlanCandidate(BaseModel):
+    candidate_id: str = Field(default_factory=lambda: new_id("replycand"))
+    approach_label: str = Field(..., min_length=1)
+    priority_rank: int = Field(..., ge=1)
+    draft_text: str = Field(..., min_length=1)
+    rationale: str = Field(..., min_length=1)
+    supporting_context_refs: list[ReplyPlanContextRef] = Field(..., min_length=1)
+    risk_flags: list[str] = Field(default_factory=list)
+    boundary_reminders: list[str] = Field(..., min_length=1)
+    confidence: float | None = Field(default=None, ge=0.0, le=1.0)
+
+
+class ReplyPlan(BaseModel):
+    schema_version: str = "reply_plan_v1"
+    plan_mode: ReplyPlanMode = "candidate_review_only"
+    contact_id: str = Field(..., min_length=1)
+    source_context: ReplyPlanSourceContext
+    policy_boundary_summary: list[str] = Field(..., min_length=1)
+    notes_on_candidate_differences: list[str] = Field(..., min_length=1)
+    candidates: list[ReplyPlanCandidate] = Field(..., min_length=3)
 
 
 class ChatSuggestion(BaseModel):

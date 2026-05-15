@@ -47,13 +47,13 @@
 - [x] T120: 新增离线 memory/skill Pydantic 模型和文件 store。review `PASS_WITH_WARNINGS`。任务包：`docs/tasks/M2_memory_skill_store/T120_file_store_models.md`
 - [x] T121: 实现 evidence validator 与 rejected/frozen 状态规则。review `PASS_WITH_WARNINGS`。任务包：`docs/tasks/M2_memory_skill_store/T121_evidence_validator.md`
 - [x] T122: 实现 contact-skill review/approve/export CLI。review `PASS_WITH_WARNINGS`。任务包：`docs/tasks/M2_memory_skill_store/T122_skill_review_cli.md`
-- [ ] T123: 将 approved memory/skill 接入现有 `ChatContext`。任务包：`docs/tasks/M2_memory_skill_store/T123_context_integration.md`
+- [x] T123: 将 approved memory/skill 接入现有 `ChatContext`。review `PASS_WITH_WARNINGS`。任务包：`docs/tasks/M2_memory_skill_store/T123_context_integration.md`
 
 ## Milestone 3: 联系人感知 Reply Planner
 
 目标：基于 approved ContactSkill 和 memory 生成可解释、多候选、安全的回复草稿。
 
-- [ ] T130: 定义 ReplyPlan schema 和 prompt contract。任务包：`docs/tasks/M3_relationship_reply_planner/T130_reply_plan_schema.md`
+- [x] T130: 定义 ReplyPlan schema 和 prompt contract。review `PASS_WITH_WARNINGS`。任务包：`docs/tasks/M3_relationship_reply_planner/T130_reply_plan_schema.md`
 - [ ] T131: 实现 relationship-aware ReplyPlanner。任务包：`docs/tasks/M3_relationship_reply_planner/T131_reply_planner.md`
 - [ ] T132: 增加边界/禁忌/policy 校验，防止冒充和过度主动。任务包：`docs/tasks/M3_relationship_reply_planner/T132_reply_policy.md`
 - [ ] T133: 用历史 holdout 场景评估回复自然度和边界遵守。任务包：`docs/tasks/M3_relationship_reply_planner/T133_holdout_eval.md`
@@ -76,11 +76,11 @@
 
 ## Current Unique Task
 
-T123: 将 approved memory/skill 接入现有 `ChatContext`。
+T131: 实现 relationship-aware ReplyPlanner。
 
-任务包：`docs/tasks/M2_memory_skill_store/T123_context_integration.md`
+任务包：`docs/tasks/M3_relationship_reply_planner/T131_reply_planner.md`
 
-为什么现在做它：T120-T122 已建立 file store、evidence validation 和人工 approval workflow。下一步需要让现有上下文组装层能读取 approved + runtime-ready records，并生成 compact contact skill / memory brief；本轮仍不做 ReplyPlanner、不自动发送、不接数据库或向量库。
+为什么现在做它：T130 已完成并被 review `PASS_WITH_WARNINGS` 接受，schema 与 prompt contract 已确认可用。下一步需要将 approved + runtime-ready 的 compact `ChatContext` brief 转成 3+ 个可审查候选回复草稿；本轮仍不自动发送、不接数据库、不引入向量库。
 
 ## Next Captain Output Required
 
