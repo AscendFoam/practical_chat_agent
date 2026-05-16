@@ -183,3 +183,12 @@
 - 决策：T130 标记完成；当前唯一任务切换为 T131 Relationship-Aware Reply Planner。
 - Warning 处理：N01 accepted，单值 `ReplyPlanMode` 当前符合 review-only scope；N02 deferred 到 R034，T131 必须保证候选 `priority_rank` 稳定且不冲突；N03 accepted，`approach_label` 自由字符串对 MVP 可接受；N04 deferred 到 R034，T131 必须校验 `ReplyPlan.contact_id` 与 source context / T123 approved-store context 对齐。
 - 影响：T131 可以实现 planner service/CLI，但必须继续保持 review-only、人类确认优先、只消费 approved + runtime-ready compact context，不得自动发送或绕过 T123/T130 的安全边界。
+
+## D021: T131 review PASS_WITH_WARNINGS，进入 T132
+
+- 日期：2026-05-16
+- 状态：Accepted
+- 背景：`docs/review/T131_review.md` 给出 `PASS_WITH_WARNINGS`，确认 T131 已完成 review-only `ReplyPlanner` service 与 `chat-reply-plan` CLI：只消费 T123 compact approved-store context，输出 T130 `ReplyPlan`，包含 3 个结构可区分候选，并校验 `priority_rank` 唯一性与 `contact_id` 对齐；未引入自动发送、数据库、向量库、实时平台接入或私密原文读取。
+- 决策：T131 标记完成；当前唯一任务切换为 T132 Reply Policy。M3 尚未完成，不能进入 M4。
+- Warning 处理：N01 accepted/deferred，硬编码模板和浅层 relationship-awareness 进入 R035，由 T132/T133 继续约束和评估；N02 accepted，硬编码 confidence 在 contract-wiring MVP 可接受；N03 accepted/deferred，`strategy_hints` / `relationship_summary` 未参与草稿生成进入 R035；N04 deferred 到 R036，committed tests/fixtures 留给 T150，并由 T133 提供匿名化评估记录；N05 accepted，`_dedupe(values)` 类型注解缺失为低风险风格问题；N06 accepted，当前 enum fallback 足够支撑 MVP。
+- 影响：T132 worker 只应补 policy/boundary 风险层，不重写 T131 planner 主流程，不进入 M4/T140，不实现自动发送或平台集成。

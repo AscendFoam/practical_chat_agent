@@ -1,6 +1,6 @@
 # Handoff
 
-更新日期：2026-05-15
+更新日期：2026-05-16
 
 ## 1. 当前状态
 
@@ -19,22 +19,22 @@
 - 下一阶段直接做“对话记录驱动的长期关系感知 chat agent”。
 - 当前目标是离线蒸馏 MVP：JSONL -> normalized events -> chunks -> memory facts -> ContactSkill -> review -> relationship-aware reply planner。
 - T100 worker 已产出 schema profile、normalized event contract 和合成脱敏 fixture，并通过 reviewer `PASS`。
-- Captain 已将 T100/T101/T102/T103/T110/T111/T112/T113/T114/T120/T121/T122/T123/T130 标记完成，Gate M1 = `Conditional`，Current Unique Task 推进到 T131。
+- Captain 已将 T100/T101/T102/T103/T110/T111/T112/T113/T114/T120/T121/T122/T123/T130/T131 标记完成，Gate M1 = `Conditional`，Current Unique Task 推进到 T132。
 - T101 worker 已产出隐私脱敏规则、source_ref 规则和补充了 `source_ref/raw_ref` 预览形态的合成 fixture，并通过 reviewer `PASS`。
 - T102 worker 已产出最小 normalize CLI，并完成 dry-run 与 limit 小样本验证，reviewer 判定 `PASS`。
 - T103 milestone review 已接受 Gate M0 = `Conditional`，允许进入 M1；T110 conversation chunker v0、T111 distillation schemas 和 T112 summary/fact extraction 均已通过 reviewer `PASS`，T113 ContactSkill builder 已通过 reviewer `PASS_WITH_WARNINGS`，T114 确认 Gate M1 = `Conditional`。
 - T120 file store models 已通过 reviewer `PASS_WITH_WARNINGS`，允许进入 T121。
 - T121 evidence validator 已通过 reviewer `PASS_WITH_WARNINGS`，允许进入 T122。
 - T122 skill review CLI 已通过 reviewer `PASS_WITH_WARNINGS`，允许进入 T123。
-- T123 context integration 已通过 reviewer `PASS_WITH_WARNINGS`，T130 ReplyPlan schema 已通过 reviewer `PASS_WITH_WARNINGS`，允许进入 T131。
+- T123 context integration 已通过 reviewer `PASS_WITH_WARNINGS`，T130 ReplyPlan schema 已通过 reviewer `PASS_WITH_WARNINGS`，T131 ReplyPlanner 已通过 reviewer `PASS_WITH_WARNINGS`，允许进入 T132。
 
 ## 2. 当前唯一任务
 
-T131: 实现 relationship-aware ReplyPlanner。
+T132: 增加边界/禁忌/policy 校验，防止冒充和过度主动。
 
-任务包：`docs/tasks/M3_relationship_reply_planner/T131_reply_planner.md`
+任务包：`docs/tasks/M3_relationship_reply_planner/T132_reply_policy.md`
 
-状态：T130 已通过 `PASS_WITH_WARNINGS`，ReplyPlan schema 与 prompt contract 已可用。T131 只消费 approved + runtime-ready 的 compact `ChatContext`，输出 review-only 的 3+ 候选回复草稿；不自动发送、不接数据库、不引入向量数据库、不回读原始聊天记录。
+状态：T131 已通过 `PASS_WITH_WARNINGS`，ReplyPlanner 的 review-only contract wiring 已可用。T132 只补 policy/boundary 风险层，把边界、禁忌话题、过度主动和冒充风险转成保守候选、`risk_flags` 与 `boundary_reminders`；不自动发送、不接数据库、不引入向量数据库、不回读原始聊天记录。
 
 ## 3. T100 完成记录
 
@@ -504,20 +504,21 @@ M1 必须承接的条件：
 - docs/07_handoff.md
 - docs/review/T123_review.md
 - docs/review/T130_review.md
+- docs/review/T131_review.md
 - docs/data_contracts/reply_plan_contract.md
-- docs/tasks/M3_relationship_reply_planner/T131_reply_planner.md
+- docs/tasks/M3_relationship_reply_planner/T132_reply_policy.md
 
 本轮只完成：
-- docs/tasks/M3_relationship_reply_planner/T131_reply_planner.md
+- docs/tasks/M3_relationship_reply_planner/T132_reply_policy.md
 
 规则：
 1. 只改 Allowed files。
-2. 消费 T123 compact `ChatContext` / approved-store brief，输出 T130 `ReplyPlan`。
-3. 生成至少 3 个候选草稿，每个候选必须有 rationale、refs、risk flags、boundary reminders。
-4. 必须处理 T130 review warnings：`priority_rank` 唯一，`contact_id` 与 source context 对齐。
+2. 基于 T131 `ReplyPlanner` 补 policy/boundary 风险层，不重写 planner 主流程。
+3. 将 boundary reminders、avoid topics、over-proactivity、impersonation / persona-clone 风险转成候选级 `risk_flags`、`boundary_reminders` 或保守候选建议。
+4. 保留 T131 已实现的 `priority_rank` 唯一性和 `contact_id` 对齐校验。
 5. 不自动发送，不接数据库，不引入向量数据库，不读取 `private/chat_history/`。
 6. 不注入完整 skill JSON、全部 memory facts 或大段原文。
-7. 用 synthetic 或安全 redacted fixture 验证。
+7. 用 synthetic 或安全 redacted boundary fixture 验证敏感/越界场景。
 8. 最后报告：改了什么、如何验证、剩余风险。
 ```
 
@@ -533,28 +534,29 @@ M1 必须承接的条件：
 - docs/06_eval_protocol.md
 - docs/review/T123_review.md
 - docs/review/T130_review.md
+- docs/review/T131_review.md
 - docs/data_contracts/reply_plan_contract.md
+- docs/tasks/M3_relationship_reply_planner/T132_reply_policy.md
 
 只读审查本次 diff，不要修改文件。
 
 重点检查：
-1. T131 是否只实现 review-only ReplyPlanner，不做 auto-send、DB migration、向量库或 realtime integration。
-2. 是否只消费 T123 compact approved-store context，不读取 raw transcript 或完整 store JSON。
-3. 是否输出 T130 `ReplyPlan`，且至少包含 3 个可区分候选。
-4. 每个候选是否有 rationale、refs、risk flags、boundary reminders。
-5. `priority_rank` 是否唯一，`contact_id` 是否与 source context 对齐。
-6. 是否有真实聊天原文或 private output 进入 docs/examples/tests/stdout。
-7. Synthetic fixture 或安全样例验证是否真实运行。
+1. T132 是否只补 policy/boundary 风险层，不做 auto-send、DB migration、向量库或 realtime integration。
+2. 是否保留 T131 的 review-only `ReplyPlan` 输出和 contact/ranking 校验。
+3. 是否把边界、禁忌话题、过度主动、冒充/数字克隆风险清楚映射到 `risk_flags`、`boundary_reminders` 或保守候选建议。
+4. 是否避免把 T123 compact approved-store context 扩展成完整 store JSON 或 raw transcript。
+5. 是否没有真实聊天原文或 private output 进入 docs/examples/tests/stdout。
+6. Synthetic / redacted boundary fixture 验证是否覆盖至少一个敏感或越界场景。
 
-输出 Verdict: PASS / PASS_WITH_WARNINGS / BLOCK，并写入 docs/review/T131_review.md。
+输出 Verdict: PASS / PASS_WITH_WARNINGS / BLOCK，并写入 docs/review/T132_review.md。
 ```
 
 ## 17. 下一步顺序
 
-1. 可提交当前 T130 worker/reviewer 代码与 Captain 收口文档变更。
-2. 下一轮 worker 只执行 T131，不要自领 T132。
-3. 若 T131 review `BLOCK`，worker 只修 blocking issue，并最多自动复审一次。
-4. 若 T131 review `PASS` 或 `PASS_WITH_WARNINGS`，Captain 再更新治理文档并决定是否进入 T132 policy/boundary validation。
+1. 可提交当前 T131 worker/reviewer 代码与 Captain 收口文档变更。
+2. 下一轮 worker 只执行 T132，不要自领 T133 或 M4。
+3. 若 T132 review `BLOCK`，worker 只修 blocking issue，并最多自动复审一次。
+4. 若 T132 review `PASS` 或 `PASS_WITH_WARNINGS`，Captain 再更新治理文档并决定是否进入 T133 holdout eval。
 5. M3 仍保持 review-only；不要实现自动发送或实时平台接入。
 
 ## 18. 历史顺序
@@ -573,6 +575,7 @@ M1 必须承接的条件：
 12. T122 review `PASS_WITH_WARNINGS`，已完成 skill review CLI 与 approval gate。
 13. T123 review `PASS_WITH_WARNINGS`，已完成 approved-store compact `ChatContext` integration。
 14. T130 review `PASS_WITH_WARNINGS`，已完成 ReplyPlan schema 与 prompt contract。
+15. T131 review `PASS_WITH_WARNINGS`，已完成 review-only ReplyPlanner 与 `chat-reply-plan` CLI；T132 进入 policy/boundary validation。
 
 ## 19. 注意事项
 
@@ -699,3 +702,78 @@ M1 必须承接的条件：
   - Cited refs and boundary reminders.
   - Unique ranking and contact/source alignment.
   - No scope creep into automatic sending or platform integration.
+
+## 23. T131 Implementation Record
+
+- Files changed:
+  - `src/practical_chat_agent/services/reply_planner.py`
+  - `src/practical_chat_agent/app/main.py`
+  - `docs/07_handoff.md`
+- Implemented:
+  - Added `ReplyPlanner` service with a review-only `generate(context=...) -> ReplyPlan` flow.
+  - The planner consumes only `ChatContext` plus T123 compact `approved_store_context` fields already present at runtime.
+  - Added hard checks for the two T130 warning items:
+    - `ReplyPlan.contact_id` must match `ChatContext.user_id`.
+    - `ApprovedStoreContext.contact_id` and approved contact-skill `contact_id` must align with the routed contact id.
+    - `priority_rank` values must be unique and form a stable `1..N` sequence.
+  - Added a safe `chat-reply-plan` CLI command that:
+    - reads a redacted or synthetic `ChatContext` JSON file
+    - generates a `ReplyPlan`
+    - prints only the plan JSON or writes it to an output file
+    - does not print the raw input context
+  - Candidate generation stays offline and review-only:
+    - exactly 3 distinct candidate shapes are generated
+    - each candidate includes draft text, rationale, supporting refs, risk flags, boundary reminders, and confidence
+    - refs are limited to approved compact ids, evidence refs, recent event ids, runtime memory ids, and policy-boundary ids
+  - The planner ignores `source_record_ids` lists, so non-approved ids such as candidate/rejected/frozen/archived record ids do not leak into the plan surface.
+  - `source_context.chat_context_summary` is rebuilt as a safe count/status summary instead of copying `ChatContext.summary`, so raw message text is not echoed back into the plan.
+- Verification:
+  - Compile passed:
+    - `& 'C:\ProgramData\anaconda3\envs\practical-chat-agent\python.exe' -m compileall src/practical_chat_agent/services/reply_planner.py src/practical_chat_agent/app/main.py`
+  - Safe synthetic context validation passed with an inline fixture:
+    - contact id: `contact_lin`
+    - approved contact-skill record id: `approved_skill_001`
+    - approved memory record id: `approved_mem_001`
+    - recent event id: `evt_recent_1`
+    - runtime memory hit id: `mem_runtime_1`
+    - extra non-approved ids were injected into `source_record_ids` only as a negative check
+  - Validation results:
+    - service emitted 3 candidates
+    - CLI emitted 3 candidates through `chat-reply-plan --input <tempfile>`
+    - candidate refs stayed within approved-store ids, evidence refs, recent event ids, runtime memory ids, and policy-boundary ids
+    - injected `candidate_record_999` / `rejected_record_888` ids did not appear in the output plan
+    - raw synthetic inbound text did not appear in the output plan JSON
+    - contact-id mismatch raised `ReplyPlannerError` as expected
+- Remaining risk / assumption:
+  - T131 is heuristic and deterministic; it proves the safe planning surface and contract wiring, but not yet the final quality ceiling of relationship-aware wording.
+  - The current verification used a synthetic safe context, not a larger runtime sample set, so candidate quality across more relationship types still needs review in T132 or manual evaluation.
+
+## 24. T131 Review Decision
+
+- Review file: `docs/review/T131_review.md`
+- Verdict: `PASS_WITH_WARNINGS`
+- Captain decision:
+  - T131 is complete within task scope.
+  - M3 is not complete yet; do not enter M4.
+  - Current Unique Task moves to T132 Reply Policy.
+- Warning handling:
+  - N01 accepted/deferred: hardcoded templates and shallow relationship-awareness are acknowledged; deferred to R035 and T132/T133.
+  - N02 accepted: hardcoded confidence values are acceptable for contract-wiring MVP.
+  - N03 accepted/deferred: unused `strategy_hints` and `relationship_summary` are acknowledged; deferred to R035 and T132/T133.
+  - N04 deferred: no committed tests/fixtures; deferred to R036 and T150.
+  - N05 accepted: `_dedupe(values)` missing type annotation is low-risk style debt.
+  - N06 accepted: enum fallback is sufficient for current MVP.
+
+## 25. T132 Kickoff Notes
+
+- Task package:
+  - `docs/tasks/M3_relationship_reply_planner/T132_reply_policy.md`
+- Worker focus:
+  - Add boundary / avoid-topic / over-proactivity / impersonation risk checks to the existing T131 planner path.
+  - Preserve review-only output and T130 `ReplyPlan` contract.
+  - Keep the existing T131 contact alignment and ranking validation.
+  - Use safe synthetic or redacted fixtures only.
+- Reviewer focus:
+  - Confirm no auto-send, DB, vector DB, realtime integration, raw transcript read, or full store JSON injection.
+  - Confirm sensitive or boundary scenarios produce conservative candidates and explicit risk flags.
+  - Confirm T132 does not claim final relationship-quality completion.

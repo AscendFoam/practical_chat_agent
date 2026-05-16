@@ -8,6 +8,7 @@ from time import sleep
 from typing import Annotated, Optional
 
 import typer
+from pydantic import ValidationError
 
 from practical_chat_agent.app.config import get_settings
 from practical_chat_agent.app.container import AppContainer
@@ -25,6 +26,7 @@ from practical_chat_agent.core.enums import (
 from practical_chat_agent.core.models import (
     ActionExecutionRecord,
     AgentProfile,
+    ChatContext,
     InboundEvent,
     MeetingLivePreview,
     MeetingMinutesDraft,
@@ -58,6 +60,7 @@ from practical_chat_agent.services.evidence_validation import (
     EvidenceValidationService,
 )
 from practical_chat_agent.services.meeting_live_loop import MeetingLiveLoopRequest
+from practical_chat_agent.services.reply_planner import ReplyPlanner, ReplyPlannerError
 from practical_chat_agent.ui.live_caption_window import MeetingLiveCaptionWindow
 
 app = typer.Typer(no_args_is_help=True, add_completion=False)
@@ -1937,6 +1940,60 @@ def chatlog_review_store(
         raise typer.BadParameter("Unknown action. Use list, approve, reject, freeze, archive, or export.")
     except ContactSkillStoreReviewError as exc:
         raise typer.BadParameter(str(exc)) from exc
+
+
+@app.command("chat-reply-plan")
+def chat_reply_plan(
+    input_path: Path = typer.Option(
+        ...,
+        "--input",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        readable=True,
+        help="Input safe synthetic or redacted ChatContext JSON file.",
+    ),
+    output_path: Optional[Path] = typer.Option(
+        None,
+        "--output",
+        help="Optional ReplyPlan JSON output path.",
+    ),
+) -> None:
+    """Generate a review-only ReplyPlan from safe ChatContext JSON."""
+
+    try:
+        context = ChatContext.model_validate_json(input_path.read_text(encoding="utf-8"))
+    except OSError as exc:
+        raise typer.BadParameter(f"Unable to read input: {input_path}") from exc
+    except ValidationError as exc:
+        raise typer.BadParameter(f"Invalid ChatContext JSON: {exc}") from exc
+
+    planner = ReplyPlanner()
+    try:
+        plan = planner.generate(context=context)
+    except ReplyPlannerError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+
+    payload = json.dumps(plan.model_dump(mode="json"), ensure_ascii=False, indent=2)
+    if output_path is None:
+        typer.echo(payload)
+        return
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(payload, encoding="utf-8")
+    typer.echo(
+        json.dumps(
+            {
+                "input_path": _safe_cli_path(input_path),
+                "output_path": _safe_cli_path(output_path),
+                "contact_id": plan.contact_id,
+                "candidate_count": len(plan.candidates),
+                "plan_mode": plan.plan_mode,
+            },
+            ensure_ascii=False,
+            indent=2,
+        ),
+    )
 
 
 @app.command("meeting-live-preview")

@@ -1,6 +1,6 @@
 # Task Board
 
-更新日期：2026-05-15
+更新日期：2026-05-16
 
 ## Board Rules
 
@@ -54,7 +54,7 @@
 目标：基于 approved ContactSkill 和 memory 生成可解释、多候选、安全的回复草稿。
 
 - [x] T130: 定义 ReplyPlan schema 和 prompt contract。review `PASS_WITH_WARNINGS`。任务包：`docs/tasks/M3_relationship_reply_planner/T130_reply_plan_schema.md`
-- [ ] T131: 实现 relationship-aware ReplyPlanner。任务包：`docs/tasks/M3_relationship_reply_planner/T131_reply_planner.md`
+- [x] T131: 实现 relationship-aware ReplyPlanner。review `PASS_WITH_WARNINGS`。任务包：`docs/tasks/M3_relationship_reply_planner/T131_reply_planner.md`
 - [ ] T132: 增加边界/禁忌/policy 校验，防止冒充和过度主动。任务包：`docs/tasks/M3_relationship_reply_planner/T132_reply_policy.md`
 - [ ] T133: 用历史 holdout 场景评估回复自然度和边界遵守。任务包：`docs/tasks/M3_relationship_reply_planner/T133_holdout_eval.md`
 
@@ -76,11 +76,11 @@
 
 ## Current Unique Task
 
-T131: 实现 relationship-aware ReplyPlanner。
+T132: 增加边界/禁忌/policy 校验，防止冒充和过度主动。
 
-任务包：`docs/tasks/M3_relationship_reply_planner/T131_reply_planner.md`
+任务包：`docs/tasks/M3_relationship_reply_planner/T132_reply_policy.md`
 
-为什么现在做它：T130 已完成并被 review `PASS_WITH_WARNINGS` 接受，schema 与 prompt contract 已确认可用。下一步需要将 approved + runtime-ready 的 compact `ChatContext` brief 转成 3+ 个可审查候选回复草稿；本轮仍不自动发送、不接数据库、不引入向量库。
+为什么现在做它：T131 已完成并被 review `PASS_WITH_WARNINGS` 接受，ReplyPlanner 的安全 wiring 已证明可用，但 reviewer 明确指出候选仍偏硬编码、关系感知较浅，且缺少 committed test/fixture。下一步应只补 T132 的 policy/boundary 层：把边界、禁忌话题、过度主动和冒充风险转成候选级 `risk_flags`、`boundary_reminders` 或保守候选建议；仍不自动发送、不接数据库、不引入向量库。
 
 ## Next Captain Output Required
 

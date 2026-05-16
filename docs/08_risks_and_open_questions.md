@@ -1,6 +1,6 @@
 # Risks And Open Questions
 
-更新日期：2026-05-15
+更新日期：2026-05-16
 
 ## Active Risks
 
@@ -39,7 +39,9 @@
 | R031 | T120 file store 缺少已提交自动化测试 | store model validation、legacy wrapping、load/save round-trip、runtime-ready gate 或 path confinement 未来可能回归 | T120 reviewer 判定不阻塞；T150 必须补对应单测和 path confinement 测试 |
 | R032 | T121 evidence validator 缺少已提交自动化测试 | evidence index、nested `evidence_refs` collection、status gate 或 path confinement 未来可能回归 | T121 reviewer 判定不阻塞；T150 必须补 validator 单测与 good/bad fixture 覆盖 |
 | R033 | T122 review CLI 缺少已提交自动化测试 | approval gate、reject/freeze/archive、review history、stable record_id 或 export confinement 未来可能回归 | T122 reviewer 判定不阻塞；T150 必须补 full approval lifecycle 与 no-auto-approve 测试 |
-| R034 | T130 ReplyPlan 可能出现重复 `priority_rank`，且 `ReplyPlanSourceContext` 可能与 `ReplyPlan.contact_id` 在组装时错位 | T131 若不显式校验，候选排序会歧义，或出现跨联系人上下文串线 | T131 需要在组装阶段校验唯一排序和 contact 对齐；若后续证实无需约束，可再关闭 |
+| R034 | T130 ReplyPlan 可能出现重复 `priority_rank`，且 `ReplyPlanSourceContext` 可能与 `ReplyPlan.contact_id` 在组装时错位 | 候选排序会歧义，或出现跨联系人上下文串线 | T131 已实现唯一排序与 contact 对齐校验；T150 仍需补回归测试，确认后可关闭 |
+| R035 | T131 候选草稿主要由硬编码模板和粗粒度 `relationship_type` 驱动，尚未真正使用 `strategy_hints`、`relationship_summary` 或 memory claim 文本 | “relationship-aware” 质量可能被高估，候选可能显得泛化或不够贴合真实关系边界 | T132 优先把 boundary / avoid topics / over-proactivity 转成风险控制；T133 再用匿名 holdout 评估自然度和证据使用 |
+| R036 | T131 只有 inline synthetic verification，尚无 committed test/fixture | 干净环境和后续重构存在回归风险 | T150 必须补 ReplyPlanner contract、privacy leakage、contact alignment 和 ranking tests；T133 可先记录匿名化人工评估结果 |
 
 ## Open Questions
 
@@ -74,6 +76,7 @@
 | Q118 | T120 file store 是否足以作为 T121/T122 的基础？足以作为 MVP 基础，但带自动化测试 deferred warning。 | `docs/review/T120_review.md` PASS_WITH_WARNINGS |
 | Q119 | T121 evidence validator 是否足以作为 T122 approval gate 的基础？足以作为 MVP 基础；T122 必须读取 validation report 并禁止 missing refs approval。 | `docs/review/T121_review.md` PASS_WITH_WARNINGS |
 | Q120 | T122 review CLI 是否足以作为 T123 context integration 的准入基础？足以作为 MVP 基础；T123 必须只读取 approved + runtime-ready records。 | `docs/review/T122_review.md` PASS_WITH_WARNINGS |
+| Q121 | T131 是否足以作为 T132 的输入基础？足以作为安全 wiring baseline，但不是质量完成版；T132 必须补 policy/boundary 风险层，M3 仍未完成。 | `docs/review/T131_review.md` PASS_WITH_WARNINGS |
 
 ## Deferred Items
 

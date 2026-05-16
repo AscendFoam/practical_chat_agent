@@ -443,5 +443,8 @@ T123 将 approved + runtime-ready memory/skill store records 以 compact brief �
 
 当前状态：
 - T130 已完成，review verdict = `PASS_WITH_WARNINGS`。
+- T131 已完成，review verdict = `PASS_WITH_WARNINGS`。
 - 结构层已确认支持 3+ candidates、T123 compact brief 和 review-only contract。
-- T131 需要显式校验 `priority_rank` 唯一性和 `contact_id` 对齐，不能依赖静默假设。
+- T131 已显式校验 `priority_rank` 唯一性和 `contact_id` 对齐。
+- T132 验证重点转为 policy/boundary：边界提醒、禁忌话题、过度主动、冒充/数字克隆风险必须进入 `risk_flags`、`boundary_reminders` 或保守候选建议。
+- T131 尚无 committed test/fixture；T150 必须补 ReplyPlanner contract、contact alignment、ranking 和 privacy leakage regression tests。
