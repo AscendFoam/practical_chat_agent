@@ -24,3 +24,13 @@ This repository follows the AI coding workflow in `docs/reference/AI_coding_work
 ## Current Entry Point
 
 Read `docs/04_task_board.md`, then use the task file referenced by `Current Unique Task`.
+
+## Subproject Note
+
+`private/emotion_analysis/` is treated as a largely independent subproject for chat analysis and counseling-oriented experimentation.
+
+- Its primary plan file is `private/emotion_analysis/docs/02_experiment_plan.md`.
+- Its main input is `private/chat_history/`.
+- `private/AI_chat_history/` is only a small reference corpus for style calibration and does not need full reading.
+- Work inside this subproject should stay focused on analysis, evidence tracking, retrieval, and counseling support.
+- Do not assume the outer project task board or milestones define the subproject's local development order.
