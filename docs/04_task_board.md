@@ -2,6 +2,24 @@
 
 更新日期：2026-05-16
 
+## Captain Current State Override
+
+- T133 review decision: `PASS_WITH_WARNINGS`.
+- Gate M3: `Conditional`.
+- T133 is complete as a docs/private-artifact milestone eval.
+- Current Unique Task: T140 Feedback Schema CLI.
+- Current task package: `docs/tasks/M4_feedback_loop/T140_feedback_schema_cli.md`.
+- M4/T140 may proceed only under review-only constraints: no auto-send, no realtime platform integration, no automatic ContactSkill/Memory mutation, no LLM drafting expansion, and no relationship-aware maturity claim before broader recalibration.
+- T150 must add committed regression tests covering ReplyPlanner structure, boundary sensitivity, thin context, false positives, subtle false negatives, privacy leakage, contact alignment, and candidate ranking.
+
+## Current Unique Task
+
+T140: Feedback Schema CLI.
+
+Task package: `docs/tasks/M4_feedback_loop/T140_feedback_schema_cli.md`
+
+Why now: T133 passed with warnings and Gate M3 is `Conditional`. M4 may start with private, review-only feedback capture, but T140 must not send messages, mutate ContactSkill/Memory automatically, integrate realtime platforms, or claim relationship-aware maturity.
+
 ## Board Rules
 
 - 当前主线已切换为 WeFlow 导出记录驱动的离线蒸馏与长期关系感知 chat agent。
@@ -56,7 +74,7 @@
 - [x] T130: 定义 ReplyPlan schema 和 prompt contract。review `PASS_WITH_WARNINGS`。任务包：`docs/tasks/M3_relationship_reply_planner/T130_reply_plan_schema.md`
 - [x] T131: 实现 relationship-aware ReplyPlanner。review `PASS_WITH_WARNINGS`。任务包：`docs/tasks/M3_relationship_reply_planner/T131_reply_planner.md`
 - [x] T132: 增加边界/禁忌/policy 校验，防止冒充和过度主动。review `PASS_WITH_WARNINGS`。任务包：`docs/tasks/M3_relationship_reply_planner/T132_reply_policy.md`
-- [ ] T133: 用历史 holdout 场景评估回复自然度和边界遵守。任务包：`docs/tasks/M3_relationship_reply_planner/T133_holdout_eval.md`
+- [x] T133: 用历史 holdout 场景评估回复自然度和边界遵守。review `PASS_WITH_WARNINGS` / Gate M3 `Conditional`。任务包：`docs/tasks/M3_relationship_reply_planner/T133_holdout_eval.md`
 
 ## Milestone 4: 反馈闭环与记忆修正
 
@@ -74,7 +92,7 @@
 - [ ] T151: 建立 privacy leakage smoke test。任务包：`docs/tasks/M5_eval_hardening/T151_privacy_leakage_tests.md`
 - [ ] T152: 完成 distillation MVP milestone review 和最终 handoff。任务包：`docs/tasks/M5_eval_hardening/T152_final_review.md`
 
-## Current Unique Task
+## Historical Current Unique Task (Superseded)
 
 T133: 用历史 holdout 场景评估回复自然度和边界遵守。
 

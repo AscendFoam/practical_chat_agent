@@ -1,5 +1,16 @@
 # Risks And Open Questions
 
+## Captain Update 2026-05-16
+
+Authoritative current risk state after T133/M3 review:
+
+- R035 remains active but is narrowed: T133 holdout partially verifies structure and safety behavior, not relationship-aware maturity. Naturalness is 3/5 and evidence usage is 3/5, so maturity claims remain prohibited.
+- R036 remains active: T131-T133 still lack committed regression tests/fixtures. T150 must cover ReplyPlanner contract, policy detection, privacy leakage, contact alignment, ranking, boundary sensitivity, thin context, false positives, and subtle false negatives.
+- R037 remains active: T133 observed both false-positive and subtle false-negative probes, so keyword/substr policy risk must be carried into T150 or later refactor.
+- R038 is active: M4 feedback logs may be mistaken for automatic learning. T140 must record feedback only and must not mutate ContactSkill/Memory, planner templates, or outbound behavior.
+
+Closed question Q123: Gate M3 is `Conditional`; T140 may proceed only under review-only constraints and with T150 regression tests carried forward.
+
 更新日期：2026-05-16
 
 ## Active Risks
@@ -43,6 +54,7 @@
 | R035 | T131/T132 候选草稿仍主要由 deterministic templates 驱动，relationship-aware 质量尚未通过 holdout 验证 | “relationship-aware” 质量可能被高估，候选可能显得泛化或不够贴合真实关系边界 | T132 已把 boundary / avoid topics / over-proactivity 转成风险控制；T133 必须用匿名 holdout 评估自然度、边界遵守和证据使用 |
 | R036 | T131/T132 只有 inline synthetic verification，尚无 committed test/fixture | 干净环境和后续重构存在回归风险 | T150 必须补 ReplyPlanner contract、policy detection、privacy leakage、contact alignment 和 ranking tests；T133 可先记录匿名化人工评估结果 |
 | R037 | T132 policy layer 使用 substring keyword matching，可能出现 false positives | 某些普通文本可能被误判为敏感、过度主动或边界场景，导致候选过度保守 | T133 holdout eval 记录 false-positive / false-negative 样例；T150 或后续 refactor 可引入更精确的匹配规则 |
+| R038 | M4 feedback log 可能被误解为自动学习或自动记忆更新 | 用户反馈若被直接应用，可能绕过 human-review-first 和 evidence/versioning 约束 | T140 只允许记录 private feedback，不得自动修改 ContactSkill/Memory、planner templates 或 outbound behavior；T141/T142 才能在 reviewable proposal/versioning 范围内继续 |
 
 ## Open Questions
 
@@ -79,6 +91,7 @@
 | Q120 | T122 review CLI 是否足以作为 T123 context integration 的准入基础？足以作为 MVP 基础；T123 必须只读取 approved + runtime-ready records。 | `docs/review/T122_review.md` PASS_WITH_WARNINGS |
 | Q121 | T131 是否足以作为 T132 的输入基础？足以作为安全 wiring baseline，但不是质量完成版；T132 必须补 policy/boundary 风险层，M3 仍未完成。 | `docs/review/T131_review.md` PASS_WITH_WARNINGS |
 | Q122 | T132 是否足以作为 T133 的输入基础？足以作为 policy/boundary baseline，但不是最终质量证明；T133 必须做匿名 holdout eval 和 Gate M3 判断。 | `docs/review/T132_review.md` PASS_WITH_WARNINGS |
+| Q123 | Gate M3 是否允许进入下一里程碑？允许以 `Conditional` 进入 M4/T140，但仅限 review-only feedback capture，并必须把 T150 regression tests 条件带入后续。 | `docs/review/T133_review.md` PASS_WITH_WARNINGS + `docs/review/M3_review.md` |
 
 ## Deferred Items
 

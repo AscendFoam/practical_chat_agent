@@ -1,5 +1,13 @@
 # Feasibility Report
 
+## Captain Update 2026-05-16
+
+Gate M3 is `Conditional` after T133 review. The M3 structure is feasible: `ReplyPlan`, `ReplyPlanner`, policy/boundary checks, and anonymized holdout evaluation all exist and run in the current environment.
+
+The remaining feasibility gap is reproducibility and quality maturity. A clean environment run is not fully proven because committed regression fixtures/tests are still missing, and T133 rates naturalness/evidence usage at 3/5. Proceeding to T140 is feasible only because T140 records human feedback privately and does not apply it automatically.
+
+T150 remains mandatory for committed regression tests before any stronger quality or maturity claim.
+
 更新日期：2026-05-15
 
 ## 1. 问题定义

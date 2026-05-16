@@ -1,5 +1,23 @@
 # Eval Protocol
 
+## Captain Update 2026-05-16
+
+Gate M3 status: `Conditional`.
+
+M3 evidence:
+
+- T130-T132 provide the `ReplyPlan` schema, review-only planner, and policy/boundary layer.
+- T133 produced a six-scenario synthetic anonymized holdout eval with 6/6 valid plans.
+- T133 ratings: naturalness 3/5, boundary adherence 4/5, evidence usage 3/5, privacy leaks 0.
+
+M3 limitations:
+
+- Clean-environment reproducibility is not fully proven.
+- No committed regression fixtures/tests exist yet.
+- False-positive and subtle false-negative policy behavior remains known risk.
+
+Gate condition for entering M4/T140: feedback capture may proceed only if it remains private, review-only, non-sending, and non-mutating. T150 must add committed regression tests before stronger maturity claims.
+
 更新日期：2026-05-15
 
 ## 1. 评价目标

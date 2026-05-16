@@ -1,5 +1,28 @@
 # Architecture
 
+## Captain Update 2026-05-16
+
+M3 is now conditionally closed. The architecture includes a review-only ReplyPlanner path:
+
+```text
+Approved compact ChatContext
+  -> ReplyPlanner
+  -> ReplyPlan candidates
+  -> policy/boundary risk flags
+  -> human review
+```
+
+M4 begins with feedback capture, not autonomous learning:
+
+```text
+ReplyPlan candidate
+  -> human accept/edit/reject/boundary feedback
+  -> private feedback log
+  -> later reviewable proposal/versioning tasks
+```
+
+Feedback records must not directly mutate ContactSkill, MemoryFact, approved store records, planner templates, or outbound delivery. No auto-send, realtime integration, DB/vector DB expansion, or LLM drafting expansion is allowed in T140.
+
 更新日期：2026-05-15
 
 ## 1. 新架构定位

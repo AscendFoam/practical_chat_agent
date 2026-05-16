@@ -1,5 +1,13 @@
 # Raw Idea
 
+## Captain Update 2026-05-16
+
+T133 has passed review with `PASS_WITH_WARNINGS`, and the Captain M3 review sets Gate M3 to `Conditional`.
+
+The project may proceed to M4/T140, but only as a review-only feedback capture loop. The ReplyPlanner is structurally complete for M3, not quality-mature: current drafts remain template-driven, T133 naturalness is 3/5, evidence usage is 3/5, and no committed regression tests exist yet.
+
+Current mainline remains offline-first WeFlow distillation and review-only reply planning. T140 must record accept/edit/reject/boundary feedback without auto-sending, realtime platform integration, automatic ContactSkill/Memory mutation, fine-tuning, or relationship-aware maturity claims.
+
 更新日期：2026-05-15
 
 ## 1. 解决什么问题

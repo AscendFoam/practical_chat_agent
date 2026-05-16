@@ -2,6 +2,16 @@
 
 更新日期：2026-05-16
 
+## Captain Current State 2026-05-16
+
+- T133 review decision: `PASS_WITH_WARNINGS`.
+- T133 warning disposition: N01/N02/N03/N04/N05 all accepted; no deferred or rejected warnings.
+- Gate M3: `Conditional`, documented in `docs/review/M3_review.md`.
+- Current Unique Task: T140 Feedback Schema CLI.
+- Current task package: `docs/tasks/M4_feedback_loop/T140_feedback_schema_cli.md`.
+- M4/T140 may proceed only under review-only constraints: no auto-send, no realtime platform integration, no LLM drafting expansion, no automatic ContactSkill/Memory mutation, and no relationship-aware maturity claim.
+- T150 must add committed regression tests covering ReplyPlanner structure, boundary sensitivity, thin context, false positives, subtle false negatives, privacy leakage, contact alignment, and ranking.
+
 ## 1. 当前状态
 
 项目路线已切换。
@@ -874,3 +884,71 @@ M1 必须承接的条件：
   - Confirm no private raw content or identifying details entered committed docs.
   - Confirm the eval did not modify planner code or advance M4.
   - Confirm Gate M3 verdict is supported by evidence rather than assertion.
+
+## 29. T133 Eval Record
+
+- Private eval artifacts produced under:
+  - `private/distilled/t133_holdout_eval/contexts/*.context.json`
+  - `private/distilled/t133_holdout_eval/plans/*.reply_plan.json`
+  - `private/distilled/t133_holdout_eval/eval_summary.json`
+- Eval coverage:
+  - 6/6 synthetic anonymized scenarios produced valid 3-candidate ReplyPlans.
+  - Baseline and work cases stayed low-pressure and review-only.
+  - Sensitive and thin-context cases became more conservative, with explicit boundary flags.
+  - False-positive probe showed the policy layer can still swing conservative on a normal-looking work prompt.
+  - False-negative probe showed subtle pacing risk may still be under-detected when no explicit boundary cue is present.
+- Gate M3 verdict:
+  - `Conditional`
+- Handoff note:
+  - Keep T131/T132/T133 treated as review-only planning proof, not as final relationship-quality proof.
+  - Next recommended action for Captain: review T133, carry the conditions into T150, and only then decide whether M4 can proceed.
+
+## 30. T133 Review Decision
+
+- Review file: `docs/review/T133_review.md`
+- Verdict: `PASS_WITH_WARNINGS`
+- Captain decision:
+  - T133 is complete within task scope.
+  - Gate M3 remains `Conditional`.
+  - M4/T140 may proceed only under the conditions carried in `docs/review/M3_review.md`.
+- Warning handling:
+  - N01 accepted: self-reported ratings are acceptable for MVP milestone; T150 may add independent review.
+  - N02 accepted: 6 synthetic scenarios are reasonable under task constraints.
+  - N03 accepted: naturalness 3/5 is honestly reported; do not claim relationship-aware maturity.
+  - N04 accepted: evidence usage 3/5 is honestly reported; structural wiring is correct.
+  - N05 accepted: H01/H02 detail omission is minor because summary confirms all six scenarios produced valid plans.
+  - No deferred warnings.
+  - No rejected warnings.
+
+## 31. M3 Review Decision
+
+- Review file: `docs/review/M3_review.md`
+- Verdict: `Conditional`
+- Completion judgment:
+  - M3 is structurally complete: T130 schema, T131 planner, T132 policy layer, and T133 holdout eval are all present.
+  - M3 is not quality-mature: drafts remain deterministic/template-driven, naturalness is 3/5, and evidence usage is 3/5.
+  - Clean-environment reproducibility is not fully proven because committed regression tests/fixtures are still missing.
+- Conditions carried forward:
+  - ReplyPlanner remains review-only; no auto-send, realtime platform integration, or LLM drafting expansion.
+  - T150 must add committed regression tests for structure, boundary sensitivity, thin context, false positives, subtle false negatives, privacy leakage, contact alignment, and ranking.
+  - Do not claim relationship-aware maturity until broader sample recalibration.
+
+## 32. T140 Kickoff Notes
+
+- Task package:
+  - `docs/tasks/M4_feedback_loop/T140_feedback_schema_cli.md`
+- Worker focus:
+  - Define feedback log schema for accept/edit/reject/boundary feedback on `ReplyPlan` candidates.
+  - Implement a minimal CLI that records feedback to a private log.
+  - Validate candidate references against a supplied `ReplyPlan`.
+  - Keep stdout safe and avoid printing full draft text, edited text, private notes, raw transcript, or private paths.
+- Forbidden:
+  - Do not auto-send.
+  - Do not modify ContactSkill, MemoryFact, approved store records, or planner templates automatically.
+  - Do not introduce DB/vector DB/realtime integration/LLM calls.
+  - Do not read from `private/chat_history/`.
+- Reviewer focus:
+  - Confirm feedback is recorded but not applied.
+  - Confirm all M3 conditional constraints remain intact.
+  - Confirm invalid candidate references fail safely.
+  - Confirm no private content enters committed docs.

@@ -1,5 +1,18 @@
 # Decision Log
 
+## D023: T133 PASS_WITH_WARNINGS, Gate M3 Conditional, enter T140
+
+- Date: 2026-05-16
+- Status: Accepted
+- Context: `docs/review/T133_review.md` gives `PASS_WITH_WARNINGS` for the T133 holdout eval. `docs/review/M3_review.md` confirms Gate M3 = `Conditional`.
+- Decision: T133 is complete. M3 may proceed to M4/T140 only under review-only constraints.
+- Warning handling: T133 N01/N02/N03/N04/N05 are all accepted. No T133 warnings are deferred or rejected.
+- Conditions:
+  - ReplyPlanner remains review-only. No auto-send, realtime platform integration, or LLM drafting expansion.
+  - T150 must add committed regression tests for structure, boundary sensitivity, thin context, false positives, subtle false negatives, privacy leakage, contact alignment, and ranking.
+  - Do not claim relationship-aware maturity until broader sample recalibration.
+- Impact: Current Unique Task becomes T140 Feedback Schema CLI. T140 records human feedback only; it must not automatically update ContactSkill/Memory or send messages.
+
 更新日期：2026-05-15
 
 ## D001: 下一阶段以微信主线为优先
