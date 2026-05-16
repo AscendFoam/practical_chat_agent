@@ -192,3 +192,12 @@
 - 决策：T131 标记完成；当前唯一任务切换为 T132 Reply Policy。M3 尚未完成，不能进入 M4。
 - Warning 处理：N01 accepted/deferred，硬编码模板和浅层 relationship-awareness 进入 R035，由 T132/T133 继续约束和评估；N02 accepted，硬编码 confidence 在 contract-wiring MVP 可接受；N03 accepted/deferred，`strategy_hints` / `relationship_summary` 未参与草稿生成进入 R035；N04 deferred 到 R036，committed tests/fixtures 留给 T150，并由 T133 提供匿名化评估记录；N05 accepted，`_dedupe(values)` 类型注解缺失为低风险风格问题；N06 accepted，当前 enum fallback 足够支撑 MVP。
 - 影响：T132 worker 只应补 policy/boundary 风险层，不重写 T131 planner 主流程，不进入 M4/T140，不实现自动发送或平台集成。
+
+## D022: T132 review PASS_WITH_WARNINGS，进入 T133
+
+- 日期：2026-05-16
+- 状态：Accepted
+- 背景：`docs/review/T132_review.md` 给出 `PASS_WITH_WARNINGS`，确认 T132 已在 `ReplyPlanner` 前后加入 policy/boundary 风险层：覆盖 `boundary_sensitive`、`over_proactive`、`impersonation_risk`、`thin_context`，保留 T131 的 review-only `ReplyPlan` contract、`priority_rank` 校验和 `contact_id` 对齐；未引入自动发送、数据库、向量库、实时平台接入或私密原文输出。
+- 决策：T132 标记完成；当前唯一任务切换为 T133 Holdout Eval。M3 尚未完成，不能进入 M4。
+- Warning 处理：N01 accepted，runtime text 仅用于 detection 且不 echo；N02 accepted，宽泛关键词已有 compound trigger 缓解；N03 accepted/deferred，substring matching false-positive 风险进入 R037，由 T133/T150 继续观察和测试；N04 accepted，`_dedupe` 重复是低风险重复；N05 deferred，T132 无 committed tests/fixtures 并入 R036；N06 accepted，重复分支无 correctness 影响；N07 accepted，approved memory claim 仅限量用于 detection，不进入输出 surface。
+- 影响：T133 只做匿名 holdout eval 和 Gate M3 判断，不修改 planner 代码，不提交 holdout 原文，不进入 M4/T140。

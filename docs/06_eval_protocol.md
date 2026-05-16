@@ -448,3 +448,7 @@ T123 将 approved + runtime-ready memory/skill store records 以 compact brief �
 - T131 已显式校验 `priority_rank` 唯一性和 `contact_id` 对齐。
 - T132 验证重点转为 policy/boundary：边界提醒、禁忌话题、过度主动、冒充/数字克隆风险必须进入 `risk_flags`、`boundary_reminders` 或保守候选建议。
 - T131 尚无 committed test/fixture；T150 必须补 ReplyPlanner contract、contact alignment、ranking 和 privacy leakage regression tests。
+- T132 已完成，review verdict = `PASS_WITH_WARNINGS`。
+- T132 已覆盖 `boundary_sensitive`、`over_proactive`、`impersonation_risk`、`thin_context`，但仍是 keyword / substring heuristic。
+- T133 验证重点转为匿名 holdout eval：自然度、边界遵守、证据使用、risk flags 可解释性、隐私安全，以及 Gate M3 verdict。
+- T131/T132 均尚无 committed test/fixture；T150 必须补 ReplyPlanner policy detection、false-positive/false-negative、contract 和 privacy regression tests。

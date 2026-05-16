@@ -61,3 +61,5 @@ T100 已完成 schema profiling 与 normalized event 合约，并通过 reviewer
 2026-05-15 之后，T123 和 T130 已完成，当前唯一任务转入 T131 ReplyPlanner。核心约束不变：offline-first、review-only、只消费 approved + runtime-ready 的 compact context。
 
 2026-05-16：T131 已通过 `PASS_WITH_WARNINGS` 并关闭为安全 wiring baseline；它能生成 review-only `ReplyPlan`，但关系感知仍偏模板化。当前唯一任务转入 T132 Reply Policy，先补边界、禁忌话题、过度主动和冒充风险控制；M3 尚未完成，不能进入 M4。
+
+2026-05-16：T132 已通过 `PASS_WITH_WARNINGS` 并关闭为 policy/boundary baseline；它增强了边界、禁忌话题、过度主动和冒充风险的显式标记，但仍是 heuristic template-based planner。当前唯一任务转入 T133 Holdout Eval，用匿名场景判断 M3 是否可条件进入下一阶段；仍不自动发送、不接实时平台。

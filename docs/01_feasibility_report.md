@@ -83,3 +83,5 @@
 补充判断：T130 已完成并通过 `PASS_WITH_WARNINGS`，ReplyPlan schema 与 prompt contract 已经可行；后续风险主要转移到 T131 的组装质量与候选差异化，而不是结构本身。
 
 补充判断：T131 已完成并通过 `PASS_WITH_WARNINGS`，证明从 T123 compact approved-store context 到 T130 `ReplyPlan` 的 review-only wiring 可行；但 clean-env/committed fixture 尚未覆盖，且候选文本仍偏硬编码。当前可进入 T132 policy/boundary validation，但不能进入 M4。
+
+补充判断：T132 已完成并通过 `PASS_WITH_WARNINGS`，证明 ReplyPlanner 可以在不扩大 scope 的情况下加入 policy/boundary 风险层；但匹配逻辑仍是关键词/substring heuristic，且缺少 committed tests。当前可进入 T133 匿名 holdout eval，但仍不能进入 M4。

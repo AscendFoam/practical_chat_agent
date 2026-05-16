@@ -155,3 +155,5 @@ MemoryFact
 T130 完成后，M3 的结构边界也已固定：ReplyPlan 只消费 compact `ChatContext` 和 approved-store brief，不回读原始聊天记录，不把 reply generation 和 send 混在一起。
 
 T131 完成后，架构新增 `ReplyPlanner` 作为 review-only 组装层：它从 compact `ChatContext` 生成 T130 `ReplyPlan`，并显式校验 `priority_rank` 与 `contact_id` 对齐。当前仍是 deterministic heuristic baseline；T132 需要把 policy/boundary 风险作为独立控制层补上，而不是把自动发送或实时平台接入并入 planner。
+
+T132 完成后，架构新增 `ReplyPlanPolicyEngine` 作为 planner 内部的 policy/boundary 分类层：它只做检测、风险标记、边界提醒和 confidence penalty，不做发送、不做持久化、不读取私密原文目录。该层仍是 keyword heuristic，T133 需要用匿名 holdout 验证是否足以作为 M3 gate 输入。

@@ -55,7 +55,7 @@
 
 - [x] T130: 定义 ReplyPlan schema 和 prompt contract。review `PASS_WITH_WARNINGS`。任务包：`docs/tasks/M3_relationship_reply_planner/T130_reply_plan_schema.md`
 - [x] T131: 实现 relationship-aware ReplyPlanner。review `PASS_WITH_WARNINGS`。任务包：`docs/tasks/M3_relationship_reply_planner/T131_reply_planner.md`
-- [ ] T132: 增加边界/禁忌/policy 校验，防止冒充和过度主动。任务包：`docs/tasks/M3_relationship_reply_planner/T132_reply_policy.md`
+- [x] T132: 增加边界/禁忌/policy 校验，防止冒充和过度主动。review `PASS_WITH_WARNINGS`。任务包：`docs/tasks/M3_relationship_reply_planner/T132_reply_policy.md`
 - [ ] T133: 用历史 holdout 场景评估回复自然度和边界遵守。任务包：`docs/tasks/M3_relationship_reply_planner/T133_holdout_eval.md`
 
 ## Milestone 4: 反馈闭环与记忆修正
@@ -76,11 +76,11 @@
 
 ## Current Unique Task
 
-T132: 增加边界/禁忌/policy 校验，防止冒充和过度主动。
+T133: 用历史 holdout 场景评估回复自然度和边界遵守。
 
-任务包：`docs/tasks/M3_relationship_reply_planner/T132_reply_policy.md`
+任务包：`docs/tasks/M3_relationship_reply_planner/T133_holdout_eval.md`
 
-为什么现在做它：T131 已完成并被 review `PASS_WITH_WARNINGS` 接受，ReplyPlanner 的安全 wiring 已证明可用，但 reviewer 明确指出候选仍偏硬编码、关系感知较浅，且缺少 committed test/fixture。下一步应只补 T132 的 policy/boundary 层：把边界、禁忌话题、过度主动和冒充风险转成候选级 `risk_flags`、`boundary_reminders` 或保守候选建议；仍不自动发送、不接数据库、不引入向量库。
+为什么现在做它：T132 已完成并被 review `PASS_WITH_WARNINGS` 接受，policy/boundary 风险层已接入 ReplyPlanner。M3 仍未完成；下一步需要 T133 做匿名 holdout eval，验证 T130-T132 的 ReplyPlanner 是否在自然度、边界遵守、证据使用和隐私安全上足以给出 Gate M3 判断。本任务不修改 planner 代码，不提交私密原文，不进入 M4。
 
 ## Next Captain Output Required
 

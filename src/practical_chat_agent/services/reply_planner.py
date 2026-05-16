@@ -1,11 +1,17 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
+
 from practical_chat_agent.core.models import (
     ChatContext,
     ReplyPlan,
     ReplyPlanCandidate,
     ReplyPlanContextRef,
     ReplyPlanSourceContext,
+)
+from practical_chat_agent.services.policy import (
+    ReplyPlanPolicyEngine,
+    ReplyPlanPolicyProfile,
 )
 
 _BOUNDARY_REVIEW_ONLY = "Drafts are for human review only."
@@ -24,16 +30,30 @@ class ReplyPlannerError(ValueError):
 class ReplyPlanner:
     """Build a review-only ReplyPlan from compact runtime context."""
 
+    def __init__(self, *, policy_engine: ReplyPlanPolicyEngine | None = None) -> None:
+        self.policy_engine = policy_engine or ReplyPlanPolicyEngine()
+
     def generate(self, *, context: ChatContext) -> ReplyPlan:
         contact_id = context.user_id.strip()
         if not contact_id:
             raise ReplyPlannerError("ChatContext.user_id must be a non-empty contact id.")
         self._validate_contact_alignment(context=context, contact_id=contact_id)
 
+        policy_profile = self.policy_engine.build_profile(context=context)
         source_context = self._build_source_context(context=context)
-        policy_boundary_summary = self._build_policy_boundary_summary(context=context)
-        candidates = self._build_candidates(context=context, source_context=source_context)
-        notes_on_candidate_differences = self._build_candidate_difference_notes(context=context)
+        policy_boundary_summary = self._build_policy_boundary_summary(
+            context=context,
+            policy_profile=policy_profile,
+        )
+        candidates = self._build_candidates(
+            context=context,
+            source_context=source_context,
+            policy_profile=policy_profile,
+        )
+        notes_on_candidate_differences = self._build_candidate_difference_notes(
+            context=context,
+            policy_profile=policy_profile,
+        )
 
         plan = ReplyPlan(
             contact_id=contact_id,
@@ -96,7 +116,12 @@ class ReplyPlanner:
             f"approved_memory_count={len(approved_store_context.memory_facts)}."
         )
 
-    def _build_policy_boundary_summary(self, *, context: ChatContext) -> list[str]:
+    def _build_policy_boundary_summary(
+        self,
+        *,
+        context: ChatContext,
+        policy_profile: ReplyPlanPolicyProfile,
+    ) -> list[str]:
         boundaries = [
             _BOUNDARY_REVIEW_ONLY,
             _BOUNDARY_NO_IMPERSONATION,
@@ -104,8 +129,9 @@ class ReplyPlanner:
             _BOUNDARY_LOW_PRESSURE,
             _BOUNDARY_COMPACT_CONTEXT_ONLY,
         ]
-        if context.approved_store_context.status != "loaded":
+        if policy_profile.thin_context:
             boundaries.append(_BOUNDARY_THIN_CONTEXT)
+        boundaries.extend(policy_profile.policy_boundary_summary)
         return self._dedupe(boundaries)
 
     def _build_candidates(
@@ -113,13 +139,20 @@ class ReplyPlanner:
         *,
         context: ChatContext,
         source_context: ReplyPlanSourceContext,
+        policy_profile: ReplyPlanPolicyProfile,
     ) -> list[ReplyPlanCandidate]:
         approved_store_context = context.approved_store_context
         contact_skill = approved_store_context.contact_skill
         relationship_type = contact_skill.relationship_type if contact_skill is not None else "unknown"
 
-        drafts = self._draft_templates(relationship_type=relationship_type)
-        shared_boundary_reminders = self._shared_boundary_reminders(context=context)
+        drafts = self._draft_templates(
+            relationship_type=relationship_type,
+            policy_profile=policy_profile,
+        )
+        shared_boundary_reminders = self._shared_boundary_reminders(
+            context=context,
+            policy_profile=policy_profile,
+        )
         approved_contact_skill_ref = self._optional_ref(
             ref_type="approved_contact_skill_record",
             ref_id=source_context.approved_contact_skill_record_id,
@@ -160,60 +193,56 @@ class ReplyPlanner:
             ref_id="boundary_paced_tone",
             note=_BOUNDARY_PACED_TONE,
         )
-
-        thin_context_risk = (
-            ["thin_approved_context"]
-            if approved_store_context.status != "loaded"
-            else []
-        )
         relationship_brief_note = (
             "approved relationship brief"
             if approved_contact_skill_ref is not None
             else "runtime-only context"
         )
+        context_caution_note = (
+            " The context looks sensitive or thin, so the wording stays deliberately contained."
+            if policy_profile.conservative_mode
+            else ""
+        )
 
         candidates = [
-            ReplyPlanCandidate(
+            self._build_candidate(
+                policy_profile=policy_profile,
                 approach_label="conservative_acknowledgment",
                 priority_rank=1,
                 draft_text=drafts[0],
                 rationale=(
                     "Keeps the reply low-pressure and reviewable while staying anchored to "
-                    f"{relationship_brief_note}."
+                    f"{relationship_brief_note}.{context_caution_note}"
                 ),
                 supporting_context_refs=self._refs_for_candidate(
                     approved_contact_skill_ref,
                     recent_event_ref,
                     review_only_ref,
                 ),
-                risk_flags=thin_context_risk.copy(),
-                boundary_reminders=self._candidate_boundaries(
-                    shared_boundary_reminders,
-                    _BOUNDARY_REVIEW_ONLY,
-                ),
-                confidence=0.78 if approved_contact_skill_ref is not None else 0.68,
+                base_risk_flags=[],
+                boundary_reminders=self._candidate_boundaries(shared_boundary_reminders, _BOUNDARY_REVIEW_ONLY),
+                base_confidence=0.78 if approved_contact_skill_ref is not None else 0.68,
             ),
-            ReplyPlanCandidate(
+            self._build_candidate(
+                policy_profile=policy_profile,
                 approach_label="optional_follow_up",
                 priority_rank=2,
                 draft_text=drafts[1],
                 rationale=(
-                    "Adds a gentle opening for more detail without pushing for disclosure, "
-                    "using only compact approved-store hints and safe runtime references."
+                    "Keeps a low-pressure reopening option available without assuming the contact "
+                    "owes more detail, using only compact approved-store hints and safe runtime references."
                 ),
                 supporting_context_refs=self._refs_for_candidate(
                     approved_memory_ref,
                     recent_event_ref,
                     low_pressure_ref,
                 ),
-                risk_flags=thin_context_risk + ["invites_more_disclosure"],
-                boundary_reminders=self._candidate_boundaries(
-                    shared_boundary_reminders,
-                    _BOUNDARY_LOW_PRESSURE,
-                ),
-                confidence=0.71 if approved_memory_ref is not None else 0.63,
+                base_risk_flags=["invites_more_disclosure"],
+                boundary_reminders=self._candidate_boundaries(shared_boundary_reminders, _BOUNDARY_LOW_PRESSURE),
+                base_confidence=0.71 if approved_memory_ref is not None else 0.63,
             ),
-            ReplyPlanCandidate(
+            self._build_candidate(
+                policy_profile=policy_profile,
                 approach_label="paced_next_step",
                 priority_rank=3,
                 draft_text=drafts[2],
@@ -226,44 +255,90 @@ class ReplyPlanner:
                     memory_hit_ref,
                     paced_tone_ref,
                 ),
-                risk_flags=thin_context_risk + ["tone_requires_review"],
-                boundary_reminders=self._candidate_boundaries(
-                    shared_boundary_reminders,
-                    _BOUNDARY_PACED_TONE,
-                ),
-                confidence=0.66 if approved_evidence_ref is not None else 0.58,
+                base_risk_flags=["tone_requires_review"],
+                boundary_reminders=self._candidate_boundaries(shared_boundary_reminders, _BOUNDARY_PACED_TONE),
+                base_confidence=0.66 if approved_evidence_ref is not None else 0.58,
             ),
         ]
         return candidates
 
-    def _build_candidate_difference_notes(self, *, context: ChatContext) -> list[str]:
+    def _build_candidate_difference_notes(
+        self,
+        *,
+        context: ChatContext,
+        policy_profile: ReplyPlanPolicyProfile,
+    ) -> list[str]:
         notes = [
             "Candidate 1 acknowledges the message without extending the thread.",
             "Candidate 2 adds an optional follow-up that invites clarification.",
             "Candidate 3 suggests a paced next step and needs closer tone review.",
         ]
+        if policy_profile.conservative_mode:
+            notes[1] = "Candidate 2 keeps a no-pressure reopening option instead of a direct push for more detail."
+            notes[2] = "Candidate 3 preserves pacing while explicitly avoiding action-pushing or intimacy escalation."
         if context.approved_store_context.status != "loaded":
             notes.append("Approved store context is thin, so all options stay on the conservative side.")
+        if policy_profile.boundary_sensitive:
+            notes.append("Sensitive or boundary-heavy context shifted the wording toward acknowledgment and slower pacing.")
         return notes
 
-    def _shared_boundary_reminders(self, *, context: ChatContext) -> list[str]:
+    def _shared_boundary_reminders(
+        self,
+        *,
+        context: ChatContext,
+        policy_profile: ReplyPlanPolicyProfile,
+    ) -> list[str]:
         reminders = []
         contact_skill = context.approved_store_context.contact_skill
         if contact_skill is not None:
             reminders.extend(contact_skill.boundary_reminders[:2])
+            reminders.extend(contact_skill.strategy_hints[:1])
         reminders.extend(
             [
                 _BOUNDARY_NO_IMPERSONATION,
                 _BOUNDARY_NO_UNVERIFIED_CLAIMS,
             ],
         )
-        if context.approved_store_context.status != "loaded":
+        reminders.extend(policy_profile.shared_boundary_reminders)
+        if policy_profile.thin_context:
             reminders.append(_BOUNDARY_THIN_CONTEXT)
         return self._dedupe(reminders)
 
     @staticmethod
-    def _candidate_boundaries(shared_boundaries: list[str], candidate_boundary: str) -> list[str]:
-        return ReplyPlanner._dedupe(shared_boundaries + [candidate_boundary])
+    def _candidate_boundaries(shared_boundaries: list[str], *candidate_boundaries: str) -> list[str]:
+        return ReplyPlanner._dedupe([*shared_boundaries, *candidate_boundaries])
+
+    def _build_candidate(
+        self,
+        *,
+        policy_profile: ReplyPlanPolicyProfile,
+        approach_label: str,
+        priority_rank: int,
+        draft_text: str,
+        rationale: str,
+        supporting_context_refs: list[ReplyPlanContextRef],
+        base_risk_flags: list[str],
+        boundary_reminders: list[str],
+        base_confidence: float,
+    ) -> ReplyPlanCandidate:
+        assessment = self.policy_engine.assess_candidate(
+            policy_profile=policy_profile,
+            candidate_text=draft_text,
+            approach_label=approach_label,
+        )
+        return ReplyPlanCandidate(
+            approach_label=approach_label,
+            priority_rank=priority_rank,
+            draft_text=draft_text,
+            rationale=rationale,
+            supporting_context_refs=supporting_context_refs,
+            risk_flags=self._dedupe([*base_risk_flags, *assessment.risk_flags]),
+            boundary_reminders=self._candidate_boundaries(
+                boundary_reminders,
+                *assessment.boundary_reminders,
+            ),
+            confidence=self._clamp_confidence(base_confidence - assessment.confidence_penalty),
+        )
 
     @staticmethod
     def _refs_for_candidate(*refs: ReplyPlanContextRef | None) -> list[ReplyPlanContextRef]:
@@ -284,7 +359,23 @@ class ReplyPlanner:
         return ReplyPlanContextRef(ref_type=ref_type, ref_id=ref_id, note=note)
 
     @staticmethod
-    def _draft_templates(*, relationship_type: str) -> tuple[str, str, str]:
+    def _draft_templates(
+        *,
+        relationship_type: str,
+        policy_profile: ReplyPlanPolicyProfile,
+    ) -> tuple[str, str, str]:
+        if policy_profile.conservative_mode:
+            if relationship_type == "colleague" or policy_profile.practical_tone:
+                return (
+                    "收到，这个点我先记下。",
+                    "这个点先放在这里；如果你之后愿意，再补一句重点也可以。",
+                    "先不往前推，等你方便的时候再决定要不要继续展开。",
+                )
+            return (
+                "收到，我先接住这个点，你不用现在展开。",
+                "这个点我先记下；如果你之后愿意，再补一句也可以。",
+                "先不把话题往前推，等你想说的时候再继续也可以。",
+            )
         if relationship_type in {"friend", "classmate", "family"}:
             return (
                 "收到，我先接住你这条消息。",
@@ -314,7 +405,11 @@ class ReplyPlanner:
             raise ReplyPlannerError("ReplyPlan candidate priority_rank values must form a stable 1..N sequence.")
 
     @staticmethod
-    def _dedupe(values) -> list[str]:
+    def _clamp_confidence(value: float) -> float:
+        return max(0.0, min(1.0, round(value, 2)))
+
+    @staticmethod
+    def _dedupe(values: Iterable[object]) -> list[str]:
         seen: set[str] = set()
         result: list[str] = []
         for value in values:
