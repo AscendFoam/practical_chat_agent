@@ -17,6 +17,8 @@ For T141 specifically, evaluation should now treat the following as required saf
 - stdout must remain aggregate/id-only and must not echo draft text, edited text, user notes, or boundary notes
 - validation must not rewrite feedback logs or mutate any downstream store
 
+T141 has now also been accepted with `PASS_WITH_WARNINGS`, so the next M4 evaluation target is T142 aggregate summary export.
+
 ## Captain Update 2026-05-16
 
 Gate M3 status: `Conditional`.

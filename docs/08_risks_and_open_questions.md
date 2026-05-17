@@ -9,6 +9,11 @@ Authoritative current risk state after T140 review:
 
 Closed question Q125: T140 is accepted with `PASS_WITH_WARNINGS`, so the project may proceed to T141 rather than sending the task back to worker for a blocking fix pass.
 
+- R044 is active: `reply_plan_id` coherence is still not cross-checked against the loaded plan context. T142 may summarize it, but should not overstate it.
+- R045 is active: T141 `record_results` can become verbose on large logs. T142 should keep summary output compact and aggregate-only.
+
+Closed question Q126: T141 is accepted with `PASS_WITH_WARNINGS`, so the project may proceed to T142 rather than sending the task back to worker for blocking repair.
+
 ## Captain Update 2026-05-16
 
 Authoritative current risk state after T133/M3 review:

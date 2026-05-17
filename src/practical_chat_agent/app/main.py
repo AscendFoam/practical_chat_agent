@@ -60,7 +60,11 @@ from practical_chat_agent.services.evidence_validation import (
     EvidenceValidationService,
 )
 from practical_chat_agent.services.meeting_live_loop import MeetingLiveLoopRequest
-from practical_chat_agent.services.feedback import FeedbackError, FeedbackService
+from practical_chat_agent.services.feedback import (
+    FeedbackError,
+    FeedbackService,
+    FeedbackValidationService,
+)
 from practical_chat_agent.services.reply_planner import ReplyPlanner, ReplyPlannerError
 from practical_chat_agent.ui.live_caption_window import MeetingLiveCaptionWindow
 
@@ -2082,6 +2086,54 @@ def chat_reply_feedback(
             indent=2,
         ),
     )
+
+
+@app.command("chat-reply-feedback-validate")
+def chat_reply_feedback_validate(
+    input_path: Path = typer.Option(
+        ...,
+        "--input",
+        help="Input feedback log JSON file to validate.",
+    ),
+    strict: bool = typer.Option(
+        False,
+        "--strict",
+        help="Return non-zero exit code if any validation issues are found.",
+    ),
+) -> None:
+    """Validate a T140 feedback log and emit a safe summary."""
+
+    service = FeedbackValidationService()
+    report = service.validate(input_path=input_path, strict=strict)
+
+    safe_output = {
+        "input_path": report["input_path"],
+        "is_readable": report["is_readable"],
+        "corrupted_input_count": report["corrupted_input_count"],
+        "total_records": report["total_records"],
+        "valid_record_count": report["valid_record_count"],
+        "invalid_record_count": report["invalid_record_count"],
+        "counts_by_action": report["counts_by_action"],
+        "missing_plan_count": report["missing_plan_count"],
+        "missing_candidate_count": report["missing_candidate_count"],
+        "contact_mismatch_count": report["contact_mismatch_count"],
+        "edit_without_text_count": report["edit_without_text_count"],
+        "boundary_without_details_count": report["boundary_without_details_count"],
+        "privacy_warnings": report["privacy_warnings"],
+        "record_results": report["record_results"],
+    }
+
+    if report["corrupted_reason"]:
+        safe_output["corrupted_reason"] = report["corrupted_reason"]
+
+    typer.echo(json.dumps(safe_output, ensure_ascii=False, indent=2))
+
+    if not report["is_readable"]:
+        raise typer.Exit(code=1)
+    if strict and (
+        report["invalid_record_count"] > 0 or report["privacy_warnings"]
+    ):
+        raise typer.Exit(code=1)
 
 
 @app.command("meeting-live-preview")

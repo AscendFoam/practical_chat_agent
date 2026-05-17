@@ -1,5 +1,7 @@
 # Handoff
 
+更新日期：2026-05-17
+
 更新日期：2026-05-16
 
 ## Captain Current State 2026-05-16
@@ -1048,3 +1050,85 @@ M1 必须承接的条件：
   - confirm broken references and malformed records fail safely
   - confirm stdout/docs do not leak edited text, notes, draft text, or raw private content
   - confirm T141 does not drift into T142/T160/T162 behavior
+
+## 37. T141 Implementation Record
+
+- Files changed:
+  - `src/practical_chat_agent/services/feedback.py`
+  - `src/practical_chat_agent/app/main.py`
+  - `docs/07_handoff.md`
+- Validator behavior:
+  - Added `FeedbackValidationService` with read-only `validate()` method.
+  - Validates feedback log JSON existence, readability, JSON parse, and ReplyFeedbackLog schema.
+  - Corrupted or unreadable input is reported explicitly via `corrupted_reason` and `corrupted_input_count`, not silently treated as empty-success.
+  - Per-record checks:
+    - `edit` action requires `edited_text` (otherwise `edit_without_text` issue).
+    - `boundary` action requires at least one of `boundary_label` or `boundary_note` (otherwise `boundary_without_details` issue).
+    - If `source_plan_path` is set, resolves the path (absolute, relative to CWD, then relative to log directory) and loads the referenced ReplyPlan.
+    - Missing or unparseable plan is reported as `missing_plan`.
+    - Candidate not found in plan (by `candidate_id` and `priority_rank`) is reported as `missing_candidate`.
+    - `contact_id` mismatch between plan and feedback record is reported as `contact_mismatch`.
+  - Privacy checks:
+    - `W_PRIVACY_INPUT`: input log path is outside `private/` directory.
+    - `W_PRIVACY_REF`: resolved `source_plan_path` is outside `private/` directory.
+  - Output is safe: only ids, counts, booleans, warning codes, and safe paths. No draft text, edited text, user notes, boundary notes, or raw transcript content is emitted to stdout.
+  - `--strict` flag causes non-zero exit code when any invalid records or privacy warnings exist.
+- CLI command:
+  - `chat-reply-feedback-validate --input <feedback-log.json> [--strict]`
+- Verification:
+  - Compile passed for feedback.py and main.py.
+  - Good log (T140 fixture, 4 records accept/edit/reject/boundary): `valid_record_count=4`, `invalid_record_count=0`, no issues.
+  - Bad log (edit without text, boundary without details): `edit_without_text_count=1`, `boundary_without_details_count=1`, `invalid_record_count=2`.
+  - Missing plan reference: `missing_plan_count=1`, record reported invalid.
+  - Corrupted JSON: `is_readable=false`, `corrupted_input_count=1`, `corrupted_reason="json_decode_error: ..."`, exit code 1.
+  - Schema-invalid log (invalid action value): `corrupted_input_count=1`, `corrupted_reason="schema_error: 1 validation failure(s)"`, exit code 1.
+  - Log outside `private/`: `W_PRIVACY_INPUT` warning surfaced. With `--strict`, exit code 1.
+  - Log referencing plan outside `private/` (plan exists and is valid): `W_PRIVACY_REF` warning surfaced, record remains valid.
+  - Read-only confirmed: md5sums of all fixture files unchanged after running all validations.
+  - stdout privacy confirmed: grep for private text fields (edited_text, user_note, boundary_note, draft_text, fixture text content) returned 0 matches.
+- Explicit non-actions:
+  - No proposal, preference, boundary, memory, or ContactSkill update was added.
+  - No feedback log, ReplyPlan, ContactSkill, MemoryFact, approved store, or planner template was mutated.
+  - No LLM call, auto-send, realtime platform integration, DB, vector DB, or `private/chat_history/` read was added.
+
+## 38. T141 Review Decision
+
+- Review file:
+  - `docs/review/T141_review.md`
+- Verdict:
+  - `PASS_WITH_WARNINGS`
+- Captain decision:
+  - T141 is complete within task scope.
+  - M4 may continue only into aggregate feedback summary work; no proposal generation or downstream mutation is authorized.
+  - Current Unique Task moves to T142 Feedback Summary Exporter.
+- Warning handling:
+  - Accepted:
+    - N01 raw `input_path` in CLI output. Low-risk style inconsistency only.
+    - N03 `_is_private_path` uses a coarse directory-name heuristic. Acceptable for MVP.
+    - N04 `_resolve_plan_path` depends on CWD for relative paths. Acceptable with the current private/offline workflow.
+    - N05 `strict_mode` is stored in the report but not read by the service. Minor dead data only.
+  - Deferred:
+    - N02 `reply_plan_id` coherence is not cross-checked against the loaded plan context. Carry into T142 if the summary needs to surface it.
+    - N06 `record_results` may grow large on bigger logs. Carry into T142 as a compact-output concern.
+  - Rejected:
+    - none
+
+## 39. T142 Kickoff Notes
+
+- Task package:
+  - `docs/tasks/M4_feedback_loop/T142_feedback_summary_exporter.md`
+- Worker focus:
+  - export aggregate, privacy-safe summaries over T140/T141 feedback logs
+  - prefer validated inputs or internally validated summary paths
+  - keep stdout concise and aggregate-only
+  - surface invalid/skipped/warning counts without echoing per-record private text
+- Explicit non-goals:
+  - no proposal generation
+  - no feedback-to-patch logic
+  - no versioning, rollback, or freeze flow
+  - no ContactSkill or Memory mutation
+  - no LLM call, auto-send, realtime platform integration, DB, vector DB, or `private/chat_history/` read
+- Reviewer focus:
+  - confirm output is aggregate and privacy-safe
+  - confirm T142 stays within M4 capture/validation/summary scope only
+  - confirm any `reply_plan_id` coherence handling remains descriptive and non-mutating

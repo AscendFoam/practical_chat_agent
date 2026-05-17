@@ -116,3 +116,160 @@ class FeedbackService:
             return len(log.records)
         except (OSError, json.JSONDecodeError, ValidationError):
             return 0
+
+
+class FeedbackValidationService:
+    """Read-only validator for T140 feedback logs."""
+
+    def validate(self, *, input_path: Path, strict: bool = False) -> dict:
+        report = self._init_report(input_path, strict)
+
+        if not input_path.exists():
+            report["corrupted_reason"] = "file_not_found"
+            report["corrupted_input_count"] = 1
+            return report
+
+        if not self._is_private_path(input_path):
+            report["privacy_warnings"].append(
+                "W_PRIVACY_INPUT: input path is outside expected private/ directory"
+            )
+
+        try:
+            raw_text = input_path.read_text(encoding="utf-8")
+        except OSError as exc:
+            report["corrupted_reason"] = f"read_error: {exc}"
+            report["corrupted_input_count"] = 1
+            return report
+
+        try:
+            data = json.loads(raw_text)
+        except json.JSONDecodeError as exc:
+            report["corrupted_reason"] = (
+                f"json_decode_error: line {exc.lineno} column {exc.colno}"
+            )
+            report["corrupted_input_count"] = 1
+            return report
+
+        try:
+            log = ReplyFeedbackLog.model_validate(data)
+        except ValidationError as exc:
+            report["corrupted_reason"] = (
+                f"schema_error: {exc.error_count()} validation failure(s)"
+            )
+            report["corrupted_input_count"] = 1
+            return report
+
+        report["is_readable"] = True
+        report["total_records"] = len(log.records)
+
+        for record in log.records:
+            rec_result = self._validate_record(record, input_path, report)
+            report["record_results"].append(rec_result)
+            report["counts_by_action"][record.action] = (
+                report["counts_by_action"].get(record.action, 0) + 1
+            )
+            if rec_result["is_valid"]:
+                report["valid_record_count"] += 1
+            else:
+                report["invalid_record_count"] += 1
+
+        return report
+
+    def _init_report(self, input_path: Path, strict: bool) -> dict:
+        return {
+            "input_path": str(input_path),
+            "is_readable": False,
+            "corrupted_reason": None,
+            "corrupted_input_count": 0,
+            "total_records": 0,
+            "valid_record_count": 0,
+            "invalid_record_count": 0,
+            "counts_by_action": {},
+            "missing_plan_count": 0,
+            "missing_candidate_count": 0,
+            "contact_mismatch_count": 0,
+            "edit_without_text_count": 0,
+            "boundary_without_details_count": 0,
+            "privacy_warnings": [],
+            "record_results": [],
+            "strict_mode": strict,
+        }
+
+    def _is_private_path(self, path: Path) -> bool:
+        try:
+            resolved = path.resolve()
+            return any(p.casefold() == "private" for p in resolved.parts)
+        except (OSError, ValueError):
+            return False
+
+    def _resolve_plan_path(self, source_plan_path: str, log_dir: Path) -> Path | None:
+        candidate = Path(source_plan_path)
+        if candidate.is_absolute():
+            return candidate if candidate.exists() else None
+        if candidate.exists():
+            return candidate.resolve()
+        resolved = (log_dir / candidate).resolve()
+        return resolved if resolved.exists() else None
+
+    def _load_plan_safe(self, plan_path: Path) -> ReplyPlan | None:
+        try:
+            raw = plan_path.read_text(encoding="utf-8")
+            return ReplyPlan.model_validate_json(raw)
+        except (OSError, json.JSONDecodeError, ValidationError):
+            return None
+
+    def _validate_record(
+        self, record: ReplyFeedbackRecord, input_path: Path, report: dict,
+    ) -> dict:
+        issues: list[str] = []
+
+        if record.action == "edit" and not record.edited_text:
+            issues.append("edit_without_text")
+            report["edit_without_text_count"] += 1
+
+        if record.action == "boundary":
+            if not record.boundary_label and not record.boundary_note:
+                issues.append("boundary_without_details")
+                report["boundary_without_details_count"] += 1
+
+        if record.source_plan_path:
+            resolved = self._resolve_plan_path(
+                record.source_plan_path, input_path.parent,
+            )
+
+            if resolved is not None and not self._is_private_path(resolved):
+                report["privacy_warnings"].append(
+                    f"W_PRIVACY_REF: source_plan_path for {record.feedback_id} "
+                    "resolves outside private/"
+                )
+
+            if resolved is None:
+                issues.append("missing_plan")
+                report["missing_plan_count"] += 1
+            else:
+                plan = self._load_plan_safe(resolved)
+                if plan is None:
+                    issues.append("missing_plan")
+                    report["missing_plan_count"] += 1
+                else:
+                    found = any(
+                        c.candidate_id == record.candidate_id
+                        and c.priority_rank == record.priority_rank
+                        for c in plan.candidates
+                    )
+                    if not found:
+                        issues.append("missing_candidate")
+                        report["missing_candidate_count"] += 1
+
+                    if plan.contact_id != record.contact_id:
+                        issues.append("contact_mismatch")
+                        report["contact_mismatch_count"] += 1
+
+        return {
+            "feedback_id": record.feedback_id,
+            "candidate_id": record.candidate_id,
+            "priority_rank": record.priority_rank,
+            "action": record.action,
+            "is_valid": len(issues) == 0,
+            "issues": issues,
+        }

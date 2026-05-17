@@ -22,6 +22,28 @@
   - T150/T152 remain responsible for committed regression coverage.
 - Impact: `docs/04_task_board.md` moves the Current Unique Task from T140 to T141.
 
+## D026: T141 PASS_WITH_WARNINGS, accept task, advance to T142
+
+- Date: 2026-05-17
+- Status: Accepted
+- Context: `docs/review/T141_review.md` gives `PASS_WITH_WARNINGS` for the feedback log validator task. No blocking issues were found.
+- Decision: T141 is complete. The project may continue to T142 Feedback Summary Exporter.
+- Warning handling:
+  - Accepted:
+    - N01 raw `input_path` appears in CLI output. Low-risk style inconsistency only.
+    - N03 `_is_private_path` uses a coarse directory-name heuristic. Acceptable for MVP.
+    - N04 `_resolve_plan_path` depends on CWD for relative paths. Acceptable with the current private/offline workflow.
+    - N05 `strict_mode` is stored in the report but not read by the service. Minor dead data only.
+  - Deferred:
+    - N02 `reply_plan_id` coherence is not cross-checked against the loaded plan context. Carry into T142 if the summary needs to surface it.
+    - N06 `record_results` may grow large on bigger logs. Carry into T142 as a compact-output concern.
+  - Rejected: none.
+- Conditions carried forward:
+  - M4 stays capture/validation/summary only.
+  - T142 must remain aggregate-only and privacy-safe.
+  - T150/T152 remain responsible for committed regression coverage.
+- Impact: `docs/04_task_board.md` moves the Current Unique Task from T141 to T142.
+
 ## D023: T133 PASS_WITH_WARNINGS, Gate M3 Conditional, enter T140
 
 - Date: 2026-05-16

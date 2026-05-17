@@ -9,20 +9,26 @@ Updated: 2026-05-17
 - T140 warning disposition:
   - Accepted: N03 redundant recount, N04 `reply_plan_id` proxy semantics, N06 `Literal` action type.
   - Deferred: N01 corrupted-log silent reset, N02 unstable `source_plan_path`, N05 missing private-path confinement.
+- T141 review decision: `PASS_WITH_WARNINGS`.
+- T141 is complete as a read-only feedback log validator.
+- T141 warning disposition:
+  - Accepted: N01 raw `input_path` in CLI output, N03 coarse private-path heuristic, N04 CWD-dependent relative path resolution, N05 stored-but-unused `strict_mode`.
+  - Deferred: N02 `reply_plan_id` coherence not cross-checked, N06 `record_results` may get large.
+  - Rejected: none.
 - Gate M3 remains `Conditional`.
-- Current Unique Task: T141 Feedback Log Validator.
-- Current task package: `docs/tasks/M4_feedback_loop/T141_feedback_log_validator.md`.
+- Current Unique Task: T142 Feedback Summary Exporter.
+- Current task package: `docs/tasks/M4_feedback_loop/T142_feedback_summary_exporter.md`.
 - M4 remains review-only: no auto-send, no realtime platform integration, no automatic ContactSkill/Memory mutation, no feedback-to-patch behavior, and no relationship-aware maturity claim before regression hardening.
-- T141 should explicitly harden the deferred T140 warning areas where in-scope: corrupted-log handling visibility, private path behavior, and reference validation.
+- T142 should stay aggregate-only and privacy-safe, and may surface the deferred T141 coherence gap only as summary metadata.
 - T150 must add committed regression tests covering ReplyPlanner structure, boundary sensitivity, thin context, false positives, subtle false negatives, privacy leakage, contact alignment, candidate ranking, and feedback CLI safety.
 
 ## Current Unique Task
 
-T141: Feedback Log Validator.
+T142: Feedback Summary Exporter.
 
-Task package: `docs/tasks/M4_feedback_loop/T141_feedback_log_validator.md`
+Task package: `docs/tasks/M4_feedback_loop/T142_feedback_summary_exporter.md`
 
-Why now: T140 established private feedback capture, but the log is not yet trustworthy enough to support downstream review work by default. T141 must validate structure, candidate references, action-specific fields, and privacy/path safety while remaining read-only and non-mutating.
+Why now: T141 established read-only validation, and the next safe M4 step is aggregate visibility. T142 must summarize feedback patterns without exposing private text or mutating downstream state.
 
 ## Board Rules
 
@@ -83,7 +89,7 @@ Goal: generate interpretable, multi-candidate, safety-aware reply drafts from ap
 Goal: record, validate, and summarize human feedback on ReplyPlan candidates without applying it automatically.
 
 - [x] T140: feedback log schema + CLI. Review `PASS_WITH_WARNINGS`.
-- [ ] T141: feedback log validator.
+- [x] T141: feedback log validator. Review `PASS_WITH_WARNINGS`.
 - [ ] T142: feedback summary exporter.
 
 ## Milestone 4.5: Regression Hardening
