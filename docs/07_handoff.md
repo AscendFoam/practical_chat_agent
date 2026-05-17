@@ -970,3 +970,81 @@ M1 必须承接的条件：
   - T140 Feedback Schema CLI.
 - Important non-goals:
   - Do not implement Mem0, Feishu, WeChat, BehaviorPlanner, LLM drafting, or ContactSkill replacement before their gated milestones.
+
+## 34. T140 Implementation Record
+
+- Files changed:
+  - `src/practical_chat_agent/core/models.py`
+  - `src/practical_chat_agent/services/feedback.py` (new)
+  - `src/practical_chat_agent/app/main.py`
+  - `docs/07_handoff.md`
+- Schema/service/CLI behavior:
+  - Added `ReplyFeedbackAction` = Literal["accept", "edit", "reject", "boundary"].
+  - Added `ReplyFeedbackRecord` with feedback_id, created_at, contact_id, reply_plan_id, candidate_id, priority_rank, action, user_note, edited_text, boundary_label, boundary_note, source_plan_path.
+  - Added `ReplyFeedbackLog` with schema_version, generated_at, records list.
+  - `FeedbackService.record_feedback()` loads a ReplyPlan JSON, validates the chosen candidate exists by priority_rank, appends a feedback record to a JSON log file under a private output path.
+  - `chat-reply-feedback` CLI: `--plan`, `--candidate-rank`, `--action`, `--output`, `--note`, `--edited-text`, `--boundary-label`, `--boundary-note`.
+  - Edit action requires `--edited-text`. Boundary action requires at least one of `--boundary-label` or `--boundary-note`.
+  - Invalid candidate rank is rejected with a clear error listing valid ranks.
+  - stdout emits only safe summaries: feedback_id, contact_id, candidate_id, priority_rank, action, total_records, output_path. No draft text, edited text, private notes, raw transcript, or private chat path contents are printed.
+- Verification:
+  - Compile passed for models.py, feedback.py, main.py.
+  - Synthetic fixture at `private/distilled/t140_feedback_fixture/synthetic_reply_plan.json`.
+  - Accept: feedback record appended, total_records=1.
+  - Edit with edited-text: feedback record appended with edited_text field, total_records=2.
+  - Reject with note: feedback record appended, total_records=3.
+  - Boundary with label+note: feedback record appended with boundary_label and boundary_note, total_records=4.
+  - Invalid candidate-rank=99: rejected with error listing valid ranks [1, 2, 3].
+  - Edit without --edited-text: rejected with error.
+  - stdout contains no draft text, edited text, private notes, or raw transcript content.
+  - No ContactSkill, MemoryFact, approved store record, or planner template was modified.
+  - Output confined to requested private output path.
+- Remaining risks:
+  - Feedback log append is not atomic; concurrent writes could corrupt the JSON file. This is acceptable for a private single-user offline tool.
+  - No committed automated tests yet; deferred to T150/T152.
+  - Feedback records store `source_plan_path` as a string; if the plan file is moved, the path reference becomes stale.
+- Explicit non-actions:
+  - No memory, ContactSkill, or approved store update was added.
+  - No auto-send, realtime integration, DB, vector DB, LLM call, or `private/chat_history/` read was added.
+
+## 35. T140 Review Decision
+
+- Review file:
+  - `docs/review/T140_review.md`
+- Verdict:
+  - `PASS_WITH_WARNINGS`
+- Captain decision:
+  - T140 is complete within task scope.
+  - M4 may continue, but only into validation/summary work; no automatic learning or downstream mutation is authorized.
+  - Current Unique Task moves to T141 Feedback Log Validator.
+- Warning handling:
+  - Accepted:
+    - N03 `_count_records` re-reads the log after append. Low-impact inefficiency only.
+    - N04 `reply_plan_id` currently stands in for a source-plan identifier. Acceptable until a dedicated `plan_id` exists.
+    - N06 `ReplyFeedbackAction` as `Literal[...]` matches current codebase style.
+  - Deferred:
+    - N01 corrupted-log silent reset/data loss risk. Carry into T141 and R042.
+    - N02 `source_plan_path` can become stale or vary by caller path style. Carry into T141-or-later and R043.
+    - N05 output path is user-controlled but not enforced to remain private. Carry into T141/T152 and R043.
+  - Rejected:
+    - none
+
+## 36. T141 Kickoff Notes
+
+- Task package:
+  - `docs/tasks/M4_feedback_loop/T141_feedback_log_validator.md`
+- Worker focus:
+  - implement a read-only validator for T140 feedback logs
+  - validate record structure, action-specific required fields, source-plan existence, candidate existence, contact alignment, and safe/private path behavior
+  - emit only aggregate/id-based summaries to stdout
+  - surface corrupted-log or unreadable-log problems explicitly instead of silently normalizing them away
+- Explicit non-goals:
+  - no proposal generation
+  - no memory or ContactSkill updates
+  - no feedback-log mutation
+  - no sending, DB/vector DB, LLM, or realtime integration
+- Reviewer focus:
+  - confirm the validator is read-only
+  - confirm broken references and malformed records fail safely
+  - confirm stdout/docs do not leak edited text, notes, draft text, or raw private content
+  - confirm T141 does not drift into T142/T160/T162 behavior

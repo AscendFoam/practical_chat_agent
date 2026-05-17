@@ -1,5 +1,11 @@
 # Feasibility Report
 
+## Captain Update 2026-05-17
+
+T140 confirms that private human feedback capture is feasible in the current architecture: a `ReplyPlan` can be loaded, a chosen candidate can be referenced safely, and accept/edit/reject/boundary feedback can be written without touching memory, ContactSkill, sending, or platform adapters.
+
+The remaining feasibility gap inside M4 is log trustworthiness rather than feature reach. Before any summary or patch-proposal work, T141 must prove that feedback logs can be validated read-only, that broken references fail safely, and that corrupted or non-private path behavior is surfaced instead of silently passing through.
+
 ## Captain Update 2026-05-16
 
 Gate M3 is `Conditional` after T133 review. The M3 structure is feasible: `ReplyPlan`, `ReplyPlanner`, policy/boundary checks, and anonymized holdout evaluation all exist and run in the current environment.

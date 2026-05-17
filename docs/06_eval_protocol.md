@@ -1,5 +1,22 @@
 # Eval Protocol
 
+## Captain Update 2026-05-17
+
+T140 has been accepted with `PASS_WITH_WARNINGS`.
+
+Current M4 evaluation sequence is now:
+
+- T140: can feedback be recorded privately and without mutation?
+- T141: can the resulting feedback log be validated read-only, with bad references and bad action payloads failing safely?
+- T142: can aggregate feedback summaries be exported without leaking private text?
+
+For T141 specifically, evaluation should now treat the following as required safety checks rather than optional polish:
+
+- corrupted or unreadable feedback logs must produce an explicit failure or warning path
+- invalid `ReplyPlan` references must be counted and surfaced safely
+- stdout must remain aggregate/id-only and must not echo draft text, edited text, user notes, or boundary notes
+- validation must not rewrite feedback logs or mutate any downstream store
+
 ## Captain Update 2026-05-16
 
 Gate M3 status: `Conditional`.

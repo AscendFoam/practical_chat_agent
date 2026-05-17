@@ -1,5 +1,29 @@
 # Architecture
 
+## Captain Update 2026-05-17
+
+T140 is now complete. The architecture has advanced from "reply planning only" to "reply planning plus private human feedback capture":
+
+```text
+Approved compact ChatContext
+  -> ReplyPlanner
+  -> ReplyPlan candidates
+  -> policy/boundary risk flags
+  -> human review
+  -> private feedback log
+```
+
+The next architectural step is T141, which adds a read-only validation layer in front of any future feedback summaries or patch proposals:
+
+```text
+private feedback log
+  -> feedback validator
+  -> safe validation report
+  -> later safe summary / later reviewable patch candidates
+```
+
+This validator layer must stay non-mutating: it may inspect feedback records and referenced `ReplyPlan` files, but it must not rewrite feedback logs, mutate ContactSkill or MemoryFact stores, or trigger any outbound behavior.
+
 ## Captain Update 2026-05-16
 
 M3 is now conditionally closed. The architecture includes a review-only ReplyPlanner path:

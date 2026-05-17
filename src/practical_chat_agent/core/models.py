@@ -840,6 +840,30 @@ class AuditLogEntry(BaseModel):
     created_at: datetime = Field(default_factory=utc_now)
 
 
+ReplyFeedbackAction = Literal["accept", "edit", "reject", "boundary"]
+
+
+class ReplyFeedbackRecord(BaseModel):
+    feedback_id: str = Field(default_factory=lambda: new_id("fb"))
+    created_at: datetime = Field(default_factory=utc_now)
+    contact_id: str = Field(..., min_length=1)
+    reply_plan_id: str | None = None
+    candidate_id: str = Field(..., min_length=1)
+    priority_rank: int = Field(..., ge=1)
+    action: ReplyFeedbackAction
+    user_note: str | None = None
+    edited_text: str | None = None
+    boundary_label: str | None = None
+    boundary_note: str | None = None
+    source_plan_path: str | None = None
+
+
+class ReplyFeedbackLog(BaseModel):
+    schema_version: str = "reply_feedback_log_v1"
+    generated_at: datetime = Field(default_factory=utc_now)
+    records: list[ReplyFeedbackRecord] = Field(default_factory=list)
+
+
 ChatContext.model_rebuild()
 AgentTurnResult.model_rebuild()
 MeetingLivePreview.model_rebuild()

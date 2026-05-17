@@ -1,5 +1,17 @@
 # Raw Idea
 
+## Captain Update 2026-05-17
+
+T140 has now passed review with `PASS_WITH_WARNINGS`.
+
+The project can continue into T141, but M4 still remains strictly review-only:
+
+- feedback may be recorded and validated
+- feedback may not automatically update ContactSkill, MemoryFact, planner templates, or outbound behavior
+- no auto-send, realtime integration, DB/vector DB expansion, or LLM drafting expansion is allowed
+
+The immediate next need is not "learning from feedback" but making sure the feedback log itself is trustworthy, reference-valid, privacy-safe, and read-only to downstream state. That is why the Current Unique Task moves to T141 Feedback Log Validator rather than directly to proposal generation.
+
 ## Captain Update 2026-05-16
 
 T133 has passed review with `PASS_WITH_WARNINGS`, and the Captain M3 review sets Gate M3 to `Conditional`.

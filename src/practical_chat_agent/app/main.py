@@ -60,6 +60,7 @@ from practical_chat_agent.services.evidence_validation import (
     EvidenceValidationService,
 )
 from practical_chat_agent.services.meeting_live_loop import MeetingLiveLoopRequest
+from practical_chat_agent.services.feedback import FeedbackError, FeedbackService
 from practical_chat_agent.services.reply_planner import ReplyPlanner, ReplyPlannerError
 from practical_chat_agent.ui.live_caption_window import MeetingLiveCaptionWindow
 
@@ -1989,6 +1990,93 @@ def chat_reply_plan(
                 "contact_id": plan.contact_id,
                 "candidate_count": len(plan.candidates),
                 "plan_mode": plan.plan_mode,
+            },
+            ensure_ascii=False,
+            indent=2,
+        ),
+    )
+
+
+@app.command("chat-reply-feedback")
+def chat_reply_feedback(
+    plan: Path = typer.Option(
+        ...,
+        "--plan",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        readable=True,
+        help="Input ReplyPlan JSON file to provide feedback on.",
+    ),
+    candidate_rank: int = typer.Option(
+        ...,
+        "--candidate-rank",
+        min=1,
+        help="Priority rank of the candidate to provide feedback on.",
+    ),
+    action: str = typer.Option(
+        ...,
+        "--action",
+        help="Feedback action: accept, edit, reject, boundary.",
+    ),
+    output: Path = typer.Option(
+        ...,
+        "--output",
+        help="Output feedback log path under private/.",
+    ),
+    note: Optional[str] = typer.Option(
+        None,
+        "--note",
+        help="Optional user note.",
+    ),
+    edited_text: Optional[str] = typer.Option(
+        None,
+        "--edited-text",
+        help="Edited text when action is 'edit'.",
+    ),
+    boundary_label: Optional[str] = typer.Option(
+        None,
+        "--boundary-label",
+        help="Boundary label when action is 'boundary'.",
+    ),
+    boundary_note: Optional[str] = typer.Option(
+        None,
+        "--boundary-note",
+        help="Boundary note when action is 'boundary'.",
+    ),
+) -> None:
+    """Record human feedback on a ReplyPlan candidate to a private feedback log."""
+
+    valid_actions = ("accept", "edit", "reject", "boundary")
+    normalized_action = action.strip().lower()
+    if normalized_action not in valid_actions:
+        raise typer.BadParameter(f"Invalid action '{action}'. Must be one of: {', '.join(valid_actions)}.")
+
+    service = FeedbackService()
+    try:
+        result = service.record_feedback(
+            plan_path=plan,
+            candidate_rank=candidate_rank,
+            action=normalized_action,
+            output_path=output,
+            user_note=note,
+            edited_text=edited_text,
+            boundary_label=boundary_label,
+            boundary_note=boundary_note,
+        )
+    except FeedbackError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+
+    typer.echo(
+        json.dumps(
+            {
+                "feedback_id": result["feedback_id"],
+                "contact_id": result["contact_id"],
+                "candidate_id": result["candidate_id"],
+                "priority_rank": result["priority_rank"],
+                "action": result["action"],
+                "total_records": result["total_records"],
+                "output_path": _safe_cli_path(Path(result["output_path"])),
             },
             ensure_ascii=False,
             indent=2,

@@ -1,5 +1,27 @@
 # Decision Log
 
+## D025: T140 PASS_WITH_WARNINGS, accept task, advance to T141
+
+- Date: 2026-05-17
+- Status: Accepted
+- Context: `docs/review/T140_review.md` gives `PASS_WITH_WARNINGS` for the feedback schema + CLI task. No blocking issues were found.
+- Decision: T140 is complete. The project may continue to T141 Feedback Log Validator.
+- Warning handling:
+  - Accepted:
+    - N03 `_count_records` re-reads the whole log after append. Low-impact inefficiency only.
+    - N04 `reply_plan_id` currently proxies `approved_contact_skill_record_id`. Acceptable because `ReplyPlan` has no dedicated stable `plan_id` yet.
+    - N06 `ReplyFeedbackAction` uses `Literal[...]` rather than an enum. Consistent with current project patterns.
+  - Deferred:
+    - N01 corrupted log file can be silently replaced, causing possible data loss. Carry into T141/R042.
+    - N02 `source_plan_path` may be absolute or relative and can become stale after moves. Carry into T141-or-later/R043.
+    - N05 CLI/service do not enforce private path confinement on `--output`. Carry into T141/T152/R043.
+  - Rejected: none.
+- Conditions carried forward:
+  - M4 stays capture/validate/summary only.
+  - T141 must remain read-only and must not mutate feedback logs, ContactSkill, MemoryFact, approved stores, planner templates, or outbound behavior.
+  - T150/T152 remain responsible for committed regression coverage.
+- Impact: `docs/04_task_board.md` moves the Current Unique Task from T140 to T141.
+
 ## D023: T133 PASS_WITH_WARNINGS, Gate M3 Conditional, enter T140
 
 - Date: 2026-05-16

@@ -12,15 +12,26 @@ T141 must verify that feedback records are structurally valid, reference existin
 
 ## Why Now
 
-The updated design direction keeps M4 focused on feedback capture, not automatic learning. Before feedback can become preference/boundary proposals in a later milestone, the project needs a deterministic validator that can tell whether feedback logs are safe and usable.
+T140 proved that private feedback can be recorded, but the recorded log is not yet trustworthy enough for downstream review work by default.
+
+This task is next because the captain accepted T140 with deferred warnings:
+
+- corrupted or unreadable logs must be surfaced explicitly rather than silently treated as clean input
+- stale `source_plan_path` references must be detected and reported safely
+- non-private path behavior must at least be warned about before M4 can rely on these logs
+
+T141 therefore hardens the log as evidence without turning feedback into automatic learning.
 
 ## Inputs To Read
 
-- `docs/reference/gpt的后续设计思路(更新版).md`
 - `docs/tasks/M4_feedback_loop/T140_feedback_schema_cli.md`
-- T140 feedback models and service implementation
-- `docs/data_contracts/reply_plan_contract.md`
+- `docs/review/T140_review.md`
 - `docs/review/M3_review.md`
+- `docs/data_contracts/reply_plan_contract.md`
+- T140 feedback models and service implementation in:
+  - `src/practical_chat_agent/core/models.py`
+  - `src/practical_chat_agent/services/feedback.py`
+  - `src/practical_chat_agent/app/main.py`
 
 ## Allowed Files
 
@@ -33,12 +44,12 @@ Do not edit other files unless Captain explicitly expands scope.
 
 ## Forbidden Scope
 
-- Do not create preference/boundary/memory update proposals.
-- Do not modify ContactSkill, MemoryFact, approved store records, planner templates, or feedback logs.
+- Do not create preference, boundary, memory, or ContactSkill update proposals.
+- Do not modify feedback logs, `ReplyPlan` files, ContactSkill records, MemoryFact records, approved stores, planner templates, or outbound behavior.
 - Do not call an LLM.
-- Do not introduce database, vector DB, UI, realtime platform integration, or sending.
+- Do not introduce database, vector DB, migrations, UI, realtime platform integration, background jobs, or sending.
 - Do not read from `private/chat_history/`.
-- Do not print full draft text, edited text, user notes, boundary notes, or private raw content to stdout.
+- Do not print full draft text, edited text, user notes, boundary notes, raw transcript text, or other private payload text to stdout.
 
 ## Expected Implementation
 
@@ -46,30 +57,47 @@ Add validator logic that can inspect one feedback log and the referenced `ReplyP
 
 The validator should check at minimum:
 
-- required fields are present
+- feedback log top-level shape is valid
+- required record fields are present
 - `action` is valid
 - referenced plan path exists when required
 - referenced candidate rank/id exists in the plan
-- `edit` feedback includes `edited_text` or an explicit safe diff reference
-- `boundary` feedback includes `boundary_label` and/or `boundary_note`
+- `edit` feedback includes `edited_text`
+- `boundary` feedback includes at least one of `boundary_label` or `boundary_note`
 - source plan/candidate contact id matches the feedback record
-- output paths remain private or explicitly user-specified safe paths
+- `reply_plan_id` / candidate metadata are internally coherent enough for later review use
+- path/privacy warnings are surfaced when logs or referenced paths are outside expected private locations
+- corrupted or unreadable log input is surfaced explicitly rather than silently treated as empty-success input
 - records can be summarized without leaking full text
+
+T141 may respond to deferred T140 warnings, but only in read-only form:
+
+- N01: explicit corrupted/unreadable log reporting
+- N02: explicit stale or suspicious `source_plan_path` reporting
+- N05: explicit private-path warnings
+
+## CLI
 
 Add a CLI command. Prefer:
 
 ```text
-chat-reply-feedback-validate --input <feedback.jsonl> [--strict]
+chat-reply-feedback-validate --input <feedback-log.json> [--strict]
 ```
 
-The CLI should emit a safe summary:
+The CLI should emit a safe summary containing only ids, counts, booleans, warning codes, and safe paths, such as:
 
 - total records
-- counts by action
+- valid record count
 - invalid record count
-- missing plan/candidate references
-- action-specific field failures
+- counts by action
+- missing plan count
+- missing candidate count
+- contact mismatch count
+- action-specific field failure counts
+- corrupted/unreadable-input count
 - privacy/safety warnings
+
+If a structured validation report object is introduced, keep it local to the feedback scope and do not echo edited text, notes, drafts, or transcript text into that report.
 
 ## Verification
 
@@ -80,7 +108,10 @@ Required checks:
 - Compile changed Python files.
 - Validate a good feedback log containing accept/edit/reject/boundary.
 - Validate a bad feedback log containing invalid action, invalid rank, missing edit payload, and missing boundary details.
-- Confirm validator is read-only and does not mutate feedback logs, plans, memory, or ContactSkill.
+- Validate a feedback log whose referenced plan path is missing.
+- Validate a corrupted or unreadable feedback log fixture and confirm the validator reports failure/warning instead of silently treating it as empty-success input.
+- Validate a log located outside `private/` or referencing paths outside `private/` and confirm privacy warnings are surfaced safely.
+- Confirm validator is read-only and does not mutate feedback logs, plans, memory, ContactSkill, or approved stores.
 - Confirm stdout contains only safe summaries and ids/counts, not full draft/edit/note text.
 
 ## Expected Handoff Update
@@ -101,5 +132,7 @@ Reviewer should verify:
 
 - validation is read-only
 - invalid references fail safely
+- corrupted input is surfaced explicitly
+- private-path warnings are surfaced without leaking private text
 - stdout and docs do not leak private feedback contents
-- T141 does not prematurely implement T160/T162-style proposals
+- T141 does not prematurely implement T142/T160/T162-style proposals

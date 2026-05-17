@@ -1,5 +1,14 @@
 # Risks And Open Questions
 
+## Captain Update 2026-05-17
+
+Authoritative current risk state after T140 review:
+
+- R042 is active: a corrupted T140 feedback log can currently be silently replaced during append, creating a data-loss risk. T141 should surface this explicitly and T152 should eventually regression-test it.
+- R043 is active: T140 path handling is still too loose for long-term trust. `source_plan_path` can become stale and `--output` is not yet enforced to remain private. T141 should validate and warn; T152 can harden with committed regression coverage.
+
+Closed question Q125: T140 is accepted with `PASS_WITH_WARNINGS`, so the project may proceed to T141 rather than sending the task back to worker for a blocking fix pass.
+
 ## Captain Update 2026-05-16
 
 Authoritative current risk state after T133/M3 review:
