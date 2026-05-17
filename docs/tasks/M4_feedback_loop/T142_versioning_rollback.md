@@ -1,47 +1,12 @@
-# Task T142: Versioning Rollback Freeze
+# Task T142: Versioning Rollback Freeze (Superseded)
 
-## Task ID
+This task package is superseded.
 
-T142
+Reason: versioning, rollback, and freeze are too early for M4. M4 now only records, validates, and summarizes feedback. Applying feedback or modifying memory/ContactSkill is delayed until after regression hardening and reviewable patch workflows.
 
-## Goal
+Use instead:
 
-实现 skill/memory version diff、rollback 和 freeze 机制。
+- Current T142: `docs/tasks/M4_feedback_loop/T142_feedback_summary_exporter.md`
+- Later patch/review tasks: `docs/tasks/M5_feedback_to_patch/`
 
-## Why now
-
-用户必须能撤销错误记忆和错误关系判断。
-
-## Allowed files
-
-- `src/practical_chat_agent/services/contact_skill.py`
-- `src/practical_chat_agent/services/feedback.py`
-- `src/practical_chat_agent/app/main.py`
-- `docs/07_handoff.md`
-
-## Forbidden scope
-
-- 不物理删除 private 原始数据，除非用户另行明确要求。
-- 不自动覆盖 frozen 项。
-
-## Inputs to read
-
-- T120 file store.
-- T141 proposals.
-
-## Expected output
-
-- Version history, diff view, rollback, freeze commands.
-
-## Verification
-
-Run version/diff/rollback on redacted fixture skill.
-
-## Docs to update
-
-- `docs/07_handoff.md`
-
-## Reviewer type
-
-adversarial
-
+Do not execute this superseded package.

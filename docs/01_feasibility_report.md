@@ -8,6 +8,30 @@ The remaining feasibility gap is reproducibility and quality maturity. A clean e
 
 T150 remains mandatory for committed regression tests before any stronger quality or maturity claim.
 
+## Captain Update 2026-05-16: Roadmap Feasibility
+
+The updated GPT roadmap is feasible if treated as a staged backlog rather than immediate implementation.
+
+Feasible now:
+
+- T140 feedback capture.
+- T141 feedback validation.
+- T142 safe feedback summary.
+- T150-T152 committed regression tests and fixtures.
+
+Feasible later, after tests:
+
+- PreferencePatch candidates and review flow.
+- Compatible ContactSkill decomposition.
+- Optional LLM-assisted ReplyPlanner.
+
+Not feasible/safe now:
+
+- Direct Mem0/Zep integration.
+- Feishu or WeChat adapter work.
+- BehaviorPlanner/proactive behavior.
+- Automatic memory or ContactSkill mutation from feedback.
+
 更新日期：2026-05-15
 
 ## 1. 问题定义

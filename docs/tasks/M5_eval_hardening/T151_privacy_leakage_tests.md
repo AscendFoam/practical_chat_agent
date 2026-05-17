@@ -1,46 +1,12 @@
-# Task T151: Privacy Leakage Tests
+# Task T151: Privacy Leakage Tests (Superseded)
 
-## Task ID
+This task package is superseded.
 
-T151
+Reason: privacy coverage is now folded into the M4.5 regression hardening path, especially policy fixtures and feedback CLI privacy/stdout tests.
 
-## Goal
+Use instead:
 
-建立 privacy leakage smoke test，扫描可提交目录中是否出现 private 原文或敏感模式。
+- `docs/tasks/M4_5_regression_hardening/T151_policy_fixture_suite.md`
+- `docs/tasks/M4_5_regression_hardening/T152_feedback_cli_regression_tests.md`
 
-## Why now
-
-项目处理私密聊天记录，隐私泄露检查必须自动化。
-
-## Allowed files
-
-- `tests/**`
-- `scripts/**` if a standalone scanner is preferred
-- `docs/07_handoff.md`
-
-## Forbidden scope
-
-- 不把 private 数据复制到 tests。
-- 不扫描 `.env` 内容输出。
-
-## Inputs to read
-
-- redaction rules and source_ref rules.
-
-## Expected output
-
-- Test/scanner catches phone numbers, ID-like strings, raw private filenames if present.
-- CI/local command documented.
-
-## Verification
-
-Run privacy smoke test.
-
-## Docs to update
-
-- `docs/07_handoff.md`
-
-## Reviewer type
-
-adversarial
-
+Do not execute this superseded package.

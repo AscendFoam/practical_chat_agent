@@ -8,6 +8,24 @@ The project may proceed to M4/T140, but only as a review-only feedback capture l
 
 Current mainline remains offline-first WeFlow distillation and review-only reply planning. T140 must record accept/edit/reject/boundary feedback without auto-sending, realtime platform integration, automatic ContactSkill/Memory mutation, fine-tuning, or relationship-aware maturity claims.
 
+## Captain Update 2026-05-16: Design Roadmap Alignment
+
+`docs/reference/gpt的后续设计思路(更新版).md` is accepted as directionally aligned with the project, with one operational refinement: near-term work must be even more staged.
+
+Adopted:
+
+- Keep ContactSkill as a compatibility/evidence aggregate; decompose later through derived briefs, not deletion.
+- Keep M4 as feedback capture/validation/summary only.
+- Add M4.5 regression hardening before feedback-to-patch, LLM-assisted drafting, RelationshipState, MemoryRetriever, BehaviorPlanner, or platform adapters.
+- Put Feishu/WeChat behind OutboundSendGate and after local fake adapter.
+
+Not adopted for immediate execution:
+
+- No immediate Mem0 integration.
+- No immediate Feishu/WebSocket/platform work.
+- No immediate ContactSkill replacement.
+- No automatic learning, automatic sending, or proactive behavior.
+
 更新日期：2026-05-15
 
 ## 1. 解决什么问题

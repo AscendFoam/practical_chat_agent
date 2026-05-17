@@ -23,6 +23,25 @@ ReplyPlan candidate
 
 Feedback records must not directly mutate ContactSkill, MemoryFact, approved store records, planner templates, or outbound delivery. No auto-send, realtime integration, DB/vector DB expansion, or LLM drafting expansion is allowed in T140.
 
+## Captain Update 2026-05-16: Roadmap Architecture
+
+The architecture is extended as a staged ladder:
+
+```text
+M4 Feedback Capture
+  -> M4.5 Regression Hardening
+  -> M5 PreferencePatch candidates
+  -> M6 ContactSkill-compatible derived briefs
+  -> M7 optional LLM-assisted ReplyPlanner
+  -> M8 RelationshipState
+  -> M9 MemoryRetriever abstraction
+  -> M10 draft-only BehaviorPlanner
+  -> M11 OutboundSendGate + Feishu sandbox
+  -> M12 thin WeChat adapter
+```
+
+Key architecture decision: platform adapters and external memory systems stay outside the core until send gate, regression tests, approved records, and review metadata are in place.
+
 更新日期：2026-05-15
 
 ## 1. 新架构定位

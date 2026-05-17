@@ -11,6 +11,7 @@
 - Current task package: `docs/tasks/M4_feedback_loop/T140_feedback_schema_cli.md`.
 - M4/T140 may proceed only under review-only constraints: no auto-send, no realtime platform integration, no LLM drafting expansion, no automatic ContactSkill/Memory mutation, and no relationship-aware maturity claim.
 - T150 must add committed regression tests covering ReplyPlanner structure, boundary sensitivity, thin context, false positives, subtle false negatives, privacy leakage, contact alignment, and ranking.
+- Roadmap update: `docs/reference/gpt的后续设计思路(更新版).md` is accepted as directionally aligned, but milestone/task ordering has been revised. M4 is feedback capture/validation/summary only; M4.5 is regression hardening; feedback-to-patch, ContactSkill-compatible decomposition, LLM planner, RelationshipState, MemoryRetriever, BehaviorPlanner, Feishu, and WeChat are delayed behind gates.
 
 ## 1. 当前状态
 
@@ -952,3 +953,20 @@ M1 必须承接的条件：
   - Confirm all M3 conditional constraints remain intact.
   - Confirm invalid candidate references fail safely.
   - Confirm no private content enters committed docs.
+
+## 33. Roadmap Alignment Decision
+
+- Reference reviewed:
+  - `docs/reference/gpt的后续设计思路(更新版).md`
+- Captain judgment:
+  - The document matches the project direction: review-first, ContactSkill compatibility, delayed platform integration, delayed external memory, and no automatic sending.
+  - The task board needed modification because old T141/T142 moved too quickly into proposal/versioning, while M3 is still conditional and T140 has not produced validated feedback yet.
+- Changes made:
+  - M4 now contains T140 feedback capture, T141 feedback log validator, and T142 feedback summary exporter.
+  - M4.5 now contains T150 ReplyPlanner regression tests, T151 policy fixture suite, and T152 feedback CLI regression tests.
+  - M5 now starts feedback-to-patch with T160-T164.
+  - M6-M12 now describe staged ContactSkill decomposition, optional LLM planner, RelationshipState, MemoryRetriever, BehaviorPlanner, OutboundSendGate/Feishu, and WeChat adapter.
+- Current Unique Task remains:
+  - T140 Feedback Schema CLI.
+- Important non-goals:
+  - Do not implement Mem0, Feishu, WeChat, BehaviorPlanner, LLM drafting, or ContactSkill replacement before their gated milestones.

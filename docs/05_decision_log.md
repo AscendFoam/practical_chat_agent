@@ -13,6 +13,25 @@
   - Do not claim relationship-aware maturity until broader sample recalibration.
 - Impact: Current Unique Task becomes T140 Feedback Schema CLI. T140 records human feedback only; it must not automatically update ContactSkill/Memory or send messages.
 
+## D024: Adopt updated GPT roadmap as staged backlog, revise M4+
+
+- Date: 2026-05-16
+- Status: Accepted
+- Context: `docs/reference/gpt的后续设计思路(更新版).md` was reviewed against current project state: M3 is `Conditional`, T140 is current, and the project remains offline-first/review-only.
+- Decision: Adopt the roadmap's strategic direction but revise milestone/task ordering to preserve the current safety architecture.
+- Adopted changes:
+  - M4 is narrowed to feedback capture, validation, and safe summary only.
+  - M4.5 is added for committed ReplyPlanner/policy/feedback regression tests.
+  - Feedback-to-patch moves after regression hardening.
+  - ContactSkill decomposition becomes compatible projection, not replacement.
+  - LLM-assisted ReplyPlanner, RelationshipState, MemoryRetriever, BehaviorPlanner, Feishu, and WeChat are delayed behind tests and review gates.
+- Rejected for immediate execution:
+  - Direct Mem0 integration.
+  - Direct Feishu/WebSocket/platform integration.
+  - Direct ContactSkill deletion/replacement.
+  - Automatic learning, automatic sending, or proactive behavior.
+- Impact: `docs/04_task_board.md` and task packages under `docs/tasks/` were updated to reflect the staged roadmap. Current Unique Task remains T140.
+
 更新日期：2026-05-15
 
 ## D001: 下一阶段以微信主线为优先

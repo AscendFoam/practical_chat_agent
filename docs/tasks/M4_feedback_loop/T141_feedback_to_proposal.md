@@ -1,46 +1,12 @@
-# Task T141: Feedback To Proposal
+# Task T141: Feedback To Proposal (Superseded)
 
-## Task ID
+This task package is superseded.
 
-T141
+Reason: after reviewing `docs/reference/gpt的后续设计思路(更新版).md`, Captain narrowed M4 to feedback capture, validation, and safe summary only. Proposal generation moved to M5 after M4.5 regression hardening.
 
-## Goal
+Use instead:
 
-把用户 edit/reject/boundary feedback 转成可审阅的 preference/boundary/memory update proposal。
+- Current T141: `docs/tasks/M4_feedback_loop/T141_feedback_log_validator.md`
+- Later proposal task: `docs/tasks/M5_feedback_to_patch/T162_patch_proposal_cli.md`
 
-## Why now
-
-这让 agent 越用越贴合用户，而不是把反馈埋在日志里。
-
-## Allowed files
-
-- `src/practical_chat_agent/services/feedback.py`
-- `src/practical_chat_agent/services/contact_skill.py`
-- `docs/07_handoff.md`
-
-## Forbidden scope
-
-- 不自动 approve proposal。
-- 不用无证据反馈覆盖历史事实。
-
-## Inputs to read
-
-- T140 feedback records.
-- ContactSkill schema.
-
-## Expected output
-
-- Proposal includes target skill/memory field, rationale, evidence feedback ref, status candidate.
-
-## Verification
-
-Run on redacted edited draft pair.
-
-## Docs to update
-
-- `docs/07_handoff.md`
-
-## Reviewer type
-
-adversarial
-
+Do not execute this superseded package.

@@ -76,21 +76,100 @@ Why now: T133 passed with warnings and Gate M3 is `Conditional`. M4 may start wi
 - [x] T132: 增加边界/禁忌/policy 校验，防止冒充和过度主动。review `PASS_WITH_WARNINGS`。任务包：`docs/tasks/M3_relationship_reply_planner/T132_reply_policy.md`
 - [x] T133: 用历史 holdout 场景评估回复自然度和边界遵守。review `PASS_WITH_WARNINGS` / Gate M3 `Conditional`。任务包：`docs/tasks/M3_relationship_reply_planner/T133_holdout_eval.md`
 
-## Milestone 4: 反馈闭环与记忆修正
+## Milestone 4: Feedback Capture
 
-目标：让用户对草稿的 accept/edit/reject/boundary feedback 变成可审阅的 memory/skill 更新提案。
+目标：只记录、校验、汇总用户对 ReplyPlan candidates 的 accept/edit/reject/boundary feedback，不应用反馈、不更新记忆、不接平台。
 
 - [ ] T140: 定义 feedback log schema 与 CLI。任务包：`docs/tasks/M4_feedback_loop/T140_feedback_schema_cli.md`
-- [ ] T141: 实现 edit diff -> preference/boundary proposal。任务包：`docs/tasks/M4_feedback_loop/T141_feedback_to_proposal.md`
-- [ ] T142: 实现 skill/memory version diff、rollback、freeze。任务包：`docs/tasks/M4_feedback_loop/T142_versioning_rollback.md`
+- [ ] T141: 实现 feedback log validator。任务包：`docs/tasks/M4_feedback_loop/T141_feedback_log_validator.md`
+- [ ] T142: 实现 feedback summary exporter。任务包：`docs/tasks/M4_feedback_loop/T142_feedback_summary_exporter.md`
 
-## Milestone 5: 评估与工程硬化
+## Milestone 4.5: Regression Hardening
 
-目标：建立自动化测试、隐私检查和最终工程收口。
+目标：把 M3 Conditional 与 M4 feedback capture 变成 clean-env 可复现的 committed tests，先补安全网再进入反馈应用或 LLM drafting。
 
-- [ ] T150: 建立脱敏 fixture 测试与 parser/chunker/evidence 单测。任务包：`docs/tasks/M5_eval_hardening/T150_tests.md`
-- [ ] T151: 建立 privacy leakage smoke test。任务包：`docs/tasks/M5_eval_hardening/T151_privacy_leakage_tests.md`
-- [ ] T152: 完成 distillation MVP milestone review 和最终 handoff。任务包：`docs/tasks/M5_eval_hardening/T152_final_review.md`
+- [ ] T150: ReplyPlanner regression tests。任务包：`docs/tasks/M4_5_regression_hardening/T150_replyplanner_regression_tests.md`
+- [ ] T151: Policy fixture suite。任务包：`docs/tasks/M4_5_regression_hardening/T151_policy_fixture_suite.md`
+- [ ] T152: Feedback CLI regression tests。任务包：`docs/tasks/M4_5_regression_hardening/T152_feedback_cli_regression_tests.md`
+
+## Milestone 5: Feedback To Patch
+
+目标：把多条相似 feedback 转成可审阅 PreferencePatch candidates；仍不自动 approve、不自动改 ContactSkill/Memory。
+
+- [ ] T160: PreferencePatch schema。任务包：`docs/tasks/M5_feedback_to_patch/T160_preference_patch_schema.md`
+- [ ] T161: feedback clusterer。任务包：`docs/tasks/M5_feedback_to_patch/T161_feedback_clusterer.md`
+- [ ] T162: patch proposal CLI。任务包：`docs/tasks/M5_feedback_to_patch/T162_patch_proposal_cli.md`
+- [ ] T163: patch review CLI。任务包：`docs/tasks/M5_feedback_to_patch/T163_patch_review_cli.md`
+- [ ] T164: approved patch compact context。任务包：`docs/tasks/M5_feedback_to_patch/T164_approved_patch_context.md`
+
+## Milestone 6: ContactSkill Compatible Decomposition
+
+目标：不废除 ContactSkill；在 approved ContactSkill 上兼容式派生 PartnerPersona / CommunicationPolicy / BoundaryProfile briefs。
+
+- [ ] T170: ContactSkill decomposition design。任务包：`docs/tasks/M6_contactskill_decomposition/T170_decomposition_design.md`
+- [ ] T171: PartnerPersonaBrief schema。任务包：`docs/tasks/M6_contactskill_decomposition/T171_partner_persona_brief_schema.md`
+- [ ] T172: CommunicationPolicyBrief schema。任务包：`docs/tasks/M6_contactskill_decomposition/T172_communication_policy_brief_schema.md`
+- [ ] T173: ContactSkill projection service。任务包：`docs/tasks/M6_contactskill_decomposition/T173_projection_service.md`
+- [ ] T174: derived briefs context integration。任务包：`docs/tasks/M6_contactskill_decomposition/T174_derived_briefs_context.md`
+
+## Milestone 7: LLM-Assisted ReplyPlanner
+
+目标：在 regression safety net 之后引入可选 LLM candidate generator，仍输出 `ReplyPlan`，默认 review-only。
+
+- [ ] T180: LLM candidate generator contract。任务包：`docs/tasks/M7_llm_reply_planner/T180_llm_candidate_contract.md`
+- [ ] T181: LLM candidate offline CLI。任务包：`docs/tasks/M7_llm_reply_planner/T181_llm_candidate_offline_cli.md`
+- [ ] T182: candidate validator。任务包：`docs/tasks/M7_llm_reply_planner/T182_candidate_validator.md`
+- [ ] T183: hybrid ReplyPlanner。任务包：`docs/tasks/M7_llm_reply_planner/T183_hybrid_reply_planner.md`
+- [ ] T184: LLM planner holdout eval。任务包：`docs/tasks/M7_llm_reply_planner/T184_llm_planner_holdout_eval.md`
+
+## Milestone 8: RelationshipState
+
+目标：建立多维关系状态与人工审阅 delta，不使用单一好感度，不自动覆盖长期状态。
+
+- [ ] T190: RelationshipState schema。任务包：`docs/tasks/M8_relationship_state/T190_relationship_state_schema.md`
+- [ ] T191: RelationshipSignal extractor。任务包：`docs/tasks/M8_relationship_state/T191_relationship_signal_extractor.md`
+- [ ] T192: RelationshipDeltaCandidate。任务包：`docs/tasks/M8_relationship_state/T192_relationship_delta_candidate.md`
+- [ ] T193: relationship review CLI。任务包：`docs/tasks/M8_relationship_state/T193_relationship_review_cli.md`
+- [ ] T194: RelationshipState compact context。任务包：`docs/tasks/M8_relationship_state/T194_relationship_state_context.md`
+- [ ] T195: relationship-aware reply eval。任务包：`docs/tasks/M8_relationship_state/T195_relationship_aware_eval.md`
+
+## Milestone 9: Memory Retrieval Layer
+
+目标：先定义 `MemoryRetriever` 抽象和 local approved-store retriever，再评估 Mem0 等外部 memory adapter。
+
+- [ ] T200: MemoryRetriever interface。任务包：`docs/tasks/M9_memory_retrieval_layer/T200_memory_retriever_interface.md`
+- [ ] T201: local approved-store retriever。任务包：`docs/tasks/M9_memory_retrieval_layer/T201_local_approved_store_retriever.md`
+- [ ] T202: retrieval eval set。任务包：`docs/tasks/M9_memory_retrieval_layer/T202_retrieval_eval_set.md`
+- [ ] T203: optional Mem0 adapter spike。任务包：`docs/tasks/M9_memory_retrieval_layer/T203_optional_mem0_adapter_spike.md`
+
+## Milestone 10: BehaviorPlanner
+
+目标：生成主动行为草稿 CandidateAction，不自动发送，不做全天候自我模拟。
+
+- [ ] T210: behavior schema。任务包：`docs/tasks/M10_behavior_planner/T210_behavior_schema.md`
+- [ ] T211: action planner rule engine。任务包：`docs/tasks/M10_behavior_planner/T211_action_planner_rule_engine.md`
+- [ ] T212: proactive draft generator。任务包：`docs/tasks/M10_behavior_planner/T212_proactive_draft_generator.md`
+- [ ] T213: CandidateAction review CLI。任务包：`docs/tasks/M10_behavior_planner/T213_candidate_action_review_cli.md`
+- [ ] T214: behavior safety eval。任务包：`docs/tasks/M10_behavior_planner/T214_behavior_safety_eval.md`
+
+## Milestone 11: OutboundSendGate + Feishu Sandbox
+
+目标：先建立所有平台发送前的安全阀，再接 fake adapter 和飞书沙箱；平台不得进入核心逻辑。
+
+- [ ] T220: OutboundMessageRequest schema。任务包：`docs/tasks/M11_outbound_sendgate_feishu/T220_outbound_message_request_schema.md`
+- [ ] T221: OutboundSendGate。任务包：`docs/tasks/M11_outbound_sendgate_feishu/T221_outbound_send_gate.md`
+- [ ] T222: local fake adapter。任务包：`docs/tasks/M11_outbound_sendgate_feishu/T222_local_fake_adapter.md`
+- [ ] T223: Feishu adapter。任务包：`docs/tasks/M11_outbound_sendgate_feishu/T223_feishu_adapter.md`
+- [ ] T224: Feishu review card。任务包：`docs/tasks/M11_outbound_sendgate_feishu/T224_feishu_review_card.md`
+
+## Milestone 12: WeChat Adapter
+
+目标：微信只作为最后的薄 adapter，可替换，不绕过 send gate，不写 memory，不驱动核心架构。
+
+- [ ] T230: WeChat adapter research spike。任务包：`docs/tasks/M12_wechat_adapter/T230_wechat_adapter_research_spike.md`
+- [ ] T231: WeChat inbound adapter。任务包：`docs/tasks/M12_wechat_adapter/T231_wechat_inbound_adapter.md`
+- [ ] T232: WeChat outbound adapter。任务包：`docs/tasks/M12_wechat_adapter/T232_wechat_outbound_adapter.md`
+- [ ] T233: WeChat safety mode。任务包：`docs/tasks/M12_wechat_adapter/T233_wechat_safety_mode.md`
 
 ## Historical Current Unique Task (Superseded)
 

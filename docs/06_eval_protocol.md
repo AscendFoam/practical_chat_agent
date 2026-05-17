@@ -18,6 +18,17 @@ M3 limitations:
 
 Gate condition for entering M4/T140: feedback capture may proceed only if it remains private, review-only, non-sending, and non-mutating. T150 must add committed regression tests before stronger maturity claims.
 
+## Captain Update 2026-05-16: Roadmap Evaluation Gates
+
+The updated roadmap adds explicit gates:
+
+- Gate M4: feedback can be recorded, validated, and summarized without mutation or private leakage.
+- Gate M4.5: committed tests reproduce ReplyPlanner/policy/feedback safety behavior in a clean environment.
+- Gate M5: feedback-to-patch produces candidate patches with supporting feedback ids and manual review only.
+- Gate M6: ContactSkill decomposition preserves compatibility, evidence refs, and fallback behavior.
+- Gate M7: LLM-assisted planner improves naturalness without regressing privacy, boundary adherence, evidence usage, or review-only mode.
+- Gate M8+: RelationshipState, MemoryRetriever, BehaviorPlanner, Feishu, and WeChat require prior gates to pass before implementation can proceed.
+
 更新日期：2026-05-15
 
 ## 1. 评价目标

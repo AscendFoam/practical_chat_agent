@@ -1,50 +1,11 @@
-# Task T152: Final Review
+# Task T152: Final Review (Superseded)
 
-## Task ID
+This task package is superseded.
 
-T152
+Reason: the roadmap no longer treats T152 as a final project review. T152 is now part of M4.5 regression hardening for feedback CLI tests. Final milestone reviews should be created later when the relevant milestone actually completes.
 
-## Goal
+Use instead:
 
-完成 distillation MVP 最终 milestone review 和 handoff。
+- `docs/tasks/M4_5_regression_hardening/T152_feedback_cli_regression_tests.md`
 
-## Why now
-
-需要确认新路线是否已经从数据合约走到可用的关系感知回复实验。
-
-## Allowed files
-
-- `docs/review/T152_milestone_review.md`
-- `docs/04_task_board.md`
-- `docs/05_decision_log.md`
-- `docs/06_eval_protocol.md`
-- `docs/07_handoff.md`
-- `docs/08_risks_and_open_questions.md`
-- `README.md`
-- `AGENTS.md`
-
-## Forbidden scope
-
-- 不写功能代码。
-- 不泄露 private 输出。
-
-## Inputs to read
-
-- All milestone review files.
-- `git status --short`.
-- verification outputs.
-
-## Expected output
-
-- Final verdict and recommended next phase.
-- Docs aligned with verified state.
-
-## Verification
-
-- Governance docs point to correct current task.
-- No private data in tracked docs/examples/tests.
-
-## Reviewer type
-
-milestone
-
+Do not execute this superseded package.

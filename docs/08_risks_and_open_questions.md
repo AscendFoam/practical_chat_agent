@@ -11,6 +11,14 @@ Authoritative current risk state after T133/M3 review:
 
 Closed question Q123: Gate M3 is `Conditional`; T140 may proceed only under review-only constraints and with T150 regression tests carried forward.
 
+## Captain Update 2026-05-16: Roadmap Risks
+
+- R039 is active: adopting the updated GPT roadmap too aggressively could reintroduce platform/external-memory scope creep. Mitigation: task board now delays Mem0, Feishu, WeChat, BehaviorPlanner, and LLM drafting behind explicit gates.
+- R040 is active: ContactSkill decomposition could accidentally become a breaking replacement. Mitigation: M6 is defined as compatible projection with fallback, not deletion.
+- R041 is active: feedback-to-patch could be mistaken for automatic learning. Mitigation: M5 patches remain candidate/review-only and require supporting feedback ids.
+
+Closed question Q124: the updated GPT roadmap is directionally aligned, but M4/M5+ tasks needed revision to preserve feedback-first and regression-first sequencing.
+
 更新日期：2026-05-16
 
 ## Active Risks
@@ -55,6 +63,9 @@ Closed question Q123: Gate M3 is `Conditional`; T140 may proceed only under revi
 | R036 | T131/T132 只有 inline synthetic verification，尚无 committed test/fixture | 干净环境和后续重构存在回归风险 | T150 必须补 ReplyPlanner contract、policy detection、privacy leakage、contact alignment 和 ranking tests；T133 可先记录匿名化人工评估结果 |
 | R037 | T132 policy layer 使用 substring keyword matching，可能出现 false positives | 某些普通文本可能被误判为敏感、过度主动或边界场景，导致候选过度保守 | T133 holdout eval 记录 false-positive / false-negative 样例；T150 或后续 refactor 可引入更精确的匹配规则 |
 | R038 | M4 feedback log 可能被误解为自动学习或自动记忆更新 | 用户反馈若被直接应用，可能绕过 human-review-first 和 evidence/versioning 约束 | T140 只允许记录 private feedback，不得自动修改 ContactSkill/Memory、planner templates 或 outbound behavior；T141/T142 才能在 reviewable proposal/versioning 范围内继续 |
+| R039 | 更新版路线图若被过度提前执行，可能重新引入平台接入、外部 memory 或 LLM scope creep | 破坏当前 offline-first / review-only / evidence-first 安全骨架 | Task board 已把 Mem0、Feishu、WeChat、BehaviorPlanner、LLM drafting 延后到 M7-M12，并要求先通过 M4/M4.5/M5/M6 gates |
+| R040 | ContactSkill decomposition 可能被误执行成 breaking replacement | 现有 T113/T120-T123/T130-T133 evidence pipeline 和 runtime context 可能失效 | M6 明确定义为 compatible projection；保留 ContactSkill 作为 legacy aggregate / evidence bundle，并要求 fallback |
+| R041 | Feedback-to-Patch 可能被误解为自动学习 | 单条反馈可能被过度泛化并污染长期回复策略 | M5 patches 必须保持 candidate/review-only，包含 supporting_feedback_ids，不自动 approve、不自动 runtime injection |
 
 ## Open Questions
 
@@ -92,6 +103,7 @@ Closed question Q123: Gate M3 is `Conditional`; T140 may proceed only under revi
 | Q121 | T131 是否足以作为 T132 的输入基础？足以作为安全 wiring baseline，但不是质量完成版；T132 必须补 policy/boundary 风险层，M3 仍未完成。 | `docs/review/T131_review.md` PASS_WITH_WARNINGS |
 | Q122 | T132 是否足以作为 T133 的输入基础？足以作为 policy/boundary baseline，但不是最终质量证明；T133 必须做匿名 holdout eval 和 Gate M3 判断。 | `docs/review/T132_review.md` PASS_WITH_WARNINGS |
 | Q123 | Gate M3 是否允许进入下一里程碑？允许以 `Conditional` 进入 M4/T140，但仅限 review-only feedback capture，并必须把 T150 regression tests 条件带入后续。 | `docs/review/T133_review.md` PASS_WITH_WARNINGS + `docs/review/M3_review.md` |
+| Q124 | `gpt的后续设计思路(更新版).md` 是否符合当前项目？方向符合，但必须收敛执行顺序；已将 M4 改为 feedback capture/validate/summary，新增 M4.5 regression hardening，并把 feedback-to-patch、ContactSkill decomposition、LLM planner、RelationshipState、MemoryRetriever、BehaviorPlanner、Feishu、WeChat 延后到 gated milestones。 | Captain roadmap alignment decision + `docs/04_task_board.md` update |
 
 ## Deferred Items
 
