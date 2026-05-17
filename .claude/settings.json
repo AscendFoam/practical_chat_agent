@@ -29,7 +29,18 @@
       "Bash(PYTHONPATH=src \"C:\\\\ProgramData\\\\anaconda3\\\\envs\\\\practical-chat-agent\\\\python.exe\" -m practical_chat_agent.app.main chat-reply-feedback-validate --input private/distilled/t141_test_fixture/bad_feedback.json --strict)",
       "Bash(echo \"EXIT_CODE=$?\")",
       "Bash(PYTHONPATH=src \"C:\\\\ProgramData\\\\anaconda3\\\\envs\\\\practical-chat-agent\\\\python.exe\" -m practical_chat_agent.app.main chat-reply-feedback-validate --input t141_outside_test.json --strict)",
-      "Bash('C:\\\\ProgramData\\\\anaconda3\\\\envs\\\\practical-chat-agent\\\\python.exe' -m compileall src/practical_chat_agent/services/feedback.py src/practical_chat_agent/app/main.py)"
+      "Bash('C:\\\\ProgramData\\\\anaconda3\\\\envs\\\\practical-chat-agent\\\\python.exe' -m compileall src/practical_chat_agent/services/feedback.py src/practical_chat_agent/app/main.py)",
+      "Bash(PYTHONPATH='src' 'C:\\\\ProgramData\\\\anaconda3\\\\envs\\\\practical-chat-agent\\\\python.exe' -m practical_chat_agent.app.main chat-reply-feedback-summary --input private/distilled/t140_feedback_fixture/feedback_log.json)",
+      "Bash(PYTHONPATH='src' 'C:\\\\ProgramData\\\\anaconda3\\\\envs\\\\practical-chat-agent\\\\python.exe' -m practical_chat_agent.app.main chat-reply-feedback-validate --input private/distilled/t140_feedback_fixture/feedback_log.json)",
+      "Read(//tmp/**)",
+      "Bash(PYTHONPATH='src' 'C:\\\\ProgramData\\\\anaconda3\\\\envs\\\\practical-chat-agent\\\\python.exe' -m practical_chat_agent.app.main chat-reply-feedback-summary --input private/distilled/t140_feedback_fixture/feedback_log.json --validation-report /tmp/t142_val_report.json --output private/distilled/t142_summary_test/summary.json)",
+      "Bash(PYTHONPATH='src' 'C:\\\\ProgramData\\\\anaconda3\\\\envs\\\\practical-chat-agent\\\\python.exe' -m practical_chat_agent.app.main chat-reply-feedback-summary --input private/distilled/t141_test_fixture/bad_feedback.json)",
+      "Bash(PYTHONPATH='src' 'C:\\\\ProgramData\\\\anaconda3\\\\envs\\\\practical-chat-agent\\\\python.exe' -m practical_chat_agent.app.main chat-reply-feedback-summary --input private/distilled/t141_test_fixture/corrupted.json)",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(PYTHONPATH='src' 'C:\\\\ProgramData\\\\anaconda3\\\\envs\\\\practical-chat-agent\\\\python.exe' -m practical_chat_agent.app.main chat-reply-feedback-summary --input private/distilled/t141_test_fixture/missing_plan.json)",
+      "Bash(PYTHONPATH='src' 'C:\\\\ProgramData\\\\anaconda3\\\\envs\\\\practical-chat-agent\\\\python.exe' -m practical_chat_agent.app.main chat-reply-feedback-validate --input private/distilled/t141_test_fixture/missing_plan.json)",
+      "Bash(PYTHONPATH='src' 'C:\\\\ProgramData\\\\anaconda3\\\\envs\\\\practical-chat-agent\\\\python.exe' -m practical_chat_agent.app.main chat-reply-feedback-summary --input private/distilled/t141_test_fixture/missing_plan.json --validation-report /tmp/t142_missing_plan_report.json)",
+      "Bash(PYTHONPATH='src' 'C:\\\\ProgramData\\\\anaconda3\\\\envs\\\\practical-chat-agent\\\\python.exe' -m practical_chat_agent.app.main chat-reply-feedback-summary --input private/distilled/t140_feedback_fixture/feedback_log.json --validation-report /tmp/nonexistent_report.json)"
     ]
   }
 }

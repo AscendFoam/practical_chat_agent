@@ -2,6 +2,12 @@
 
 ## Captain Update 2026-05-17
 
+T142 confirms that privacy-safe aggregate feedback summary export is feasible in the current architecture. The project can now record, validate, and summarize feedback without mutating ContactSkill, MemoryFact, approved stores, or outbound behavior.
+
+The remaining feasibility gap is reproducibility, not feature reach. M4 is therefore judged `Conditional`: a clean environment still cannot prove the M3/M4 behavior from committed repo contents alone, because committed regression tests and committed synthetic fixtures are still missing. T150-T152 remain the required bridge before M5.
+
+## Captain Update 2026-05-17
+
 T140 confirms that private human feedback capture is feasible in the current architecture: a `ReplyPlan` can be loaded, a chosen candidate can be referenced safely, and accept/edit/reject/boundary feedback can be written without touching memory, ContactSkill, sending, or platform adapters.
 
 The remaining feasibility gap inside M4 is log trustworthiness rather than feature reach. Before any summary or patch-proposal work, T141 must prove that feedback logs can be validated read-only, that broken references fail safely, and that corrupted or non-private path behavior is surfaced instead of silently passing through.

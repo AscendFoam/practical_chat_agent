@@ -1,5 +1,40 @@
 # Decision Log
 
+## D028: Gate M4 Conditional, enter T150 instead of M5
+
+- Date: 2026-05-17
+- Status: Accepted
+- Context: `docs/review/M4_review.md` judges M4 feedback capture as functionally complete but not yet clean-environment reproducible.
+- Decision: Gate M4 is `Conditional`. The project may proceed only to M4.5 regression hardening, beginning with T150 ReplyPlanner Regression Tests.
+- Reasoning:
+  - T140/T141/T142 provide the intended M4 read-only flow: record, validate, and summarize feedback.
+  - No blocking pseudo-completion was found.
+  - Clean-environment proof is still missing because committed tests and committed synthetic fixtures do not yet cover M3/M4 behavior.
+  - M5 feedback-to-patch remains unauthorized until T150-T152 reduce this reproducibility gap.
+- Impact: `docs/04_task_board.md` moves the Current Unique Task from T142 to T150.
+
+## D027: T142 PASS_WITH_WARNINGS, accept task, complete M4 functional scope
+
+- Date: 2026-05-17
+- Status: Accepted
+- Context: `docs/review/T142_review.md` gives `PASS_WITH_WARNINGS` for the feedback summary exporter task. No blocking issues were found.
+- Decision: T142 is complete. M4 functional scope is now present: feedback can be recorded, validated, and summarized in a review-only, privacy-safe flow.
+- Warning handling:
+  - Accepted:
+    - N01 duplicated `_resolve_plan_path` / `_load_plan_safe` helpers. Low-risk refactor debt only.
+    - N02 raw `input_path` appears in stdout. Style inconsistency only.
+    - N03 aggregate presence counts may reveal low-risk existence patterns. Acceptable for the current offline single-user tool.
+    - N04 unreadable input can still produce an output artifact describing the failure. Acceptable current behavior.
+    - N05 summary returns an untyped `dict`. Consistent with current M4 style.
+    - N06 no `reason_tag` / `policy_risk_flag` aggregation because those fields do not exist in the current record schema.
+  - Deferred: none.
+  - Rejected: none.
+- Conditions carried forward:
+  - M4 remains review-only and non-mutating.
+  - M4 is complete for scope, not yet sufficient for M5.
+  - T150-T152 remain responsible for committed reproducibility coverage.
+- Impact: T142 closes the implementation side of M4 and hands off to Captain milestone review.
+
 ## D025: T140 PASS_WITH_WARNINGS, accept task, advance to T141
 
 - Date: 2026-05-17

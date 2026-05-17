@@ -2,6 +2,18 @@
 
 ## Captain Update 2026-05-17
 
+Authoritative current risk state after T142 review and the Captain M4 review:
+
+- R044 remains active: `reply_plan_id` coherence is still not cross-checked against loaded plan context. T142 stayed descriptive and aggregate-only, but did not remove this gap.
+- R045 remains active: T141 validation `record_results` can still become verbose on large logs. T142 avoided re-printing raw per-record payloads, but T152 should still regression-test compact behavior.
+- R046 is active: M3/M4 clean-environment reproducibility is still not proven from committed repo contents alone. T150-T152 must add committed synthetic fixtures and deterministic regression tests before M5 is allowed.
+
+Closed question Q127: T142 is accepted with `PASS_WITH_WARNINGS`, so the project may treat M4 implementation scope as complete rather than sending T142 back for a blocking fix pass.
+
+Closed question Q128: the Captain M4 review is `Conditional`, so the next step is M4.5/T150 regression hardening, not M5 feedback-to-patch work.
+
+## Captain Update 2026-05-17
+
 Authoritative current risk state after T140 review:
 
 - R042 is active: a corrupted T140 feedback log can currently be silently replaced during append, creating a data-loss risk. T141 should surface this explicitly and T152 should eventually regression-test it.

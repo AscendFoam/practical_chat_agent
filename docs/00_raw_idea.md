@@ -2,6 +2,16 @@
 
 ## Captain Update 2026-05-17
 
+T142 has now passed review with `PASS_WITH_WARNINGS`, so the intended M4 loop is functionally complete:
+
+- private feedback can be recorded
+- feedback logs can be validated read-only
+- aggregate feedback summaries can be exported without leaking private text
+
+This does not yet justify moving into M5 feedback-to-patch work. The Captain M4 review is `Conditional`: the remaining gap is clean-environment reproducibility, because committed regression tests and committed synthetic fixtures are still missing. The Current Unique Task therefore moves to T150 ReplyPlanner Regression Tests rather than to patch generation.
+
+## Captain Update 2026-05-17
+
 T140 has now passed review with `PASS_WITH_WARNINGS`.
 
 The project can continue into T141, but M4 still remains strictly review-only:

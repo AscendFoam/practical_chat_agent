@@ -63,6 +63,7 @@ from practical_chat_agent.services.meeting_live_loop import MeetingLiveLoopReque
 from practical_chat_agent.services.feedback import (
     FeedbackError,
     FeedbackService,
+    FeedbackSummaryService,
     FeedbackValidationService,
 )
 from practical_chat_agent.services.reply_planner import ReplyPlanner, ReplyPlannerError
@@ -2133,6 +2134,62 @@ def chat_reply_feedback_validate(
     if strict and (
         report["invalid_record_count"] > 0 or report["privacy_warnings"]
     ):
+        raise typer.Exit(code=1)
+
+
+@app.command("chat-reply-feedback-summary")
+def chat_reply_feedback_summary(
+    input_path: Path = typer.Option(
+        ...,
+        "--input",
+        help="Input feedback log JSON file to summarize.",
+    ),
+    output: Optional[Path] = typer.Option(
+        None,
+        "--output",
+        help="Optional private output path for summary JSON.",
+    ),
+    validation_report: Optional[Path] = typer.Option(
+        None,
+        "--validation-report",
+        help="Optional T141 validation report JSON to merge aggregate counts from.",
+    ),
+) -> None:
+    """Export aggregate privacy-safe feedback summary over a feedback log."""
+
+    service = FeedbackSummaryService()
+    summary = service.summarize(
+        input_path=input_path,
+        output_path=output,
+        validation_report_path=validation_report,
+    )
+
+    safe_stdout = {
+        "input_path": summary["input_path"],
+        "is_readable": summary["is_readable"],
+        "total_records": summary["total_records"],
+        "counts_by_action": summary["counts_by_action"],
+        "distinct_contact_ids": summary["distinct_contact_ids"],
+        "distinct_candidate_ids": summary["distinct_candidate_ids"],
+        "distinct_reply_plan_ids": summary["distinct_reply_plan_ids"],
+        "distinct_source_plan_paths": summary["distinct_source_plan_paths"],
+        "records_with_boundary_label": summary["records_with_boundary_label"],
+        "records_with_edited_text": summary["records_with_edited_text"],
+        "records_with_user_note": summary["records_with_user_note"],
+        "counts_by_approach_label": summary["counts_by_approach_label"],
+        "time_range": summary["time_range"],
+        "validation_summary": summary["validation_summary"],
+    }
+
+    if not summary["is_readable"]:
+        safe_stdout["corrupted_reason"] = summary["corrupted_reason"]
+
+    if summary.get("output_path"):
+        safe_stdout["output_path"] = _safe_cli_path(Path(summary["output_path"]))
+
+    typer.echo(json.dumps(safe_stdout, ensure_ascii=False, indent=2))
+
+    if not summary["is_readable"]:
         raise typer.Exit(code=1)
 
 

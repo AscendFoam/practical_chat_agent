@@ -15,20 +15,27 @@ Updated: 2026-05-17
   - Accepted: N01 raw `input_path` in CLI output, N03 coarse private-path heuristic, N04 CWD-dependent relative path resolution, N05 stored-but-unused `strict_mode`.
   - Deferred: N02 `reply_plan_id` coherence not cross-checked, N06 `record_results` may get large.
   - Rejected: none.
+- T142 review decision: `PASS_WITH_WARNINGS`.
+- T142 is complete as a privacy-safe aggregate feedback summary exporter.
+- T142 warning disposition:
+  - Accepted: N01 duplicated plan-loading helpers, N02 raw `input_path` in stdout, N03 aggregate presence counts expose low-risk existence patterns, N04 unreadable input can still produce an output artifact, N05 untyped summary `dict`, N06 no `reason_tag` / `policy_risk_flag` aggregation because those fields do not yet exist.
+  - Deferred: none.
+  - Rejected: none.
 - Gate M3 remains `Conditional`.
-- Current Unique Task: T142 Feedback Summary Exporter.
-- Current task package: `docs/tasks/M4_feedback_loop/T142_feedback_summary_exporter.md`.
+- Gate M4 is now `Conditional`.
+- Current Unique Task: T150 ReplyPlanner Regression Tests.
+- Current task package: `docs/tasks/M4_5_regression_hardening/T150_replyplanner_regression_tests.md`.
 - M4 remains review-only: no auto-send, no realtime platform integration, no automatic ContactSkill/Memory mutation, no feedback-to-patch behavior, and no relationship-aware maturity claim before regression hardening.
-- T142 should stay aggregate-only and privacy-safe, and may surface the deferred T141 coherence gap only as summary metadata.
-- T150 must add committed regression tests covering ReplyPlanner structure, boundary sensitivity, thin context, false positives, subtle false negatives, privacy leakage, contact alignment, candidate ranking, and feedback CLI safety.
+- M4 is functionally complete for scope, but clean-environment reproducibility is still unproven because committed tests and committed synthetic fixtures remain incomplete.
+- T150/T151/T152 must harden M3/M4 with committed regression coverage before M5 is authorized.
 
 ## Current Unique Task
 
-T142: Feedback Summary Exporter.
+T150: ReplyPlanner Regression Tests.
 
-Task package: `docs/tasks/M4_feedback_loop/T142_feedback_summary_exporter.md`
+Task package: `docs/tasks/M4_5_regression_hardening/T150_replyplanner_regression_tests.md`
 
-Why now: T141 established read-only validation, and the next safe M4 step is aggregate visibility. T142 must summarize feedback patterns without exposing private text or mutating downstream state.
+Why now: M4 is now functionally complete, but the Captain M4 review is `Conditional`. Before M5 feedback-to-patch work, the repo needs committed deterministic tests proving ReplyPlanner, policy, and feedback safety behavior in a clean environment.
 
 ## Board Rules
 
@@ -90,7 +97,7 @@ Goal: record, validate, and summarize human feedback on ReplyPlan candidates wit
 
 - [x] T140: feedback log schema + CLI. Review `PASS_WITH_WARNINGS`.
 - [x] T141: feedback log validator. Review `PASS_WITH_WARNINGS`.
-- [ ] T142: feedback summary exporter.
+- [x] T142: feedback summary exporter. Review `PASS_WITH_WARNINGS`. Gate M4 `Conditional`.
 
 ## Milestone 4.5: Regression Hardening
 
@@ -181,9 +188,9 @@ Goal: keep WeChat as a thin final adapter behind the send gate.
 
 ## Historical Current Unique Task
 
-T140: Feedback Schema CLI.
+T142: Feedback Summary Exporter.
 
-It is now complete and accepted with `PASS_WITH_WARNINGS`. Its remaining deferred issues must be carried by T141/T152 rather than treated as blocking rework.
+It is now complete and accepted with `PASS_WITH_WARNINGS`. M4 is functionally complete, but the milestone remains `Conditional`, so the next worker task is T150 rather than M5.
 
 ## Next Captain Output Required
 

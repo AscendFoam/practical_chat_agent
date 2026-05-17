@@ -1132,3 +1132,101 @@ M1 必须承接的条件：
   - confirm output is aggregate and privacy-safe
   - confirm T142 stays within M4 capture/validation/summary scope only
   - confirm any `reply_plan_id` coherence handling remains descriptive and non-mutating
+
+## 40. T142 Implementation Record
+
+- Files changed:
+  - `src/practical_chat_agent/services/feedback.py`
+  - `src/practical_chat_agent/app/main.py`
+  - `docs/07_handoff.md`
+- Summary service behavior:
+  - Added `FeedbackSummaryService` with read-only `summarize()` method.
+  - Reads a T140 feedback log JSON file and computes aggregate counts.
+  - Aggregate fields in summary output:
+    - `total_records`: total feedback record count
+    - `counts_by_action`: count by action type (accept/edit/reject/boundary)
+    - `distinct_contact_ids`: number of distinct contact ids
+    - `distinct_candidate_ids`: number of distinct candidate ids
+    - `distinct_reply_plan_ids`: number of distinct reply_plan_ids
+    - `distinct_source_plan_paths`: number of distinct source_plan_path values
+    - `records_with_boundary_label`: count of records with a boundary_label set
+    - `records_with_edited_text`: count of records with edited_text set
+    - `records_with_user_note`: count of records with user_note set
+    - `counts_by_approach_label`: count by candidate approach_label (best-effort, loaded from referenced plans; empty when plans are not resolvable)
+    - `time_range`: earliest and latest record timestamps
+    - `validation_summary`: merged T141 validation report aggregates (optional)
+  - Corrupted or unreadable input is reported via `is_readable: false` and `corrupted_reason`, consistent with T141 handling.
+  - Optional `--validation-report` reads a T141 validation report and merges only aggregate counts (valid/invalid counts, missing_plan_count, missing_candidate_count, contact_mismatch_count, edit_without_text_count, boundary_without_details_count, privacy_warning_count). Raw record payloads are not printed.
+  - Optional `--output` writes the full summary JSON to a private output path.
+  - No draft text, edited text, user notes, boundary notes, or raw transcript content appears in stdout or output file.
+- CLI command:
+  - `chat-reply-feedback-summary --input <feedback.json> [--output <private summary.json>] [--validation-report <report.json>]`
+- Verification:
+  - Compile passed for feedback.py and main.py.
+  - Good log (T140 fixture, 4 records accept/edit/reject/boundary): `total_records=4`, `counts_by_action={accept:1, edit:1, reject:1, boundary:1}`, `distinct_candidate_ids=3`, `counts_by_approach_label={conservative_acknowledgment:2, light_follow_up:1, warm_but_guarded:1}`, approach labels loaded from referenced plan.
+  - Good log with validation report and output file: `validation_summary.status=merged`, `valid_record_count=4`, `invalid_record_count=0`, summary JSON written to output path.
+  - Bad log (edit without text, boundary without details): `total_records=2`, `counts_by_action={edit:1, boundary:1}`, approach labels loaded from referenced plan.
+  - Missing plan log: `total_records=1`, `counts_by_approach_label={}` (plan not resolvable, approach_label unavailable). With validation report: `validation_summary.missing_plan_count=1`, `invalid_record_count=1`.
+  - Corrupted JSON: `is_readable=false`, `corrupted_reason="json_decode_error: ..."`, exit code 1.
+  - Non-existent validation report: `validation_summary.status=report_not_found`.
+  - Privacy confirmed: grep for private text field values (edited text content, user note content, boundary note content) in stdout and output file returned 0 matches.
+  - Read-only confirmed: md5sums of all input fixture files unchanged after all summary runs.
+  - No ContactSkill, MemoryFact, approved store record, or planner template was modified.
+- Explicit non-actions:
+  - No proposal, preference, boundary, memory, or ContactSkill update was added.
+  - No feedback log, ReplyPlan, ContactSkill, MemoryFact, approved store, or planner template was mutated.
+  - No LLM call, auto-send, realtime platform integration, DB, vector DB, or `private/chat_history/` read was added.
+
+## 41. T142 Review Decision
+
+- Review file:
+  - `docs/review/T142_review.md`
+- Verdict:
+  - `PASS_WITH_WARNINGS`
+- Captain decision:
+  - T142 is complete within task scope.
+  - M4 implementation scope is now complete: feedback can be recorded, validated, and summarized in a review-only flow.
+  - No T142 warning is blocking enough to require an automatic repair pass.
+- Warning handling:
+  - Accepted:
+    - N01 duplicated `_resolve_plan_path` / `_load_plan_safe` helpers
+    - N02 raw `input_path` in stdout
+    - N03 low-risk aggregate existence-pattern counts
+    - N04 unreadable input may still produce an output artifact
+    - N05 untyped summary `dict`
+    - N06 no `reason_tag` / `policy_risk_flag` aggregation because those fields do not yet exist
+  - Deferred:
+    - none
+  - Rejected:
+    - none
+
+## 42. M4 Review Decision
+
+- Review file:
+  - `docs/review/M4_review.md`
+- Verdict:
+  - `Conditional`
+- Completion judgment:
+  - M4 is functionally complete for intended scope: T140/T141/T142 deliver feedback record, validation, and aggregate summary.
+  - No blocking pseudo-completion was found.
+  - Clean-environment reproducibility is still not proven from committed repo contents alone because committed tests and committed synthetic fixtures are still missing.
+- Gate decision:
+  - Do not proceed to M5 yet.
+  - Proceed only to M4.5 regression hardening.
+
+## 43. T150 Kickoff Notes
+
+- Task package:
+  - `docs/tasks/M4_5_regression_hardening/T150_replyplanner_regression_tests.md`
+- Worker focus:
+  - add committed deterministic tests for ReplyPlanner structure, privacy, ranking, contact alignment, thin-context behavior, and baseline policy behavior
+  - use only synthetic or redacted fixtures
+  - reduce the reproducibility gap that currently keeps M4 at `Conditional`
+- Explicit non-goals:
+  - no planner implementation changes unless Captain opens a bug-fix task
+  - no T140-T142 feedback CLI regression work in this task
+  - no LLM, auto-send, realtime integration, DB, vector DB, or UI work
+- Reviewer focus:
+  - confirm tests are committed, deterministic, and privacy-safe
+  - confirm fixtures are synthetic/redacted
+  - confirm M3/M4 gate obligations are actually encoded as tests rather than restated in docs

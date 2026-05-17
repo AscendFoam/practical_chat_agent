@@ -2,6 +2,30 @@
 
 ## Captain Update 2026-05-17
 
+T142 is now complete, so the architecture has a full review-only M4 feedback loop:
+
+```text
+Approved compact ChatContext
+  -> ReplyPlanner
+  -> ReplyPlan candidates
+  -> human review
+  -> private feedback log
+  -> read-only validation report
+  -> aggregate safe summary
+```
+
+The next architectural step is not patch generation. The next step is regression hardening:
+
+```text
+M4 review-only feedback loop
+  -> M4.5 committed regression tests and fixtures
+  -> only then M5 feedback-to-patch candidates
+```
+
+This preserves the current contract: no auto-send, no realtime integration, no ContactSkill/Memory mutation, and no feedback-to-learning jump before reproducible tests exist.
+
+## Captain Update 2026-05-17
+
 T140 is now complete. The architecture has advanced from "reply planning only" to "reply planning plus private human feedback capture":
 
 ```text

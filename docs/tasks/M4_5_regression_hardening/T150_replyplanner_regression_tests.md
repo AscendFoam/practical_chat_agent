@@ -10,6 +10,8 @@ Add committed deterministic regression tests for the M3 `ReplyPlanner` and polic
 
 T150 closes the key M3 Conditional gap: current ReplyPlanner behavior has inline/private verification, but no committed fixtures/tests that can run in a clean environment.
 
+This is now also the first required follow-up from the Captain M4 review. T150 is not a feature-expansion task; it is a reproducibility task.
+
 ## Why Now
 
 M3 was accepted only as `Conditional`. Before LLM-assisted drafting, feedback-to-patch proposals, platform adapters, or relationship-state logic, the project needs repeatable tests that guard privacy, boundary behavior, contact alignment, and candidate structure.
@@ -37,6 +39,13 @@ M3 was accepted only as `Conditional`. Before LLM-assisted drafting, feedback-to
 
 Do not edit planner implementation unless Captain explicitly opens a bug-fix task.
 
+## Deliverables
+
+- committed synthetic pytest fixtures for `ReplyPlanner` / policy inputs
+- committed deterministic tests that exercise the required coverage below
+- no implementation drift outside tests/fixtures/test config
+- handoff/risk updates that state exactly what is now reproducible and what still is not
+
 ## Forbidden Scope
 
 - Do not use private chat history or private eval artifacts as committed fixtures.
@@ -44,6 +53,7 @@ Do not edit planner implementation unless Captain explicitly opens a bug-fix tas
 - Do not call an LLM.
 - Do not modify ReplyPlanner behavior in this task.
 - Do not add auto-send, platform integration, database, vector DB, or UI.
+- Do not absorb T140-T142 feedback CLI regression work into this task; that belongs to T152.
 
 ## Required Test Coverage
 
@@ -61,6 +71,15 @@ Add pytest coverage for at least:
 - candidate `priority_rank` is unique and stable
 - non-approved record ids do not leak into candidate refs
 
+Where current behavior is intentionally imperfect but already accepted as `Conditional`, encode that limitation explicitly in assertions or `xfail`-style documentation rather than silently skipping the case.
+
+## Fixture Constraints
+
+- Fixtures must be synthetic or heavily redacted.
+- Use short, plain, domain-neutral content; do not simulate real private chats.
+- Keep fixture shape close to the current approved-store / compact-context contract so failures are diagnostically useful.
+- Prefer a small number of reusable fixtures over many near-duplicates.
+
 ## Verification
 
 Required commands:
@@ -71,6 +90,13 @@ pytest tests
 ```
 
 If the full suite cannot run, record the blocker in `docs/07_handoff.md` and `docs/08_risks_and_open_questions.md`.
+
+Minimum acceptance bar:
+
+- at least one committed test fails if candidate structure regresses
+- at least one committed test fails if privacy leakage appears in `ReplyPlan`
+- at least one committed test fails if contact alignment or ranking invariants regress
+- fixtures and test names make the M3 Conditional obligations easy to audit
 
 ## Expected Handoff Update
 

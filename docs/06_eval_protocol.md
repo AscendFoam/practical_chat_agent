@@ -2,6 +2,18 @@
 
 ## Captain Update 2026-05-17
 
+T142 has now been accepted with `PASS_WITH_WARNINGS`, and the Captain M4 review sets Gate M4 to `Conditional`.
+
+Current evaluation sequence is therefore:
+
+- T150: can committed tests reproduce M3 ReplyPlanner structure, privacy, contact alignment, ranking, and baseline policy behavior?
+- T151: can committed policy fixtures make false-positive and subtle false-negative behavior explicit and reviewable?
+- T152: can committed feedback CLI tests reproduce T140-T142 privacy and read-only guarantees in a clean environment?
+
+M5 is not the next evaluation target. The next evaluation target is reproducibility. Before feedback-to-patch work, the repo must prove from committed contents alone that M3/M4 behavior runs safely without relying on private/manual verification.
+
+## Captain Update 2026-05-17
+
 T140 has been accepted with `PASS_WITH_WARNINGS`.
 
 Current M4 evaluation sequence is now:
