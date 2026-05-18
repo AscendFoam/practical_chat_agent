@@ -1,5 +1,17 @@
 # Handoff
 
+## Captain Current State Override 2026-05-18 (T162 Review Decision)
+
+- T162 review decision: `PASS_WITH_WARNINGS`.
+- T162 warning disposition:
+  - Accepted: N05 `.claude/settings.json` is workspace noise rather than a task-scope violation.
+  - Deferred: N01 the patch contract still overclaims deterministic `patch_id` behavior, N02 raw `input_path` remains present in proposal stdout/output, N03 no committed automated proposal tests yet exist, N04 malformed cluster input with empty `contact_id` can still crash proposal generation instead of being skipped defensively.
+  - Rejected: none.
+- Current Unique Task: T163 Patch Review CLI.
+- Current task package: `docs/tasks/M5_feedback_to_patch/T163_patch_review_cli.md`.
+- M5 remains deterministic, review-only, and non-mutating.
+- T163 may record human review decisions on `PreferencePatchCandidate` proposals, but it may not auto-approve, auto-apply, inject approved patches into runtime context, mutate ContactSkill/Memory, or add outbound behavior.
+
 更新日期：2026-05-17
 
 更新日期：2026-05-16
@@ -1690,3 +1702,88 @@ M1 必须承接的条件：
   - confirm proposals are deterministic, candidate-only, and evidence-backed
   - confirm ambiguous or edit-only signals are skipped explicitly instead of being over-interpreted
   - confirm stdout/artifacts remain privacy-safe and no runtime mutation behavior is smuggled into the proposal layer
+
+## 60. T162 Implementation Record
+
+- 代码 / 文档改动：
+  - `src/practical_chat_agent/services/feedback.py`
+  - `src/practical_chat_agent/app/main.py`
+  - `docs/data_contracts/preference_patch_contract.md`
+  - `docs/07_handoff.md`
+  - `docs/08_risks_and_open_questions.md`
+- 已实现内容：
+  - 新增 `PatchProposalService`，消费 T161 cluster report 并输出确定性、candidate-only `PreferencePatchCandidate` 提案。
+  - 新增 `chat-feedback-propose-patch` CLI，支持 `--cluster-report`（必需）和 `--output`（可选）。
+  - 确定性标签映射：
+    - `too_long` → `length_preference` / sensitivity=low
+    - `too_formal` → `tone_preference` / sensitivity=low
+    - `too_cold` → `tone_preference` / sensitivity=low
+    - `too_eager` → `proactivity_preference` / sensitivity=medium
+    - `too_intimate` → `boundary_preference` / sensitivity=high
+    - `boundary_violation` → `boundary_preference` / sensitivity=high
+  - 跳过规则：
+    - `insufficient_support`: record_count < 2 或 supporting_feedback_ids 为空
+    - `unlabeled_cluster`: cluster_label 缺失
+    - `no_safe_mapping`: cluster_label 不在确定性映射表中（包括 `good_tone`、`not_like_me`、未知标签）
+  - `good_tone` 和 `not_like_me` 被跳过而非猜测，因为其聚合信号不足以生成安全的 `behavior_instruction`。
+  - 置信度公式：`min(0.3 + 0.15 * (record_count - 1), 0.9)`，与证据强度单调递增，不超过 0.9。
+  - 所有生成的 patch 状态为 `candidate`，`review_metadata.reviewed_by_human` 为 `False`，`is_runtime_ready()` 返回 `False`。
+  - `positive_examples` 和 `negative_examples` 始终为空列表（proposal 阶段不生成）。
+  - `affected_candidate_types` 从 cluster 的 `counts_by_approach_label` 派生。
+  - 未修改 ContactSkill/Memory/store records、未调用 LLM、未自动 approve 或 apply、未注入 runtime context。
+- Proposal 输出 shape：
+  - Schema: `patch_proposal_v1`
+  - CLI: `chat-feedback-propose-patch --cluster-report <path> --output <path>`
+- 合成验证示例：
+  - 输入：含 4 个 cluster 的合成 cluster report（too_long/3、good_tone/2、not_like_me/2、boundary_violation/1）
+  - 输出：1 个 candidate（too_long/3 → length_preference, confidence=0.6）
+  - 跳过：3 个 cluster（good_tone → no_safe_mapping, not_like_me → no_safe_mapping, boundary_violation/1 → insufficient_support）
+  - 每个 candidate 的 `supporting_feedback_ids` 非空
+  - `positive_examples` / `negative_examples` 为空列表
+  - 重复运行产生相同的 candidate（除时间戳外）
+  - 隐私安全：输出不含原始反馈文本、编辑文本、用户备注或边界备注
+- T163-T164 必须保留的约束：
+  - 提案状态始终为 `candidate`，T163 review CLI 才能将其改为 `approved`
+  - `is_runtime_ready()` 依赖 `status == "approved"` 且 `review_metadata.reviewed_by_human == True` 且 `review_metadata.last_decision == "approved"`
+  - `positive_examples` / `negative_examples` 在 proposal 阶段为空，T163 review 或后续任务可补充安全摘要
+  - `patch_id` 使用 `new_id("patch")` 生成（非确定性），但其他所有字段由 cluster 输入确定性决定
+  - T164 只可消费 `status == "approved"` 且 `is_runtime_ready() == True` 的 patch
+## 61. T162 Review Decision
+
+- Review file:
+  - `docs/review/T162_review.md`
+- Verdict:
+  - `PASS_WITH_WARNINGS`
+- Captain decision:
+  - T162 is complete within task scope.
+  - The repo now has a deterministic, candidate-only patch proposal layer for M5.
+  - No T162 warning is blocking enough to require an automatic repair pass.
+- Warning handling:
+  - Accepted:
+    - N05 `.claude/settings.json` is a workspace artifact rather than a task-scope violation.
+  - Deferred:
+    - N01 the contract still overclaims deterministic `patch_id` behavior even though implementation uses UUID-based `new_id("patch")`.
+    - N02 raw `input_path` remains present in proposal stdout/output.
+    - N03 no committed automated tests yet cover `PatchProposalService` / `chat-feedback-propose-patch`.
+    - N04 malformed cluster input with empty `contact_id` can still crash proposal generation instead of being skipped defensively.
+  - Rejected:
+    - none
+
+## 62. T163 Kickoff Notes
+
+- Task package:
+  - `docs/tasks/M5_feedback_to_patch/T163_patch_review_cli.md`
+- Worker focus:
+  - add explicit human review actions for `PreferencePatchCandidate` proposal reports
+  - preserve proposal evidence, review metadata, and decision history without mutating runtime state
+  - keep approval semantics explicit and separate from runtime context wiring
+- Explicit non-goals:
+  - no auto-approve or auto-apply
+  - no runtime injection or compact-context consumption yet
+  - no ContactSkill/Memory mutation
+  - no outbound send behavior, no realtime integration, no LLM use
+  - no rewriting proposal content or inventing new evidence during review
+- Reviewer focus:
+  - confirm review actions are explicit, auditable, and human-gated
+  - confirm rejected/frozen/archived patches do not become runtime-ready
+  - confirm stdout/artifacts remain privacy-safe and no runtime mutation behavior is smuggled into the review layer

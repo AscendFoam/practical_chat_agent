@@ -8,7 +8,11 @@ from pathlib import Path
 
 from pydantic import ValidationError
 
+from practical_chat_agent.core.ids import new_id
 from practical_chat_agent.core.models import (
+    DistillationSensitivity,
+    PreferencePatchCandidate,
+    PreferencePatchType,
     ReplyFeedbackAction,
     ReplyFeedbackLog,
     ReplyFeedbackRecord,
@@ -708,6 +712,187 @@ class FeedbackClusterService:
             ):
                 return candidate.approach_label
         return None
+
+    def _finalize(self, report: dict, output_path: Path | None) -> dict:
+        if output_path is not None:
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            output_path.write_text(
+                json.dumps(report, ensure_ascii=False, indent=2),
+                encoding="utf-8",
+            )
+            report["output_path"] = str(output_path)
+        return report
+
+
+class PatchProposalService:
+    """Deterministic, review-only patch proposal generator (T162).
+
+    Consumes T161 cluster output and generates candidate-only
+    PreferencePatchCandidate records. Skips ambiguous, unlabeled, or
+    low-support clusters. No auto-approve, no runtime injection.
+    """
+
+    _LABEL_TO_PATCH_TYPE: dict[str, PreferencePatchType] = {
+        "too_long": "length_preference",
+        "too_formal": "tone_preference",
+        "too_cold": "tone_preference",
+        "too_eager": "proactivity_preference",
+        "too_intimate": "boundary_preference",
+        "boundary_violation": "boundary_preference",
+    }
+
+    _LABEL_CLAIM_TEMPLATES: dict[str, str] = {
+        "too_long": "Feedback suggests replies tend to be too long for this contact.",
+        "too_formal": "Feedback suggests replies tend to be too formal for this contact.",
+        "too_cold": "Feedback suggests replies tend to be too cold or reserved for this contact.",
+        "too_eager": "Feedback suggests replies tend to be too eager or over-proactive for this contact.",
+        "too_intimate": "Feedback suggests replies may be too intimate or over-familiar for this contact.",
+        "boundary_violation": "Feedback indicates boundary-sensitive interactions with this contact.",
+    }
+
+    _LABEL_BEHAVIOR_TEMPLATES: dict[str, str] = {
+        "too_long": "Prefer shorter, more concise replies for this contact.",
+        "too_formal": "Use a more casual, relaxed tone with this contact.",
+        "too_cold": "Add warmth and engagement to replies for this contact.",
+        "too_eager": "Reduce proactivity; let the contact take the lead more often.",
+        "too_intimate": "Maintain a respectful distance; avoid overly familiar language.",
+        "boundary_violation": "Exercise extra caution around sensitive topics with this contact.",
+    }
+
+    _LABEL_SENSITIVITY: dict[str, DistillationSensitivity] = {
+        "too_long": "low",
+        "too_formal": "low",
+        "too_cold": "low",
+        "too_eager": "medium",
+        "too_intimate": "high",
+        "boundary_violation": "high",
+    }
+
+    _MIN_RECORD_COUNT = 2
+
+    def propose(self, *, cluster_report_path: Path, output_path: Path | None = None) -> dict:
+        report = self._init_report(cluster_report_path)
+
+        cluster_data = self._load_cluster_report(cluster_report_path, report)
+        if cluster_data is None:
+            return self._finalize(report, output_path)
+
+        report["input_path"] = cluster_data.get("input_path", str(cluster_report_path))
+        clusters = cluster_data.get("clusters", [])
+
+        for cluster in clusters:
+            candidate = self._process_cluster(cluster, report)
+            if candidate is not None:
+                report["candidates"].append(candidate)
+                report["candidate_count"] += 1
+            else:
+                report["skipped_cluster_count"] += 1
+
+        return self._finalize(report, output_path)
+
+    def _init_report(self, cluster_report_path: Path) -> dict:
+        return {
+            "schema_version": "patch_proposal_v1",
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "input_path": str(cluster_report_path),
+            "candidate_count": 0,
+            "skipped_cluster_count": 0,
+            "candidates": [],
+            "skipped_clusters": [],
+        }
+
+    def _load_cluster_report(self, path: Path, report: dict) -> dict | None:
+        if not path.exists():
+            report["load_error"] = "file_not_found"
+            return None
+        try:
+            raw_text = path.read_text(encoding="utf-8")
+        except OSError as exc:
+            report["load_error"] = f"read_error: {exc}"
+            return None
+        try:
+            data = json.loads(raw_text)
+        except json.JSONDecodeError as exc:
+            report["load_error"] = f"json_decode_error: line {exc.lineno} column {exc.colno}"
+            return None
+        if data.get("schema_version") != "feedback_cluster_v1":
+            report["load_error"] = "unexpected_schema_version"
+            return None
+        return data
+
+    def _process_cluster(self, cluster: dict, report: dict) -> dict | None:
+        cluster_id = cluster.get("cluster_id", "")
+        cluster_label = cluster.get("cluster_label", "")
+        record_count = cluster.get("record_count", 0)
+        contact_id = cluster.get("contact_id", "")
+
+        if not cluster_label:
+            report["skipped_clusters"].append({
+                "cluster_id": cluster_id,
+                "skip_reason": "unlabeled_cluster",
+            })
+            return None
+
+        if record_count < self._MIN_RECORD_COUNT:
+            report["skipped_clusters"].append({
+                "cluster_id": cluster_id,
+                "skip_reason": "insufficient_support",
+                "record_count": record_count,
+            })
+            return None
+
+        patch_type = self._LABEL_TO_PATCH_TYPE.get(cluster_label)
+        if patch_type is None:
+            report["skipped_clusters"].append({
+                "cluster_id": cluster_id,
+                "skip_reason": "no_safe_mapping",
+                "cluster_label": cluster_label,
+            })
+            return None
+
+        supporting_feedback_ids = cluster.get("supporting_feedback_ids", [])
+        if not supporting_feedback_ids:
+            report["skipped_clusters"].append({
+                "cluster_id": cluster_id,
+                "skip_reason": "insufficient_support",
+            })
+            return None
+
+        claim = self._LABEL_CLAIM_TEMPLATES[cluster_label].replace(
+            "this contact", f"contact {contact_id}",
+        )
+        behavior_instruction = self._LABEL_BEHAVIOR_TEMPLATES[cluster_label]
+        sensitivity = self._LABEL_SENSITIVITY[cluster_label]
+
+        confidence = min(0.3 + 0.15 * (record_count - 1), 0.9)
+
+        approach_labels = cluster.get("counts_by_approach_label") or {}
+        affected_types = sorted(approach_labels.keys()) if approach_labels else []
+
+        now = datetime.now(timezone.utc)
+        patch = PreferencePatchCandidate(
+            patch_id=new_id("patch"),
+            contact_id=contact_id,
+            patch_type=patch_type,
+            claim=claim,
+            behavior_instruction=behavior_instruction,
+            rationale_summary=f"Derived from {record_count} clustered feedback record(s) with label '{cluster_label}'.",
+            supporting_feedback_ids=supporting_feedback_ids,
+            supporting_cluster_ids=[cluster_id],
+            positive_examples=[],
+            negative_examples=[],
+            affected_candidate_types=affected_types,
+            status="candidate",
+            confidence=round(confidence, 2),
+            sensitivity=sensitivity,
+            created_at=now,
+            updated_at=now,
+        )
+
+        return {
+            "patch": patch.model_dump(mode="json"),
+            "source_cluster_id": cluster_id,
+        }
 
     def _finalize(self, report: dict, output_path: Path | None) -> dict:
         if output_path is not None:

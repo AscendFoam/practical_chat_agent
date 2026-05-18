@@ -66,6 +66,7 @@ from practical_chat_agent.services.feedback import (
     FeedbackService,
     FeedbackSummaryService,
     FeedbackValidationService,
+    PatchProposalService,
 )
 from practical_chat_agent.services.reply_planner import ReplyPlanner, ReplyPlannerError
 from practical_chat_agent.ui.live_caption_window import MeetingLiveCaptionWindow
@@ -2265,6 +2266,71 @@ def chat_feedback_cluster(
     typer.echo(json.dumps(safe_stdout, ensure_ascii=False, indent=2))
 
     if not report["is_readable"]:
+        raise typer.Exit(code=1)
+
+
+@app.command("chat-feedback-propose-patch")
+def chat_feedback_propose_patch(
+    cluster_report: Path = typer.Option(
+        ...,
+        "--cluster-report",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        readable=True,
+        help="Input T161 cluster report JSON file.",
+    ),
+    output: Optional[Path] = typer.Option(
+        None,
+        "--output",
+        help="Optional private output path for proposal JSON.",
+    ),
+) -> None:
+    """Generate deterministic candidate-only PreferencePatch proposals from feedback clusters."""
+
+    service = PatchProposalService()
+    report = service.propose(
+        cluster_report_path=cluster_report,
+        output_path=output,
+    )
+
+    safe_stdout = {
+        "schema_version": report["schema_version"],
+        "generated_at": report["generated_at"],
+        "input_path": report["input_path"],
+        "candidate_count": report["candidate_count"],
+        "skipped_cluster_count": report["skipped_cluster_count"],
+        "candidates": [
+            {
+                "patch_id": c["patch"]["patch_id"],
+                "contact_id": c["patch"]["contact_id"],
+                "patch_type": c["patch"]["patch_type"],
+                "claim": c["patch"]["claim"],
+                "behavior_instruction": c["patch"]["behavior_instruction"],
+                "rationale_summary": c["patch"]["rationale_summary"],
+                "supporting_feedback_ids": c["patch"]["supporting_feedback_ids"],
+                "supporting_cluster_ids": c["patch"]["supporting_cluster_ids"],
+                "confidence": c["patch"]["confidence"],
+                "sensitivity": c["patch"]["sensitivity"],
+                "status": c["patch"]["status"],
+                "instruction_scope": c["patch"]["instruction_scope"],
+                "affected_candidate_types": c["patch"]["affected_candidate_types"],
+                "source_cluster_id": c["source_cluster_id"],
+            }
+            for c in report["candidates"]
+        ],
+        "skipped_clusters": report["skipped_clusters"],
+    }
+
+    if report.get("load_error"):
+        safe_stdout["load_error"] = report["load_error"]
+
+    if report.get("output_path"):
+        safe_stdout["output_path"] = _safe_cli_path(Path(report["output_path"]))
+
+    typer.echo(json.dumps(safe_stdout, ensure_ascii=False, indent=2))
+
+    if report.get("load_error"):
         raise typer.Exit(code=1)
 
 

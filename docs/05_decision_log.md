@@ -1,5 +1,27 @@
 # Decision Log
 
+## D034: T162 PASS_WITH_WARNINGS, accept task, advance to T163
+
+- Date: 2026-05-18
+- Status: Accepted
+- Context: `docs/review/T162_review.md` gives `PASS_WITH_WARNINGS` for the deterministic patch proposal CLI. No blocking issues were found.
+- Decision: T162 is complete. The project may continue to T163 Patch Review CLI.
+- Warning handling:
+  - Accepted:
+    - N05 `.claude/settings.json` modification is treated as workspace noise rather than a T162 scope violation.
+  - Deferred:
+    - N01 `docs/data_contracts/preference_patch_contract.md` still overclaims deterministic `patch_id` behavior even though `patch_id` is UUID-based. Carry forward under R053 until a later task corrects the contract or changes the id strategy.
+    - N02 raw `input_path` still appears in proposal stdout/output. Carry forward under the already-active project-wide path-handling/privacy risk R043.
+    - N03 no committed automated tests yet cover `PatchProposalService` or `chat-feedback-propose-patch`. Carry forward as R054 until a later hardening task adds deterministic proposal regression coverage.
+    - N04 malformed cluster input with empty `contact_id` can still crash proposal generation instead of being skipped defensively. Carry forward as R056 until a later task adds an explicit guard.
+  - Rejected: none.
+- Conditions carried forward:
+  - T163 must remain manual-review-only, candidate-only, privacy-safe, and non-mutating.
+  - T163 must not reinterpret approved review status as runtime injection; T164 remains the first task allowed to read approved patches into compact context.
+  - T163 must preserve `supporting_feedback_ids`, `supporting_cluster_ids`, and review metadata/history without editing proposal semantics or inventing new evidence.
+  - No automatic ContactSkill/Memory mutation, outbound sending, realtime integration, or LLM use is authorized by this decision.
+- Impact: `docs/04_task_board.md` moves the Current Unique Task from T162 to T163, and the T163 task package is tightened so the next worker step is explicit and review-safe.
+
 ## D033: T161 PASS_WITH_WARNINGS, accept task, advance to T162
 
 - Date: 2026-05-18

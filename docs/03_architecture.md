@@ -1,5 +1,29 @@
 # Architecture
 
+## Captain Update 2026-05-18 (T162 Review)
+
+T162 is now complete, so the M5 architecture has advanced from aggregate evidence to explicit candidate proposals:
+
+```text
+Reproducible feedback loop
+  -> PreferencePatchCandidate schema
+  -> deterministic privacy-safe feedback clusters
+  -> conservative deterministic patch proposals
+  -> later manual patch review
+  -> only then approved patch compact context
+```
+
+The next architectural step is T163, which must add review actions only:
+
+```text
+patch proposal report
+  -> manual approve/reject/freeze/archive decisions
+  -> preserved review metadata/history
+  -> no runtime injection yet
+```
+
+This keeps the mainline review-only and non-mutating.
+
 ## Captain Update 2026-05-18 (T161 Review)
 
 T161 is now complete, so the M5 architecture has advanced from schema-only candidates to explicit aggregate evidence:

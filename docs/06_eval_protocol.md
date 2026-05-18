@@ -1,5 +1,15 @@
 # Eval Protocol
 
+## Captain Update 2026-05-18 (T162 Review)
+
+T162 has now been accepted with `PASS_WITH_WARNINGS`.
+
+Current evaluation sequence is now:
+
+- T163: can the repo record explicit human review decisions for `PreferencePatchCandidate` proposals while preserving evidence, review history, privacy safety, and the no-auto-apply boundary?
+
+T162 changes the evaluation baseline in one important way: M5 no longer needs to prove whether conservative proposal generation is possible at all. That layer now exists. The next evaluation target is whether manual review can stay explicit, auditable, and separate from runtime injection.
+
 ## Captain Update 2026-05-18 (T161 Review)
 
 T161 has now been accepted with `PASS_WITH_WARNINGS`.

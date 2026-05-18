@@ -4,6 +4,17 @@ Updated: 2026-05-18
 
 ## Captain Current State Override
 
+- T162 review decision: `PASS_WITH_WARNINGS`.
+- T162 is complete as a deterministic, candidate-only patch proposal task.
+- T162 warning disposition:
+  - Accepted: N05 `.claude/settings.json` is a workspace artifact rather than a T162 scope violation.
+  - Deferred: N01 the contract still overclaims deterministic `patch_id` behavior, N02 raw `input_path` remains present in proposal stdout/output and stays tracked as project-wide path-handling/privacy debt, N03 no committed automated tests yet cover `PatchProposalService` / `chat-feedback-propose-patch`, N04 malformed cluster input with empty `contact_id` can still crash proposal generation instead of being skipped defensively.
+  - Rejected: none.
+- Current Unique Task: T163 Patch Review CLI.
+- Current task package: `docs/tasks/M5_feedback_to_patch/T163_patch_review_cli.md`.
+- T163 must stay manual-review-only, non-mutating, and non-injecting: no auto-approve, no auto-apply, no runtime injection, no ContactSkill/Memory mutation, no outbound send behavior, and no LLM use unless a future task package explicitly changes that scope.
+- T163 must preserve T162 candidate semantics conservatively: approvals require existing evidence-backed candidates, review metadata/history must be explicit, and review output must stay privacy-safe and aggregate/id-oriented.
+
 - T161 review decision: `PASS_WITH_WARNINGS`.
 - T161 is complete as a deterministic, privacy-safe feedback clusterer task.
 - T161 warning disposition:
@@ -16,10 +27,6 @@ Updated: 2026-05-18
   - Accepted: N01 `instruction_scope` remains free-form at schema stage, N04 `schema_version` remains a plain string for consistency with existing patterns, N05 broader working-tree modifications are a hygiene note rather than a T160 scope violation.
   - Deferred: N02 `positive_examples` / `negative_examples` are not structurally constrained to safe-only summaries or references, N03 no committed automated tests yet cover `PreferencePatchCandidate` validation.
   - Rejected: none.
-- Current Unique Task: T162 Patch Proposal CLI.
-- Current task package: `docs/tasks/M5_feedback_to_patch/T162_patch_proposal_cli.md`.
-- T162 must stay deterministic, candidate-only, review-only, and non-mutating: no auto-approve, no auto-apply, no runtime injection, no ContactSkill/Memory mutation, no outbound send behavior, and no LLM use unless a future task package explicitly changes that scope.
-- T162 must consume T161 cluster outputs conservatively: enforce non-empty `supporting_feedback_ids`, preserve `supporting_cluster_ids`, skip ambiguous or unlabeled clusters rather than speculate, and keep all examples/summaries privacy-safe.
 - T152 review decision: `PASS_WITH_WARNINGS`.
 - T152 is complete as a committed feedback CLI regression-hardening task.
 - T152 warning disposition:
@@ -66,11 +73,11 @@ Updated: 2026-05-18
 
 ## Current Unique Task
 
-T162: Patch Proposal CLI.
+T163: Patch Review CLI.
 
-Task package: `docs/tasks/M5_feedback_to_patch/T162_patch_proposal_cli.md`
+Task package: `docs/tasks/M5_feedback_to_patch/T163_patch_review_cli.md`
 
-Why now: T161 is now complete and accepted. The next smallest safe M5 step is to turn clustered aggregate evidence into candidate-only patch proposals before any review CLI or runtime-context work.
+Why now: T162 is now complete and accepted. The next smallest safe M5 step is to add explicit human review decisions for patch candidates before any runtime-context wiring exists.
 
 ## Board Rules
 
@@ -148,7 +155,7 @@ Goal: convert repeated feedback into reviewable PreferencePatch candidates witho
 
 - [x] T160: PreferencePatch schema. Review `PASS_WITH_WARNINGS`.
 - [x] T161: feedback clusterer. Review `PASS_WITH_WARNINGS`.
-- [ ] T162: patch proposal CLI.
+- [x] T162: patch proposal CLI. Review `PASS_WITH_WARNINGS`.
 - [ ] T163: patch review CLI.
 - [ ] T164: approved patch compact context.
 
@@ -223,9 +230,9 @@ Goal: keep WeChat as a thin final adapter behind the send gate.
 
 ## Historical Current Unique Task
 
-T161: Feedback Clusterer.
+T162: Patch Proposal CLI.
 
-It is now complete and accepted with `PASS_WITH_WARNINGS`. The next worker task is T162, because the cluster layer now exists and the next safe step is deterministic candidate-only patch proposal generation before any review CLI or runtime-context wiring.
+It is now complete and accepted with `PASS_WITH_WARNINGS`. The next worker task is T163, because candidate-only patch proposals now exist and the next safe step is explicit manual review before any runtime-context wiring.
 
 ## Next Captain Output Required
 

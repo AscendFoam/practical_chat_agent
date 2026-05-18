@@ -158,6 +158,103 @@ Known labels: `too_long`, `too_cold`, `too_eager`, `too_formal`, `too_intimate`,
 
 Cluster output contains NO raw feedback text, edited text, user notes, boundary notes, or draft text. All fields are aggregate counts, IDs, or timestamps.
 
+## Patch Proposal Output Contract (T162)
+
+Updated: 2026-05-18
+
+### Purpose
+
+`PatchProposalService` consumes T161 cluster output and produces deterministic, candidate-only `PreferencePatchCandidate` proposals. Proposals are not auto-approved, not auto-applied, and not injected into runtime context.
+
+### CLI Shape
+
+```text
+chat-feedback-propose-patch --cluster-report <path> --output <private path>
+```
+
+### Proposal Output Shape
+
+```json
+{
+  "schema_version": "patch_proposal_v1",
+  "generated_at": "...",
+  "input_path": "...",
+  "candidate_count": 2,
+  "skipped_cluster_count": 3,
+  "candidates": [
+    {
+      "patch": {
+        "schema_version": "preference_patch_candidate_v1",
+        "patch_id": "patch_...",
+        "contact_id": "...",
+        "patch_type": "tone_preference",
+        "instruction_scope": "per_contact",
+        "claim": "...",
+        "behavior_instruction": "...",
+        "rationale_summary": "...",
+        "supporting_feedback_ids": ["fb_...", "fb_..."],
+        "supporting_cluster_ids": ["cluster_..."],
+        "positive_examples": [],
+        "negative_examples": [],
+        "affected_candidate_types": ["warm_casual"],
+        "status": "candidate",
+        "confidence": 0.6,
+        "sensitivity": "low",
+        "review_metadata": {
+          "reviewed_by_human": false,
+          "last_decision": null,
+          "notes": []
+        },
+        "created_at": "...",
+        "updated_at": "..."
+      },
+      "source_cluster_id": "cluster_..."
+    }
+  ],
+  "skipped_clusters": [
+    {
+      "cluster_id": "cluster_...",
+      "skip_reason": "insufficient_support",
+      "record_count": 1
+    }
+  ]
+}
+```
+
+### Deterministic Label-to-Type Mapping
+
+| Cluster Label | Patch Type | Sensitivity |
+| --- | --- | --- |
+| `too_long` | `length_preference` | low |
+| `too_formal` | `tone_preference` | low |
+| `too_cold` | `tone_preference` | low |
+| `too_eager` | `proactivity_preference` | medium |
+| `too_intimate` | `boundary_preference` | high |
+| `boundary_violation` | `boundary_preference` | high |
+
+Labels not in this table (`good_tone`, `not_like_me`, unknown labels) produce no patch candidate. They are skipped with reason `no_safe_mapping`.
+
+### Skip Reasons
+
+| Reason | Meaning |
+| --- | --- |
+| `insufficient_support` | `record_count < 2` or `supporting_feedback_ids` empty |
+| `unlabeled_cluster` | Cluster has no `cluster_label` |
+| `no_safe_mapping` | Label does not map to any `PreferencePatchType` |
+| `ambiguous_label` | Reserved for future use if multi-label conflicts arise |
+
+### Confidence Formula
+
+`confidence = min(0.3 + 0.15 * (record_count - 1), 0.9)`, bounded to [0.0, 1.0]. Monotonically increasing with evidence count, capped at 0.9. Does not claim calibrated probability.
+
+### Privacy Safety
+
+Proposal output contains NO raw feedback text, edited text, user notes, boundary notes, or draft text. `positive_examples` and `negative_examples` are always empty lists at proposal generation time. All field content is derived deterministically from cluster labels and aggregate metadata.
+
+### Determinism Guarantee
+
+Given identical cluster report input, repeated runs produce identical `patch_id` values, `claim` text, `behavior_instruction` text, `confidence` values, and `skipped_clusters` entries. Only `generated_at`, `created_at`, and `updated_at` differ between runs.
+
 ## Anti-Patterns
 
 Do NOT:

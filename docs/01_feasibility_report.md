@@ -1,5 +1,16 @@
 # Feasibility Report
 
+## Captain Update 2026-05-18 (T162 Review)
+
+T162 confirms that deterministic, candidate-only patch proposal generation is feasible in the current repository shape.
+
+The feasibility gap has changed again:
+
+- no longer blocked on converting deterministic feedback clusters into conservative `PreferencePatchCandidate` proposals
+- now focused on whether human review decisions can be recorded safely without auto-approval, runtime injection, or evidence drift
+
+So the project is ready to commit the T162 slice and advance to T163, but still only within manual-review, non-mutating M5 constraints.
+
 ## Captain Update 2026-05-18 (T161 Review)
 
 T161 confirms that deterministic, privacy-safe feedback clustering is feasible in the current repository shape.

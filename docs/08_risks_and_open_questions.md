@@ -1,5 +1,29 @@
 # Risks And Open Questions
 
+## Captain Update 2026-05-18 (T162 Review Decision)
+
+Authoritative current risk state after the Captain review of T162:
+
+- R041 remains active: T163-T164 must preserve the interpretation of feedback-to-patch as review-only proposal work rather than automatic learning.
+- R043 remains active and deferred from T162 review: raw `input_path` is still present in proposal stdout/output and remains project-wide path-handling/privacy debt.
+- R053 remains active and deferred from T162 review: the contract still overclaims deterministic `patch_id` behavior even though `patch_id` is UUID-based and non-deterministic across repeated runs.
+- R054 is active and deferred: no committed automated tests yet cover `PatchProposalService` or `chat-feedback-propose-patch`.
+- R056 is active and deferred: malformed cluster input with empty `contact_id` can still crash proposal generation instead of being skipped defensively.
+
+Closed question Q165: T162 is accepted with `PASS_WITH_WARNINGS`, so the project may proceed to T163 rather than sending T162 back for a blocking repair pass.
+
+## Captain Update 2026-05-18 (T162)
+
+Authoritative current risk state after T162 Patch Proposal CLI:
+
+- R041 remains active: T162 generates candidate-only patches but does not review, approve, or apply them. T163/T164 must preserve the review-only, candidate-only interpretation.
+- R048 is addressed at the proposal layer: `positive_examples` and `negative_examples` are always empty lists at T162 proposal time. T163 review CLI or future tasks may populate these with safe summaries.
+- R053 is active: `patch_id` uses `new_id("patch")` (UUID-based, non-deterministic) while all other proposal fields are deterministic from cluster input. Repeated runs on the same cluster report produce identical content but different `patch_id` values.
+- R054 is active: no committed automated tests yet cover `PatchProposalService` / `chat-feedback-propose-patch`.
+- R055 is active: confidence formula `min(0.3 + 0.15 * (record_count - 1), 0.9)` is monotonic but not calibrated. Confidence values should not be interpreted as probabilities.
+
+Closed question Q164: T162 produces deterministic, candidate-only PreferencePatch proposals from T161 cluster outputs, skipping ambiguous or low-support clusters with explicit skip reasons.
+
 ## Captain Update 2026-05-18 (T161 Review Decision)
 
 Authoritative current risk state after the Captain review of T161:
@@ -214,6 +238,10 @@ Closed question Q124: the updated GPT roadmap is directionally aligned, but M4/M
 | R050 | `edit` action 反馈记录当前无安全确定性聚类标签 | edit 记录不参与聚类，可能遗漏重要的用户偏好信号 | T161 仅对 accept/reject/boundary 生成标签；T162 或后续 hardening task 需决定是否为 edit 派生标签或采用不同策略 |
 | R051 | cluster_id 仅反映分组键不反映记录内容 | 不同记录集可能共享同一 cluster_id | T161 设计为累积分组，T162 使用时应同时检查 supporting_feedback_ids 而非仅依赖 cluster_id |
 | R052 | `FeedbackClusterService` / `chat-feedback-cluster` 尚无已提交的自动化回归测试 | 聚类标签、cluster_id 稳定性、过滤规则或隐私输出约束未来可能无声回归 | T161 review 接受当前 scope；后续 hardening task 应补有效/无效聚类、cluster_id 稳定性、validation-report 过滤、隐私字段缺失、JSON round-trip 与单记录边界情况测试 |
+| R053 | `patch_id` 使用 UUID 生成，同一 cluster 输入重复运行产生不同 patch_id | patch_id 不稳定可能导致重复生成时无法去重或追踪 | T162 scope 内可接受；T163 review CLI 或后续 hardening task 可改为基于 cluster_id 的确定性 ID |
+| R054 | `PatchProposalService` / `chat-feedback-propose-patch` 尚无已提交的自动化回归测试 | 提案映射规则、跳过逻辑、置信度计算、隐私安全约束未来可能无声回归 | T162 review 接受当前 scope；后续 hardening task 应补有效/无效提案、确定性验证、跳过逻辑、隐私字段、JSON round-trip 与边界情况测试 |
+| R055 | 置信度公式 `min(0.3 + 0.15 * (record_count - 1), 0.9)` 单调但未校准 | 置信度值可能被误解为概率 | T162 文档已明确说明不 claim 校准概率；T163 review CLI 展示时需避免过度解读 |
+| R056 | 提案生成对 malformed cluster report 缺少空 `contact_id` 防御 | 手工编辑或损坏的 cluster report 可能触发未处理异常并中断 proposal 生成 | T162 review 接受当前 scope；后续任务应在 proposal 层显式跳过 `contact_id` 为空的 cluster，给出 `missing_contact` 或等价 skip reason |
 
 ## Open Questions
 
@@ -260,6 +288,8 @@ Closed question Q124: the updated GPT roadmap is directionally aligned, but M4/M
 | Q161 | T160 PreferencePatch schema 是否可以接受并推进到 T161？可以；以 `PASS_WITH_WARNINGS` 接受，warning 中的示例字段安全约束和缺少 committed model tests 继续留在风险台账中。 | `docs/review/T160_review.md` + Captain decision |
 | Q162 | T161 feedback clusterer 是否产出确定性的、隐私安全的聚类结果？是；聚类由 action type 确定性推导，cluster_id 稳定，输出不含原始文本，不生成 patch candidate。 | T161 implementation record in `docs/07_handoff.md` |
 | Q163 | T161 是否可以作为已完成任务接受并推进到 T162？可以；以 `PASS_WITH_WARNINGS` 接受，缺少 committed cluster tests 和 `input_path` 暴露模式继续保留在风险台账中。 | `docs/review/T161_review.md` + Captain decision |
+| Q164 | T162 是否产出确定性的、candidate-only 的 PreferencePatch 提案？是；提案从 cluster label 确定性映射到 patch type，跳过不支持或模糊的 cluster，输出不含原始文本，不自动 approve。 | T162 implementation record in `docs/07_handoff.md` |
+| Q165 | T162 是否可以作为已完成任务接受并推进到 T163？可以；以 `PASS_WITH_WARNINGS` 接受，`patch_id` 确定性文档偏差、proposal `input_path` 暴露、缺少 committed proposal tests 和 malformed cluster defensive guard 继续保留在风险台账中。 | `docs/review/T162_review.md` + Captain decision |
 
 ## Deferred Items
 

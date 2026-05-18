@@ -1,5 +1,15 @@
 # Raw Idea
 
+## Captain Update 2026-05-18 (T162 Review)
+
+T162 has now passed review with `PASS_WITH_WARNINGS`, so the third M5 step is accepted:
+
+- the repo now has deterministic, candidate-only patch proposal generation from aggregate feedback clusters
+- the project still does not permit automatic learning, auto-approve, auto-apply, runtime injection, or hidden ContactSkill/Memory mutation
+- the next safe step is no longer proposal generation but manual patch review with explicit human decisions
+
+The Current Unique Task therefore moves to T163 Patch Review CLI.
+
 ## Captain Update 2026-05-18 (T161 Review)
 
 T161 has now passed review with `PASS_WITH_WARNINGS`, so the second M5 step is accepted:
