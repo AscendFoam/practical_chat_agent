@@ -1,5 +1,26 @@
 # Eval Protocol
 
+## Captain Update 2026-05-18 (T151 Review)
+
+T151 has now been accepted with `PASS_WITH_WARNINGS`.
+
+Current evaluation sequence is now:
+
+- T152: can committed feedback CLI tests reproduce T140-T142 privacy, validation, summary, path-safety, and non-mutation guarantees in a clean environment?
+
+T151 changes the evaluation baseline in one important way: the repo no longer relies on planner-only tests to explain policy behavior. Direct `ReplyPlanPolicyEngine` expectations are now committed and auditable. The only remaining M4.5 evaluation target is the feedback CLI loop.
+
+## Captain Update 2026-05-18
+
+T150 has now been accepted with `PASS_WITH_WARNINGS`.
+
+Current evaluation sequence is now:
+
+- T151: can committed synthetic fixtures and direct assertions make policy-layer behavior explicit, reviewable, and stable across future planner changes?
+- T152: can committed feedback CLI tests reproduce T140-T142 privacy, validation, summary, and non-mutation guarantees in a clean environment?
+
+T150 changed the evaluation baseline in one important way: the repo no longer needs private/manual verification to prove ReplyPlanner structure, ranking, privacy, and contact-alignment behavior. Remaining M4.5 evaluation work is now narrower and more targeted.
+
 ## Captain Update 2026-05-17
 
 T142 has now been accepted with `PASS_WITH_WARNINGS`, and the Captain M4 review sets Gate M4 to `Conditional`.

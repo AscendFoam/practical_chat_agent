@@ -1,5 +1,47 @@
 # Architecture
 
+## Captain Update 2026-05-18 (T151 Review)
+
+T151 extends the committed architectural safety net from planner-through-policy behavior to direct policy-engine behavior:
+
+```text
+Approved compact ChatContext
+  -> ReplyPlanner
+  -> ReplyPlanPolicyEngine
+  -> committed synthetic planner tests
+  -> committed synthetic policy-engine tests
+  -> reviewable safety baseline
+```
+
+The next architectural step is still hardening rather than feature growth:
+
+```text
+Planner + policy regression coverage
+  -> feedback CLI regression coverage
+  -> only then M5 feedback-to-patch candidates
+```
+
+## Captain Update 2026-05-18
+
+T150 adds a committed architectural safety net around the existing review-only planner path:
+
+```text
+Approved compact ChatContext
+  -> ReplyPlanner
+  -> ReplyPlan candidates
+  -> committed synthetic regression tests
+  -> reviewable safety baseline
+```
+
+The next architectural step remains inside hardening, not feature expansion:
+
+```text
+ReplyPlanner regression coverage
+  -> policy fixture suite and direct policy assertions
+  -> feedback CLI regression coverage
+  -> only then M5 feedback-to-patch candidates
+```
+
 ## Captain Update 2026-05-17
 
 T142 is now complete, so the architecture has a full review-only M4 feedback loop:

@@ -1230,3 +1230,192 @@ M1 必须承接的条件：
   - confirm tests are committed, deterministic, and privacy-safe
   - confirm fixtures are synthetic/redacted
   - confirm M3/M4 gate obligations are actually encoded as tests rather than restated in docs
+
+## 44. T150 Implementation Record
+
+- Files changed:
+  - `tests/__init__.py` (new)
+  - `tests/helpers.py` (new)
+  - `tests/conftest.py` (new)
+  - `tests/test_reply_planner.py` (new)
+  - `pyproject.toml` (added `[tool.pytest.ini_options]` with `pythonpath` and `testpaths`)
+  - `docs/07_handoff.md`
+  - `docs/08_risks_and_open_questions.md`
+- Fixture shape:
+  - All fixtures are synthetic Python objects constructed via `tests/helpers.py` helpers.
+  - No JSON fixture files, no raw transcript text, no real names, real platform IDs, or private paths.
+  - Seven reusable fixture contexts: baseline friend, colleague, thin, sensitive/boundary, false-positive probe, false-negative probe, privacy leakage probe.
+  - Each fixture constructs `ChatContext` with appropriate `ApprovedStoreContext`, `ApprovedContactSkillBrief`, `ApprovedMemoryFactBrief`, events, and memory hits.
+- Test command and result:
+  - `PYTHONPATH='src' pytest tests -v`
+  - 49 tests passed in 0.10s, 0 failures.
+  - No LLM calls, no network access, no private file reads.
+- Tests intentionally marking current limitations:
+  - `TestFalseNegativeProbe`: documents that subtle inbound pacing pressure ("you should really call me sometime soon") is not detected by keyword-based policy. This is an accepted M3 Conditional limitation, not an xfail. The test asserts current expected behavior.
+  - `TestFalsePositiveProbe`: documents that "money" in a work-budgeting context triggers `sensitive_topic=True` but does NOT escalate to `boundary_sensitive` because intent is GENERAL and no boundary cues exist. This is correct current behavior but documents the keyword proximity risk.
+- Coverage of M3 Conditional obligations:
+  - Candidate structure: `TestBaselineFriendContext`, `TestColleagueContext`, `TestStructureRegression::test_candidate_structure_regression_guard`
+  - Privacy leakage: `TestPrivacyLeakage` (5 tests), `TestStructureRegression::test_privacy_regression_guard`
+  - Contact alignment: `TestContactIdMismatch` (2 tests), `TestStructureRegression::test_contact_alignment_regression_guard`
+  - Ranking invariants: `TestPriorityRank` (4 tests), `TestStructureRegression::test_ranking_invariant_regression_guard`
+  - Thin-context behavior: `TestThinContext` (5 tests)
+  - Boundary/sensitive behavior: `TestSensitiveContext` (4 tests)
+  - False-positive boundedness: `TestFalsePositiveProbe` (4 tests)
+  - False-negative documentation: `TestFalseNegativeProbe` (3 tests)
+  - Not-configured path: `TestNotConfiguredPath` (5 tests)
+  - Non-approved id isolation: `TestNonApprovedRecordIdIsolation` (2 tests)
+- Which M3 risks were reduced:
+  - R036 (no committed tests/fixtures): reduced. ReplyPlanner now has 49 committed deterministic tests and 7 synthetic fixture contexts.
+  - R034 (priority_rank / contact alignment): regression-guarded. Both now have committed tests.
+  - R037 (false-positive/false-negative keyword risk): documented with committed tests encoding current behavior.
+- Which M3 risks remain open:
+  - R035 (relationship-aware quality still template-driven): not addressed by T150. T150 tests the contract wiring and safety surface, not naturalness.
+  - R037 (keyword-only policy): false-negative gap is documented but not fixed. A future semantic classifier could close this.
+  - R046 (M3/M4 clean-environment reproducibility): partially reduced. T150 covers ReplyPlanner; T151/T152 must still cover policy fixtures and feedback CLI.
+
+## 45. T150 Review Decision
+
+- Review file:
+  - `docs/review/T150_review.md`
+- Verdict:
+  - `PASS_WITH_WARNINGS`
+- Captain decision:
+  - T150 is complete within task scope.
+  - The repo now has committed deterministic ReplyPlanner regression coverage and may move forward to T151.
+  - No T150 warning is blocking enough to require an automatic repair pass.
+- Warning handling:
+  - Accepted:
+    - N01 `TestNotConfiguredPath` overlaps with `thin_context`, but still checks a distinct invariant.
+    - N02 no direct `ReplyPlanPolicyEngine` unit tests yet; this is better treated as T151 follow-up scope than as a T150 defect.
+    - N03 `practical` summary wording assertion is intentionally brittle as a regression guard.
+    - N04 false-negative probes intentionally encode current missed-detection behavior.
+    - N05 `tests/helpers.py` constructors are simple enough that missing isolated helper tests is low risk.
+    - N06 `notes_on_candidate_differences` is not yet asserted and remains optional coverage expansion.
+  - Deferred:
+    - none
+  - Rejected:
+    - none
+
+## 46. T151 Kickoff Notes
+
+- Task package:
+  - `docs/tasks/M4_5_regression_hardening/T151_policy_fixture_suite.md`
+- Worker focus:
+  - turn policy behavior into an explicit committed fixture suite on top of the new T150 base
+  - add direct policy-layer assertions where they materially improve auditability
+  - keep all fixtures synthetic/redacted and keep the task non-mutating
+- Specific follow-ups from T150 review:
+  - add direct `ReplyPlanPolicyEngine` coverage where planner-only coverage is too indirect
+  - separate missing-store-path or loaded-without-skill coverage more clearly from generic thin-context coverage
+  - consider assertions for `notes_on_candidate_differences` when policy state should surface there
+- Explicit non-goals:
+  - no planner or policy behavior changes unless Captain opens a bug-fix task
+  - no feedback CLI regression work in this task
+  - no LLM, auto-send, realtime integration, DB, vector DB, or UI work
+- Reviewer focus:
+  - confirm direct policy expectations are genuinely encoded in committed tests
+  - confirm fixtures remain synthetic and privacy-safe
+  - confirm T151 narrows reproducibility risk without overstating relationship-aware maturity
+
+## 47. T151 Implementation Record
+
+- Files changed:
+  - `tests/conftest.py` (added 3 new fixtures: `loaded_no_skill_context`, `degraded_store_context`, `over_proactivity_probe_context`; fixed `baseline_friend_context` to remove accidental boundary cue keywords)
+  - `tests/test_policy_engine.py` (new: 67 direct policy engine tests)
+  - `docs/07_handoff.md`
+  - `docs/08_risks_and_open_questions.md`
+- Fixture shape:
+  - All fixtures are synthetic Python objects constructed via `tests/helpers.py` helpers.
+  - No JSON fixture files, no raw transcript text, no real names, real platform IDs, or private paths.
+  - 10 reusable fixture contexts: baseline friend, colleague, thin, sensitive/boundary, false-positive probe, false-negative probe, privacy leakage probe, loaded-but-no-skill, degraded-store (store_path_missing), over-proactivity probe.
+  - `baseline_friend_context` was corrected: previous `strategy_hints=["keep warm but low pressure"]` and `boundary_reminders=["do not push for details"]` inadvertently contained "low pressure" and "do not push" which are in `_BOUNDARY_CUE_KEYWORDS` and `_AVOID_FOLLOW_UP_KEYWORDS`, making the fixture not a clean baseline. Changed to `strategy_hints=["keep warm"]` and `boundary_reminders=["stay friendly and relaxed"]`.
+- Test command and result:
+  - `PYTHONPATH='src' pytest tests -v`
+  - 116 tests passed in 0.17s (49 T150 + 67 T151), 0 failures.
+  - No LLM calls, no network access, no private file reads.
+- Direct `ReplyPlanPolicyEngine.build_profile()` coverage:
+  - `TestBuildProfileBaselineFriend`: thin_context=False, boundary_sensitive=False, conservative_mode=False, practical_tone=False, context_risk_flags=[], avoid_follow_up=False
+  - `TestBuildProfileColleague`: practical_tone=True, thin_context=False, conservative_mode=False
+  - `TestBuildProfileThinContext`: thin_context=True, conservative_mode=True, context_risk_flags=["thin_context"]
+  - `TestBuildProfileLoadedNoSkill`: thin_context=True despite status="loaded", conservative_mode=True, boundary_sensitive=False (no boundary cues)
+  - `TestBuildProfileDegradedStore`: thin_context=True for status="store_path_missing", conservative_mode=True
+  - `TestBuildProfileSensitive`: boundary_sensitive=True, conservative_mode=True, avoid_follow_up=True
+  - `TestBuildProfileFalsePositive`: boundary_sensitive=False, conservative_mode=False ("money" in work context)
+  - `TestBuildProfileFalseNegative`: boundary_sensitive=False, conservative_mode=False (documented limitation)
+  - `TestBuildProfileOverProactivity`: avoid_follow_up=True, boundary_sensitive=True, conservative_mode=True, thin_context=False
+- Direct `ReplyPlanPolicyEngine.assess_candidate()` coverage:
+  - `TestAssessCandidateActionPush`: action push cues ("call", "meet", "打电话", "schedule") always trigger over_proactive
+  - `TestAssessCandidateOverProactiveConservativeMode`: optional_follow_up always triggers in conservative mode; paced_next_step with proactive cues triggers; conservative_acknowledgment without cues stays clean
+  - `TestAssessCandidateNoPressureExemption`: "no rush" and Chinese "先不往前推" exempt from over_proactive; action push overrides no-pressure
+  - `TestAssessCandidateImpersonationRisk`: "he would say", "she would say", "对方会" all detected; clean text produces no impersonation_risk
+  - `TestAssessCandidateConfidencePenalty`: thin_context 0.10, boundary_sensitive 0.06, combined 0.16, impersonation 0.15, clean 0.0
+- `notes_on_candidate_differences` coverage:
+  - Baseline: 3 default notes about each candidate
+  - Conservative mode (sensitive context): notes shifted to no-pressure/avoiding language
+  - Thin not-loaded (thin_context fixture): extra "thin" note appended
+  - Loaded-no-skill: conservative notes but NO extra "thin" note (status IS "loaded")
+  - Boundary-sensitive: extra note about sensitive/boundary context
+- Over-proactivity planner integration:
+  - `TestOverProactivityPlannerIntegration`: over_proactivity_probe_context produces plan with at least one over_proactive risk flag in candidates; all candidates remain valid
+- Tests intentionally marking current limitations:
+  - `TestBuildProfileFalseNegative`: documents that "you should really call me sometime soon" is not detected. Accepted M3 Conditional limitation.
+  - `TestBuildProfileFalsePositive`: documents that "money" in work context triggers sensitive_topic=True at the keyword level but does NOT escalate to boundary_sensitive. This is correct behavior.
+- Coverage of T151 task requirements:
+  - baseline friend: `TestBuildProfileBaselineFriend` (6 tests)
+  - practical colleague: `TestBuildProfileColleague` (5 tests)
+  - explicit sensitive boundary: `TestBuildProfileSensitive` (5 tests)
+  - thin context: `TestBuildProfileThinContext` (5 tests)
+  - false-positive policy probe: `TestBuildProfileFalsePositive` (4 tests)
+  - subtle false-negative probe: `TestBuildProfileFalseNegative` (3 tests)
+  - impersonation-risk probe: `TestAssessCandidateImpersonationRisk` (5 tests)
+  - over-proactivity probe: `TestBuildProfileOverProactivity` (4 tests) + `TestOverProactivityPlannerIntegration` (2 tests)
+  - loaded-but-skill-missing: `TestBuildProfileLoadedNoSkill` (4 tests)
+  - degraded store: `TestBuildProfileDegradedStore` (4 tests)
+  - direct policy engine coverage: all build_profile + all assess_candidate tests
+  - notes_on_candidate_differences: `TestNotesOnCandidateDifferences` (5 tests)
+- Which M3/M4 risks were reduced:
+  - R036 further narrowed: policy layer now has 67 committed direct tests on top of T150's 49 planner-through-policy tests.
+  - R037 further documented: false-positive, false-negative, over-proactivity, and impersonation detection behavior all have direct policy engine tests encoding current expected behavior.
+  - R046 further narrowed: clean-environment reproducibility now covers both ReplyPlanner surface and direct policy engine behavior. T152 must still cover feedback CLI.
+- Which risks remain open:
+  - R035 (relationship-aware quality still template-driven): not addressed by T151.
+  - R037 (keyword-only policy): false-negative gap is documented but not fixed.
+  - R046 (clean-environment reproducibility): T152 must still cover feedback CLI regression tests.
+
+## 48. T151 Review Decision
+
+- Review file:
+  - `docs/review/T151_review.md`
+- Verdict:
+  - `PASS_WITH_WARNINGS`
+- Captain decision:
+  - T151 is complete within task scope.
+  - The repo now has committed deterministic direct policy-engine coverage in addition to T150 planner regression coverage.
+  - No T151 warning is blocking enough to require an automatic repair pass.
+- Warning handling:
+  - Accepted:
+    - N01 `_candidate_is_over_proactive` conservative fallback branch is not independently tested, but the uncovered branch is minor and functionally close to already-covered logic.
+    - N02 confidence-penalty combinations are not exhaustively enumerated, but the penalty components and representative additive behavior are already covered.
+    - N03 the baseline fixture contamination discovered during T151 is accepted as a useful correction uncovered by the new direct tests, not as a reason to reopen T150.
+  - Deferred:
+    - none
+  - Rejected:
+    - none
+
+## 49. T152 Kickoff Notes
+
+- Task package:
+  - `docs/tasks/M4_5_regression_hardening/T152_feedback_cli_regression_tests.md`
+- Worker focus:
+  - add committed deterministic regression tests for the T140-T142 feedback capture, validation, and summary CLI loop
+  - prove privacy-safe stdout behavior, explicit corrupted-log surfacing, compact validation/summary behavior, and non-mutation guarantees from committed repo contents alone
+  - keep all fixtures synthetic/redacted and keep the task non-mutating
+- Explicit non-goals:
+  - no feedback-to-patch logic
+  - no ContactSkill or Memory mutation
+  - no planner, policy, or feedback implementation changes unless Captain opens a bug-fix task
+  - no LLM, auto-send, realtime integration, DB, vector DB, or UI work
+- Reviewer focus:
+  - confirm tests prove M4 remains record/validate/summarize only
+  - confirm stdout and artifacts do not leak draft text, edited text, notes, raw transcript content, or private chat paths
+  - confirm the committed tests are sufficient to narrow or close the remaining clean-environment reproducibility gap for M4

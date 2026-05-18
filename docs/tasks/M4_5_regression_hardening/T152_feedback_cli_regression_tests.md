@@ -19,7 +19,13 @@ The updated design direction keeps M4 as feedback capture only. Before later tas
 - `docs/tasks/M4_feedback_loop/T140_feedback_schema_cli.md`
 - `docs/tasks/M4_feedback_loop/T141_feedback_log_validator.md`
 - `docs/tasks/M4_feedback_loop/T142_feedback_summary_exporter.md`
+- `docs/review/T140_review.md`
+- `docs/review/T141_review.md`
+- `docs/review/T142_review.md`
+- `docs/review/M4_review.md`
+- `docs/review/T151_review.md`
 - T140-T142 implementation and handoff records
+- T150/T151 tests and fixtures for style consistency
 - `docs/review/M3_review.md`
 
 ## Allowed Files
@@ -50,9 +56,16 @@ Add tests for:
 - invalid plan path rejected or reported safely
 - validator catches invalid action-specific fields
 - summary exporter reports aggregate counts
+- validator report merge into summary is surfaced aggregate-only
 - stdout does not print full draft text, edited text, user note, boundary note, raw transcript, or private chat path contents
 - feedback flow does not mutate memory/ContactSkill/store records
 - private output confinement behavior is enforced or explicitly validated
+- corrupted or unreadable log input is surfaced explicitly rather than silently normalized away
+- compact validation/summary behavior remains readable without relying on verbose per-record payloads
+
+Prefer tests that directly exercise service behavior where CLI-only coverage would be unnecessarily indirect, but keep at least one end-to-end CLI-path regression for append, validate, and summarize behavior.
+
+If a required safety property cannot be proven without changing implementation behavior, stop and hand the gap back to Captain as a bug task rather than silently broadening scope.
 
 ## Verification
 
@@ -70,6 +83,7 @@ Append a T152 implementation record to `docs/07_handoff.md` with:
 - files changed
 - fixture shape
 - test command/result
+- coverage mapping back to T140/T141/T142 obligations
 - remaining gaps in M4 feedback validation
 
 ## Reviewer Focus
@@ -80,4 +94,6 @@ Reviewer should verify:
 
 - tests prove feedback is recorded, validated, and summarized, not applied
 - privacy and stdout checks are meaningful
+- corrupted/unreadable input behavior is explicit rather than hand-waved
+- compact validation/summary assertions do not depend on verbose per-record payload echoes
 - no future milestone behavior is smuggled into M4

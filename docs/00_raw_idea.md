@@ -1,5 +1,25 @@
 # Raw Idea
 
+## Captain Update 2026-05-18 (T151 Review)
+
+T151 has now passed review with `PASS_WITH_WARNINGS`, so the policy-fixture half of M4.5 is accepted and committed.
+
+- direct `ReplyPlanPolicyEngine` behavior is now reproducible from committed tests
+- synthetic fixture coverage now distinguishes thin-context, loaded-but-no-skill, degraded-store, and boundary-sensitive cases more explicitly
+- the remaining hardening gap before M5 is now concentrated in T152 feedback CLI regression coverage
+
+The Current Unique Task therefore moves to T152 Feedback CLI Regression Tests. The project is ready to commit the T151 slice and continue, but not yet ready to open M5 feedback-to-patch work.
+
+## Captain Update 2026-05-18
+
+T150 has now passed review with `PASS_WITH_WARNINGS`, and the project has its first committed regression-hardening slice for M4.5:
+
+- ReplyPlanner structure is now reproducible from committed tests
+- privacy leakage, contact alignment, ranking, thin-context, and baseline policy behavior now have deterministic coverage
+- the project still does not have enough clean-environment coverage to enter M5
+
+The Current Unique Task therefore moves to T151 Policy Fixture Suite, not to feedback-to-patch work. The next step is to make policy-layer false-positive, false-negative, over-proactivity, and direct policy-engine expectations more explicit and reviewable.
+
 ## Captain Update 2026-05-17
 
 T142 has now passed review with `PASS_WITH_WARNINGS`, so the intended M4 loop is functionally complete:

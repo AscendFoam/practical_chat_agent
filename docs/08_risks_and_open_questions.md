@@ -1,5 +1,49 @@
 # Risks And Open Questions
 
+## Captain Update 2026-05-18 (T151 Review Decision)
+
+Authoritative current risk state after the Captain review of T151:
+
+- R036 can now be closed for the planner/policy slice: T150 and T151 together provide committed deterministic regression coverage for both ReplyPlanner output behavior and direct policy-engine behavior.
+- R037 remains active but is now well-instrumented: false-positive, false-negative, over-proactivity, impersonation-risk, no-pressure exemption, and confidence-penalty behavior are all encoded in committed tests, but the keyword-only limitation is still real.
+- R046 remains active but is now narrowly scoped to the feedback CLI loop: T152 is the last required M4.5 hardening task before M5 can be reconsidered.
+- R035 remains active: T151 improves safety-surface auditability, not relationship-aware naturalness.
+
+Closed question Q131: T151 is accepted with `PASS_WITH_WARNINGS`, so the project may move directly to T152 rather than sending T151 back for a blocking fix pass.
+
+## Captain Update 2026-05-18 (T151)
+
+Authoritative current risk state after T151 Policy Fixture Suite:
+
+- R036 is further narrowed but remains active: T151 adds 67 direct policy engine tests and 3 new fixture contexts on top of T150's 49 planner-through-policy tests. Policy layer behavior is now directly regression-guarded from committed repo contents. T152 must still cover feedback CLI.
+- R037 is further documented: false-positive, false-negative, over-proactivity, impersonation-risk, action-push, no-pressure exemption, and confidence penalty behavior all have direct `ReplyPlanPolicyEngine` tests encoding current expected behavior. The keyword-only limitation remains, but all detection paths are now auditable.
+- R046 is further narrowed: clean-environment reproducibility now covers both the ReplyPlanner surface (T150) and direct policy engine behavior (T151). T152 must still add feedback CLI regression tests.
+- R035 remains active: T151 tests policy detection wiring and safety surface, not naturalness.
+- T151 also corrected `baseline_friend_context` fixture which inadvertently contained boundary cue keywords ("low pressure", "do not push"), making it not a clean baseline. This is a fixture correction, not a planner behavior change.
+
+Closed question Q130: T151 is complete as a policy fixture suite task. Direct `ReplyPlanPolicyEngine` behavior now has committed deterministic test coverage including build_profile, assess_candidate, over-proactivity, impersonation risk, no-pressure exemption, confidence penalties, loaded-but-no-skill vs not_configured thin context, degraded store, and notes_on_candidate_differences.
+
+## Captain Update 2026-05-18 (T150 Review Decision)
+
+Authoritative current risk state after the Captain review of T150:
+
+- R034 can now be closed: priority-rank uniqueness/stability and contact alignment are no longer open regressibility risks because they are now covered by committed deterministic tests.
+- R036 is narrowed but remains active: ReplyPlanner regression coverage is now committed, but the full M3/M4 hardening target still depends on T151 and T152.
+- R037 remains active but is narrower: current keyword-policy false-positive and false-negative behavior is now documented and reproducible, but not yet improved.
+- R046 remains active but is narrower: clean-environment reproducibility now exists for the ReplyPlanner slice, but not yet for the full policy-fixture and feedback-CLI surface.
+
+## Captain Update 2026-05-17 (T150)
+
+Authoritative current risk state after T150 ReplyPlanner regression tests:
+
+- R036 is narrowed: T150 adds 49 committed deterministic tests and 7 synthetic fixture contexts covering candidate structure, privacy leakage, contact alignment, ranking invariants, thin-context behavior, boundary/sensitive behavior, false-positive boundedness, false-negative documentation, not-configured path, and non-approved id isolation. ReplyPlanner contract wiring is now regression-guarded from committed repo contents alone.
+- R034 is narrowed: priority_rank uniqueness/stability and contact_id alignment now have committed regression tests. Can be closed after T150 review confirms coverage is adequate.
+- R037 is narrowed: false-positive and false-negative keyword policy behavior is now documented in committed tests that encode current expected behavior. The keyword-only limitation remains, but the behavior is reproducible and auditable.
+- R046 is narrowed: ReplyPlanner is now reproducible from committed tests. T151 (policy fixture suite) and T152 (feedback CLI regression tests) must still add corresponding committed coverage before M5 is authorized.
+- R035 remains active: T150 tests contract wiring and safety surface, not naturalness. Relationship-aware quality is still template-driven. Naturalness claims remain prohibited.
+
+Closed question Q129: T150 is complete as a regression hardening task. ReplyPlanner M3 Conditional obligations now have committed deterministic test coverage.
+
 ## Captain Update 2026-05-17
 
 Authoritative current risk state after T142 review and the Captain M4 review:
@@ -130,6 +174,11 @@ Closed question Q124: the updated GPT roadmap is directionally aligned, but M4/M
 | Q122 | T132 是否足以作为 T133 的输入基础？足以作为 policy/boundary baseline，但不是最终质量证明；T133 必须做匿名 holdout eval 和 Gate M3 判断。 | `docs/review/T132_review.md` PASS_WITH_WARNINGS |
 | Q123 | Gate M3 是否允许进入下一里程碑？允许以 `Conditional` 进入 M4/T140，但仅限 review-only feedback capture，并必须把 T150 regression tests 条件带入后续。 | `docs/review/T133_review.md` PASS_WITH_WARNINGS + `docs/review/M3_review.md` |
 | Q124 | `gpt的后续设计思路(更新版).md` 是否符合当前项目？方向符合，但必须收敛执行顺序；已将 M4 改为 feedback capture/validate/summary，新增 M4.5 regression hardening，并把 feedback-to-patch、ContactSkill decomposition、LLM planner、RelationshipState、MemoryRetriever、BehaviorPlanner、Feishu、WeChat 延后到 gated milestones。 | Captain roadmap alignment decision + `docs/04_task_board.md` update |
+| Q125 | T140 feedback schema CLI 是否可以继续？可以，以 `PASS_WITH_WARNINGS` 接受。 | `docs/review/T140_review.md` PASS_WITH_WARNINGS |
+| Q126 | T141 feedback log validator 是否可以继续？可以，以 `PASS_WITH_WARNINGS` 接受。 | `docs/review/T141_review.md` PASS_WITH_WARNINGS |
+| Q127 | T142 feedback summary exporter 是否可以继续？可以，以 `PASS_WITH_WARNINGS` 接受。 | `docs/review/T142_review.md` PASS_WITH_WARNINGS |
+| Q128 | M4 是否可以进入 M5？不可以，M4 为 `Conditional`，必须先完成 M4.5 regression hardening (T150/T151/T152)。 | `docs/review/M4_review.md` Conditional |
+| Q129 | T150 ReplyPlanner regression tests 是否足以减少 R036/R034/R037/R046？足以部分减少：ReplyPlanner contract wiring、privacy、contact alignment、ranking、thin-context、boundary/sensitive、false-positive/false-negative 行为现在有 49 个已提交确定性测试覆盖。T151/T152 仍需补充 policy fixture suite 和 feedback CLI 回归测试。 | T150 implementation record in `docs/07_handoff.md` |
 
 ## Deferred Items
 

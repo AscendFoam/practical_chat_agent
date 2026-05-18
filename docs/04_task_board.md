@@ -1,9 +1,21 @@
 # Task Board
 
-Updated: 2026-05-17
+Updated: 2026-05-18
 
 ## Captain Current State Override
 
+- T151 review decision: `PASS_WITH_WARNINGS`.
+- T151 is complete as a committed policy-fixture and direct policy-engine regression-hardening task.
+- T151 warning disposition:
+  - Accepted: N01 `_candidate_is_over_proactive` conservative fallback branch not independently covered, N02 confidence-penalty coverage not fully additive across every combination, N03 baseline fixture contamination found and corrected by the new direct tests.
+  - Deferred: none.
+  - Rejected: none.
+- T150 review decision: `PASS_WITH_WARNINGS`.
+- T150 is complete as a committed ReplyPlanner regression-hardening task.
+- T150 warning disposition:
+  - Accepted: N01 overlapping `not_configured` fixture coverage, N02 no direct `ReplyPlanPolicyEngine` unit tests yet, N03 summary-text assertion fragility, N04 false-negative probe asserts current absence rather than a gap marker, N05 helper constructors not tested independently, N06 no `notes_on_candidate_differences` assertion yet.
+  - Deferred: none.
+  - Rejected: none.
 - T140 review decision: `PASS_WITH_WARNINGS`.
 - T140 is complete as a review-only feedback capture task.
 - T140 warning disposition:
@@ -23,19 +35,19 @@ Updated: 2026-05-17
   - Rejected: none.
 - Gate M3 remains `Conditional`.
 - Gate M4 is now `Conditional`.
-- Current Unique Task: T150 ReplyPlanner Regression Tests.
-- Current task package: `docs/tasks/M4_5_regression_hardening/T150_replyplanner_regression_tests.md`.
+- Current Unique Task: T152 Feedback CLI Regression Tests.
+- Current task package: `docs/tasks/M4_5_regression_hardening/T152_feedback_cli_regression_tests.md`.
 - M4 remains review-only: no auto-send, no realtime platform integration, no automatic ContactSkill/Memory mutation, no feedback-to-patch behavior, and no relationship-aware maturity claim before regression hardening.
-- M4 is functionally complete for scope, but clean-environment reproducibility is still unproven because committed tests and committed synthetic fixtures remain incomplete.
-- T150/T151/T152 must harden M3/M4 with committed regression coverage before M5 is authorized.
+- M4 is functionally complete for scope, and T150/T151 now cover the ReplyPlanner and direct policy slices of reproducibility, but clean-environment reproducibility is still incomplete because feedback-CLI regression coverage is not yet fully committed.
+- T152 is the last required M4.5 hardening task before Captain can reconsider M5 authorization.
 
 ## Current Unique Task
 
-T150: ReplyPlanner Regression Tests.
+T152: Feedback CLI Regression Tests.
 
-Task package: `docs/tasks/M4_5_regression_hardening/T150_replyplanner_regression_tests.md`
+Task package: `docs/tasks/M4_5_regression_hardening/T152_feedback_cli_regression_tests.md`
 
-Why now: M4 is now functionally complete, but the Captain M4 review is `Conditional`. Before M5 feedback-to-patch work, the repo needs committed deterministic tests proving ReplyPlanner, policy, and feedback safety behavior in a clean environment.
+Why now: T151 is now complete and accepted, so only one M4.5 gap remains: committed deterministic regression coverage for the T140-T142 feedback CLI loop. T152 is the next smallest task that can close the remaining clean-environment reproducibility gap before any M5 work is reconsidered.
 
 ## Board Rules
 
@@ -103,8 +115,8 @@ Goal: record, validate, and summarize human feedback on ReplyPlan candidates wit
 
 Goal: turn M3/M4 behavior into committed reproducible tests before feedback-to-patch or LLM drafting work.
 
-- [ ] T150: ReplyPlanner regression tests.
-- [ ] T151: policy fixture suite.
+- [x] T150: ReplyPlanner regression tests. Review `PASS_WITH_WARNINGS`.
+- [x] T151: policy fixture suite. Review `PASS_WITH_WARNINGS`.
 - [ ] T152: feedback CLI regression tests.
 
 ## Milestone 5: Feedback to Patch
@@ -188,9 +200,9 @@ Goal: keep WeChat as a thin final adapter behind the send gate.
 
 ## Historical Current Unique Task
 
-T142: Feedback Summary Exporter.
+T151: Policy Fixture Suite.
 
-It is now complete and accepted with `PASS_WITH_WARNINGS`. M4 is functionally complete, but the milestone remains `Conditional`, so the next worker task is T150 rather than M5.
+It is now complete and accepted with `PASS_WITH_WARNINGS`. The next worker task is T152 rather than M5, because M4.5 still needs feedback-CLI regression coverage.
 
 ## Next Captain Output Required
 

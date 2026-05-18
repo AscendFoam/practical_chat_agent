@@ -1,5 +1,46 @@
 # Decision Log
 
+## D030: T151 PASS_WITH_WARNINGS, accept task, advance to T152
+
+- Date: 2026-05-18
+- Status: Accepted
+- Context: `docs/review/T151_review.md` gives `PASS_WITH_WARNINGS` for the committed policy fixture suite. No blocking issues were found.
+- Decision: T151 is complete. The project may continue to T152 Feedback CLI Regression Tests.
+- Warning handling:
+  - Accepted:
+    - N01 the final conservative fallback branch in `_candidate_is_over_proactive` is not independently covered, but the branch is behaviorally redundant with already-tested proactive detection logic.
+    - N02 confidence-penalty coverage is not exhaustive across every additive combination, but the component penalties and a representative combined case are already deterministic and sufficient for this task scope.
+    - N03 the baseline fixture contamination found by T151 is a positive correction, not a remaining defect; direct policy-engine tests successfully exposed and fixed the issue.
+  - Deferred: none.
+  - Rejected: none.
+- Conditions carried forward:
+  - T152 remains required before M5 because the feedback CLI loop is still not regression-hardened from committed repo contents alone.
+  - T152 should emphasize privacy-safe stdout, corrupted-log surfacing, compact validation behavior, non-mutation guarantees, and aggregate summary behavior.
+- Impact: `docs/04_task_board.md` moves the Current Unique Task from T151 to T152.
+
+## D029: T150 PASS_WITH_WARNINGS, accept task, advance to T151
+
+- Date: 2026-05-18
+- Status: Accepted
+- Context: `docs/review/T150_review.md` gives `PASS_WITH_WARNINGS` for the committed ReplyPlanner regression test task. No blocking issues were found.
+- Decision: T150 is complete. The project may continue to T151 Policy Fixture Suite.
+- Warning handling:
+  - Accepted:
+    - N01 `TestNotConfiguredPath` overlaps with the `thin_context` fixture but still asserts a distinct invariant.
+    - N02 policy-layer behavior is still exercised indirectly through `ReplyPlanner`; direct `ReplyPlanPolicyEngine` unit coverage is better treated as T151 scope.
+    - N03 `practical` summary wording assertion is intentionally fragile as a regression guard.
+    - N04 false-negative probes intentionally assert current missed-detection behavior as a documented limitation.
+    - N05 helper constructors are simple enough that missing isolated unit tests is low risk.
+    - N06 `notes_on_candidate_differences` is not yet asserted, but this is informational rather than safety-critical.
+  - Deferred: none.
+  - Rejected: none.
+- Conditions carried forward:
+  - T151 should add more explicit policy-fixture coverage, including direct `ReplyPlanPolicyEngine` expectations where helpful.
+  - T151 should consider separating missing-store-path coverage more clearly from thin-context coverage.
+  - T151 should consider adding assertions for `notes_on_candidate_differences`.
+  - T152 remains required before M5 because the feedback CLI loop is not yet regression-hardened.
+- Impact: `docs/04_task_board.md` moves the Current Unique Task from T150 to T151.
+
 ## D028: Gate M4 Conditional, enter T150 instead of M5
 
 - Date: 2026-05-17

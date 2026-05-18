@@ -1,5 +1,27 @@
 # Feasibility Report
 
+## Captain Update 2026-05-18 (T151 Review)
+
+T151 confirms that committed deterministic policy-engine regression testing is feasible in the current repository shape. The repo can now prove both the ReplyPlanner surface and the direct policy layer from committed synthetic fixtures alone.
+
+The remaining feasibility gap is now narrower:
+
+- T152 must prove that the T140-T142 feedback CLI flow is equally reproducible from committed contents
+- until that happens, M5 remains premature even though T151 itself is accepted
+
+So the project is ready to commit T151 and advance the worker to T152, but not yet ready to claim full M4.5 completion.
+
+## Captain Update 2026-05-18
+
+T150 confirms that committed deterministic ReplyPlanner regression testing is feasible in the current repository shape. The repo can now prove a meaningful subset of M3 behavior from committed contents alone, without private fixtures or manual-only verification.
+
+The remaining feasibility gap is narrower and more specific:
+
+- T151 must make policy-layer fixture coverage and direct policy expectations more explicit
+- T152 must do the same for the feedback CLI capture/validate/summary loop
+
+So the project is still not ready for M5, but it is ready to commit T150 and advance the next worker to T151.
+
 ## Captain Update 2026-05-17
 
 T142 confirms that privacy-safe aggregate feedback summary export is feasible in the current architecture. The project can now record, validate, and summarize feedback without mutating ContactSkill, MemoryFact, approved stores, or outbound behavior.

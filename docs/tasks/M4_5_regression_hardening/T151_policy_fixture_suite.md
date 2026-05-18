@@ -19,6 +19,7 @@ The updated design direction says to harden deterministic regression tests befor
 - `docs/review/M3_review.md`
 - `docs/review/T133_review.md`
 - `docs/review/T133_milestone_review.md`
+- `docs/review/T150_review.md`
 - T150 tests and fixtures
 - `src/practical_chat_agent/services/policy.py`
 - `src/practical_chat_agent/services/reply_planner.py`
@@ -52,6 +53,12 @@ Create safe synthetic fixtures for:
 - impersonation-risk probe if not already covered by T150
 - over-proactivity probe
 
+Also add explicit coverage for the following T150 follow-ups when useful:
+
+- direct `ReplyPlanPolicyEngine` expectations, not only planner-through-policy coverage
+- a clearer distinction between generic `thin_context` and a loaded-but-skill-missing or otherwise degraded store scenario
+- `notes_on_candidate_differences` when policy state should cause it to be populated
+
 Each fixture should avoid real names, raw chat text, real platform IDs, or private file paths.
 
 ## Verification
@@ -68,6 +75,7 @@ Expected checks:
 - fixtures load in a clean environment
 - each fixture produces the expected policy profile or risk flag pattern
 - privacy-safe fixtures do not contain forbidden raw/private markers
+- at least one test exercises policy behavior without relying only on `ReplyPlanner.generate()`
 
 ## Expected Handoff Update
 
@@ -86,4 +94,5 @@ Reviewer should verify:
 
 - committed fixtures are truly synthetic/redacted
 - false-positive and false-negative cases are not hand-waved
+- direct policy-engine assertions are present where they improve auditability
 - test expectations do not overclaim relationship-aware maturity
