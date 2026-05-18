@@ -1,5 +1,57 @@
 # Architecture
 
+## Captain Update 2026-05-18 (T160 Review)
+
+T160 is now complete, so the M5 architecture has an explicit candidate-contract layer:
+
+```text
+Reproducible feedback loop
+  -> PreferencePatchCandidate schema
+  -> later deterministic feedback clusters
+  -> later patch proposal CLI
+  -> later manual patch review
+  -> only then approved patch compact context
+```
+
+The next architectural step is T161, which must add clustering only:
+
+```text
+validated feedback records
+  -> deterministic privacy-safe clusters
+  -> cluster ids + aggregate labels + supporting feedback ids
+  -> no patch generation yet
+```
+
+This keeps the mainline review-only and non-mutating.
+
+## Captain Update 2026-05-18 (M4.5 Review)
+
+M4.5 is now complete. The architecture now has a committed reproducibility layer around both planning and feedback handling:
+
+```text
+Approved compact ChatContext
+  -> ReplyPlanner
+  -> ReplyPlanPolicyEngine
+  -> human review
+  -> private feedback log
+  -> read-only validation report
+  -> aggregate safe summary
+  -> committed synthetic regression suite
+```
+
+The next architectural step may now begin, but only at the candidate-contract layer:
+
+```text
+Reproducible feedback loop
+  -> PreferencePatchCandidate schema
+  -> later clustering
+  -> later proposal CLI
+  -> later review CLI
+  -> only then approved patch runtime context
+```
+
+This preserves the mainline contract: no auto-apply, no automatic ContactSkill/Memory mutation, no outbound send behavior, and no platform integration.
+
 ## Captain Update 2026-05-18 (T151 Review)
 
 T151 extends the committed architectural safety net from planner-through-policy behavior to direct policy-engine behavior:

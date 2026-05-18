@@ -1,5 +1,25 @@
 # Raw Idea
 
+## Captain Update 2026-05-18 (T160 Review)
+
+T160 has now passed review with `PASS_WITH_WARNINGS`, so the first M5 step is accepted:
+
+- the repo now has a candidate-only `PreferencePatchCandidate` contract with evidence via `supporting_feedback_ids`
+- the project still does not permit automatic learning, auto-apply, runtime injection, or hidden ContactSkill/Memory mutation
+- the next safe step is no longer schema definition but deterministic clustering of repeated feedback patterns
+
+The Current Unique Task therefore moves to T161 Feedback Clusterer.
+
+## Captain Update 2026-05-18 (M4.5 Review)
+
+`docs/review/M4_5_review.md` now allows the project to leave regression hardening and enter the first M5 task.
+
+- the repo can now prove planner, policy, and feedback-loop behavior from committed synthetic tests
+- the next safe step is no longer "more hardening" but "define a candidate-only patch contract"
+- the project is still explicitly not doing automatic learning, automatic sending, or hidden state mutation
+
+The Current Unique Task therefore moves to T160 PreferencePatch Schema.
+
 ## Captain Update 2026-05-18 (T151 Review)
 
 T151 has now passed review with `PASS_WITH_WARNINGS`, so the policy-fixture half of M4.5 is accepted and committed.

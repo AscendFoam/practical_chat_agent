@@ -1,5 +1,54 @@
 # Risks And Open Questions
 
+## Captain Update 2026-05-18 (T160 Review)
+
+Authoritative current risk state after the Captain review of T160:
+
+- R041 remains active: T160 is accepted, but M5 must still preserve the candidate-only, review-only interpretation of feedback-to-patch work.
+- R047 remains active but is accepted for now: `instruction_scope` and `affected_candidate_types` remain free-form strings until actual T161/T162 usage clarifies whether enum tightening is worth the compatibility cost.
+- R048 remains active and deferred: `positive_examples` and `negative_examples` still rely on convention rather than structure to stay privacy-safe. T162 must enforce safe-summary-only content.
+- R049 is active: `PreferencePatchCandidate` has no committed automated validation tests yet. This is acceptable for T160 scope, but a later hardening slice should add model-level regression coverage before broader M5 runtime consumption.
+
+Closed question Q161: T160 is accepted with `PASS_WITH_WARNINGS`, so the project may proceed to T161 rather than sending T160 back for a blocking repair pass.
+
+## Captain Update 2026-05-18 (T160)
+
+Authoritative current risk state after T160 PreferencePatch Schema:
+
+- R041 remains active: T160 defines the candidate-only schema but does not implement clustering, review, or application. The `PreferencePatchCandidate` schema structurally enforces evidence via `supporting_feedback_ids` (min_length=1) and candidate-only defaults, but downstream tasks must preserve these constraints.
+- R047 is active: T160 introduces `PreferencePatchType` with 8 values, but `instruction_scope` and `affected_candidate_types` remain free-form strings. Later tasks should validate actual usage patterns before deciding whether to constrain these to enums.
+- R048 is active: `positive_examples` and `negative_examples` are free-form string lists with no structural enforcement that they contain only safe references rather than raw feedback text. T162 proposal generation must enforce safe-summary-only content.
+
+Closed question Q160: T160 defines the PreferencePatch candidate schema with all required fields. The schema is candidate-only, evidence-backed, and compatible with later M5 tasks without requiring schema breakage.
+
+## Captain Update 2026-05-18 (M4.5 Review)
+
+Authoritative current risk state after the Captain milestone review of M4.5:
+
+- R046 is closed: clean-environment reproducibility for the reviewed M3/M4 surface is now proven from committed repo contents via T150/T151/T152.
+- R043 remains active and deferred from T152 review: service-level output-path confinement is still not hard-enforced.
+- R045 remains active and deferred from T152 review: validation `record_results` can still become verbose on large logs.
+- R044 remains active: `reply_plan_id` coherence is still not fully cross-checked against loaded plan context.
+- R038 remains active: M5 must continue to avoid any automatic learning interpretation of feedback.
+- R035 remains active: relationship-aware quality is still template-driven.
+- R037 remains active but well-instrumented by committed tests.
+
+Closed question Q133: M4.5 is complete and the project may now enter M5, beginning with T160 PreferencePatch Schema under candidate-only, review-only constraints.
+
+## Captain Update 2026-05-18 (T152)
+
+Authoritative current risk state after T152 Feedback CLI Regression Tests:
+
+- R046 is now closed for M4.5: T150 (49 tests), T151 (67 tests), and T152 (60 tests) together provide 176 committed deterministic tests covering ReplyPlanner, policy engine, and the full feedback CLI loop. Clean-environment reproducibility is now proven from committed repo contents alone. M5 may be reconsidered after Captain review.
+- R042 is regression-guarded: corrupted JSON, schema-invalid, and missing-file inputs are all tested to surface explicit errors rather than silent normalization, in both the validator and the summary exporter.
+- R043 is regression-guarded: privacy warnings for non-private input paths (W_PRIVACY_INPUT) and non-private plan references (W_PRIVACY_REF) are tested. Service-level output-path freedom is documented as by-design for the single-user offline workflow.
+- R044 remains active but is regression-guarded for the paths T142 already covers.
+- R045 is regression-guarded: compact output tests verify that validation report and summary do not echo per-record private text.
+- R035 remains active: T152 does not address relationship-aware quality.
+- R037 remains active but is well-instrumented by T151 tests.
+
+Closed question Q132: T152 is complete as a feedback CLI regression test task. M4.5 regression hardening is now structurally complete (T150/T151/T152). The clean-environment reproducibility gap that kept M4 at Conditional is now closed from committed repo contents.
+
 ## Captain Update 2026-05-18 (T151 Review Decision)
 
 Authoritative current risk state after the Captain review of T151:
@@ -136,6 +185,9 @@ Closed question Q124: the updated GPT roadmap is directionally aligned, but M4/M
 | R039 | 更新版路线图若被过度提前执行，可能重新引入平台接入、外部 memory 或 LLM scope creep | 破坏当前 offline-first / review-only / evidence-first 安全骨架 | Task board 已把 Mem0、Feishu、WeChat、BehaviorPlanner、LLM drafting 延后到 M7-M12，并要求先通过 M4/M4.5/M5/M6 gates |
 | R040 | ContactSkill decomposition 可能被误执行成 breaking replacement | 现有 T113/T120-T123/T130-T133 evidence pipeline 和 runtime context 可能失效 | M6 明确定义为 compatible projection；保留 ContactSkill 作为 legacy aggregate / evidence bundle，并要求 fallback |
 | R041 | Feedback-to-Patch 可能被误解为自动学习 | 单条反馈可能被过度泛化并污染长期回复策略 | M5 patches 必须保持 candidate/review-only，包含 supporting_feedback_ids，不自动 approve、不自动 runtime injection |
+| R047 | `instruction_scope` 和 `affected_candidate_types` 仍为自由字符串 | T162+ 可能出现拼写漂移或语义不一致 | T160 schema-only 阶段可接受；T162/T163 使用后观察实际值再决定是否收紧 |
+| R048 | `positive_examples` / `negative_examples` 无结构化安全约束 | 可能被后续实现误用于存储原始反馈文本 | T162 提案生成必须只写入安全摘要或引用，不得写入原始反馈、编辑文本或私密备注 |
+| R049 | `PreferencePatchCandidate` 尚无已提交的自动化验证测试 | 后续 schema 演进或 review/runtime 接入时，字段约束可能无声回归 | T160 review 接受其当前 scope，但后续 hardening task 应补 valid/invalid construction、runtime-ready gate、confidence range、JSON round-trip 等回归测试 |
 
 ## Open Questions
 
@@ -179,6 +231,7 @@ Closed question Q124: the updated GPT roadmap is directionally aligned, but M4/M
 | Q127 | T142 feedback summary exporter 是否可以继续？可以，以 `PASS_WITH_WARNINGS` 接受。 | `docs/review/T142_review.md` PASS_WITH_WARNINGS |
 | Q128 | M4 是否可以进入 M5？不可以，M4 为 `Conditional`，必须先完成 M4.5 regression hardening (T150/T151/T152)。 | `docs/review/M4_review.md` Conditional |
 | Q129 | T150 ReplyPlanner regression tests 是否足以减少 R036/R034/R037/R046？足以部分减少：ReplyPlanner contract wiring、privacy、contact alignment、ranking、thin-context、boundary/sensitive、false-positive/false-negative 行为现在有 49 个已提交确定性测试覆盖。T151/T152 仍需补充 policy fixture suite 和 feedback CLI 回归测试。 | T150 implementation record in `docs/07_handoff.md` |
+| Q161 | T160 PreferencePatch schema 是否可以接受并推进到 T161？可以；以 `PASS_WITH_WARNINGS` 接受，warning 中的示例字段安全约束和缺少 committed model tests 继续留在风险台账中。 | `docs/review/T160_review.md` + Captain decision |
 
 ## Deferred Items
 

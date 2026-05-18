@@ -1,5 +1,27 @@
 # Feasibility Report
 
+## Captain Update 2026-05-18 (T160 Review)
+
+T160 confirms that M5 can stay within the current safety envelope while introducing patch-shaped artifacts.
+
+The feasibility gap has changed again:
+
+- no longer blocked on defining a review-only patch contract
+- now focused on whether repeated feedback can be clustered deterministically and privately before any patch proposal is generated
+
+So the project is ready to commit the T160 slice and advance to T161, but still only within review-only, candidate-only M5 constraints.
+
+## Captain Update 2026-05-18 (M4.5 Review)
+
+M4.5 confirms that clean-environment reproducibility is now feasible in the current repository shape for the entire reviewed M3/M4 surface.
+
+The feasibility gap has changed:
+
+- no longer blocked on proving planner/policy/feedback behavior from committed contents
+- now focused on whether M5 can stay candidate-only and review-first while introducing patch-shaped artifacts
+
+So the project is now ready to commit T152 and advance to T160, but only within schema-only, non-mutating M5 constraints.
+
 ## Captain Update 2026-05-18 (T151 Review)
 
 T151 confirms that committed deterministic policy-engine regression testing is feasible in the current repository shape. The repo can now prove both the ReplyPlanner surface and the direct policy layer from committed synthetic fixtures alone.

@@ -1,5 +1,47 @@
 # Decision Log
 
+## D032: T160 PASS_WITH_WARNINGS, accept task, advance to T161
+
+- Date: 2026-05-18
+- Status: Accepted
+- Context: `docs/review/T160_review.md` gives `PASS_WITH_WARNINGS` for the schema-only PreferencePatch candidate contract. No blocking issues were found.
+- Decision: T160 is complete. The project may continue to T161 Feedback Clusterer.
+- Warning handling:
+  - Accepted:
+    - N01 `instruction_scope` remains a free-form string at schema stage. This is acceptable while actual clustering/proposal usage is still unknown and R047 already tracks possible later tightening.
+    - N04 `schema_version` remains a plain string. This matches existing model/store conventions and is not worth special-case validation in T160 alone.
+    - N05 broader working-tree modifications are treated as a repository hygiene note rather than a T160 scope violation, because the task-specific implementation change stays within the allowed model/contract surface.
+  - Deferred:
+    - N02 `positive_examples` and `negative_examples` are not structurally constrained to safe-only summaries/references. Carry forward as R048 until T162 enforces safe content generation.
+    - N03 no committed automated tests yet cover `PreferencePatchCandidate` validation. Carry forward as R049 until a later hardening task adds model-level regression coverage.
+  - Rejected: none.
+- Conditions carried forward:
+  - T161 must remain deterministic, aggregate-only, privacy-safe, and non-mutating.
+  - T161 must not generate `PreferencePatchCandidate` records yet; it only prepares stable clustered evidence for T162.
+  - No automatic ContactSkill/Memory mutation, outbound sending, realtime integration, or LLM use is authorized by this decision.
+- Impact: `docs/04_task_board.md` moves the Current Unique Task from T160 to T161, and the T161 task package is tightened to preserve the candidate-only M5 sequencing.
+
+## D031: T152 PASS_WITH_WARNINGS, complete M4.5, authorize T160
+
+- Date: 2026-05-18
+- Status: Accepted
+- Context: `docs/review/T152_review.md` gives `PASS_WITH_WARNINGS` for the committed feedback CLI regression suite. No blocking issues were found. T150/T151/T152 now cover planner, direct policy, and feedback CLI behavior from committed synthetic tests.
+- Decision: T152 is complete. M4.5 regression hardening is complete. The project may enter M5, beginning with T160 PreferencePatch Schema.
+- Warning handling:
+  - Accepted:
+    - N03 `--validation-report` CLI wiring is not covered by a dedicated Typer end-to-end test, but the service-level merge behavior is directly regression-tested and adequate for this task scope.
+    - N04 there is no single append->validate->summarize pipeline test yet, but the three services and CLI entry points are all covered directly enough to accept the task.
+    - N05 `test_approach_labels_loaded` is intentionally brittle as a regression guard and acceptable.
+  - Deferred:
+    - N01 validation `record_results` still has no bounded-size guarantee on large logs. Carry forward as R045 until a future task either bounds it or formally accepts the verbosity envelope.
+    - N02 service-level output-path confinement is still convention/warning-based rather than hard-enforced. Carry forward as R043.
+  - Rejected: none.
+- Conditions carried forward:
+  - M5 remains review-only and candidate-only.
+  - T160 must define schema/contracts only; it must not generate, approve, apply, or inject patches.
+  - No automatic ContactSkill/Memory mutation, outbound sending, realtime integration, or LLM use is authorized by this decision.
+- Impact: `docs/04_task_board.md` moves the Current Unique Task from T152 to T160. `docs/review/M4_5_review.md` is created as the milestone-level authorization review.
+
 ## D030: T151 PASS_WITH_WARNINGS, accept task, advance to T152
 
 - Date: 2026-05-18

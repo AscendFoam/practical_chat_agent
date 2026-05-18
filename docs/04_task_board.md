@@ -4,6 +4,25 @@ Updated: 2026-05-18
 
 ## Captain Current State Override
 
+- T160 review decision: `PASS_WITH_WARNINGS`.
+- T160 is complete as a schema-only PreferencePatch candidate contract task.
+- T160 warning disposition:
+  - Accepted: N01 `instruction_scope` remains free-form at schema stage, N04 `schema_version` remains a plain string for consistency with existing patterns, N05 broader working-tree modifications are a hygiene note rather than a T160 scope violation.
+  - Deferred: N02 `positive_examples` / `negative_examples` are not structurally constrained to safe-only summaries or references, N03 no committed automated tests yet cover `PreferencePatchCandidate` validation.
+  - Rejected: none.
+- Current Unique Task: T161 Feedback Clusterer.
+- Current task package: `docs/tasks/M5_feedback_to_patch/T161_feedback_clusterer.md`.
+- T161 must stay deterministic, aggregate-only, review-only, and non-mutating: no patch generation yet, no auto-apply, no runtime injection, no ContactSkill/Memory mutation, no outbound send behavior, and no LLM use unless a future task package explicitly changes that scope.
+- T152 review decision: `PASS_WITH_WARNINGS`.
+- T152 is complete as a committed feedback CLI regression-hardening task.
+- T152 warning disposition:
+  - Accepted: N03 `--validation-report` CLI wiring is covered at the service level rather than by a dedicated end-to-end CLI test, N04 no single append->validate->summarize integration test yet, N05 `test_approach_labels_loaded` is intentionally brittle as a regression guard.
+  - Deferred: N01 validation `record_results` can still grow unboundedly on large logs, N02 service-level output-path confinement is still by warning/convention rather than hard enforcement.
+  - Rejected: none.
+- Gate M3 remains `Conditional` for quality/maturity claims.
+- Gate M4.5 is now `Allow`.
+- M4 review-only feedback infrastructure is now reproducible from committed repo contents.
+- M5 is now authorized only at the review-only patch-candidate layer: no auto-apply, no runtime injection, no automatic ContactSkill/Memory mutation, no outbound send behavior, and no LLM use unless a future task package explicitly allows it.
 - T151 review decision: `PASS_WITH_WARNINGS`.
 - T151 is complete as a committed policy-fixture and direct policy-engine regression-hardening task.
 - T151 warning disposition:
@@ -33,21 +52,18 @@ Updated: 2026-05-18
   - Accepted: N01 duplicated plan-loading helpers, N02 raw `input_path` in stdout, N03 aggregate presence counts expose low-risk existence patterns, N04 unreadable input can still produce an output artifact, N05 untyped summary `dict`, N06 no `reason_tag` / `policy_risk_flag` aggregation because those fields do not yet exist.
   - Deferred: none.
   - Rejected: none.
-- Gate M3 remains `Conditional`.
-- Gate M4 is now `Conditional`.
-- Current Unique Task: T152 Feedback CLI Regression Tests.
-- Current task package: `docs/tasks/M4_5_regression_hardening/T152_feedback_cli_regression_tests.md`.
+- Gate M4 was `Conditional` at milestone review time and is now satisfied through completed M4.5 regression hardening.
 - M4 remains review-only: no auto-send, no realtime platform integration, no automatic ContactSkill/Memory mutation, no feedback-to-patch behavior, and no relationship-aware maturity claim before regression hardening.
-- M4 is functionally complete for scope, and T150/T151 now cover the ReplyPlanner and direct policy slices of reproducibility, but clean-environment reproducibility is still incomplete because feedback-CLI regression coverage is not yet fully committed.
-- T152 is the last required M4.5 hardening task before Captain can reconsider M5 authorization.
+- M4.5 is complete: T150/T151/T152 together provide committed deterministic coverage for ReplyPlanner, direct policy behavior, and the feedback CLI loop.
+- The project may now continue within M5, but only under review-only patch-candidate constraints.
 
 ## Current Unique Task
 
-T152: Feedback CLI Regression Tests.
+T161: Feedback Clusterer.
 
-Task package: `docs/tasks/M4_5_regression_hardening/T152_feedback_cli_regression_tests.md`
+Task package: `docs/tasks/M5_feedback_to_patch/T161_feedback_clusterer.md`
 
-Why now: T151 is now complete and accepted, so only one M4.5 gap remains: committed deterministic regression coverage for the T140-T142 feedback CLI loop. T152 is the next smallest task that can close the remaining clean-environment reproducibility gap before any M5 work is reconsidered.
+Why now: T160 is now complete and accepted. The next smallest safe M5 step is to cluster repeated feedback into privacy-safe, deterministic aggregates before any patch proposal CLI, review CLI, or runtime-context work.
 
 ## Board Rules
 
@@ -117,13 +133,13 @@ Goal: turn M3/M4 behavior into committed reproducible tests before feedback-to-p
 
 - [x] T150: ReplyPlanner regression tests. Review `PASS_WITH_WARNINGS`.
 - [x] T151: policy fixture suite. Review `PASS_WITH_WARNINGS`.
-- [ ] T152: feedback CLI regression tests.
+- [x] T152: feedback CLI regression tests. Review `PASS_WITH_WARNINGS`. Gate M4.5 `Allow`.
 
 ## Milestone 5: Feedback to Patch
 
 Goal: convert repeated feedback into reviewable PreferencePatch candidates without automatic approval or mutation.
 
-- [ ] T160: PreferencePatch schema.
+- [x] T160: PreferencePatch schema. Review `PASS_WITH_WARNINGS`.
 - [ ] T161: feedback clusterer.
 - [ ] T162: patch proposal CLI.
 - [ ] T163: patch review CLI.
@@ -200,9 +216,9 @@ Goal: keep WeChat as a thin final adapter behind the send gate.
 
 ## Historical Current Unique Task
 
-T151: Policy Fixture Suite.
+T160: PreferencePatch Schema.
 
-It is now complete and accepted with `PASS_WITH_WARNINGS`. The next worker task is T152 rather than M5, because M4.5 still needs feedback-CLI regression coverage.
+It is now complete and accepted with `PASS_WITH_WARNINGS`. The next worker task is T161, because the schema-only patch-candidate layer now exists and the next safe step is deterministic clustering before any proposal generation.
 
 ## Next Captain Output Required
 

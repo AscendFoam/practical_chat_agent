@@ -48,7 +48,16 @@
       "Bash(PYTHONPATH='src' 'C:\\\\ProgramData\\\\anaconda3\\\\envs\\\\practical-chat-agent\\\\python.exe' -m pytest tests -v --tb=short)",
       "Bash(PYTHONPATH='src' 'C:\\\\ProgramData\\\\anaconda3\\\\envs\\\\practical-chat-agent\\\\python.exe' -m pytest tests/ -v)",
       "Bash(PYTHONPATH='src' python -m pytest tests/ -v --tb=short)",
-      "Bash(PYTHONPATH='src' 'C:\\\\ProgramData\\\\anaconda3\\\\envs\\\\practical-chat-agent\\\\python.exe' -m pytest tests/ -v --tb=short)"
+      "Bash(PYTHONPATH='src' 'C:\\\\ProgramData\\\\anaconda3\\\\envs\\\\practical-chat-agent\\\\python.exe' -m pytest tests/ -v --tb=short)",
+      "Bash(PYTHONPATH='src' python -m pytest tests/test_feedback_cli.py -v)",
+      "Bash('C:\\\\ProgramData\\\\anaconda3\\\\envs\\\\practical-chat-agent\\\\python.exe' -m pytest tests/test_feedback_cli.py -v)",
+      "Bash(PYTHONPATH='src' python -m pytest tests/test_feedback_cli.py -v --tb=short)",
+      "Bash(PYTHONPATH='src' \"C:\\\\ProgramData\\\\anaconda3\\\\envs\\\\practical-chat-agent\\\\python.exe\" -m pytest tests/test_feedback_cli.py -v --tb=short)",
+      "Bash(PYTHONPATH='src' \"C:\\\\ProgramData\\\\anaconda3\\\\envs\\\\practical-chat-agent\\\\python.exe\" -m pytest tests/ --tb=short)",
+      "Bash(\"C:\\\\ProgramData\\\\anaconda3\\\\envs\\\\practical-chat-agent\\\\python.exe\" -m compileall src/practical_chat_agent/core/models.py)",
+      "Bash(PYTHONPATH='src' \"C:\\\\ProgramData\\\\anaconda3\\\\envs\\\\practical-chat-agent\\\\python.exe\" -m pytest tests -v --tb=short)",
+      "Bash(PYTHONPATH='src' python -m compileall src/practical_chat_agent/core/models.py)",
+      "Bash(PYTHONPATH='src' /c/ProgramData/anaconda3/envs/practical-chat-agent/python.exe -m pytest tests -v --tb=short)"
     ]
   }
 }

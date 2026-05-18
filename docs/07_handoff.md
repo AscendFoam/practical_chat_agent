@@ -4,6 +4,18 @@
 
 更新日期：2026-05-16
 
+## Captain Current State Override 2026-05-18
+
+- T160 review decision: `PASS_WITH_WARNINGS`.
+- T160 warning disposition:
+  - Accepted: N01 free-form `instruction_scope` is acceptable at schema stage, N04 plain-string `schema_version` remains consistent with existing patterns, N05 broader working-tree modifications are a hygiene note rather than a T160 scope violation.
+  - Deferred: N02 example fields are not structurally constrained to safe-only content, N03 no committed automated tests yet cover `PreferencePatchCandidate` validation.
+  - Rejected: none.
+- Current Unique Task: T161 Feedback Clusterer.
+- Current task package: `docs/tasks/M5_feedback_to_patch/T161_feedback_clusterer.md`.
+- M5 remains deterministic, review-only, and non-mutating.
+- T161 may aggregate repeated feedback into stable clusters, but it may not yet generate `PreferencePatchCandidate` records, review them, apply them, or inject them into runtime context.
+
 ## Captain Current State 2026-05-16
 
 - T133 review decision: `PASS_WITH_WARNINGS`.
@@ -1419,3 +1431,179 @@ M1 必须承接的条件：
   - confirm tests prove M4 remains record/validate/summarize only
   - confirm stdout and artifacts do not leak draft text, edited text, notes, raw transcript content, or private chat paths
   - confirm the committed tests are sufficient to narrow or close the remaining clean-environment reproducibility gap for M4
+
+## 50. T152 Implementation Record
+
+- Files changed:
+  - `tests/test_feedback_cli.py` (new: 60 feedback CLI regression tests)
+  - `docs/07_handoff.md`
+  - `docs/08_risks_and_open_questions.md`
+- Fixture shape:
+  - All fixtures are synthetic Python objects constructed via inline helpers in `tests/test_feedback_cli.py`.
+  - No JSON fixture files, no raw transcript text, no real names, real platform IDs, or private paths.
+  - `_synthetic_reply_plan()`: minimal 3-candidate ReplyPlan with safe ids and safe text.
+  - `_write_plan()`: serializes a synthetic ReplyPlan to a temp file.
+  - `_write_feedback_log()`: serializes synthetic feedback records to a temp file.
+  - `_make_record()`: constructs a `ReplyFeedbackRecord` with sensible defaults.
+  - Uses `pytest` `tmp_path` for all temp files; no committed filesystem artifacts.
+- Test command and result:
+  - `PYTHONPATH='src' pytest tests -v`
+  - 176 tests passed in 1.30s (60 T152 + 67 T151 + 49 T150), 0 failures.
+  - No LLM calls, no network access, no private file reads.
+- Coverage of T152 task requirements:
+  - `accept` feedback append: `TestFeedbackAppendAccept` (2 tests)
+  - `edit` feedback append: `TestFeedbackAppendEdit` (3 tests)
+  - `reject` feedback append: `TestFeedbackAppendReject` (2 tests)
+  - `boundary` feedback append: `TestFeedbackAppendBoundary` (3 tests)
+  - invalid candidate rank/id rejected: `TestFeedbackInvalidInputs` (4 tests)
+  - invalid plan path rejected: `TestFeedbackInvalidInputs::test_missing_plan_file_rejected`, `test_invalid_plan_json_rejected`
+  - validator catches invalid action-specific fields: `TestValidationActionSpecific` (3 tests)
+  - summary exporter reports aggregate counts: `TestSummaryAggregateCounts` (5 tests)
+  - validator report merge into summary: `TestSummaryValidationMerge` (3 tests)
+  - stdout does not print private text: `TestPrivacySafety` (7 tests)
+  - feedback flow does not mutate memory/ContactSkill/store: `TestNonMutation` (4 tests)
+  - private output confinement: `TestPrivateOutputConfinement` (3 tests)
+  - corrupted/unreadable input surfaced explicitly: `TestCorruptedInput` (7 tests)
+  - compact validation/summary output: `TestCompactOutput` (4 tests)
+  - end-to-end CLI regression: `TestCLIAppendRegression` (3 tests), `TestCLIValidateRegression` (2 tests), `TestCLISummarizeRegression` (3 tests)
+- Coverage of T140/T141/T142 obligations:
+  - T140 obligations tested: accept/edit/reject/boundary append, invalid rank rejection, invalid plan rejection, edit-without-text rejection, boundary-without-details rejection, output-only privacy, non-mutation of plan file.
+  - T141 obligations tested: action-specific field validation (edit_without_text, boundary_without_details), missing-plan detection, missing-candidate detection, contact-mismatch detection, corrupted JSON/schema/missing-file surfacing, privacy warnings (W_PRIVACY_INPUT, W_PRIVACY_REF), read-only confirmation.
+  - T142 obligations tested: aggregate counts (total, by action, distinct ids, boundary/edited/note counts, approach labels), validation report merge (aggregate-only, no raw record_results), corrupted input handling, output file writing, read-only confirmation.
+- Which M4 risks were reduced:
+  - R046 (clean-environment reproducibility): closed for M4.5. T150/T151/T152 together provide 176 committed deterministic tests covering ReplyPlanner, policy engine, and the full feedback CLI loop. Clean-environment reproducibility is now proven from committed repo contents alone.
+  - R042 (corrupted-log silent reset): regression-guarded. Corrupted JSON, schema-invalid, and missing-file inputs are all tested to surface explicit errors rather than silent normalization.
+  - R043 (path handling): regression-guarded. Privacy warnings for non-private input paths and non-private plan references are tested.
+  - R044 (reply_plan_id coherence): remains active but is now regression-guarded for the paths T142 already covers (distinct counts in summary, reference tracking in validation).
+  - R045 (verbose record_results): regression-guarded. Compact output tests verify that validation report and summary do not echo per-record private text.
+- Which risks remain open:
+  - R035 (relationship-aware quality still template-driven): not addressed by T152.
+  - R037 (keyword-only policy): not addressed by T152; documented in T151 tests.
+  - R038 (feedback log may be mistaken for automatic learning): not addressed by T152; M4 design constraint still applies.
+
+## 51. T152 Review Decision
+
+- Review file:
+  - `docs/review/T152_review.md`
+- Verdict:
+  - `PASS_WITH_WARNINGS`
+- Captain decision:
+  - T152 is complete within task scope.
+  - M4.5 regression hardening is now complete across T150/T151/T152.
+  - No T152 warning is blocking enough to require an automatic repair pass.
+- Warning handling:
+  - Accepted:
+    - N03 `--validation-report` flag coverage is service-level rather than full CLI end-to-end, but the underlying merge behavior is directly regression-tested and adequate.
+    - N04 there is no single append->validate->summarize integration test, but the service/CLI slices are covered strongly enough to accept the task.
+    - N05 `test_approach_labels_loaded` is intentionally brittle as a regression guard and acceptable.
+  - Deferred:
+    - N01 validation `record_results` still has no explicit size bound on large logs.
+    - N02 service-level output-path confinement is still warning/convention based rather than hard-enforced.
+  - Rejected:
+    - none
+
+## 52. M4.5 Milestone Review
+
+- Review file:
+  - `docs/review/M4_5_review.md`
+- Verdict:
+  - `Allow`
+- Captain conclusion:
+  - M4.5 has satisfied its purpose: M3/M4 behavior is now reproducible from committed repo contents alone.
+  - The project may now enter M5, but only at the schema-only candidate layer.
+  - M5 remains review-only: no auto-apply, no runtime injection, no automatic ContactSkill/Memory mutation, and no outbound send behavior.
+
+## 53. T160 Kickoff Notes
+
+- Task package:
+  - `docs/tasks/M5_feedback_to_patch/T160_preference_patch_schema.md`
+- Worker focus:
+  - define a review-only `PreferencePatchCandidate` contract and its supporting enums/metadata shape
+  - keep the output candidate-only and evidence-backed via `supporting_feedback_ids`
+  - prepare later clustering/review/runtime tasks without implementing them
+- Explicit non-goals:
+  - no clustering
+  - no proposal generation
+  - no review CLI
+  - no runtime injection
+  - no auto-approve or auto-apply behavior
+  - no LLM, no outbound send behavior, no platform integration
+- Reviewer focus:
+  - confirm the schema is explicit enough for later M5 tasks without smuggling in runtime behavior
+  - confirm candidate-only status and review metadata are encoded structurally
+  - confirm empty or missing supporting feedback evidence is rejected or marked unsafe
+
+## 54. T160 Implementation Record
+
+- Files changed:
+  - `src/practical_chat_agent/core/models.py`
+  - `docs/data_contracts/preference_patch_contract.md` (new)
+  - `docs/07_handoff.md`
+  - `docs/08_risks_and_open_questions.md`
+- Model/enum names added:
+  - `PreferencePatchType` (Literal with 8 values: tone_preference, length_preference, boundary_preference, topic_preference, question_style, humor_style, repair_style, proactivity_preference)
+  - `PreferencePatchCandidate` (Pydantic BaseModel)
+- Schema design:
+  - `supporting_feedback_ids` has `min_length=1`, structurally requiring evidence. Empty list is rejected by Pydantic validation.
+  - `status` defaults to `"candidate"` using existing `DistillationStatus` literal.
+  - `review_metadata` reuses `DistilledArtifactReviewMetadata`, which defaults to `reviewed_by_human=False` and `last_decision=None`, so `is_runtime_ready()` returns `False` by default.
+  - `is_runtime_ready()` on the model requires `status == "approved"` AND `reviewed_by_human == True` AND `last_decision == "approved"`.
+  - No field stores raw transcript text, edited text, private notes, or raw feedback content.
+  - `positive_examples` and `negative_examples` are free-form string lists for safe references or summaries only.
+  - `supporting_cluster_ids` is optional for future T161 cluster output.
+  - `affected_candidate_types` is a free-form string list for approach labels or candidate shapes this patch would influence.
+- Synthetic validation example:
+  - Created a `PreferencePatchCandidate` with `patch_type="tone_preference"`, `contact_id="contact_lin"`, `supporting_feedback_ids=["fb_abc123", "fb_def456"]`, `claim="Contact prefers concise replies"`, `behavior_instruction="Keep replies short and direct"`, `confidence=0.8`, `sensitivity="low"`.
+  - Confirmed: `status == "candidate"`, `is_runtime_ready() == False`, `review_metadata.reviewed_by_human == False`.
+  - Confirmed: creating with empty `supporting_feedback_ids=[]` raises Pydantic `ValidationError`.
+- How the schema keeps M5 candidate-only:
+  - Default status is `"candidate"`, not `"approved"`.
+  - `is_runtime_ready()` is gated on human review, matching existing store/review pattern.
+  - No field provides or implies a path to mutate ContactSkill, MemoryFact, or runtime prompts.
+  - No auto-approve, auto-apply, or runtime injection capability is encoded in the model.
+- Follow-up constraints for T161-T164:
+  - T161 clustering must produce cluster IDs compatible with `supporting_cluster_ids`.
+  - T162 proposal CLI must enforce `supporting_feedback_ids` non-empty; single-feedback patches without clustering are discouraged.
+  - T163 review CLI must use the same approval gate as T122: status change requires human reviewer and valid evidence.
+  - T164 compact context must only read patches where `is_runtime_ready() == True`, and must not inject `behavior_instruction` directly into runtime prompts without compact context layer.
+  - None of T161-T164 may add a field that stores raw feedback text, edited text, or private note bodies.
+
+## 55. T160 Review Decision
+
+- Review file:
+  - `docs/review/T160_review.md`
+- Verdict:
+  - `PASS_WITH_WARNINGS`
+- Captain decision:
+  - T160 is complete within task scope.
+  - The repo now has an explicit candidate-only `PreferencePatchCandidate` contract for M5.
+  - No T160 warning is blocking enough to require an automatic repair pass.
+- Warning handling:
+  - Accepted:
+    - N01 `instruction_scope` remains free-form at schema stage. This is acceptable while actual downstream usage is still unknown and later tightening remains available.
+    - N04 `schema_version` remains a plain string for consistency with the project's existing model/store pattern.
+    - N05 broader working-tree modifications are treated as repository hygiene noise rather than a T160 scope violation, because the task-specific change itself stays within allowed files.
+  - Deferred:
+    - N02 `positive_examples` and `negative_examples` are not structurally constrained to safe-only summaries/references.
+    - N03 no committed automated tests yet cover `PreferencePatchCandidate` validation.
+  - Rejected:
+    - none
+
+## 56. T161 Kickoff Notes
+
+- Task package:
+  - `docs/tasks/M5_feedback_to_patch/T161_feedback_clusterer.md`
+- Worker focus:
+  - add a deterministic, privacy-safe feedback clustering layer on top of validated T140-T142 records
+  - emit stable cluster ids, aggregate labels, counts, and supporting feedback ids only
+  - prepare clustered evidence for later T162 patch proposal work without generating patches yet
+- Explicit non-goals:
+  - no `PreferencePatchCandidate` generation
+  - no review CLI
+  - no runtime injection
+  - no ContactSkill/Memory mutation
+  - no outbound send behavior, no realtime integration, no LLM use
+- Reviewer focus:
+  - confirm clustering is deterministic and aggregate-only
+  - confirm stdout/artifacts do not leak draft text, edited text, user notes, boundary notes, or raw feedback text
+  - confirm cluster outputs are explicit enough for T162 without silently smuggling in patch-generation behavior

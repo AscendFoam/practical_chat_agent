@@ -864,6 +864,45 @@ class ReplyFeedbackLog(BaseModel):
     records: list[ReplyFeedbackRecord] = Field(default_factory=list)
 
 
+PreferencePatchType = Literal[
+    "tone_preference",
+    "length_preference",
+    "boundary_preference",
+    "topic_preference",
+    "question_style",
+    "humor_style",
+    "repair_style",
+    "proactivity_preference",
+]
+
+
+class PreferencePatchCandidate(BaseModel):
+    schema_version: str = "preference_patch_candidate_v1"
+    patch_id: str = Field(default_factory=lambda: new_id("patch"))
+    contact_id: str = Field(..., min_length=1)
+    patch_type: PreferencePatchType
+    instruction_scope: str = "per_contact"
+    claim: str = Field(..., min_length=1)
+    behavior_instruction: str = Field(..., min_length=1)
+    rationale_summary: str | None = None
+    supporting_feedback_ids: list[str] = Field(..., min_length=1)
+    supporting_cluster_ids: list[str] = Field(default_factory=list)
+    positive_examples: list[str] = Field(default_factory=list)
+    negative_examples: list[str] = Field(default_factory=list)
+    affected_candidate_types: list[str] = Field(default_factory=list)
+    status: DistillationStatus = "candidate"
+    confidence: float = Field(..., ge=0.0, le=1.0)
+    sensitivity: DistillationSensitivity
+    review_metadata: DistilledArtifactReviewMetadata = Field(
+        default_factory=DistilledArtifactReviewMetadata,
+    )
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
+
+    def is_runtime_ready(self) -> bool:
+        return self.review_metadata.is_runtime_ready(status=self.status)
+
+
 ChatContext.model_rebuild()
 AgentTurnResult.model_rebuild()
 MeetingLivePreview.model_rebuild()

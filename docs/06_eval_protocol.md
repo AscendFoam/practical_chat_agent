@@ -1,5 +1,25 @@
 # Eval Protocol
 
+## Captain Update 2026-05-18 (T160 Review)
+
+T160 has now been accepted with `PASS_WITH_WARNINGS`.
+
+Current evaluation sequence is now:
+
+- T161: can the repo cluster repeated feedback into deterministic, privacy-safe aggregates that are stable enough to support later patch proposals without generating patches yet?
+
+T160 changes the evaluation baseline in one important way: M5 no longer needs to prove whether a candidate patch contract exists. That contract now exists. The next evaluation target is whether clustering can stay aggregate-only, review-first, and non-mutating.
+
+## Captain Update 2026-05-18 (M4.5 Review)
+
+`docs/review/M4_5_review.md` now sets the regression-hardening gate to `Allow`.
+
+Current evaluation sequence is now:
+
+- T160: can the repo define a review-only `PreferencePatchCandidate` contract that is explicit enough for later clustering and review, while still forbidding automatic learning or runtime mutation?
+
+M4.5 changes the evaluation baseline in one important way: M3/M4 safety behavior is now reproducible from committed repo contents alone. The next milestone is therefore allowed to start, but only at the schema-only patch-candidate layer.
+
 ## Captain Update 2026-05-18 (T151 Review)
 
 T151 has now been accepted with `PASS_WITH_WARNINGS`.
