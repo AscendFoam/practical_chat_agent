@@ -1,5 +1,28 @@
 # Risks And Open Questions
 
+## Captain Update 2026-05-18 (T161 Review Decision)
+
+Authoritative current risk state after the Captain review of T161:
+
+- R041 remains active: T162-T164 must preserve the interpretation of feedback-to-patch as review-only proposal work rather than automatic learning.
+- R043 remains active and deferred from T161 review: raw `input_path` is still present in cluster stdout/output and remains project-wide path-handling/privacy debt.
+- R050 remains active: edit actions still produce no safe deterministic cluster label, so T162 must not assume edit-driven preferences are already captured by T161.
+- R051 remains active: cluster IDs are stable by grouping key rather than by record content, so downstream consumers must not rely on `cluster_id` alone to understand evidence changes.
+- R052 is active and deferred: no committed automated tests yet cover `FeedbackClusterService` or `chat-feedback-cluster`.
+
+Closed question Q163: T161 is accepted with `PASS_WITH_WARNINGS`, so the project may proceed to T162 rather than sending T161 back for a blocking repair pass.
+
+## Captain Update 2026-05-18 (T161)
+
+Authoritative current risk state after T161 Feedback Clusterer:
+
+- R041 remains active: T161 clusters feedback but does not generate patches, review them, or apply them. Downstream tasks must preserve the aggregate-only, review-only interpretation.
+- R050 is active: edit actions produce no cluster label because no safe deterministic signal exists to distinguish edit reasons. T161 marks edit records as unlabeled. T162 may need a different strategy for edit-based patch proposals, or a later hardening task may derive edit-specific labels from approach_label patterns or boundary_label signals.
+- R051 is active: cluster_id stability depends on the grouping key content, not on the actual records. Two runs with different records for the same (contact_id, label) produce the same cluster_id. This is by design for accumulation but may confuse consumers that expect cluster_id to reflect record content.
+- R052 is active: no committed automated tests yet cover cluster output validation.
+
+Closed question Q162: T161 produces deterministic, privacy-safe feedback clusters with stable cluster_ids, supporting_feedback_ids, and aggregate counts. The clustering is action-type-based and does not generate PreferencePatchCandidate records.
+
 ## Captain Update 2026-05-18 (T160 Review)
 
 Authoritative current risk state after the Captain review of T160:
@@ -188,6 +211,9 @@ Closed question Q124: the updated GPT roadmap is directionally aligned, but M4/M
 | R047 | `instruction_scope` 和 `affected_candidate_types` 仍为自由字符串 | T162+ 可能出现拼写漂移或语义不一致 | T160 schema-only 阶段可接受；T162/T163 使用后观察实际值再决定是否收紧 |
 | R048 | `positive_examples` / `negative_examples` 无结构化安全约束 | 可能被后续实现误用于存储原始反馈文本 | T162 提案生成必须只写入安全摘要或引用，不得写入原始反馈、编辑文本或私密备注 |
 | R049 | `PreferencePatchCandidate` 尚无已提交的自动化验证测试 | 后续 schema 演进或 review/runtime 接入时，字段约束可能无声回归 | T160 review 接受其当前 scope，但后续 hardening task 应补 valid/invalid construction、runtime-ready gate、confidence range、JSON round-trip 等回归测试 |
+| R050 | `edit` action 反馈记录当前无安全确定性聚类标签 | edit 记录不参与聚类，可能遗漏重要的用户偏好信号 | T161 仅对 accept/reject/boundary 生成标签；T162 或后续 hardening task 需决定是否为 edit 派生标签或采用不同策略 |
+| R051 | cluster_id 仅反映分组键不反映记录内容 | 不同记录集可能共享同一 cluster_id | T161 设计为累积分组，T162 使用时应同时检查 supporting_feedback_ids 而非仅依赖 cluster_id |
+| R052 | `FeedbackClusterService` / `chat-feedback-cluster` 尚无已提交的自动化回归测试 | 聚类标签、cluster_id 稳定性、过滤规则或隐私输出约束未来可能无声回归 | T161 review 接受当前 scope；后续 hardening task 应补有效/无效聚类、cluster_id 稳定性、validation-report 过滤、隐私字段缺失、JSON round-trip 与单记录边界情况测试 |
 
 ## Open Questions
 
@@ -232,6 +258,8 @@ Closed question Q124: the updated GPT roadmap is directionally aligned, but M4/M
 | Q128 | M4 是否可以进入 M5？不可以，M4 为 `Conditional`，必须先完成 M4.5 regression hardening (T150/T151/T152)。 | `docs/review/M4_review.md` Conditional |
 | Q129 | T150 ReplyPlanner regression tests 是否足以减少 R036/R034/R037/R046？足以部分减少：ReplyPlanner contract wiring、privacy、contact alignment、ranking、thin-context、boundary/sensitive、false-positive/false-negative 行为现在有 49 个已提交确定性测试覆盖。T151/T152 仍需补充 policy fixture suite 和 feedback CLI 回归测试。 | T150 implementation record in `docs/07_handoff.md` |
 | Q161 | T160 PreferencePatch schema 是否可以接受并推进到 T161？可以；以 `PASS_WITH_WARNINGS` 接受，warning 中的示例字段安全约束和缺少 committed model tests 继续留在风险台账中。 | `docs/review/T160_review.md` + Captain decision |
+| Q162 | T161 feedback clusterer 是否产出确定性的、隐私安全的聚类结果？是；聚类由 action type 确定性推导，cluster_id 稳定，输出不含原始文本，不生成 patch candidate。 | T161 implementation record in `docs/07_handoff.md` |
+| Q163 | T161 是否可以作为已完成任务接受并推进到 T162？可以；以 `PASS_WITH_WARNINGS` 接受，缺少 committed cluster tests 和 `input_path` 暴露模式继续保留在风险台账中。 | `docs/review/T161_review.md` + Captain decision |
 
 ## Deferred Items
 

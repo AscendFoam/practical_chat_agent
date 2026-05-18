@@ -1,5 +1,27 @@
 # Decision Log
 
+## D033: T161 PASS_WITH_WARNINGS, accept task, advance to T162
+
+- Date: 2026-05-18
+- Status: Accepted
+- Context: `docs/review/T161_review.md` gives `PASS_WITH_WARNINGS` for the deterministic feedback clusterer. No blocking issues were found.
+- Decision: T161 is complete. The project may continue to T162 Patch Proposal CLI.
+- Warning handling:
+  - Accepted:
+    - N01 `reason_tag_summary` is a slightly misleading field name because it aggregates `boundary_label` values, but the contract and implementation remain explicit enough for current scope and no data is lost.
+    - N03 `counts_by_approach_label` may silently degrade to empty when plan files are unavailable. This is acceptable because the field is optional enrichment rather than required evidence.
+    - N05 `.claude/settings.json` modification is treated as workspace noise rather than a T161 scope violation.
+  - Deferred:
+    - N02 no committed automated tests yet cover `FeedbackClusterService` or `chat-feedback-cluster`. Carry forward as R052 until a later hardening task adds deterministic cluster regression coverage.
+    - N04 raw `input_path` still appears in cluster stdout/output. Carry forward under the already-active project-wide path-handling/privacy risk R043.
+  - Rejected: none.
+- Conditions carried forward:
+  - T162 must remain deterministic, candidate-only, privacy-safe, and non-mutating.
+  - T162 must consume cluster outputs conservatively and skip ambiguous or unlabeled clusters rather than speculating.
+  - T162 must enforce non-empty `supporting_feedback_ids`, preserve `supporting_cluster_ids`, and keep `positive_examples` / `negative_examples` limited to safe summaries or references only.
+  - No automatic ContactSkill/Memory mutation, outbound sending, realtime integration, or LLM use is authorized by this decision.
+- Impact: `docs/04_task_board.md` moves the Current Unique Task from T161 to T162, and the T162 task package is tightened so the next worker step is explicit and review-safe.
+
 ## D032: T160 PASS_WITH_WARNINGS, accept task, advance to T161
 
 - Date: 2026-05-18

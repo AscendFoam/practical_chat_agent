@@ -1,5 +1,16 @@
 # Feasibility Report
 
+## Captain Update 2026-05-18 (T161 Review)
+
+T161 confirms that deterministic, privacy-safe feedback clustering is feasible in the current repository shape.
+
+The feasibility gap has changed again:
+
+- no longer blocked on turning validated feedback into stable aggregate clusters
+- now focused on whether those clusters can be converted into conservative `PreferencePatchCandidate` records without leaking raw text, over-interpreting ambiguous labels, or bypassing review
+
+So the project is ready to commit the T161 slice and advance to T162, but still only within deterministic, candidate-only, review-first M5 constraints.
+
 ## Captain Update 2026-05-18 (T160 Review)
 
 T160 confirms that M5 can stay within the current safety envelope while introducing patch-shaped artifacts.

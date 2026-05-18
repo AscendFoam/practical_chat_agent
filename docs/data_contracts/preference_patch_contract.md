@@ -92,10 +92,71 @@ Status values follow the existing `DistillationStatus` convention:
 
 ## Compatibility with Later M5 Tasks
 
-- T161 (feedback clusterer) outputs cluster IDs that map to `supporting_cluster_ids`.
+- T161 (feedback clusterer) outputs cluster IDs that map to `supporting_cluster_ids`. Cluster contract defined below.
 - T162 (patch proposal CLI) creates `PreferencePatchCandidate` instances and must enforce `supporting_feedback_ids` non-empty.
 - T163 (patch review CLI) updates `status` and `review_metadata`, using the same `DistilledArtifactReviewMetadata` pattern as T122.
 - T164 (approved patch compact context) reads only `status="approved"` patches with `is_runtime_ready() == True`.
+
+## Feedback Cluster Contract (T161)
+
+Updated: 2026-05-18
+
+### Purpose
+
+`FeedbackClusterService` groups validated T140 feedback records into deterministic, privacy-safe aggregate clusters by rule-based signals. Clusters are intermediate artifacts between raw feedback and patch candidates.
+
+### Cluster Label Derivation
+
+Labels are derived deterministically from feedback record fields:
+
+| Action | Default Label | Override Condition |
+| --- | --- | --- |
+| `accept` | `good_tone` | None |
+| `reject` | `not_like_me` | None |
+| `boundary` | `boundary_violation` | If `boundary_label` normalizes to a known label, use that instead |
+| `edit` | _unlabeled_ | No safe deterministic label exists yet; edits are not clustered |
+
+Known labels: `too_long`, `too_cold`, `too_eager`, `too_formal`, `too_intimate`, `boundary_violation`, `not_like_me`, `good_tone`.
+
+### Cluster Output Shape
+
+```json
+{
+  "schema_version": "feedback_cluster_v1",
+  "generated_at": "...",
+  "input_path": "...",
+  "is_readable": true,
+  "total_records": 10,
+  "labeled_records": 8,
+  "unlabeled_records": 2,
+  "clustered_records": 8,
+  "unclustered_records": 2,
+  "skipped_invalid_records": 0,
+  "cluster_count": 3,
+  "clusters": [
+    {
+      "cluster_id": "cluster_<sha256_hex_16>",
+      "contact_id": "...",
+      "cluster_label": "not_like_me",
+      "supporting_feedback_ids": ["fb_...", "fb_..."],
+      "record_count": 3,
+      "counts_by_action": {"reject": 3},
+      "counts_by_approach_label": {"warm_casual": 2},
+      "counts_by_priority_rank": {"1": 2, "2": 1},
+      "time_range": {"earliest": "...", "latest": "..."},
+      "reason_tag_summary": null
+    }
+  ]
+}
+```
+
+### Cluster ID Stability
+
+`cluster_id` is derived from `sha256(contact_id:cluster_label)[:16]`. Identical `(contact_id, cluster_label)` always produces the same `cluster_id`, regardless of which records are present. Adding or removing records does not change the cluster ID for an existing grouping key.
+
+### Privacy Safety
+
+Cluster output contains NO raw feedback text, edited text, user notes, boundary notes, or draft text. All fields are aggregate counts, IDs, or timestamps.
 
 ## Anti-Patterns
 

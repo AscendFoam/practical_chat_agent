@@ -1,5 +1,15 @@
 # Raw Idea
 
+## Captain Update 2026-05-18 (T161 Review)
+
+T161 has now passed review with `PASS_WITH_WARNINGS`, so the second M5 step is accepted:
+
+- the repo now has a deterministic, privacy-safe feedback clustering layer
+- the project still does not permit automatic learning, auto-approve, auto-apply, runtime injection, or hidden ContactSkill/Memory mutation
+- the next safe step is no longer clustering but candidate-only patch proposal generation from aggregate evidence
+
+The Current Unique Task therefore moves to T162 Patch Proposal CLI.
+
 ## Captain Update 2026-05-18 (T160 Review)
 
 T160 has now passed review with `PASS_WITH_WARNINGS`, so the first M5 step is accepted:

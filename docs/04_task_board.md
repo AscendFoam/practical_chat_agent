@@ -4,15 +4,22 @@ Updated: 2026-05-18
 
 ## Captain Current State Override
 
+- T161 review decision: `PASS_WITH_WARNINGS`.
+- T161 is complete as a deterministic, privacy-safe feedback clusterer task.
+- T161 warning disposition:
+  - Accepted: N01 `reason_tag_summary` naming is slightly misleading but documented well enough for current scope, N03 `counts_by_approach_label` may safely degrade to empty when plan files are unavailable, N05 `.claude/settings.json` is a workspace artifact rather than a T161 scope violation.
+  - Deferred: N02 no committed automated tests yet cover `FeedbackClusterService` / `chat-feedback-cluster`, N04 raw `input_path` remains present in cluster stdout/output and stays tracked as project-wide path-handling/privacy debt.
+  - Rejected: none.
 - T160 review decision: `PASS_WITH_WARNINGS`.
 - T160 is complete as a schema-only PreferencePatch candidate contract task.
 - T160 warning disposition:
   - Accepted: N01 `instruction_scope` remains free-form at schema stage, N04 `schema_version` remains a plain string for consistency with existing patterns, N05 broader working-tree modifications are a hygiene note rather than a T160 scope violation.
   - Deferred: N02 `positive_examples` / `negative_examples` are not structurally constrained to safe-only summaries or references, N03 no committed automated tests yet cover `PreferencePatchCandidate` validation.
   - Rejected: none.
-- Current Unique Task: T161 Feedback Clusterer.
-- Current task package: `docs/tasks/M5_feedback_to_patch/T161_feedback_clusterer.md`.
-- T161 must stay deterministic, aggregate-only, review-only, and non-mutating: no patch generation yet, no auto-apply, no runtime injection, no ContactSkill/Memory mutation, no outbound send behavior, and no LLM use unless a future task package explicitly changes that scope.
+- Current Unique Task: T162 Patch Proposal CLI.
+- Current task package: `docs/tasks/M5_feedback_to_patch/T162_patch_proposal_cli.md`.
+- T162 must stay deterministic, candidate-only, review-only, and non-mutating: no auto-approve, no auto-apply, no runtime injection, no ContactSkill/Memory mutation, no outbound send behavior, and no LLM use unless a future task package explicitly changes that scope.
+- T162 must consume T161 cluster outputs conservatively: enforce non-empty `supporting_feedback_ids`, preserve `supporting_cluster_ids`, skip ambiguous or unlabeled clusters rather than speculate, and keep all examples/summaries privacy-safe.
 - T152 review decision: `PASS_WITH_WARNINGS`.
 - T152 is complete as a committed feedback CLI regression-hardening task.
 - T152 warning disposition:
@@ -59,11 +66,11 @@ Updated: 2026-05-18
 
 ## Current Unique Task
 
-T161: Feedback Clusterer.
+T162: Patch Proposal CLI.
 
-Task package: `docs/tasks/M5_feedback_to_patch/T161_feedback_clusterer.md`
+Task package: `docs/tasks/M5_feedback_to_patch/T162_patch_proposal_cli.md`
 
-Why now: T160 is now complete and accepted. The next smallest safe M5 step is to cluster repeated feedback into privacy-safe, deterministic aggregates before any patch proposal CLI, review CLI, or runtime-context work.
+Why now: T161 is now complete and accepted. The next smallest safe M5 step is to turn clustered aggregate evidence into candidate-only patch proposals before any review CLI or runtime-context work.
 
 ## Board Rules
 
@@ -140,7 +147,7 @@ Goal: turn M3/M4 behavior into committed reproducible tests before feedback-to-p
 Goal: convert repeated feedback into reviewable PreferencePatch candidates without automatic approval or mutation.
 
 - [x] T160: PreferencePatch schema. Review `PASS_WITH_WARNINGS`.
-- [ ] T161: feedback clusterer.
+- [x] T161: feedback clusterer. Review `PASS_WITH_WARNINGS`.
 - [ ] T162: patch proposal CLI.
 - [ ] T163: patch review CLI.
 - [ ] T164: approved patch compact context.
@@ -216,9 +223,9 @@ Goal: keep WeChat as a thin final adapter behind the send gate.
 
 ## Historical Current Unique Task
 
-T160: PreferencePatch Schema.
+T161: Feedback Clusterer.
 
-It is now complete and accepted with `PASS_WITH_WARNINGS`. The next worker task is T161, because the schema-only patch-candidate layer now exists and the next safe step is deterministic clustering before any proposal generation.
+It is now complete and accepted with `PASS_WITH_WARNINGS`. The next worker task is T162, because the cluster layer now exists and the next safe step is deterministic candidate-only patch proposal generation before any review CLI or runtime-context wiring.
 
 ## Next Captain Output Required
 

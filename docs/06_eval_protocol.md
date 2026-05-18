@@ -1,5 +1,15 @@
 # Eval Protocol
 
+## Captain Update 2026-05-18 (T161 Review)
+
+T161 has now been accepted with `PASS_WITH_WARNINGS`.
+
+Current evaluation sequence is now:
+
+- T162: can the repo convert deterministic feedback clusters into conservative, candidate-only `PreferencePatchCandidate` records with non-empty evidence, no raw-text leakage, and no review/runtime mutation?
+
+T161 changes the evaluation baseline in one important way: M5 no longer needs to prove whether repeated feedback can be aggregated safely at all. That layer now exists. The next evaluation target is whether proposal generation can stay deterministic, privacy-safe, and under-generative when clusters are ambiguous.
+
 ## Captain Update 2026-05-18 (T160 Review)
 
 T160 has now been accepted with `PASS_WITH_WARNINGS`.

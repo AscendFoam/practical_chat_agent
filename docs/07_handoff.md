@@ -6,15 +6,15 @@
 
 ## Captain Current State Override 2026-05-18
 
-- T160 review decision: `PASS_WITH_WARNINGS`.
-- T160 warning disposition:
-  - Accepted: N01 free-form `instruction_scope` is acceptable at schema stage, N04 plain-string `schema_version` remains consistent with existing patterns, N05 broader working-tree modifications are a hygiene note rather than a T160 scope violation.
-  - Deferred: N02 example fields are not structurally constrained to safe-only content, N03 no committed automated tests yet cover `PreferencePatchCandidate` validation.
+- T161 review decision: `PASS_WITH_WARNINGS`.
+- T161 warning disposition:
+  - Accepted: N01 `reason_tag_summary` naming mismatch is acceptable for now because the contract documents the actual meaning, N03 `counts_by_approach_label` may safely degrade when plan files are unavailable, N05 `.claude/settings.json` is workspace noise rather than a T161 scope violation.
+  - Deferred: N02 no committed automated tests yet cover the clusterer, N04 raw `input_path` remains present in cluster stdout/output and stays tracked as cross-task path/privacy debt.
   - Rejected: none.
-- Current Unique Task: T161 Feedback Clusterer.
-- Current task package: `docs/tasks/M5_feedback_to_patch/T161_feedback_clusterer.md`.
+- Current Unique Task: T162 Patch Proposal CLI.
+- Current task package: `docs/tasks/M5_feedback_to_patch/T162_patch_proposal_cli.md`.
 - M5 remains deterministic, review-only, and non-mutating.
-- T161 may aggregate repeated feedback into stable clusters, but it may not yet generate `PreferencePatchCandidate` records, review them, apply them, or inject them into runtime context.
+- T162 may generate candidate-only `PreferencePatchCandidate` records from T161 cluster outputs, but it may not review them, approve them, apply them, or inject them into runtime context.
 
 ## Captain Current State 2026-05-16
 
@@ -1607,3 +1607,86 @@ M1 必须承接的条件：
   - confirm clustering is deterministic and aggregate-only
   - confirm stdout/artifacts do not leak draft text, edited text, user notes, boundary notes, or raw feedback text
   - confirm cluster outputs are explicit enough for T162 without silently smuggling in patch-generation behavior
+
+## 57. T161 Implementation Record
+
+- 代码 / 文档改动：
+  - `src/practical_chat_agent/services/feedback.py`
+  - `src/practical_chat_agent/app/main.py`
+  - `docs/data_contracts/preference_patch_contract.md`
+  - `docs/07_handoff.md`
+  - `docs/08_risks_and_open_questions.md`
+- 已实现内容：
+  - 新增 `FeedbackClusterService`，消费 T140 `ReplyFeedbackLog` 并输出确定性、隐私安全的聚合聚类。
+  - 新增 `chat-feedback-cluster` CLI，支持 `--feedback-log`、`--output`、`--validation-report`。
+  - 聚类标签从反馈 action 类型确定性推导：
+    - `accept` → `good_tone`
+    - `reject` → `not_like_me`
+    - `boundary` → `boundary_violation`（若 `boundary_label` 归一化后匹配已知标签则使用该标签）
+    - `edit` → 当前无安全确定性标签，标记为 unlabeled
+  - 聚类键为 `(contact_id, cluster_label)`，按排序顺序输出。
+  - `cluster_id` 由 `sha256(contact_id:label)[:16]` 生成，确保相同分组键始终产生相同 ID。
+  - 每个 cluster 输出包含：`cluster_id`、`contact_id`、`cluster_label`、`supporting_feedback_ids`、`record_count`、`counts_by_action`、`counts_by_approach_label`、`counts_by_priority_rank`、`time_range`、`reason_tag_summary`。
+  - `--validation-report` 可选参数支持仅聚类 T141 验证通过的记录。
+  - stdout 仅输出聚合统计和 ID，不输出原始反馈文本、编辑文本、用户备注或边界备注。
+  - 未生成 `PreferencePatchCandidate`、未修改 ContactSkill/Memory/store records、未调用 LLM、未自动 approve 或 apply。
+- 聚类输出 shape：
+  - Schema: `feedback_cluster_v1`
+  - CLI: `chat-feedback-cluster --feedback-log <path> --output <path> [--validation-report <path>]`
+- 合成验证示例（将在 verification 阶段产出）：
+  - 输入：10 条合成反馈记录（contact_test_001: 3 reject + 2 accept + 2 boundary + 1 edit, contact_test_002: 2 reject）
+  - 输出：4 个 cluster（boundary_violation/2, good_tone/2, not_like_me/3 for contact_test_001, not_like_me/2 for contact_test_002）
+  - 1 条 unlabeled（edit 记录），1 条 unclustered
+  - Cluster ID 稳定性验证通过：相同输入两次运行产生相同的 cluster_id 集合
+  - 隐私安全验证通过：输出 JSON 不含 edited_text/user_note/boundary_note/draft_text
+  - 不同 contact_id 的相同 label 产生不同的 cluster_id
+  - 176 已有测试全部通过，零回归
+  - CLI `chat-feedback-cluster --feedback-log <path>` 正常运行
+- Cluster ID 与 T160 的关系：
+  - `cluster_id` 为 `cluster_<sha256_hex_16>` 格式的字符串，与 `PreferencePatchCandidate.supporting_cluster_ids: list[str]` 兼容
+  - T162 可通过 `supporting_cluster_ids` 引用 T161 输出的 cluster
+- T162-T164 必须保留的约束：
+  - `edit` action 记录当前未被聚类（无安全确定性标签），T162 不可假设 edit 记录已被聚类覆盖
+  - cluster label 集合当前为 3 个确定性标签（`good_tone`、`not_like_me`、`boundary_violation`），加上 boundary_label 归一化匹配的已知标签
+  - `cluster_id` 依赖分组键内容，不可用随机 ID 替代
+  - 输出不含任何原始文本，T162 也不得从 cluster 输出反查原始反馈内容
+
+## 58. T161 Review Decision
+
+- Review file:
+  - `docs/review/T161_review.md`
+- Verdict:
+  - `PASS_WITH_WARNINGS`
+- Captain decision:
+  - T161 is complete within task scope.
+  - The repo now has a deterministic, privacy-safe feedback clustering layer for M5.
+  - No T161 warning is blocking enough to require an automatic repair pass.
+- Warning handling:
+  - Accepted:
+    - N01 `reason_tag_summary` is a mildly misleading name, but the field meaning is documented and no data is lost.
+    - N03 `counts_by_approach_label` may silently degrade when referenced plan files are unavailable. This is acceptable because the field is optional enrichment.
+    - N05 `.claude/settings.json` is a workspace artifact rather than a task-scope violation.
+  - Deferred:
+    - N02 no committed automated tests yet cover `FeedbackClusterService` / `chat-feedback-cluster`.
+    - N04 raw `input_path` remains present in cluster stdout/output.
+  - Rejected:
+    - none
+
+## 59. T162 Kickoff Notes
+
+- Task package:
+  - `docs/tasks/M5_feedback_to_patch/T162_patch_proposal_cli.md`
+- Worker focus:
+  - convert T161 cluster outputs into deterministic, review-only `PreferencePatchCandidate` proposals
+  - preserve explicit evidence via non-empty `supporting_feedback_ids` and `supporting_cluster_ids`
+  - skip ambiguous or unlabeled clusters rather than generating speculative patches
+- Explicit non-goals:
+  - no human review actions yet
+  - no auto-approve, auto-apply, or runtime injection
+  - no ContactSkill/Memory mutation
+  - no outbound send behavior, no realtime integration, no LLM use
+  - no raw feedback text, edited text, private notes, or draft text in candidate fields
+- Reviewer focus:
+  - confirm proposals are deterministic, candidate-only, and evidence-backed
+  - confirm ambiguous or edit-only signals are skipped explicitly instead of being over-interpreted
+  - confirm stdout/artifacts remain privacy-safe and no runtime mutation behavior is smuggled into the proposal layer

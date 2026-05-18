@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import hashlib
 import json
+from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -462,3 +464,257 @@ class FeedbackSummaryService:
             )
             summary["output_path"] = str(output_path)
         return summary
+
+
+class FeedbackClusterService:
+    """Deterministic, review-only feedback clusterer (T161).
+
+    Groups validated T140 feedback records into privacy-safe aggregate
+    clusters by rule-based signals (action type, boundary labels).
+    Does NOT generate PreferencePatchCandidate records.
+    """
+
+    _LABEL_BY_ACTION: dict[str, str] = {
+        "accept": "good_tone",
+        "reject": "not_like_me",
+        "boundary": "boundary_violation",
+    }
+
+    _KNOWN_LABELS: set[str] = {
+        "too_long",
+        "too_cold",
+        "too_eager",
+        "too_formal",
+        "too_intimate",
+        "boundary_violation",
+        "not_like_me",
+        "good_tone",
+    }
+
+    def __init__(self) -> None:
+        self._plan_cache: dict[str, ReplyPlan | None] = {}
+
+    def cluster(
+        self,
+        *,
+        input_path: Path,
+        output_path: Path | None = None,
+        validation_report_path: Path | None = None,
+    ) -> dict:
+        report = self._init_report(input_path)
+
+        log = self._load_log(input_path, report)
+        if log is None:
+            return self._finalize(report, output_path)
+
+        report["is_readable"] = True
+        report["total_records"] = len(log.records)
+
+        valid_ids = self._load_valid_ids(validation_report_path, report)
+
+        groups: dict[tuple[str, str], list[ReplyFeedbackRecord]] = defaultdict(list)
+
+        for record in log.records:
+            if valid_ids is not None and record.feedback_id not in valid_ids:
+                report["skipped_invalid_records"] += 1
+                continue
+
+            label = self._derive_cluster_label(record)
+            if label is None:
+                report["unlabeled_records"] += 1
+                continue
+
+            groups[(record.contact_id, label)].append(record)
+            report["labeled_records"] += 1
+
+        for (contact_id, label), records in sorted(groups.items()):
+            cluster = self._build_cluster(
+                contact_id, label, records, input_path.parent,
+            )
+            report["clusters"].append(cluster)
+            report["clustered_records"] += len(records)
+
+        report["cluster_count"] = len(report["clusters"])
+        report["unclustered_records"] = (
+            report["total_records"]
+            - report["clustered_records"]
+            - report["skipped_invalid_records"]
+        )
+
+        return self._finalize(report, output_path)
+
+    def _init_report(self, input_path: Path) -> dict:
+        return {
+            "schema_version": "feedback_cluster_v1",
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "input_path": str(input_path),
+            "is_readable": False,
+            "corrupted_reason": None,
+            "total_records": 0,
+            "labeled_records": 0,
+            "unlabeled_records": 0,
+            "clustered_records": 0,
+            "unclustered_records": 0,
+            "skipped_invalid_records": 0,
+            "cluster_count": 0,
+            "clusters": [],
+        }
+
+    def _load_log(self, input_path: Path, report: dict) -> ReplyFeedbackLog | None:
+        if not input_path.exists():
+            report["corrupted_reason"] = "file_not_found"
+            return None
+        try:
+            raw_text = input_path.read_text(encoding="utf-8")
+        except OSError as exc:
+            report["corrupted_reason"] = f"read_error: {exc}"
+            return None
+        try:
+            data = json.loads(raw_text)
+        except json.JSONDecodeError as exc:
+            report["corrupted_reason"] = (
+                f"json_decode_error: line {exc.lineno} column {exc.colno}"
+            )
+            return None
+        try:
+            return ReplyFeedbackLog.model_validate(data)
+        except ValidationError as exc:
+            report["corrupted_reason"] = (
+                f"schema_error: {exc.error_count()} validation failure(s)"
+            )
+            return None
+
+    def _load_valid_ids(
+        self, report_path: Path | None, report: dict,
+    ) -> set[str] | None:
+        if report_path is None:
+            return None
+
+        if not report_path.exists():
+            report["validation_report_status"] = "not_found"
+            return None
+
+        try:
+            raw = json.loads(report_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            report["validation_report_status"] = "unreadable"
+            return None
+
+        valid_ids: set[str] = set()
+        for rec in raw.get("record_results", []):
+            if rec.get("is_valid", False):
+                fid = rec.get("feedback_id")
+                if fid:
+                    valid_ids.add(fid)
+
+        report["validation_report_status"] = "loaded"
+        report["validation_valid_count"] = len(valid_ids)
+        return valid_ids
+
+    def _derive_cluster_label(self, record: ReplyFeedbackRecord) -> str | None:
+        if record.action == "boundary" and record.boundary_label:
+            normalized = record.boundary_label.strip().casefold().replace(" ", "_")
+            if normalized in self._KNOWN_LABELS:
+                return normalized
+
+        return self._LABEL_BY_ACTION.get(record.action)
+
+    def _build_cluster(
+        self,
+        contact_id: str,
+        label: str,
+        records: list[ReplyFeedbackRecord],
+        log_dir: Path,
+    ) -> dict:
+        key_bytes = f"{contact_id}:{label}".encode("utf-8")
+        key_hash = hashlib.sha256(key_bytes).hexdigest()[:16]
+        cluster_id = f"cluster_{key_hash}"
+
+        supporting_ids = [r.feedback_id for r in records]
+
+        counts_by_action: dict[str, int] = {}
+        counts_by_priority_rank: dict[str, int] = {}
+        counts_by_approach_label: dict[str, int] = {}
+        boundary_labels: dict[str, int] = {}
+        timestamps: list[datetime] = []
+
+        for record in records:
+            counts_by_action[record.action] = counts_by_action.get(record.action, 0) + 1
+            rank_key = str(record.priority_rank)
+            counts_by_priority_rank[rank_key] = counts_by_priority_rank.get(rank_key, 0) + 1
+
+            if record.boundary_label:
+                boundary_labels[record.boundary_label] = boundary_labels.get(record.boundary_label, 0) + 1
+
+            timestamps.append(record.created_at)
+
+            approach = self._get_approach_label(record, log_dir)
+            if approach is not None:
+                counts_by_approach_label[approach] = counts_by_approach_label.get(approach, 0) + 1
+
+        time_range = None
+        if timestamps:
+            time_range = {
+                "earliest": min(timestamps).isoformat(),
+                "latest": max(timestamps).isoformat(),
+            }
+
+        return {
+            "cluster_id": cluster_id,
+            "contact_id": contact_id,
+            "cluster_label": label,
+            "supporting_feedback_ids": supporting_ids,
+            "record_count": len(records),
+            "counts_by_action": counts_by_action,
+            "counts_by_approach_label": counts_by_approach_label or None,
+            "counts_by_priority_rank": counts_by_priority_rank,
+            "time_range": time_range,
+            "reason_tag_summary": boundary_labels or None,
+        }
+
+    def _resolve_plan_path(self, source_plan_path: str, log_dir: Path) -> Path | None:
+        candidate = Path(source_plan_path)
+        if candidate.is_absolute():
+            return candidate if candidate.exists() else None
+        if candidate.exists():
+            return candidate.resolve()
+        resolved = (log_dir / candidate).resolve()
+        return resolved if resolved.exists() else None
+
+    def _load_plan_safe(self, plan_path: Path) -> ReplyPlan | None:
+        try:
+            raw = plan_path.read_text(encoding="utf-8")
+            return ReplyPlan.model_validate_json(raw)
+        except (OSError, json.JSONDecodeError, ValidationError):
+            return None
+
+    def _get_approach_label(self, record: ReplyFeedbackRecord, log_dir: Path) -> str | None:
+        if not record.source_plan_path:
+            return None
+        cache_key = record.source_plan_path
+        if cache_key not in self._plan_cache:
+            resolved = self._resolve_plan_path(record.source_plan_path, log_dir)
+            if resolved is not None:
+                self._plan_cache[cache_key] = self._load_plan_safe(resolved)
+            else:
+                self._plan_cache[cache_key] = None
+        plan = self._plan_cache[cache_key]
+        if plan is None:
+            return None
+        for candidate in plan.candidates:
+            if (
+                candidate.candidate_id == record.candidate_id
+                and candidate.priority_rank == record.priority_rank
+            ):
+                return candidate.approach_label
+        return None
+
+    def _finalize(self, report: dict, output_path: Path | None) -> dict:
+        if output_path is not None:
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            output_path.write_text(
+                json.dumps(report, ensure_ascii=False, indent=2),
+                encoding="utf-8",
+            )
+            report["output_path"] = str(output_path)
+        return report

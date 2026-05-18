@@ -61,6 +61,7 @@ from practical_chat_agent.services.evidence_validation import (
 )
 from practical_chat_agent.services.meeting_live_loop import MeetingLiveLoopRequest
 from practical_chat_agent.services.feedback import (
+    FeedbackClusterService,
     FeedbackError,
     FeedbackService,
     FeedbackSummaryService,
@@ -2190,6 +2191,80 @@ def chat_reply_feedback_summary(
     typer.echo(json.dumps(safe_stdout, ensure_ascii=False, indent=2))
 
     if not summary["is_readable"]:
+        raise typer.Exit(code=1)
+
+
+@app.command("chat-feedback-cluster")
+def chat_feedback_cluster(
+    feedback_log: Path = typer.Option(
+        ...,
+        "--feedback-log",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        readable=True,
+        help="Input T140 feedback log JSON file to cluster.",
+    ),
+    output: Optional[Path] = typer.Option(
+        None,
+        "--output",
+        help="Optional private output path for cluster JSON.",
+    ),
+    validation_report: Optional[Path] = typer.Option(
+        None,
+        "--validation-report",
+        help="Optional T141 validation report JSON to filter to valid records only.",
+    ),
+) -> None:
+    """Cluster validated feedback records into deterministic, privacy-safe aggregate groups."""
+
+    service = FeedbackClusterService()
+    report = service.cluster(
+        input_path=feedback_log,
+        output_path=output,
+        validation_report_path=validation_report,
+    )
+
+    safe_stdout = {
+        "input_path": report["input_path"],
+        "is_readable": report["is_readable"],
+        "total_records": report["total_records"],
+        "labeled_records": report["labeled_records"],
+        "unlabeled_records": report["unlabeled_records"],
+        "clustered_records": report["clustered_records"],
+        "unclustered_records": report["unclustered_records"],
+        "cluster_count": report["cluster_count"],
+        "clusters": [
+            {
+                "cluster_id": c["cluster_id"],
+                "contact_id": c["contact_id"],
+                "cluster_label": c["cluster_label"],
+                "supporting_feedback_ids": c["supporting_feedback_ids"],
+                "record_count": c["record_count"],
+                "counts_by_action": c["counts_by_action"],
+                "counts_by_approach_label": c["counts_by_approach_label"],
+                "counts_by_priority_rank": c["counts_by_priority_rank"],
+                "time_range": c["time_range"],
+                "reason_tag_summary": c["reason_tag_summary"],
+            }
+            for c in report["clusters"]
+        ],
+    }
+
+    if not report["is_readable"]:
+        safe_stdout["corrupted_reason"] = report["corrupted_reason"]
+
+    if report.get("validation_report_status"):
+        safe_stdout["validation_report_status"] = report["validation_report_status"]
+    if report.get("validation_valid_count") is not None:
+        safe_stdout["validation_valid_count"] = report["validation_valid_count"]
+
+    if report.get("output_path"):
+        safe_stdout["output_path"] = _safe_cli_path(Path(report["output_path"]))
+
+    typer.echo(json.dumps(safe_stdout, ensure_ascii=False, indent=2))
+
+    if not report["is_readable"]:
         raise typer.Exit(code=1)
 
 

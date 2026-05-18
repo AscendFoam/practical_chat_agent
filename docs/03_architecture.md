@@ -1,5 +1,29 @@
 # Architecture
 
+## Captain Update 2026-05-18 (T161 Review)
+
+T161 is now complete, so the M5 architecture has advanced from schema-only candidates to explicit aggregate evidence:
+
+```text
+Reproducible feedback loop
+  -> PreferencePatchCandidate schema
+  -> deterministic privacy-safe feedback clusters
+  -> later patch proposal CLI
+  -> later manual patch review
+  -> only then approved patch compact context
+```
+
+The next architectural step is T162, which must add proposal generation only:
+
+```text
+feedback clusters
+  -> conservative deterministic patch proposals
+  -> candidate-only PreferencePatchCandidate records
+  -> no review/apply/runtime injection yet
+```
+
+This keeps the mainline review-only and non-mutating.
+
 ## Captain Update 2026-05-18 (T160 Review)
 
 T160 is now complete, so the M5 architecture has an explicit candidate-contract layer:
