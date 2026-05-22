@@ -1,5 +1,15 @@
 # Risks And Open Questions
 
+## Captain Update 2026-05-22 (T170 Review Decision)
+
+Authoritative current risk state after the Captain review of T170:
+
+- R040 remains active but is narrowed: the decomposition path is now explicitly documented as projection plus fallback, reducing the chance of accidental `ContactSkill` replacement.
+- R041 remains active: future derived briefs and approved patch hints must still be interpreted as review-only guidance rather than automatic learning or hidden state mutation.
+- R061 is active and deferred: T171-T172 must formalize persona-brief typing, boundary sensitivity reduction, important-event ownership, and any future patch-to-boundary semantics so T173-T174 do not drift from the T170 contract.
+
+Closed question Q169: T170 is accepted with `PASS`, so the project may proceed to T171 rather than reopening M6 design work for a blocking repair pass.
+
 ## Captain Update 2026-05-22 (T164 Review Decision)
 
 Authoritative current risk state after the Captain review of T164:
@@ -296,6 +306,7 @@ Closed question Q124: the updated GPT roadmap is directionally aligned, but M4/M
 | R056 | 提案生成对 malformed cluster report 缺少空 `contact_id` 防御 | 手工编辑或损坏的 cluster report 可能触发未处理异常并中断 proposal 生成 | T162 review 接受当前 scope；后续任务应在 proposal 层显式跳过 `contact_id` 为空的 cluster，给出 `missing_contact` 或等价 skip reason |
 | R059 | `ApprovedPatchContextService` loads the full proposal report into memory | 对于包含大量候选的 proposal report 可能产生内存压力 | 当前单用户离线规模可接受；未来若 report 过大，可改为 streaming 或分页加载 |
 | R060 | `ChatContextAssembler` patch path 校验复用 `_ensure_within_private_distilled` | 该方法约束路径在 `private/distilled/` 下，提供约定级隔离而非硬安全边界 | 当前 offline-only 工作流可接受；若未来引入多用户或网络暴露场景，需采用更严格的路径沙箱 |
+| R061 | M6 derived-brief contract 仍有若干未定语义 | 若 T171-T174 各自自行解释，可能导致 schema、projection 和 context 集成不一致 | T170 已记录设计基线；T171-T172 必须先 formalize typing / sensitivity / ownership 规则，T173-T174 只能按已落地 contract 实现 |
 
 ## Open Questions
 

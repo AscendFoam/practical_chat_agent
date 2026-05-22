@@ -1,5 +1,16 @@
 # Handoff
 
+## Captain Current State Override 2026-05-22 (T170 Review Decision)
+
+- T170 review decision: `PASS`.
+- T170 is complete as a design-only compatibility task.
+- Current Unique Task: T171 PartnerPersonaBrief Schema.
+- Current task package: `docs/tasks/M6_contactskill_decomposition/T171_partner_persona_brief_schema.md`.
+- M6 may now enter additive schema work, but runtime behavior remains unchanged until T173-T174.
+- T171 is schema-only: no projection service, no `ChatContext` integration, no `ReplyPlanner` or policy runtime changes, no ContactSkill mutation, no migration, and no deprecation claim.
+- T171 must resolve `PartnerPersonaBrief.communication_style_snapshot` typing and keep `source_skill_record_id` / evidence ownership explicit.
+- T172 must later formalize the boundary sensitivity reduction rule and any boundary semantics implied by approved patch hints.
+
 ## Captain Current State Override 2026-05-22 (T164 Review Decision)
 
 - T164 review decision: `PASS_WITH_WARNINGS`.
@@ -1968,7 +1979,64 @@ M1 必须承接的条件：
   - Rejected:
     - none
 
-## 68. T170 Kickoff Notes
+## 68. T170 Implementation Record
+
+- Files changed:
+  - `docs/architecture/contactskill_decomposition.md` (new)
+  - `docs/07_handoff.md`
+- Design summary:
+  - Proposed three derived briefs: `PartnerPersonaBrief`, `CommunicationPolicyBrief`, `BoundaryProfileBrief`.
+  - Each brief is a projection from an approved `ContactSkillStoreRecord`, not a replacement.
+  - Briefs are lazy (computed at assembly time), not separately stored or separately approved.
+  - Fallback to existing `ApprovedContactSkillBrief` is guaranteed when derived briefs are absent.
+  - Evidence refs are projected per-area from sub-model evidence; top-level refs remain on the parent aggregate.
+  - Approval is inherited from the parent store record; no separate approval workflow for briefs.
+  - Field ownership table maps all 20+ ContactSkill areas to specific briefs or to the fallback aggregate.
+  - Three additive phases: schema definition (T171-T172), projection service (T173), context integration (T174).
+- Compatibility guarantees preserved:
+  - ContactSkill is not deleted, replaced, or deprecated.
+  - T120-T164 pipeline is not modified.
+  - Persona-clone / impersonation / autonomous-contact boundaries are unchanged.
+  - No code changes, no data migration, no new storage format.
+- Follow-up schema tasks now unblocked:
+  - T171: `PartnerPersonaBrief` schema.
+  - T172: `CommunicationPolicyBrief` + `BoundaryProfileBrief` schemas.
+  - T173: `ContactSkillProjectionService` (lazy projection from approved store records).
+  - T174: Derived-brief context integration in `ChatContextAssembler`.
+- Open questions deferred:
+  - Lazy vs. materialized briefs (performance question for later).
+  - Cross-contact briefs (global policy brief deferred to M8+).
+  - Brief versioning (may be needed if schemas evolve; deferred to T171-T172).
+  - PartnerPersonaBrief + RelationshipState overlap (deferred to M8 design).
+- Verification:
+  - Document references T120-T123 (approved store, evidence validation, review CLI, context integration).
+  - Document references T130-T133 (ReplyPlan schema, planner, policy, holdout eval).
+  - Document references T160-T164 (PreferencePatch schema, clustering, proposal, review, compact context).
+  - Document explicitly states existing approved ContactSkill data remains runnable.
+  - Document makes clear decomposition is projection/addition, not replacement.
+  - No code was edited, no migration was defined, no deprecation was claimed.
+
+## 69. T170 Review Decision
+
+- Review file:
+  - `docs/review/T170_review.md`
+- Verdict:
+  - `PASS`
+- Captain decision:
+  - T170 is complete within task scope.
+  - The repo now has a documented compatibility-first decomposition contract for approved `ContactSkill`.
+  - No automatic repair pass is needed because no blocking issue was found.
+- Follow-up notes carried forward:
+  - T171 must resolve whether `PartnerPersonaBrief.communication_style_snapshot` stays `dict[str, str]` or becomes a structured sub-model.
+  - T172 must formalize `BoundaryProfileBrief.sensitivity_summary` reduction semantics.
+  - T172/T174 may revisit `important_event_summaries` ownership only if runtime use proves the persona layer truly needs that context.
+  - T172 or later may document how future boundary-signaling patch hints relate to `BoundaryProfileBrief` without broadening current patch semantics.
+  - The handoff section-number churn noted by review is accepted as maintenance noise only.
+- Next worker task:
+  - T171 `PartnerPersonaBrief` Schema.
+  - The task remains additive and schema-only; no runtime integration is authorized yet.
+
+## 70. T170 Kickoff Notes
 
 - Task package:
   - `docs/tasks/M6_contactskill_decomposition/T170_decomposition_design.md`

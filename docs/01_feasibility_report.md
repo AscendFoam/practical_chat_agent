@@ -1,5 +1,16 @@
 # Feasibility Report
 
+## Captain Update 2026-05-22 (T170 Review)
+
+T170 confirms that a compatibility-first `ContactSkill` decomposition path is feasible in the current repository shape.
+
+The feasibility gap has changed again:
+
+- no longer blocked on whether M6 needs a breaking replacement design
+- now focused on whether additive brief schemas can be formalized cleanly, with explicit evidence ownership and no runtime behavior change
+
+So the project is ready to commit the T170 slice and advance to T171, while keeping M6 schema work additive, reviewable, and non-breaking.
+
 ## Captain Update 2026-05-22 (T164 Review)
 
 T164 confirms that approved-only patch context integration is feasible in the current repository shape.

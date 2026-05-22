@@ -1,5 +1,15 @@
 # Raw Idea
 
+## Captain Update 2026-05-22 (T170 Review)
+
+T170 has now passed review with `PASS`, so the first M6 step is accepted:
+
+- the repo now has a documented compatibility-first decomposition design for approved `ContactSkill`
+- the project still does not permit runtime mutation, data migration, deprecation of `ContactSkill`, or derived-brief persistence
+- the next safe step is schema-only T171 `PartnerPersonaBrief`, not projection or runtime integration
+
+The Current Unique Task therefore moves to T171 `PartnerPersonaBrief` Schema.
+
 ## Captain Update 2026-05-22 (T164 Review)
 
 T164 has now passed review with `PASS_WITH_WARNINGS`, so the fifth M5 step is accepted:

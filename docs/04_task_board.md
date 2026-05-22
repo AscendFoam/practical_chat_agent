@@ -4,16 +4,23 @@ Updated: 2026-05-22
 
 ## Captain Current State Override
 
+- T170 review decision: `PASS`.
+- T170 is complete as a design-only M6 compatibility task.
+- Current Unique Task: T171 PartnerPersonaBrief Schema.
+- Current task package: `docs/tasks/M6_contactskill_decomposition/T171_partner_persona_brief_schema.md`.
+- T171 must stay schema-only, additive, and non-breaking: no projection service, no `ChatContext` integration, no `ReplyPlanner`/policy runtime changes, no ContactSkill mutation, no data migration, and no deprecation claim.
+- T171 must preserve approved `ContactSkill` as the source of truth and must make `source_skill_record_id` / evidence ownership explicit.
+- T170 follow-up notes now carried into M6 execution:
+  - T171 must decide whether `PartnerPersonaBrief.communication_style_snapshot` stays `dict[str, str]` or becomes a structured sub-model.
+  - T172 must formalize `BoundaryProfileBrief.sensitivity_summary` reduction semantics and document how boundary-signaling patch hints relate to boundary ownership.
+  - T172/T174 may revisit `important_event_summaries` placement only if richer persona-layer event context is truly needed without weakening boundary handling.
+
 - T164 review decision: `PASS_WITH_WARNINGS`.
 - T164 is complete as an approved patch compact context task.
 - T164 warning disposition:
   - Accepted: N01 `.claude/settings.json` is a workspace artifact rather than a T164 scope violation, N02 `_compact_text` duplication is low-risk refactor debt, N03 `ApprovedPatchContext.status` reuses a slightly broader status enum than strictly necessary, N04 per-assemble `ApprovedPatchContextService()` instantiation is low-impact for the current offline workflow, N05 handoff test-count wording was inaccurate and is corrected in the governance sync, N06 carrying `supporting_cluster_ids` through compact briefs is safe because they are deterministic labels rather than raw text.
   - Deferred: M01 missing explicit frozen/archived exclusion tests, M02 missing `ChatContextAssembler` end-to-end patch-path integration test, M03 missing empty/whitespace `behavior_instruction` edge-case coverage.
   - Rejected: none.
-- Current Unique Task: T170 ContactSkill Decomposition Design.
-- Current task package: `docs/tasks/M6_contactskill_decomposition/T170_decomposition_design.md`.
-- T170 must stay design-only, compatibility-first, and non-breaking: no code edits, no ContactSkill behavior changes, no data migration, no deprecation claim, and no LLM or platform work unless a future task package explicitly changes that scope.
-- T170 must preserve the existing T120-T164 pipeline: derived-brief design must keep ContactSkill runnable as the fallback aggregate and must preserve evidence-first review boundaries.
 
 - T163 review decision: `PASS_WITH_WARNINGS`.
 - T163 is complete as a manual patch review task.
@@ -85,11 +92,11 @@ Updated: 2026-05-22
 
 ## Current Unique Task
 
-T170: ContactSkill Decomposition Design.
+T171: PartnerPersonaBrief Schema.
 
-Task package: `docs/tasks/M6_contactskill_decomposition/T170_decomposition_design.md`
+Task package: `docs/tasks/M6_contactskill_decomposition/T171_partner_persona_brief_schema.md`
 
-Why now: T164 is now complete and accepted. The next smallest safe step is to design how ContactSkill can decompose into narrower derived briefs without breaking the existing approved-store and reply-planning pipeline.
+Why now: T170 is now complete and accepted. The next smallest safe step is to formalize the first additive derived-brief schema without changing runtime behavior or weakening ContactSkill compatibility.
 
 ## Board Rules
 
@@ -175,7 +182,7 @@ Goal: convert repeated feedback into reviewable PreferencePatch candidates witho
 
 Goal: keep ContactSkill compatible while deriving more focused briefs.
 
-- [ ] T170: ContactSkill decomposition design.
+- [x] T170: ContactSkill decomposition design. Review `PASS`.
 - [ ] T171: PartnerPersonaBrief schema.
 - [ ] T172: CommunicationPolicyBrief schema.
 - [ ] T173: ContactSkill projection service.
@@ -242,9 +249,9 @@ Goal: keep WeChat as a thin final adapter behind the send gate.
 
 ## Historical Current Unique Task
 
-T164: Approved Patch Compact Context.
+T170: ContactSkill Decomposition Design.
 
-It is now complete and accepted with `PASS_WITH_WARNINGS`. The next worker task is T170, because the review-only patch pipeline is now complete and the next safe step is documentation-first M6 decomposition design rather than additional runtime mutation.
+It is now complete and accepted with `PASS`. The next worker task is T171, because the decomposition direction is now documented and the next safe step is additive schema work rather than immediate runtime projection.
 
 ## Next Captain Output Required
 

@@ -1,5 +1,23 @@
 # Decision Log
 
+## D037: T170 PASS, accept task, advance to T171
+
+- Date: 2026-05-22
+- Status: Accepted
+- Context: `docs/review/T170_review.md` gives `PASS` for the ContactSkill decomposition design task. No blocking issues were found, and the review confirms the task stayed design-only and within the allowed documentation scope.
+- Decision: T170 is complete. The project may continue to T171 `PartnerPersonaBrief` Schema.
+- Follow-up notes carried forward:
+  - N01 `BoundaryProfileBrief.sensitivity_summary` reduction semantics remain to be formalized during T172 schema work.
+  - N02 `PartnerPersonaBrief.communication_style_snapshot` typing must be resolved during T171 schema definition.
+  - N03 `important_event_summaries` ownership may be revisited during T172/T174 if the runtime truly needs persona-layer event context.
+  - N04 boundary-signaling patch hints remain a future boundary/schema concern for T172 or later, not a T170 blocker.
+  - N05 handoff section-number churn is accepted as documentation maintenance noise rather than an implementation defect.
+- Conditions carried forward:
+  - T171 and T172 remain model/contract tasks only. No projection service, `ChatContext` integration, ReplyPlanner behavior change, migration, or deprecation is authorized yet.
+  - T173 must project lazily from approved, runtime-ready `ContactSkillStoreRecord` inputs only.
+  - T174 must preserve the existing `ApprovedContactSkillBrief` fallback and may not break the T123/T164 compact-context path.
+- Impact: `docs/04_task_board.md` moves the Current Unique Task from T170 to T171, `docs/07_handoff.md` records the PASS decision, and the M6 task packages are tightened so schema/projection/context work stays separated.
+
 ## D036: T164 PASS_WITH_WARNINGS, accept task, advance to T170
 
 - Date: 2026-05-22

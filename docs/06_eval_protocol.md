@@ -1,5 +1,15 @@
 # Eval Protocol
 
+## Captain Update 2026-05-22 (T170 Review)
+
+T170 has now been accepted with `PASS`.
+
+Current evaluation sequence is now:
+
+- T171: can the repo define an additive `PartnerPersonaBrief` schema and contract, resolve persona-brief typing choices, and preserve existing `ContactSkill` compatibility without any runtime integration?
+
+T170 changes the evaluation baseline in one important way: M6 no longer needs to prove whether a compatibility-first decomposition direction exists at all. That direction is now documented. The next evaluation target is schema precision and task-boundary discipline, not roadmap ambiguity.
+
 ## Captain Update 2026-05-22 (T164 Review)
 
 T164 has now been accepted with `PASS_WITH_WARNINGS`.

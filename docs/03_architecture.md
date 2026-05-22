@@ -1,5 +1,31 @@
 # Architecture
 
+## Captain Update 2026-05-22 (T170 Review)
+
+T170 is now complete, so the M6 architecture has an explicit compatibility-first decomposition contract:
+
+```text
+Approved ContactSkill
+  -> documented decomposition contract
+  -> PartnerPersonaBrief
+  -> CommunicationPolicyBrief
+  -> BoundaryProfileBrief
+  -> lazy projection later
+  -> fallback to existing ApprovedContactSkillBrief
+```
+
+The next architectural step is T171, which must stay schema-only:
+
+```text
+decomposition design
+  -> additive brief models + contract doc
+  -> no projection service yet
+  -> no ChatContext/runtime integration yet
+  -> no ContactSkill mutation or migration
+```
+
+This keeps M6 additive, evidence-first, and runtime-stable until T173-T174.
+
 ## Captain Update 2026-05-22 (T164 Review)
 
 T164 is now complete, so the M5 architecture has reached its intended review-only compact-context endpoint:
