@@ -1,5 +1,17 @@
 # Handoff
 
+## Captain Current State Override 2026-05-22 (T163 Review Decision)
+
+- T163 review decision: `PASS_WITH_WARNINGS`.
+- T163 warning disposition:
+  - Accepted: N05 `.claude/settings.json` is workspace noise rather than a task-scope violation.
+  - Deferred: N01 the contract still overclaims deterministic `patch_id` behavior, N02 no committed automated tests yet cover `PatchReviewService` / `chat-feedback-review-patch`, N03 write-back to the input file by default can risk in-place corruption on write failure, N04 review history can grow without bound.
+  - Rejected: none.
+- Current Unique Task: T164 Approved Patch Compact Context.
+- Current task package: `docs/tasks/M5_feedback_to_patch/T164_approved_patch_context.md`.
+- M5 remains approval-gated, compact, review-only, and non-mutating.
+- T164 may consume only approved, runtime-ready patches into `ChatContext`, but it may not inject candidate/rejected/frozen/archived patches, mutate ContactSkill/Memory, or add outbound behavior.
+
 ## Captain Current State Override 2026-05-18 (T162 Review Decision)
 
 - T162 review decision: `PASS_WITH_WARNINGS`.
@@ -1787,3 +1799,82 @@ M1 必须承接的条件：
   - confirm review actions are explicit, auditable, and human-gated
   - confirm rejected/frozen/archived patches do not become runtime-ready
   - confirm stdout/artifacts remain privacy-safe and no runtime mutation behavior is smuggled into the review layer
+
+## 63. T163 Implementation Record
+
+- 代码 / 文档改动：
+  - `src/practical_chat_agent/services/feedback.py`
+  - `src/practical_chat_agent/app/main.py`
+  - `docs/data_contracts/preference_patch_contract.md`
+  - `docs/07_handoff.md`
+  - `docs/08_risks_and_open_questions.md`
+- 已实现内容：
+  - 新增 `PatchReviewService`，对 T162 提案报告中的 `PreferencePatchCandidate` 执行显式人工 review 决策。
+  - 新增 `chat-feedback-review-patch` CLI，支持 `--input`（必需）、`--patch-id`（必需）、`--decision`（必需，approve/reject/freeze/archive）、`--reviewer`（必需）、`--note`（可选）、`--output`（可选）。
+  - Review CLI 名称：`chat-feedback-review-patch`
+  - 决策类型与状态映射：
+    - `approve` → `approved`（`is_runtime_ready()` 返回 `True`）
+    - `reject` → `rejected`（`is_runtime_ready()` 返回 `False`）
+    - `freeze` → `frozen`（`is_runtime_ready()` 返回 `False`）
+    - `archive` → `archived`（`is_runtime_ready()` 返回 `False`）
+  - 每次决策追加 `DistilledArtifactReviewDecision` 到 `review_metadata.history`，历史不覆盖。
+  - `review_metadata.reviewed_by_human`、`last_decision`、`last_reviewed_at`、`last_reviewer_id` 随最新决策更新。
+  - Evidence 字段（`supporting_feedback_ids`、`supporting_cluster_ids`、`claim`、`behavior_instruction`、`confidence`、`sensitivity`）在 review 过程中不被修改。
+  - 未修改 ContactSkill/Memory/store records、未调用 LLM、未自动 approve 或 apply、未注入 runtime context。
+- 合成验证示例：
+  - 输入：含 4 个 candidate patch 的合成 T162 提案报告
+  - Test 1: approve → status=approved, is_runtime_ready=True, history_count=1, evidence preserved
+  - Test 2: reject → status=rejected, is_runtime_ready=False, evidence preserved
+  - Test 3: freeze → status=frozen, is_runtime_ready=False
+  - Test 4: archive → status=archived, is_runtime_ready=False
+  - Test 5: re-approve after reject → history_count=2, is_runtime_ready=True, last_reviewer_id updated
+  - Test 6: invalid decision → FeedbackError with expected message
+  - Test 7: missing patch_id → FeedbackError with list of available ids
+  - Test 8: privacy safety → no raw text, no extra fields in written-back file
+  - Test 9: output to separate file → input unchanged
+  - Test 10: separate output preserves original input
+  - 176 existing tests pass with zero regressions
+- T164 必须保留的约束：
+  - T164 只可消费 `status == "approved"` 且 `is_runtime_ready() == True` 的 patch
+  - review history 已写入提案报告 JSON，T164 不可清除或覆盖 history
+  - review metadata 使用 `DistilledArtifactReviewMetadata` 与 T122 审查模式一致
+  - stdout 和输出不含原始反馈文本、编辑文本、用户备注或边界备注
+## 64. T163 Review Decision
+
+- Review file:
+  - `docs/review/T163_review.md`
+- Verdict:
+  - `PASS_WITH_WARNINGS`
+- Captain decision:
+  - T163 is complete within task scope.
+  - The repo now has explicit human review actions for patch candidates.
+  - No T163 warning is blocking enough to require an automatic repair pass.
+- Warning handling:
+  - Accepted:
+    - N05 `.claude/settings.json` is a workspace artifact rather than a task-scope violation.
+  - Deferred:
+    - N01 the contract still overclaims deterministic `patch_id` behavior even after T163 touched the contract file.
+    - N02 no committed automated tests yet cover `PatchReviewService` / `chat-feedback-review-patch`.
+    - N03 write-back to the input file by default when `--output` is not specified can risk in-place corruption on write failure.
+    - N04 repeated review decisions can grow `review_metadata.history` without bound.
+  - Rejected:
+    - none
+
+## 65. T164 Kickoff Notes
+
+- Task package:
+  - `docs/tasks/M5_feedback_to_patch/T164_approved_patch_context.md`
+- Worker focus:
+  - consume only approved, runtime-ready patches into `ChatContext`
+  - preserve review history and evidence while exposing only compact communication hints
+  - keep context integration approval-gated, privacy-safe, and non-mutating
+- Explicit non-goals:
+  - no candidate/rejected/frozen/archived injection
+  - no auto-approve or auto-apply
+  - no ContactSkill/Memory mutation
+  - no outbound send behavior, no realtime integration, no LLM use
+  - no raw feedback text, edited text, user notes, boundary notes, or draft text in context
+- Reviewer focus:
+  - confirm only approved/runtime-ready patches enter context
+  - confirm review history survives untouched
+  - confirm context output stays compact and privacy-safe

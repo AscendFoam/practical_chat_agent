@@ -1,5 +1,29 @@
 # Architecture
 
+## Captain Update 2026-05-22 (T163 Review)
+
+T163 is now complete, so the M5 architecture has advanced from candidate proposals to explicit human-reviewed patch state:
+
+```text
+Reproducible feedback loop
+  -> PreferencePatchCandidate schema
+  -> deterministic privacy-safe feedback clusters
+  -> conservative deterministic patch proposals
+  -> manual approve/reject/freeze/archive review
+  -> later approved patch compact context
+```
+
+The next architectural step is T164, which must add compact-context consumption only:
+
+```text
+approved runtime-ready patches
+  -> compact patch briefs in ChatContext
+  -> planner-readable communication hints
+  -> no raw feedback text and no direct runtime prompt injection shortcuts
+```
+
+This keeps the mainline review-only, approval-gated, and non-mutating.
+
 ## Captain Update 2026-05-18 (T162 Review)
 
 T162 is now complete, so the M5 architecture has advanced from aggregate evidence to explicit candidate proposals:

@@ -1,5 +1,15 @@
 # Eval Protocol
 
+## Captain Update 2026-05-22 (T163 Review)
+
+T163 has now been accepted with `PASS_WITH_WARNINGS`.
+
+Current evaluation sequence is now:
+
+- T164: can the repo consume only approved, runtime-ready `PreferencePatchCandidate` records into `ChatContext` as compact communication hints without leaking raw feedback content, bypassing review state, or mutating other stores?
+
+T163 changes the evaluation baseline in one important way: M5 no longer needs to prove whether manual patch review can stay explicit and auditable at all. That layer now exists. The next evaluation target is whether approved patches can enter runtime context in a compact, approval-gated, privacy-safe form.
+
 ## Captain Update 2026-05-18 (T162 Review)
 
 T162 has now been accepted with `PASS_WITH_WARNINGS`.

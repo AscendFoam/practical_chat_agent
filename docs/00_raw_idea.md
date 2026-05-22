@@ -1,5 +1,15 @@
 # Raw Idea
 
+## Captain Update 2026-05-22 (T163 Review)
+
+T163 has now passed review with `PASS_WITH_WARNINGS`, so the fourth M5 step is accepted:
+
+- the repo now has explicit human review actions for patch candidates
+- the project still does not permit automatic learning, auto-apply, runtime injection without a dedicated context layer, or hidden ContactSkill/Memory mutation
+- the next safe step is no longer patch review but approved-patch compact context integration
+
+The Current Unique Task therefore moves to T164 Approved Patch Compact Context.
+
 ## Captain Update 2026-05-18 (T162 Review)
 
 T162 has now passed review with `PASS_WITH_WARNINGS`, so the third M5 step is accepted:

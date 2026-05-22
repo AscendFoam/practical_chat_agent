@@ -1,5 +1,27 @@
 # Decision Log
 
+## D035: T163 PASS_WITH_WARNINGS, accept task, advance to T164
+
+- Date: 2026-05-22
+- Status: Accepted
+- Context: `docs/review/T163_review.md` gives `PASS_WITH_WARNINGS` for the manual patch review CLI. No blocking issues were found.
+- Decision: T163 is complete. The project may continue to T164 Approved Patch Compact Context.
+- Warning handling:
+  - Accepted:
+    - N05 `.claude/settings.json` modification is treated as workspace noise rather than a T163 scope violation.
+  - Deferred:
+    - N01 `docs/data_contracts/preference_patch_contract.md` still overclaims deterministic `patch_id` behavior even though `patch_id` is UUID-based. Carry forward under R053 until a later task corrects the contract or changes the id strategy.
+    - N02 no committed automated tests yet cover `PatchReviewService` or `chat-feedback-review-patch`. Carry forward under R054 until a later hardening task adds deterministic review-layer regression coverage.
+    - N03 review writes back to the input file by default when `--output` is not specified. Carry forward as R057 until a later task adds safer non-destructive write behavior or explicit atomic write handling.
+    - N04 `review_metadata.history` grows without a cap across repeated review cycles. Carry forward as R058 until a later task defines retention or compaction behavior.
+  - Rejected: none.
+- Conditions carried forward:
+  - T164 must remain approved-only, privacy-safe, compact, and non-mutating.
+  - T164 must consume only patches where `status == "approved"` and `is_runtime_ready() == True`.
+  - T164 must preserve review history and review metadata without clearing, rewriting, or flattening them into raw runtime text.
+  - No automatic ContactSkill/Memory mutation, outbound sending, realtime integration, or LLM use is authorized by this decision.
+- Impact: `docs/04_task_board.md` moves the Current Unique Task from T163 to T164, and the T164 task package is tightened so the next worker step is explicit and review-safe.
+
 ## D034: T162 PASS_WITH_WARNINGS, accept task, advance to T163
 
 - Date: 2026-05-18

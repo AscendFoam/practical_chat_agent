@@ -10,7 +10,9 @@ from pydantic import ValidationError
 
 from practical_chat_agent.core.ids import new_id
 from practical_chat_agent.core.models import (
+    DistilledArtifactReviewDecision,
     DistillationSensitivity,
+    DistillationStatus,
     PreferencePatchCandidate,
     PreferencePatchType,
     ReplyFeedbackAction,
@@ -903,3 +905,181 @@ class PatchProposalService:
             )
             report["output_path"] = str(output_path)
         return report
+
+
+class PatchReviewService:
+    """Explicit manual review for PreferencePatchCandidate proposals (T163).
+
+    Reads T162 proposal report, applies human review decisions to individual
+    patches, and writes back updated report. Does not auto-approve, auto-apply,
+    inject into runtime, or mutate proposal evidence fields.
+    """
+
+    VALID_DECISIONS: set[str] = {"approve", "reject", "freeze", "archive"}
+
+    _DECISION_TO_STATUS: dict[str, DistillationStatus] = {
+        "approve": "approved",
+        "reject": "rejected",
+        "freeze": "frozen",
+        "archive": "archived",
+    }
+
+    def review(
+        self,
+        *,
+        input_path: Path,
+        output_path: Path | None = None,
+        patch_id: str,
+        decision: str,
+        reviewer: str,
+        note: str | None = None,
+    ) -> dict:
+        normalized = self._normalize_decision(decision)
+        report = self._load_proposal_report(input_path)
+
+        candidate_entry, patch = self._find_patch(report, patch_id)
+
+        self._apply_decision(
+            patch=patch,
+            candidate_entry=candidate_entry,
+            decision=normalized,
+            reviewer=reviewer,
+            note=note,
+        )
+
+        return self._finalize(report, input_path, output_path, patch_id, normalized)
+
+    def _normalize_decision(self, decision: str) -> str:
+        normalized = decision.strip().lower()
+        if normalized not in self.VALID_DECISIONS:
+            raise FeedbackError(
+                f"Invalid decision '{decision}'. Must be one of: {', '.join(sorted(self.VALID_DECISIONS))}."
+            )
+        return normalized
+
+    def _load_proposal_report(self, input_path: Path) -> dict:
+        if not input_path.exists():
+            raise FeedbackError(f"Proposal report not found: {input_path}")
+        try:
+            raw_text = input_path.read_text(encoding="utf-8")
+        except OSError as exc:
+            raise FeedbackError(f"Unable to read proposal report: {exc}") from exc
+        try:
+            data = json.loads(raw_text)
+        except json.JSONDecodeError as exc:
+            raise FeedbackError(
+                f"Invalid JSON in proposal report: line {exc.lineno} column {exc.colno}"
+            ) from exc
+        if data.get("schema_version") != "patch_proposal_v1":
+            raise FeedbackError(
+                f"Unexpected schema_version: {data.get('schema_version')}. Expected patch_proposal_v1."
+            )
+        return data
+
+    def _find_patch(self, report: dict, patch_id: str) -> tuple[dict, PreferencePatchCandidate]:
+        for candidate_entry in report.get("candidates", []):
+            patch_data = candidate_entry.get("patch", {})
+            if patch_data.get("patch_id") == patch_id:
+                try:
+                    patch = PreferencePatchCandidate.model_validate(patch_data)
+                except ValidationError as exc:
+                    raise FeedbackError(f"Invalid patch data for {patch_id}: {exc}") from exc
+                return candidate_entry, patch
+
+        candidate_ids = [
+            e.get("patch", {}).get("patch_id", "?")
+            for e in report.get("candidates", [])
+        ]
+        raise FeedbackError(
+            f"Patch '{patch_id}' not found in proposal report. "
+            f"Available: {candidate_ids or '(none)'}"
+        )
+
+    def _apply_decision(
+        self,
+        patch: PreferencePatchCandidate,
+        candidate_entry: dict,
+        decision: str,
+        reviewer: str,
+        note: str | None,
+    ) -> None:
+        now = datetime.now(timezone.utc)
+        status = self._DECISION_TO_STATUS[decision]
+
+        review_decision = DistilledArtifactReviewDecision(
+            status=status,
+            reviewer_id=reviewer,
+            reviewer_name=None,
+            reviewed_at=now,
+            notes=[note] if note else [],
+        )
+
+        patch.review_metadata.history.append(review_decision)
+        patch.review_metadata.review_state = "reviewed"
+        patch.review_metadata.reviewed_by_human = True
+        patch.review_metadata.last_decision = status
+        patch.review_metadata.last_reviewed_at = now
+        patch.review_metadata.last_reviewer_id = reviewer
+        if note:
+            patch.review_metadata.decision_notes.append(note)
+
+        patch.status = status
+        patch.updated_at = now
+
+        candidate_entry["patch"] = patch.model_dump(mode="json")
+
+    def _finalize(
+        self,
+        report: dict,
+        input_path: Path,
+        output_path: Path | None,
+        patch_id: str,
+        decision: str,
+    ) -> dict:
+        write_path = output_path or input_path
+        write_path.parent.mkdir(parents=True, exist_ok=True)
+        write_path.write_text(
+            json.dumps(report, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+
+        updated_entry = None
+        updated_patch = None
+        for c in report.get("candidates", []):
+            if c.get("patch", {}).get("patch_id") == patch_id:
+                updated_entry = c
+                try:
+                    updated_patch = PreferencePatchCandidate.model_validate(c["patch"])
+                except ValidationError:
+                    pass
+                break
+
+        patch_data = updated_entry["patch"] if updated_entry else {}
+        is_runtime_ready = updated_patch.is_runtime_ready() if updated_patch else False
+        result = {
+            "action": "review",
+            "decision": decision,
+            "input_path": str(input_path),
+            "output_path": str(write_path),
+            "patch_id": patch_id,
+            "patch": {
+                "patch_id": patch_data.get("patch_id"),
+                "contact_id": patch_data.get("contact_id"),
+                "patch_type": patch_data.get("patch_type"),
+                "status": patch_data.get("status"),
+                "confidence": patch_data.get("confidence"),
+                "sensitivity": patch_data.get("sensitivity"),
+                "instruction_scope": patch_data.get("instruction_scope"),
+                "supporting_feedback_ids": patch_data.get("supporting_feedback_ids"),
+                "supporting_cluster_ids": patch_data.get("supporting_cluster_ids"),
+                "is_runtime_ready": is_runtime_ready,
+                "review_metadata": {
+                    "review_state": patch_data.get("review_metadata", {}).get("review_state"),
+                    "reviewed_by_human": patch_data.get("review_metadata", {}).get("reviewed_by_human"),
+                    "last_decision": patch_data.get("review_metadata", {}).get("last_decision"),
+                    "last_reviewer_id": patch_data.get("review_metadata", {}).get("last_reviewer_id"),
+                    "history_count": len(patch_data.get("review_metadata", {}).get("history", [])),
+                },
+            },
+        }
+        return result

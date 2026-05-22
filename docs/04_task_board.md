@@ -4,17 +4,23 @@ Updated: 2026-05-18
 
 ## Captain Current State Override
 
+- T163 review decision: `PASS_WITH_WARNINGS`.
+- T163 is complete as a manual patch review task.
+- T163 warning disposition:
+  - Accepted: N05 `.claude/settings.json` is a workspace artifact rather than a T163 scope violation.
+  - Deferred: N01 the contract still overclaims deterministic `patch_id` behavior, N02 no committed automated tests yet cover `PatchReviewService` / `chat-feedback-review-patch`, N03 review writes back to the input file by default and may risk in-place corruption on write failure, N04 review history can grow without bound.
+  - Rejected: none.
+- Current Unique Task: T164 Approved Patch Compact Context.
+- Current task package: `docs/tasks/M5_feedback_to_patch/T164_approved_patch_context.md`.
+- T164 must stay approved-only, compact, and non-mutating: no candidate/rejected/frozen/archived patch injection, no auto-approve, no ContactSkill/Memory mutation, no outbound send behavior, and no LLM use unless a future task package explicitly changes that scope.
+- T164 must preserve T163 review semantics conservatively: only `status == "approved"` and `is_runtime_ready() == True` patches may enter `ChatContext`, review history must survive untouched, and context output must remain privacy-safe and compact.
+
 - T162 review decision: `PASS_WITH_WARNINGS`.
 - T162 is complete as a deterministic, candidate-only patch proposal task.
 - T162 warning disposition:
   - Accepted: N05 `.claude/settings.json` is a workspace artifact rather than a T162 scope violation.
   - Deferred: N01 the contract still overclaims deterministic `patch_id` behavior, N02 raw `input_path` remains present in proposal stdout/output and stays tracked as project-wide path-handling/privacy debt, N03 no committed automated tests yet cover `PatchProposalService` / `chat-feedback-propose-patch`, N04 malformed cluster input with empty `contact_id` can still crash proposal generation instead of being skipped defensively.
   - Rejected: none.
-- Current Unique Task: T163 Patch Review CLI.
-- Current task package: `docs/tasks/M5_feedback_to_patch/T163_patch_review_cli.md`.
-- T163 must stay manual-review-only, non-mutating, and non-injecting: no auto-approve, no auto-apply, no runtime injection, no ContactSkill/Memory mutation, no outbound send behavior, and no LLM use unless a future task package explicitly changes that scope.
-- T163 must preserve T162 candidate semantics conservatively: approvals require existing evidence-backed candidates, review metadata/history must be explicit, and review output must stay privacy-safe and aggregate/id-oriented.
-
 - T161 review decision: `PASS_WITH_WARNINGS`.
 - T161 is complete as a deterministic, privacy-safe feedback clusterer task.
 - T161 warning disposition:
@@ -73,11 +79,11 @@ Updated: 2026-05-18
 
 ## Current Unique Task
 
-T163: Patch Review CLI.
+T164: Approved Patch Compact Context.
 
-Task package: `docs/tasks/M5_feedback_to_patch/T163_patch_review_cli.md`
+Task package: `docs/tasks/M5_feedback_to_patch/T164_approved_patch_context.md`
 
-Why now: T162 is now complete and accepted. The next smallest safe M5 step is to add explicit human review decisions for patch candidates before any runtime-context wiring exists.
+Why now: T163 is now complete and accepted. The next smallest safe M5 step is to let approved, runtime-ready patches enter `ChatContext` as compact guidance without bypassing the existing review boundary.
 
 ## Board Rules
 
@@ -156,7 +162,7 @@ Goal: convert repeated feedback into reviewable PreferencePatch candidates witho
 - [x] T160: PreferencePatch schema. Review `PASS_WITH_WARNINGS`.
 - [x] T161: feedback clusterer. Review `PASS_WITH_WARNINGS`.
 - [x] T162: patch proposal CLI. Review `PASS_WITH_WARNINGS`.
-- [ ] T163: patch review CLI.
+- [x] T163: patch review CLI. Review `PASS_WITH_WARNINGS`.
 - [ ] T164: approved patch compact context.
 
 ## Milestone 6: ContactSkill-Compatible Decomposition
@@ -230,9 +236,9 @@ Goal: keep WeChat as a thin final adapter behind the send gate.
 
 ## Historical Current Unique Task
 
-T162: Patch Proposal CLI.
+T163: Patch Review CLI.
 
-It is now complete and accepted with `PASS_WITH_WARNINGS`. The next worker task is T163, because candidate-only patch proposals now exist and the next safe step is explicit manual review before any runtime-context wiring.
+It is now complete and accepted with `PASS_WITH_WARNINGS`. The next worker task is T164, because approved patch review state now exists and the next safe step is compact context consumption under explicit approval gating.
 
 ## Next Captain Output Required
 

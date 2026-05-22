@@ -1,5 +1,29 @@
 # Risks And Open Questions
 
+## Captain Update 2026-05-22 (T163 Review Decision)
+
+Authoritative current risk state after the Captain review of T163:
+
+- R041 remains active: T164 must preserve the interpretation of feedback-to-patch as review-only proposal work rather than automatic learning.
+- R053 remains active and deferred from T163 review: `patch_id` is UUID-based and non-deterministic across repeated T162 runs.
+- R054 remains active and deferred: no committed automated tests yet cover `PatchProposalService`, `chat-feedback-propose-patch`, `PatchReviewService`, or `chat-feedback-review-patch`.
+- R057 is active: `PatchReviewService` writes back to the input file by default when `--output` is not specified. If the write fails mid-operation, the input file may be corrupted.
+- R058 is active: repeated review decisions on the same patch accumulate in `review_metadata.history` without a bound.
+
+Closed question Q166: T163 provides explicit human review actions (approve/reject/freeze/archive) for `PreferencePatchCandidate` proposals, preserving evidence fields and accumulating review history. Approved patches become runtime-ready; rejected/frozen/archived patches remain non-runtime-ready.
+
+## Captain Update 2026-05-19 (T163)
+
+Authoritative current risk state after T163 Patch Review CLI:
+
+- R041 remains active: T163 adds human review decisions but does not inject approved patches into runtime context. T164 must preserve the review-only-to-compact-context boundary.
+- R053 remains active and deferred from T162 review: `patch_id` is UUID-based and non-deterministic across repeated T162 runs.
+- R054 remains active and deferred: no committed automated tests yet cover `PatchProposalService`, `chat-feedback-propose-patch`, `PatchReviewService`, or `chat-feedback-review-patch`.
+- R057 is active: `PatchReviewService` writes back to the input file by default when `--output` is not specified. If the write fails mid-operation, the input file may be corrupted. The current implementation writes the full JSON on each review decision, which is safe for single-review use but may not be atomic under concurrent access.
+- R058 is active: repeated review decisions on the same patch accumulate in `review_metadata.history` without a bound. Over many review cycles the history list could grow unboundedly.
+
+Closed question Q166: T163 provides explicit human review actions (approve/reject/freeze/archive) for `PreferencePatchCandidate` proposals, preserving evidence fields and accumulating review history. Approved patches become runtime-ready; rejected/frozen/archived patches remain non-runtime-ready.
+
 ## Captain Update 2026-05-18 (T162 Review Decision)
 
 Authoritative current risk state after the Captain review of T162:

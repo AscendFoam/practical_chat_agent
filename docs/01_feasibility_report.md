@@ -1,5 +1,16 @@
 # Feasibility Report
 
+## Captain Update 2026-05-22 (T163 Review)
+
+T163 confirms that explicit human review over patch proposals is feasible in the current repository shape.
+
+The feasibility gap has changed again:
+
+- no longer blocked on recording manual approve/reject/freeze/archive decisions while preserving evidence and review history
+- now focused on whether only approved, runtime-ready patches can be integrated into `ChatContext` as compact guidance without leaking proposal internals or skipping existing approval boundaries
+
+So the project is ready to commit the T163 slice and advance to T164, but still only within approved-only, compact-context, non-mutating M5 constraints.
+
 ## Captain Update 2026-05-18 (T162 Review)
 
 T162 confirms that deterministic, candidate-only patch proposal generation is feasible in the current repository shape.

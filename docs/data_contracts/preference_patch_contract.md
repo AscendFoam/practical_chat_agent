@@ -255,6 +255,72 @@ Proposal output contains NO raw feedback text, edited text, user notes, boundary
 
 Given identical cluster report input, repeated runs produce identical `patch_id` values, `claim` text, `behavior_instruction` text, `confidence` values, and `skipped_clusters` entries. Only `generated_at`, `created_at`, and `updated_at` differ between runs.
 
+## Patch Review Contract (T163)
+
+Updated: 2026-05-19
+
+### Purpose
+
+`PatchReviewService` applies explicit human review decisions to individual `PreferencePatchCandidate` proposals from T162 output. Reviews are strictly manual: no auto-approve, no auto-apply, no runtime injection, no evidence mutation.
+
+### CLI Shape
+
+```text
+chat-feedback-review-patch --input <path> --patch-id <id> --decision <approve|reject|freeze|archive> --reviewer <name> [--note <text>] [--output <path>]
+```
+
+### Decision-to-Status Mapping
+
+| CLI Decision | Patch Status | `is_runtime_ready()` |
+| --- | --- | --- |
+| `approve` | `approved` | `True` (if `reviewed_by_human=True` and `last_decision="approved"`) |
+| `reject` | `rejected` | `False` |
+| `freeze` | `frozen` | `False` |
+| `archive` | `archived` | `False` |
+
+### Review Behavior
+
+1. **Evidence preservation**: `supporting_feedback_ids`, `supporting_cluster_ids`, `claim`, `behavior_instruction`, `confidence`, `sensitivity`, and `rationale_summary` are never modified during review.
+2. **History accumulation**: Each review decision appends a `DistilledArtifactReviewDecision` to `review_metadata.history`. Repeated decisions on the same patch accumulate history entries rather than replacing them.
+3. **Last-decision overwrite**: `review_metadata.last_decision`, `review_metadata.last_reviewed_at`, and `review_metadata.last_reviewer_id` always reflect the most recent decision.
+4. **Write-back**: If `--output` is provided, the reviewed report is written to the output path. Otherwise, the input file is overwritten in place.
+5. **Runtime readiness gating**: `is_runtime_ready()` returns `True` only when `status == "approved"` AND `review_metadata.reviewed_by_human == True` AND `review_metadata.last_decision == "approved"`. Rejected, frozen, and archived patches are never runtime-ready.
+
+### Review Output Shape
+
+```json
+{
+  "action": "review",
+  "decision": "approve",
+  "input_path": "...",
+  "output_path": "...",
+  "patch_id": "patch_...",
+  "patch": {
+    "patch_id": "patch_...",
+    "contact_id": "...",
+    "patch_type": "tone_preference",
+    "status": "approved",
+    "confidence": 0.6,
+    "sensitivity": "low",
+    "instruction_scope": "per_contact",
+    "supporting_feedback_ids": ["fb_...", "fb_..."],
+    "supporting_cluster_ids": ["cluster_..."],
+    "is_runtime_ready": true,
+    "review_metadata": {
+      "review_state": "reviewed",
+      "reviewed_by_human": true,
+      "last_decision": "approved",
+      "last_reviewer_id": "...",
+      "history_count": 1
+    }
+  }
+}
+```
+
+### Privacy Safety
+
+Review output contains NO raw feedback text, edited text, user notes, boundary notes, or draft text. Only aggregate ids, statuses, and safe metadata are exposed.
+
 ## Anti-Patterns
 
 Do NOT:

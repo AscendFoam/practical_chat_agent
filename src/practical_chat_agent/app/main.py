@@ -67,6 +67,7 @@ from practical_chat_agent.services.feedback import (
     FeedbackSummaryService,
     FeedbackValidationService,
     PatchProposalService,
+    PatchReviewService,
 )
 from practical_chat_agent.services.reply_planner import ReplyPlanner, ReplyPlannerError
 from practical_chat_agent.ui.live_caption_window import MeetingLiveCaptionWindow
@@ -2332,6 +2333,82 @@ def chat_feedback_propose_patch(
 
     if report.get("load_error"):
         raise typer.Exit(code=1)
+
+
+@app.command("chat-feedback-review-patch")
+def chat_feedback_review_patch(
+    input_path: Path = typer.Option(
+        ...,
+        "--input",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        readable=True,
+        help="Input T162 proposal report JSON file.",
+    ),
+    output: Optional[Path] = typer.Option(
+        None,
+        "--output",
+        help="Optional private output path for reviewed proposal JSON. Defaults to overwriting the input file.",
+    ),
+    patch_id: str = typer.Option(
+        ...,
+        "--patch-id",
+        help="Patch id to apply the review decision to.",
+    ),
+    decision: str = typer.Option(
+        ...,
+        "--decision",
+        help="Review decision: approve, reject, freeze, or archive.",
+    ),
+    reviewer: str = typer.Option(
+        ...,
+        "--reviewer",
+        help="Reviewer identity (name or id) for the human review decision.",
+    ),
+    note: Optional[str] = typer.Option(
+        None,
+        "--note",
+        help="Optional review note. Safe summaries only.",
+    ),
+) -> None:
+    """Apply an explicit human review decision to a PreferencePatchCandidate proposal."""
+
+    service = PatchReviewService()
+    try:
+        result = service.review(
+            input_path=input_path,
+            output_path=output,
+            patch_id=patch_id,
+            decision=decision,
+            reviewer=reviewer,
+            note=note,
+        )
+    except FeedbackError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+
+    safe_stdout = {
+        "action": result["action"],
+        "decision": result["decision"],
+        "input_path": _safe_cli_path(input_path),
+        "output_path": _safe_cli_path(Path(result["output_path"])),
+        "patch_id": result["patch_id"],
+        "patch": {
+            "patch_id": result["patch"]["patch_id"],
+            "contact_id": result["patch"]["contact_id"],
+            "patch_type": result["patch"]["patch_type"],
+            "status": result["patch"]["status"],
+            "confidence": result["patch"]["confidence"],
+            "sensitivity": result["patch"]["sensitivity"],
+            "instruction_scope": result["patch"]["instruction_scope"],
+            "supporting_feedback_ids": result["patch"]["supporting_feedback_ids"],
+            "supporting_cluster_ids": result["patch"]["supporting_cluster_ids"],
+            "is_runtime_ready": result["patch"]["is_runtime_ready"],
+            "review_metadata": result["patch"]["review_metadata"],
+        },
+    }
+
+    typer.echo(json.dumps(safe_stdout, ensure_ascii=False, indent=2))
 
 
 @app.command("meeting-live-preview")
