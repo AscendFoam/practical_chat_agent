@@ -1,5 +1,16 @@
 # Feasibility Report
 
+## Captain Update 2026-05-22 (T164 Review)
+
+T164 confirms that approved-only patch context integration is feasible in the current repository shape.
+
+The feasibility gap has changed again:
+
+- no longer blocked on exposing approved, runtime-ready patch hints through `ChatContext`
+- now focused on whether ContactSkill can be decomposed into narrower derived briefs without breaking the current evidence-first, compatibility-first pipeline
+
+So the project is ready to commit the T164 slice and advance to T170, while keeping M6 design work non-breaking and documentation-first.
+
 ## Captain Update 2026-05-22 (T163 Review)
 
 T163 confirms that explicit human review over patch proposals is feasible in the current repository shape.

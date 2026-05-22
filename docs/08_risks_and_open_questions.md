@@ -1,5 +1,33 @@
 # Risks And Open Questions
 
+## Captain Update 2026-05-22 (T164 Review Decision)
+
+Authoritative current risk state after the Captain review of T164:
+
+- R041 remains active: approved patches in context must still be interpreted as review-only communication hints rather than automatic learning.
+- R053 remains active and deferred: `patch_id` non-determinism across repeated T162 runs persists but is now consumed only at T164 load time.
+- R054 remains active and deferred: repo coverage now exists for `ApprovedPatchContextService`, but gaps remain for frozen/archived exclusion fixtures, end-to-end `ChatContextAssembler` approved-patch integration, and empty/whitespace `behavior_instruction` handling.
+- R057 remains active: T163 write-back corruption risk is bounded since T164 reads the report read-only; a corrupted report would surface as `store_path_missing` or invalid JSON.
+- R058 remains active: review history unbounded growth is a storage concern only; T164 does not expand history into context.
+- R059 remains active: `ApprovedPatchContextService` loads the full proposal report into memory. For large reports with many candidates this may become a memory concern, but is acceptable for current single-user offline scale.
+- R060 remains active: `ChatContextAssembler` path validation for patch reports reuses `_ensure_within_private_distilled` which constrains paths under `private/distilled/`. This guards against accidental exposure but is not a hard security boundary.
+
+Closed question Q168: T164 is accepted with `PASS_WITH_WARNINGS`, so the project may proceed to T170 rather than sending T164 back for a blocking repair pass.
+
+## Captain Update 2026-05-22 (T164)
+
+Authoritative current risk state after T164 Approved Patch Compact Context:
+
+- R041 remains active: approved patches now have a compact context path but must still be interpreted as review-only communication hints rather than automatic learning.
+- R053 remains active and deferred: `patch_id` non-determinism across repeated T162 runs persists but is now consumed only at T164 load time.
+- R054 remains active and deferred: repo coverage now exists for `ApprovedPatchContextService`, but gaps remain for frozen/archived exclusion fixtures, end-to-end `ChatContextAssembler` approved-patch integration, and empty/whitespace `behavior_instruction` handling.
+- R057 remains active: T163 write-back corruption risk is bounded since T164 reads the report read-only; a corrupted report would surface as `store_path_missing` or invalid JSON.
+- R058 remains active: review history unbounded growth is a storage concern only; T164 does not expand history into context.
+- R059 is active: `ApprovedPatchContextService` loads the full proposal report into memory. For large reports with many candidates this may become a memory concern, but is acceptable for current single-user offline scale.
+- R060 is active: `ChatContextAssembler` path validation for patch reports reuses `_ensure_within_private_distilled` which constrains paths under `private/distilled/`. This guards against accidental exposure but is not a hard security boundary.
+
+Closed question Q167: T164 provides compact approved-patch context integration that consumes reviewed T162/T163 proposal reports, filters to only approved + runtime-ready patches, and exposes safe, compressed patch briefs through `ChatContext` without raw feedback text, review history expansion, or non-approved patch leakage.
+
 ## Captain Update 2026-05-22 (T163 Review Decision)
 
 Authoritative current risk state after the Captain review of T163:
@@ -263,9 +291,11 @@ Closed question Q124: the updated GPT roadmap is directionally aligned, but M4/M
 | R051 | cluster_id 仅反映分组键不反映记录内容 | 不同记录集可能共享同一 cluster_id | T161 设计为累积分组，T162 使用时应同时检查 supporting_feedback_ids 而非仅依赖 cluster_id |
 | R052 | `FeedbackClusterService` / `chat-feedback-cluster` 尚无已提交的自动化回归测试 | 聚类标签、cluster_id 稳定性、过滤规则或隐私输出约束未来可能无声回归 | T161 review 接受当前 scope；后续 hardening task 应补有效/无效聚类、cluster_id 稳定性、validation-report 过滤、隐私字段缺失、JSON round-trip 与单记录边界情况测试 |
 | R053 | `patch_id` 使用 UUID 生成，同一 cluster 输入重复运行产生不同 patch_id | patch_id 不稳定可能导致重复生成时无法去重或追踪 | T162 scope 内可接受；T163 review CLI 或后续 hardening task 可改为基于 cluster_id 的确定性 ID |
-| R054 | `PatchProposalService` / `chat-feedback-propose-patch` 尚无已提交的自动化回归测试 | 提案映射规则、跳过逻辑、置信度计算、隐私安全约束未来可能无声回归 | T162 review 接受当前 scope；后续 hardening task 应补有效/无效提案、确定性验证、跳过逻辑、隐私字段、JSON round-trip 与边界情况测试 |
+| R054 | M5 patch pipeline 自动化覆盖仍不完整：T162/T163/T164 已有实现，但 proposal/review/context 路径仍存在回归覆盖缺口 | 提案映射规则、review 写回行为、approved-patch context 过滤与组装路径可能在未来无声回归 | T162-T164 review 均接受当前 scope；后续 hardening task 应补 proposal/review 端到端覆盖、frozen/archived exclusion、assembler integration、empty/whitespace `behavior_instruction`、隐私字段与 JSON round-trip 测试 |
 | R055 | 置信度公式 `min(0.3 + 0.15 * (record_count - 1), 0.9)` 单调但未校准 | 置信度值可能被误解为概率 | T162 文档已明确说明不 claim 校准概率；T163 review CLI 展示时需避免过度解读 |
 | R056 | 提案生成对 malformed cluster report 缺少空 `contact_id` 防御 | 手工编辑或损坏的 cluster report 可能触发未处理异常并中断 proposal 生成 | T162 review 接受当前 scope；后续任务应在 proposal 层显式跳过 `contact_id` 为空的 cluster，给出 `missing_contact` 或等价 skip reason |
+| R059 | `ApprovedPatchContextService` loads the full proposal report into memory | 对于包含大量候选的 proposal report 可能产生内存压力 | 当前单用户离线规模可接受；未来若 report 过大，可改为 streaming 或分页加载 |
+| R060 | `ChatContextAssembler` patch path 校验复用 `_ensure_within_private_distilled` | 该方法约束路径在 `private/distilled/` 下，提供约定级隔离而非硬安全边界 | 当前 offline-only 工作流可接受；若未来引入多用户或网络暴露场景，需采用更严格的路径沙箱 |
 
 ## Open Questions
 
@@ -314,6 +344,7 @@ Closed question Q124: the updated GPT roadmap is directionally aligned, but M4/M
 | Q163 | T161 是否可以作为已完成任务接受并推进到 T162？可以；以 `PASS_WITH_WARNINGS` 接受，缺少 committed cluster tests 和 `input_path` 暴露模式继续保留在风险台账中。 | `docs/review/T161_review.md` + Captain decision |
 | Q164 | T162 是否产出确定性的、candidate-only 的 PreferencePatch 提案？是；提案从 cluster label 确定性映射到 patch type，跳过不支持或模糊的 cluster，输出不含原始文本，不自动 approve。 | T162 implementation record in `docs/07_handoff.md` |
 | Q165 | T162 是否可以作为已完成任务接受并推进到 T163？可以；以 `PASS_WITH_WARNINGS` 接受，`patch_id` 确定性文档偏差、proposal `input_path` 暴露、缺少 committed proposal tests 和 malformed cluster defensive guard 继续保留在风险台账中。 | `docs/review/T162_review.md` + Captain decision |
+| Q167 | T164 是否提供 compact approved-patch context integration？是；T164 consumes reviewed T162/T163 proposal reports, filters to only approved + runtime-ready patches, and exposes safe compressed patch briefs through `ChatContext` without raw feedback text, review history expansion, or non-approved patch leakage. | T164 implementation record in `docs/07_handoff.md` |
 
 ## Deferred Items
 

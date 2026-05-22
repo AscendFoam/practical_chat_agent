@@ -6,6 +6,7 @@ from pathlib import Path
 from practical_chat_agent.core.models import (
     ApprovedContactSkillBrief,
     ApprovedMemoryFactBrief,
+    ApprovedPatchContext,
     ApprovedStoreContext,
     AgentProfile,
     ChatContext,
@@ -18,6 +19,7 @@ from practical_chat_agent.core.models import (
     MemoryFactStoreRecord,
     MemoryProfileSnapshot,
 )
+from practical_chat_agent.services.feedback import ApprovedPatchContextService
 
 
 class ChatContextAssembler:
@@ -30,11 +32,13 @@ class ChatContextAssembler:
         memory_hits_limit: int = 8,
         approved_store_path: Path | None = None,
         approved_memory_limit: int = 4,
+        approved_patch_path: Path | None = None,
     ) -> None:
         self.recent_events_limit = max(int(recent_events_limit), 1)
         self.memory_hits_limit = max(int(memory_hits_limit), 1)
         self.approved_store_path = approved_store_path
         self.approved_memory_limit = max(int(approved_memory_limit), 1)
+        self.approved_patch_path = approved_patch_path
         self._repo_root = Path.cwd().resolve()
         self._private_distilled_root = (self._repo_root / "private" / "distilled").resolve()
 
@@ -67,8 +71,12 @@ class ChatContextAssembler:
         approved_store_context = self._load_approved_store_context(
             contact_id=event.actor_id,
         )
+        approved_patch_context = self._load_approved_patch_context(
+            contact_id=event.actor_id,
+        )
         combined_retrieval_notes = list(memory_retrieval_notes or [])
         combined_retrieval_notes.extend(self._build_approved_store_notes(approved_store_context))
+        combined_retrieval_notes.extend(self._build_approved_patch_notes(approved_patch_context))
         summary = self._build_summary(
             agent=agent,
             event=event,
@@ -76,6 +84,7 @@ class ChatContextAssembler:
             memory_hits=selected_memory_hits,
             memory_profile=memory_profile or MemoryProfileSnapshot(),
             approved_store_context=approved_store_context,
+            approved_patch_context=approved_patch_context,
         )
         return ChatContext(
             agent_id=agent.agent_id,
@@ -96,6 +105,7 @@ class ChatContextAssembler:
             memory_profile=memory_profile or MemoryProfileSnapshot(),
             memory_retrieval_notes=combined_retrieval_notes,
             approved_store_context=approved_store_context,
+            approved_patch_context=approved_patch_context,
             summary=summary,
         )
 
@@ -108,6 +118,7 @@ class ChatContextAssembler:
         memory_hits: list[MemoryFact],
         memory_profile: MemoryProfileSnapshot,
         approved_store_context: ApprovedStoreContext,
+        approved_patch_context: ApprovedPatchContext,
     ) -> str:
         user_name = event.actor_name or event.actor_id
         latest_text = (event.text or "").strip()
@@ -135,6 +146,15 @@ class ChatContextAssembler:
                 memory_brief = f"{memory_brief[:137].rstrip()}..."
             pieces.append(
                 f"Approved store memory briefs: {memory_brief}.",
+            )
+        if approved_patch_context.status == "loaded" and approved_patch_context.patches:
+            patch_hints = "; ".join(
+                f"[{p.patch_type}] {p.compact_instruction}" for p in approved_patch_context.patches[:3]
+            )
+            if len(patch_hints) > 200:
+                patch_hints = f"{patch_hints[:197].rstrip()}..."
+            pieces.append(
+                f"Approved preference patch hints: {patch_hints}.",
             )
         return " ".join(piece for piece in pieces if piece)
 
@@ -234,6 +254,40 @@ class ChatContextAssembler:
         if context.memory_facts:
             notes.append(
                 f"approved_memory_facts={'; '.join(item.claim for item in context.memory_facts[:2])}",
+            )
+        return notes
+
+    def _load_approved_patch_context(self, *, contact_id: str) -> ApprovedPatchContext:
+        if self.approved_patch_path is None:
+            return ApprovedPatchContext(status="not_configured")
+        resolved = self._resolve_configured_store_path(self.approved_patch_path)
+        if resolved is None:
+            return ApprovedPatchContext(
+                status="store_path_missing",
+                source_path=self._safe_relative_path(self.approved_patch_path),
+                contact_id=contact_id,
+                notes=["Configured approved patch path does not exist."],
+            )
+        service = ApprovedPatchContextService()
+        return service.load_approved_patches(
+            report_path=resolved,
+            contact_id=contact_id,
+        )
+
+    @staticmethod
+    def _build_approved_patch_notes(context: ApprovedPatchContext) -> list[str]:
+        if context.status != "loaded":
+            return list(context.notes)
+        notes = [
+            f"approved_patch_context source={context.source_path or 'private/distilled'}",
+            f"approved_patch_count={len(context.patches)}",
+        ]
+        for patch in context.patches[:4]:
+            notes.append(
+                f"approved_patch {patch.patch_id}: "
+                f"[{patch.patch_type}] {patch.compact_instruction} "
+                f"(sensitivity={patch.sensitivity}, "
+                f"feedback_count={patch.supporting_feedback_count})"
             )
         return notes
 

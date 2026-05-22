@@ -629,6 +629,23 @@ class ApprovedStoreContext(BaseModel):
     notes: list[str] = Field(default_factory=list)
 
 
+class ApprovedPatchBrief(BaseModel):
+    patch_id: str
+    patch_type: str
+    compact_instruction: str
+    sensitivity: DistillationSensitivity
+    supporting_feedback_count: int = 0
+    supporting_cluster_ids: list[str] = Field(default_factory=list)
+
+
+class ApprovedPatchContext(BaseModel):
+    status: ApprovedStoreContextStatus = "not_configured"
+    source_path: str | None = None
+    contact_id: str | None = None
+    patches: list[ApprovedPatchBrief] = Field(default_factory=list)
+    notes: list[str] = Field(default_factory=list)
+
+
 class ChatContextEvent(BaseModel):
     event_id: str
     actor_id: str
@@ -659,6 +676,7 @@ class ChatContext(BaseModel):
     memory_profile: MemoryProfileSnapshot = Field(default_factory=MemoryProfileSnapshot)
     memory_retrieval_notes: list[str] = Field(default_factory=list)
     approved_store_context: ApprovedStoreContext = Field(default_factory=ApprovedStoreContext)
+    approved_patch_context: ApprovedPatchContext = Field(default_factory=ApprovedPatchContext)
     summary: str | None = None
 
 

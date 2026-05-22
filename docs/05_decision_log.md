@@ -1,5 +1,30 @@
 # Decision Log
 
+## D036: T164 PASS_WITH_WARNINGS, accept task, advance to T170
+
+- Date: 2026-05-22
+- Status: Accepted
+- Context: `docs/review/T164_review.md` gives `PASS_WITH_WARNINGS` for the approved patch compact context task. No blocking issues were found.
+- Decision: T164 is complete. The project may continue to T170 ContactSkill Decomposition Design.
+- Warning handling:
+  - Accepted:
+    - N01 `.claude/settings.json` modification is treated as workspace noise rather than a T164 scope violation.
+    - N02 `_compact_text` duplication between `ChatContextAssembler` and `ApprovedPatchContextService` is low-risk refactor debt only.
+    - N03 `ApprovedPatchContext.status` reuses a broader existing status type than strictly necessary. This is imprecise but harmless in current scope.
+    - N04 per-call `ApprovedPatchContextService()` instantiation inside `assemble()` is low-impact for the current offline workflow.
+    - N05 handoff wording about missing committed tests was inaccurate; Captain governance sync corrects that record rather than treating it as an implementation defect.
+    - N06 carrying `supporting_cluster_ids` through compact briefs is safe because they are deterministic labels and not raw feedback content.
+  - Deferred:
+    - M01 explicit frozen/archived exclusion coverage is still missing. Carry forward under R054 as a remaining T164 coverage gap.
+    - M02 no end-to-end `ChatContextAssembler` integration test yet exercises the approved-patch path. Carry forward under R054 as a remaining T164 coverage gap.
+    - M03 no committed test yet covers empty or whitespace-only `behavior_instruction` through the full approved-patch load flow. Carry forward under R054 as a remaining T164 coverage gap.
+  - Rejected: none.
+- Conditions carried forward:
+  - M5 remains review-only and approval-gated in meaning even though compact patch hints now exist in `ChatContext`.
+  - Future work must not reinterpret approved patch context as automatic learning or hidden state mutation.
+  - T170 must be design-only and must preserve compatibility with the current ContactSkill-centered pipeline.
+- Impact: `docs/04_task_board.md` moves the Current Unique Task from T164 to T170, and the T170 task package is tightened so the next worker step is explicit and non-breaking.
+
 ## D035: T163 PASS_WITH_WARNINGS, accept task, advance to T164
 
 - Date: 2026-05-22

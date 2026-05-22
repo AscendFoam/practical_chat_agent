@@ -1,5 +1,30 @@
 # Architecture
 
+## Captain Update 2026-05-22 (T164 Review)
+
+T164 is now complete, so the M5 architecture has reached its intended review-only compact-context endpoint:
+
+```text
+Reproducible feedback loop
+  -> PreferencePatchCandidate schema
+  -> deterministic privacy-safe feedback clusters
+  -> conservative deterministic patch proposals
+  -> manual approve/reject/freeze/archive review
+  -> approved patch compact context in ChatContext
+```
+
+The next architectural step is T170, which must add design only:
+
+```text
+Approved ContactSkill
+  -> decomposition design
+  -> compatible derived briefs
+  -> fallback to existing ContactSkill
+  -> no runtime breakage or data migration yet
+```
+
+This keeps the mainline non-breaking, evidence-first, and review-oriented.
+
 ## Captain Update 2026-05-22 (T163 Review)
 
 T163 is now complete, so the M5 architecture has advanced from candidate proposals to explicit human-reviewed patch state:

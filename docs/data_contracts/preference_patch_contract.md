@@ -321,6 +321,81 @@ chat-feedback-review-patch --input <path> --patch-id <id> --decision <approve|re
 
 Review output contains NO raw feedback text, edited text, user notes, boundary notes, or draft text. Only aggregate ids, statuses, and safe metadata are exposed.
 
+## Patch Compact Context Contract (T164)
+
+Updated: 2026-05-22
+
+### Purpose
+
+`ApprovedPatchContextService` loads reviewed T162/T163 proposal reports and exposes only approved, runtime-ready patches as compact communication hints through the existing `ChatContext` layer. It does not auto-approve, auto-apply, inject into runtime, or mutate source evidence fields.
+
+### Load Path
+
+```text
+reviewed patch proposal report (T162/T163)
+  -> ApprovedPatchContextService.load_approved_patches()
+  -> ApprovedPatchContext (status, patches, notes)
+  -> ChatContext.approved_patch_context
+  -> ChatContextAssembler._build_approved_patch_notes()
+  -> memory_retrieval_notes + summary
+```
+
+### Filtering Rules
+
+Only patches satisfying ALL of the following enter `ApprovedPatchContext.patches`:
+
+1. `patch.contact_id == contact_id` (contact-scoped)
+2. `patch.status == "approved"` (excludes candidate, rejected, frozen, archived)
+3. `patch.is_runtime_ready() == True` (requires `reviewed_by_human == True` AND `last_decision == "approved"`)
+
+Patches that fail any condition are silently excluded. The report must have `schema_version == "patch_proposal_v1"`.
+
+### ApprovedPatchBrief Shape
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `patch_id` | `str` | Stable patch identifier |
+| `patch_type` | `str` | Preference patch type (e.g. `tone_preference`) |
+| `compact_instruction` | `str` | Compact version of `behavior_instruction`, max 160 chars |
+| `sensitivity` | `DistillationSensitivity` | low / medium / high |
+| `supporting_feedback_count` | `int` | Number of backing feedback records |
+| `supporting_cluster_ids` | `list[str]` | Cluster IDs backing this patch |
+
+### ApprovedPatchContext Shape
+
+```json
+{
+  "status": "loaded",
+  "source_path": "private/distilled/t164_fixture/proposal_report.json",
+  "contact_id": "contact_xxx",
+  "patches": [
+    {
+      "patch_id": "patch_xxx",
+      "patch_type": "tone_preference",
+      "compact_instruction": "Keep tone warm but not overly casual.",
+      "sensitivity": "low",
+      "supporting_feedback_count": 3,
+      "supporting_cluster_ids": ["cluster_xxx"]
+    }
+  ],
+  "notes": []
+}
+```
+
+Status values reuse `ApprovedStoreContextStatus`:
+- `not_configured`: no patch path was provided to the assembler
+- `store_path_missing`: path does not exist, is unreadable, or contains invalid data
+- `no_runtime_ready_records`: report is valid but no patches are approved and runtime-ready for this contact
+- `loaded`: at least one approved, runtime-ready patch was loaded
+
+### Privacy Safety
+
+- NO raw feedback text, edited text, user notes, boundary notes, or draft text enters context.
+- NO `claim` or full `behavior_instruction` field is exposed — only compact instructions (max 160 chars).
+- `supporting_feedback_ids` are reduced to a count; `supporting_cluster_ids` are carried as-is (deterministic cluster labels only, no raw text).
+- Review history remains in source report but is NOT expanded into runtime context.
+- Non-approved patches (candidate, rejected, frozen, archived) are excluded entirely.
+
 ## Anti-Patterns
 
 Do NOT:

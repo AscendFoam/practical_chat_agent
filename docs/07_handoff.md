@@ -1,5 +1,18 @@
 # Handoff
 
+## Captain Current State Override 2026-05-22 (T164 Review Decision)
+
+- T164 review decision: `PASS_WITH_WARNINGS`.
+- T164 warning disposition:
+  - Accepted: N01 `.claude/settings.json` is a workspace artifact rather than a T164 scope violation, N02 duplicated `_compact_text` is low-risk refactor debt, N03 `ApprovedPatchContext.status` reuses a slightly broader enum than strictly necessary, N04 per-assemble `ApprovedPatchContextService()` instantiation is low-impact for the current offline workflow, N05 handoff test wording was inaccurate and is corrected here, N06 carrying deterministic `supporting_cluster_ids` through compact briefs is safe.
+  - Deferred: M01 missing explicit frozen/archived exclusion tests, M02 missing `ChatContextAssembler` approved-patch path integration test, M03 missing empty/whitespace `behavior_instruction` edge-case coverage.
+  - Rejected: none.
+- Current Unique Task: T170 ContactSkill Decomposition Design.
+- Current task package: `docs/tasks/M6_contactskill_decomposition/T170_decomposition_design.md`.
+- M5 is functionally complete within approval-gated, review-only, non-mutating constraints.
+- T170 is design-only: no code edits, no ContactSkill behavior changes, no migration, and no deprecation claim.
+- Any M6 design must preserve the existing T120-T164 pipeline and keep ContactSkill runnable as the compatibility fallback aggregate.
+
 ## Captain Current State Override 2026-05-22 (T163 Review Decision)
 
 - T163 review decision: `PASS_WITH_WARNINGS`.
@@ -1878,3 +1891,98 @@ M1 必须承接的条件：
   - confirm only approved/runtime-ready patches enter context
   - confirm review history survives untouched
   - confirm context output stays compact and privacy-safe
+
+## 66. T164 Implementation Record
+
+- Files changed:
+  - `src/practical_chat_agent/core/models.py`
+  - `src/practical_chat_agent/services/feedback.py`
+  - `src/practical_chat_agent/services/chat_context.py`
+  - `docs/data_contracts/preference_patch_contract.md`
+  - `docs/07_handoff.md`
+  - `docs/08_risks_and_open_questions.md`
+- Models added:
+  - `ApprovedPatchBrief`: compact brief for a single approved, runtime-ready patch. Fields: `patch_id`, `patch_type`, `compact_instruction` (max 160 chars from `behavior_instruction`), `sensitivity`, `supporting_feedback_count`, `supporting_cluster_ids`.
+  - `ApprovedPatchContext`: wrapper for approved patch briefs. Fields: `status` (reuses `ApprovedStoreContextStatus`), `source_path`, `contact_id`, `patches`, `notes`.
+  - `ChatContext.approved_patch_context`: new field, defaults to `ApprovedPatchContext(status="not_configured")`.
+- Service added in feedback.py:
+  - `ApprovedPatchContextService.load_approved_patches(report_path, contact_id) -> ApprovedPatchContext`:
+    - Reads a reviewed T162/T163 `patch_proposal_v1` report.
+    - Validates each candidate patch via `PreferencePatchCandidate.model_validate`.
+    - Filters: `status == "approved"` AND `is_runtime_ready() == True` AND `contact_id` match.
+    - Candidate, rejected, frozen, and archived patches are excluded silently.
+    - Builds compact `ApprovedPatchBrief` with truncated `behavior_instruction` and feedback count (not raw IDs).
+    - Returns `not_configured`, `store_path_missing`, `no_runtime_ready_records`, or `loaded`.
+- ChatContextAssembler changes:
+  - New constructor parameter: `approved_patch_path: Path | None = None`.
+  - `_load_approved_patch_context()`: resolves path via existing `_resolve_configured_store_path`, delegates to `ApprovedPatchContextService`.
+  - `_build_approved_patch_notes()`: emits compact patch notes with patch_id, patch_type, compact_instruction, sensitivity, and feedback_count (max 4 patches in notes).
+  - `_build_summary()`: appends compact patch hints (max 3 patches, 200 chars total) to context summary.
+  - `assemble()`: wires approved_patch_context into returned `ChatContext`, appends patch notes to `memory_retrieval_notes`.
+- Approved/runtime-ready filtering rules:
+  - `patch.contact_id == contact_id`
+  - `patch.status == "approved"`
+  - `patch.is_runtime_ready() == True`
+  - All three conditions must be satisfied simultaneously.
+- Privacy safety:
+  - NO raw feedback text, edited text, user notes, boundary notes, or draft text in context.
+  - `supporting_feedback_ids` reduced to count; raw IDs not exposed.
+  - `behavior_instruction` truncated to 160 chars in compact brief.
+  - Review history stays in source report, never expanded into context.
+  - Non-approved patches excluded entirely.
+- Verification:
+  - Compile passed for models.py, feedback.py, chat_context.py.
+  - Existing 176 tests expected to pass with zero regressions.
+  - Repo now includes `tests/test_t164_synthetic.py` with 13 synthetic tests covering `ApprovedPatchContextService` filtering and compact brief construction.
+- Remaining risks:
+  - Remaining committed-coverage gaps are frozen/archived exclusion cases, `ChatContextAssembler` approved-patch path integration, and empty/whitespace `behavior_instruction` handling.
+  - `ChatContextAssembler` path validation reuses `_ensure_within_private_distilled` from T123, which guards against configured paths outside `private/distilled/`.
+  - Patch briefs expose `supporting_cluster_ids` as-is; these are deterministic labels from T161 and contain no raw text.
+- Follow-up constraints for later M5+ tasks:
+  - Only `ApprovedPatchContextService` may load and filter patches for context; do not bypass the approval/runtime-ready gate.
+  - If a future task adds LLM consumption of patch hints, it must preserve the existing compact/privacy-safe constraints.
+  - `ApprovedPatchBrief` shape should remain stable as a context contract; adding fields is safer than removing or renaming.
+
+## 67. T164 Review Decision
+
+- Review file:
+  - `docs/review/T164_review.md`
+- Verdict:
+  - `PASS_WITH_WARNINGS`
+- Captain decision:
+  - T164 is complete within task scope.
+  - The repo now has an approved-only, compact patch-context path that stays review-only, privacy-safe, and non-mutating.
+  - No T164 finding is blocking enough to require an automatic repair pass.
+- Warning handling:
+  - Accepted:
+    - N01 `.claude/settings.json` is a workspace artifact rather than a task-scope violation.
+    - N02 duplicated `_compact_text` is low-risk refactor debt.
+    - N03 `ApprovedPatchContext.status` reuses a broader status enum than the patch-context path strictly needs.
+    - N04 `_load_approved_patch_context()` instantiates a new `ApprovedPatchContextService()` per `assemble()` call, which is acceptable for the current offline workflow.
+    - N05 the previous handoff wording understated existing synthetic test coverage and is corrected here.
+    - N06 carrying deterministic `supporting_cluster_ids` in compact briefs is privacy-safe.
+  - Deferred:
+    - M01 no explicit frozen/archived exclusion test fixtures exist yet.
+    - M02 no end-to-end `ChatContextAssembler` integration test covers the approved-patch load/build/summary path.
+    - M03 no dedicated test covers empty or whitespace-only `behavior_instruction`.
+  - Rejected:
+    - none
+
+## 68. T170 Kickoff Notes
+
+- Task package:
+  - `docs/tasks/M6_contactskill_decomposition/T170_decomposition_design.md`
+- Worker focus:
+  - design a compatibility-first decomposition from approved `ContactSkill` into smaller derived briefs
+  - keep evidence ownership, approval boundaries, and fallback behavior explicit
+  - preserve the existing T120-T164 runtime and review contracts
+- Explicit non-goals:
+  - no code edits
+  - no ContactSkill behavior change
+  - no data migration
+  - no deprecation or replacement claim for `ContactSkill`
+  - no LLM behavior changes, runtime mutation, or platform work
+- Reviewer focus:
+  - confirm the design is additive and compatibility-first
+  - confirm evidence refs and approval gates remain preserved across any derived-brief projection
+  - confirm the document does not smuggle in a breaking migration plan or persona-clone scope creep

@@ -1,8 +1,19 @@
 # Task Board
 
-Updated: 2026-05-18
+Updated: 2026-05-22
 
 ## Captain Current State Override
+
+- T164 review decision: `PASS_WITH_WARNINGS`.
+- T164 is complete as an approved patch compact context task.
+- T164 warning disposition:
+  - Accepted: N01 `.claude/settings.json` is a workspace artifact rather than a T164 scope violation, N02 `_compact_text` duplication is low-risk refactor debt, N03 `ApprovedPatchContext.status` reuses a slightly broader status enum than strictly necessary, N04 per-assemble `ApprovedPatchContextService()` instantiation is low-impact for the current offline workflow, N05 handoff test-count wording was inaccurate and is corrected in the governance sync, N06 carrying `supporting_cluster_ids` through compact briefs is safe because they are deterministic labels rather than raw text.
+  - Deferred: M01 missing explicit frozen/archived exclusion tests, M02 missing `ChatContextAssembler` end-to-end patch-path integration test, M03 missing empty/whitespace `behavior_instruction` edge-case coverage.
+  - Rejected: none.
+- Current Unique Task: T170 ContactSkill Decomposition Design.
+- Current task package: `docs/tasks/M6_contactskill_decomposition/T170_decomposition_design.md`.
+- T170 must stay design-only, compatibility-first, and non-breaking: no code edits, no ContactSkill behavior changes, no data migration, no deprecation claim, and no LLM or platform work unless a future task package explicitly changes that scope.
+- T170 must preserve the existing T120-T164 pipeline: derived-brief design must keep ContactSkill runnable as the fallback aggregate and must preserve evidence-first review boundaries.
 
 - T163 review decision: `PASS_WITH_WARNINGS`.
 - T163 is complete as a manual patch review task.
@@ -10,11 +21,6 @@ Updated: 2026-05-18
   - Accepted: N05 `.claude/settings.json` is a workspace artifact rather than a T163 scope violation.
   - Deferred: N01 the contract still overclaims deterministic `patch_id` behavior, N02 no committed automated tests yet cover `PatchReviewService` / `chat-feedback-review-patch`, N03 review writes back to the input file by default and may risk in-place corruption on write failure, N04 review history can grow without bound.
   - Rejected: none.
-- Current Unique Task: T164 Approved Patch Compact Context.
-- Current task package: `docs/tasks/M5_feedback_to_patch/T164_approved_patch_context.md`.
-- T164 must stay approved-only, compact, and non-mutating: no candidate/rejected/frozen/archived patch injection, no auto-approve, no ContactSkill/Memory mutation, no outbound send behavior, and no LLM use unless a future task package explicitly changes that scope.
-- T164 must preserve T163 review semantics conservatively: only `status == "approved"` and `is_runtime_ready() == True` patches may enter `ChatContext`, review history must survive untouched, and context output must remain privacy-safe and compact.
-
 - T162 review decision: `PASS_WITH_WARNINGS`.
 - T162 is complete as a deterministic, candidate-only patch proposal task.
 - T162 warning disposition:
@@ -75,15 +81,15 @@ Updated: 2026-05-18
 - Gate M4 was `Conditional` at milestone review time and is now satisfied through completed M4.5 regression hardening.
 - M4 remains review-only: no auto-send, no realtime platform integration, no automatic ContactSkill/Memory mutation, no feedback-to-patch behavior, and no relationship-aware maturity claim before regression hardening.
 - M4.5 is complete: T150/T151/T152 together provide committed deterministic coverage for ReplyPlanner, direct policy behavior, and the feedback CLI loop.
-- The project may now continue within M5, but only under review-only patch-candidate constraints.
+- The project may now continue beyond M5. M5 is functionally complete within review-only, non-mutating constraints, and later work must preserve its approval-gated interpretation.
 
 ## Current Unique Task
 
-T164: Approved Patch Compact Context.
+T170: ContactSkill Decomposition Design.
 
-Task package: `docs/tasks/M5_feedback_to_patch/T164_approved_patch_context.md`
+Task package: `docs/tasks/M6_contactskill_decomposition/T170_decomposition_design.md`
 
-Why now: T163 is now complete and accepted. The next smallest safe M5 step is to let approved, runtime-ready patches enter `ChatContext` as compact guidance without bypassing the existing review boundary.
+Why now: T164 is now complete and accepted. The next smallest safe step is to design how ContactSkill can decompose into narrower derived briefs without breaking the existing approved-store and reply-planning pipeline.
 
 ## Board Rules
 
@@ -163,7 +169,7 @@ Goal: convert repeated feedback into reviewable PreferencePatch candidates witho
 - [x] T161: feedback clusterer. Review `PASS_WITH_WARNINGS`.
 - [x] T162: patch proposal CLI. Review `PASS_WITH_WARNINGS`.
 - [x] T163: patch review CLI. Review `PASS_WITH_WARNINGS`.
-- [ ] T164: approved patch compact context.
+- [x] T164: approved patch compact context. Review `PASS_WITH_WARNINGS`.
 
 ## Milestone 6: ContactSkill-Compatible Decomposition
 
@@ -236,9 +242,9 @@ Goal: keep WeChat as a thin final adapter behind the send gate.
 
 ## Historical Current Unique Task
 
-T163: Patch Review CLI.
+T164: Approved Patch Compact Context.
 
-It is now complete and accepted with `PASS_WITH_WARNINGS`. The next worker task is T164, because approved patch review state now exists and the next safe step is compact context consumption under explicit approval gating.
+It is now complete and accepted with `PASS_WITH_WARNINGS`. The next worker task is T170, because the review-only patch pipeline is now complete and the next safe step is documentation-first M6 decomposition design rather than additional runtime mutation.
 
 ## Next Captain Output Required
 

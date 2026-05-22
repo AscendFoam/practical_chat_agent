@@ -1,5 +1,15 @@
 # Raw Idea
 
+## Captain Update 2026-05-22 (T164 Review)
+
+T164 has now passed review with `PASS_WITH_WARNINGS`, so the fifth M5 step is accepted:
+
+- the repo now has compact approved-patch context integration behind explicit approval gates
+- the project still does not permit automatic learning, hidden state mutation, or non-approved patch influence on runtime context
+- the next safe step is no longer patch-context wiring but M6-compatible decomposition design work
+
+The Current Unique Task therefore moves to T170 ContactSkill Decomposition Design.
+
 ## Captain Update 2026-05-22 (T163 Review)
 
 T163 has now passed review with `PASS_WITH_WARNINGS`, so the fourth M5 step is accepted:

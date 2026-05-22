@@ -10,6 +10,9 @@ from pydantic import ValidationError
 
 from practical_chat_agent.core.ids import new_id
 from practical_chat_agent.core.models import (
+    ApprovedPatchBrief,
+    ApprovedPatchContext,
+    ApprovedStoreContextStatus,
     DistilledArtifactReviewDecision,
     DistillationSensitivity,
     DistillationStatus,
@@ -1083,3 +1086,115 @@ class PatchReviewService:
             },
         }
         return result
+
+
+class ApprovedPatchContextService:
+    """Load approved, runtime-ready patches from reviewed T162/T163 proposal reports (T164).
+
+    Consumes a reviewed proposal report and returns only patches where
+    status == "approved" and is_runtime_ready() == True. Excludes
+    candidate, rejected, frozen, and archived patches.
+    """
+
+    @staticmethod
+    def _compact_text(text: str, *, max_length: int) -> str:
+        cleaned = " ".join((text or "").split()).strip()
+        if not cleaned:
+            return ""
+        if len(cleaned) <= max_length:
+            return cleaned
+        return f"{cleaned[: max_length - 3].rstrip()}..."
+
+    def load_approved_patches(
+        self,
+        *,
+        report_path: Path,
+        contact_id: str,
+    ) -> ApprovedPatchContext:
+        source_path = self._safe_relative_path(report_path)
+
+        if not report_path.exists():
+            return ApprovedPatchContext(
+                status="store_path_missing",
+                source_path=source_path,
+                contact_id=contact_id,
+                notes=[f"Approved patch report not found: {source_path}"],
+            )
+
+        try:
+            raw_text = report_path.read_text(encoding="utf-8")
+        except OSError:
+            return ApprovedPatchContext(
+                status="store_path_missing",
+                source_path=source_path,
+                contact_id=contact_id,
+                notes=["Unable to read approved patch report."],
+            )
+
+        try:
+            data = json.loads(raw_text)
+        except json.JSONDecodeError:
+            return ApprovedPatchContext(
+                status="store_path_missing",
+                source_path=source_path,
+                contact_id=contact_id,
+                notes=["Approved patch report contains invalid JSON."],
+            )
+
+        if data.get("schema_version") != "patch_proposal_v1":
+            return ApprovedPatchContext(
+                status="store_path_missing",
+                source_path=source_path,
+                contact_id=contact_id,
+                notes=["Approved patch report has unexpected schema_version."],
+            )
+
+        approved_patches: list[ApprovedPatchBrief] = []
+        for candidate_entry in data.get("candidates", []):
+            patch_data = candidate_entry.get("patch", {})
+            try:
+                patch = PreferencePatchCandidate.model_validate(patch_data)
+            except ValidationError:
+                continue
+
+            if patch.contact_id != contact_id:
+                continue
+            if patch.status != "approved":
+                continue
+            if not patch.is_runtime_ready():
+                continue
+
+            approved_patches.append(
+                ApprovedPatchBrief(
+                    patch_id=patch.patch_id,
+                    patch_type=patch.patch_type,
+                    compact_instruction=self._compact_text(
+                        patch.behavior_instruction, max_length=160
+                    ),
+                    sensitivity=patch.sensitivity,
+                    supporting_feedback_count=len(patch.supporting_feedback_ids),
+                    supporting_cluster_ids=list(patch.supporting_cluster_ids),
+                )
+            )
+
+        if not approved_patches:
+            return ApprovedPatchContext(
+                status="no_runtime_ready_records",
+                source_path=source_path,
+                contact_id=contact_id,
+                notes=["No approved runtime-ready patches found for this contact."],
+            )
+
+        return ApprovedPatchContext(
+            status="loaded",
+            source_path=source_path,
+            contact_id=contact_id,
+            patches=approved_patches,
+        )
+
+    @staticmethod
+    def _safe_relative_path(path: Path) -> str | None:
+        try:
+            return str(path.resolve().relative_to(Path.cwd().resolve())).replace("\\", "/")
+        except ValueError:
+            return str(path).replace("\\", "/")

@@ -1,5 +1,15 @@
 # Eval Protocol
 
+## Captain Update 2026-05-22 (T164 Review)
+
+T164 has now been accepted with `PASS_WITH_WARNINGS`.
+
+Current evaluation sequence is now:
+
+- T170: can the repo define a compatible ContactSkill decomposition design that preserves evidence refs, fallback behavior, and the current approved-store/runtime pipeline without introducing breaking refactors?
+
+T164 changes the evaluation baseline in one important way: M5 no longer needs to prove whether approved patches can enter runtime context safely at all. That layer now exists. The next evaluation target is architectural decomposition safety rather than more patch-pipeline wiring.
+
 ## Captain Update 2026-05-22 (T163 Review)
 
 T163 has now been accepted with `PASS_WITH_WARNINGS`.
