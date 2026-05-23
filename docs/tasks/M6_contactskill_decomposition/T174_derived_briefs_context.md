@@ -25,6 +25,10 @@ T174 is the final M6 step. It consumes the T173 projection layer and exposes ric
 - `ApprovedContactSkillBrief` remains the minimum guaranteed fallback output.
 - Derived briefs are optional overlays; missing or partial derived brief availability must not break current context assembly.
 - Approved patch context from T164 remains a separate compact context path and must not be conflated with derived-brief presence.
+- T173 follow-ups must be respected here:
+  - treat `relationship_state_summary` and `important_event_summaries` as projection-owned outputs; do not silently reformat them in context assembly
+  - preserve thin `CommunicationPolicyBrief.evidence_refs` exactly as projected; do not backfill evidence in the assembler
+  - preserve explicit projected `sensitivity_summary` values and do not fall back to schema defaults silently
 
 ## Allowed Files
 
@@ -53,6 +57,7 @@ Produce:
   - fallback behavior when projection is unavailable
   - partial-derived-brief behavior
   - coexistence with the existing approved-patch compact context path
+  - preservation of projected summary/event formatting and sensitivity values without assembler rewriting
 
 ## Verification
 
@@ -67,6 +72,7 @@ Append a T174 implementation record to `docs/07_handoff.md` that captures:
 - which `ChatContext` fields were added
 - how fallback to `ApprovedContactSkillBrief` is enforced
 - what remains unchanged in the existing T123/T164 context path
+- how derived briefs and approved-patch compact context coexist without replacing each other
 - whether any later planner task is actually needed to consume the richer structure
 
 ## Reviewer Type

@@ -4,17 +4,20 @@ Updated: 2026-05-23
 
 ## Captain Current State Override
 
+- T173 review decision: `PASS`.
+- T173 is complete as an additive projection-only M6 task.
+- Current Unique Task: T174 Derived Briefs Context Integration.
+- Current task package: `docs/tasks/M6_contactskill_decomposition/T174_derived_briefs_context.md`.
+- T174 must stay context-integration-only, additive, and non-breaking: no planner behavior changes, no ContactSkill mutation, no data migration, no new storage, and no deprecation claim.
+- T173 follow-up notes now carried into M6 execution:
+  - T174 must preserve the pure/additive meaning of `ContactSkillProjectionService`; no fallback path may be removed or reinterpreted.
+  - T174 must preserve the structurally thin `CommunicationPolicyBrief.evidence_refs` contract and must not try to backfill evidence in context assembly.
+  - T174 must preserve explicit `sensitivity_summary` values from projection and must not fall back to schema defaults silently.
+  - T174 must keep `important_event_summaries` as projection-owned formatted strings rather than reformatting them in context assembly.
+  - T174 must preserve the separate T164 approved-patch compact-context path and coexist cleanly with derived briefs.
+
 - T172 review decision: `PASS`.
 - T172 is complete as an additive schema-only M6 task.
-- Current Unique Task: T173 ContactSkill Projection Service.
-- Current task package: `docs/tasks/M6_contactskill_decomposition/T173_projection_service.md`.
-- T173 must stay projection-only, additive, and non-breaking: no `ChatContext` integration, no `ReplyPlanner`/policy runtime changes, no ContactSkill mutation, no data migration, no new storage, and no deprecation claim.
-- T172 follow-up notes now carried into M6 execution:
-  - T173 must preserve the structurally thin `CommunicationPolicyBrief.evidence_refs` contract and must not invent synthetic evidence for reply strategy or user-side preference fields.
-  - T173 must compute `BoundaryProfileBrief.sensitivity_summary` explicitly from the documented reduction rule and must not rely on the model default.
-  - T173 must format `important_event_summaries` consistently from projection logic rather than leaving formatting implicit.
-  - T173 must preserve the existing flat brief-level `evidence_refs` contract.
-  - T174 must preserve the separate T164 approved-patch compact-context path and the `ApprovedContactSkillBrief` fallback.
 
 - T171 review decision: `PASS`.
 - T171 is complete as an additive schema-only M6 task.
@@ -99,11 +102,11 @@ Updated: 2026-05-23
 
 ## Current Unique Task
 
-T173: ContactSkill Projection Service.
+T174: Derived Briefs Context Integration.
 
-Task package: `docs/tasks/M6_contactskill_decomposition/T173_projection_service.md`
+Task package: `docs/tasks/M6_contactskill_decomposition/T174_derived_briefs_context.md`
 
-Why now: T172 is now complete and accepted. The next smallest safe step is to project the now-committed brief schemas from approved store records before any `ChatContext` integration begins.
+Why now: T173 is now complete and accepted. The next smallest safe step is to integrate the committed projection layer into `ChatContext` while preserving fallback behavior and the separate approved-patch compact-context path.
 
 ## Board Rules
 
@@ -192,7 +195,7 @@ Goal: keep ContactSkill compatible while deriving more focused briefs.
 - [x] T170: ContactSkill decomposition design. Review `PASS`.
 - [x] T171: PartnerPersonaBrief schema. Review `PASS`.
 - [x] T172: CommunicationPolicyBrief + BoundaryProfileBrief schemas. Review `PASS`.
-- [ ] T173: ContactSkill projection service.
+- [x] T173: ContactSkill projection service. Review `PASS`.
 - [ ] T174: derived briefs context integration.
 
 ## Milestone 7: LLM-Assisted ReplyPlanner
@@ -256,9 +259,9 @@ Goal: keep WeChat as a thin final adapter behind the send gate.
 
 ## Historical Current Unique Task
 
-T172: CommunicationPolicyBrief + BoundaryProfileBrief Schemas.
+T173: ContactSkill Projection Service.
 
-It is now complete and accepted with `PASS`. The next worker task is T173, because all brief schemas are now committed and the next safe step is lazy projection from approved store records before any runtime context integration.
+It is now complete and accepted with `PASS`. The next worker task is T174, because lazy projection is now committed and the next safe step is context integration with preserved fallback and patch-context coexistence.
 
 ## Next Captain Output Required
 

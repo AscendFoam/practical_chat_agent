@@ -1,5 +1,15 @@
 # Raw Idea
 
+## Captain Update 2026-05-23 (T173 Review)
+
+T173 has now passed review with `PASS`, so the fourth M6 step is accepted:
+
+- the repo now has a pure lazy projection layer from approved `ContactSkill` store records into all three derived briefs
+- the project still does not permit `ChatContext` integration changes to bypass the existing fallback path or approved-patch compact-context path
+- the next safe step is T174 derived-brief context integration, not planner behavior changes
+
+The Current Unique Task therefore moves to T174 `Derived Briefs Context Integration`.
+
 ## Captain Update 2026-05-23 (T172 Review)
 
 T172 has now passed review with `PASS`, so the third M6 step is accepted:

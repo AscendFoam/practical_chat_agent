@@ -8,7 +8,11 @@ from pathlib import Path
 from typing import Any, Iterable
 
 from practical_chat_agent.core.models import (
+    ApprovedPatchBrief,
+    BoundaryProfileBrief,
     ChunkSummary,
+    CommunicationPolicyBrief,
+    CommunicationStyleSnapshot,
     ContactSkillCandidate,
     ContactSkillCommunicationStyle,
     ContactSkillImportantEvent,
@@ -26,6 +30,7 @@ from practical_chat_agent.core.models import (
     MemoryFactStoreFile,
     MemoryFactStoreRecord,
     MemoryFactCandidate,
+    PartnerPersonaBrief,
     utc_now,
 )
 
@@ -2035,6 +2040,183 @@ class ContactSkillStoreReviewService:
             "approval_block_reasons": record.approval_block_reasons,
             "runtime_block_reasons": record.runtime_block_reasons,
         }
+
+@dataclass(frozen=True)
+class ContactSkillProjectionResult:
+    record_id: str
+    contact_id: str
+    runtime_ready: bool
+    persona: PartnerPersonaBrief | None
+    policy: CommunicationPolicyBrief | None
+    boundary: BoundaryProfileBrief | None
+
+
+class ContactSkillProjectionService:
+    """Project derived briefs from an approved, runtime-ready ContactSkillStoreRecord.
+
+    The projection is a pure function of the store record: same input always
+    produces the same briefs.  No disk I/O, no LLM calls, no mutation.
+    """
+
+    def project_all(
+        self,
+        *,
+        record: ContactSkillStoreRecord,
+        approved_patch_hints: list[ApprovedPatchBrief] | None = None,
+    ) -> ContactSkillProjectionResult:
+        if not record.is_runtime_ready():
+            return ContactSkillProjectionResult(
+                record_id=record.record_id,
+                contact_id=record.contact_skill.contact_id,
+                runtime_ready=False,
+                persona=None,
+                policy=None,
+                boundary=None,
+            )
+
+        skill = record.contact_skill
+        rid = record.record_id
+        return ContactSkillProjectionResult(
+            record_id=rid,
+            contact_id=skill.contact_id,
+            runtime_ready=True,
+            persona=self._project_persona(skill=skill, record_id=rid),
+            policy=self._project_policy(
+                skill=skill,
+                record_id=rid,
+                approved_patch_hints=approved_patch_hints or [],
+            ),
+            boundary=self._project_boundary(skill=skill, record_id=rid),
+        )
+
+    def _project_persona(
+        self,
+        *,
+        skill: ContactSkillCandidate,
+        record_id: str,
+    ) -> PartnerPersonaBrief:
+        evidence_refs = self._unique(
+            list(skill.relationship_state.evidence_refs)
+            + list(skill.communication_style.evidence_refs)
+            + [ref for t in skill.preferred_topics for ref in t.evidence_refs]
+            + [ref for p in skill.emotional_patterns for ref in p.evidence_refs],
+        )
+        return PartnerPersonaBrief(
+            contact_id=skill.contact_id,
+            relationship_type=skill.relationship_type,
+            relationship_state_summary=_build_relationship_state_summary(
+                skill.relationship_state,
+            ),
+            communication_style_snapshot=_project_communication_style(
+                skill.communication_style,
+            ),
+            preferred_topics=[t.topic for t in skill.preferred_topics],
+            emotional_pattern_labels=[p.pattern for p in skill.emotional_patterns],
+            evidence_refs=evidence_refs,
+            source_skill_record_id=record_id,
+        )
+
+    def _project_policy(
+        self,
+        *,
+        skill: ContactSkillCandidate,
+        record_id: str,
+        approved_patch_hints: list[ApprovedPatchBrief],
+    ) -> CommunicationPolicyBrief:
+        evidence_refs = self._unique(
+            [ref for p in skill.stable_preferences for ref in p.evidence_refs],
+        )
+        return CommunicationPolicyBrief(
+            contact_id=skill.contact_id,
+            default_approach=skill.reply_strategy.default,
+            cold_contact_approach=skill.reply_strategy.when_contact_is_cold,
+            topic_opener_approach=skill.reply_strategy.when_contact_opens_topic,
+            sensitive_topic_approach=skill.reply_strategy.for_sensitive_topics,
+            user_goal=skill.user_side_preferences.user_goal,
+            preferred_reply_style=skill.user_side_preferences.preferred_reply_style,
+            stable_preference_hints=[p.pattern for p in skill.stable_preferences],
+            approved_patch_hints=approved_patch_hints,
+            evidence_refs=evidence_refs,
+            source_skill_record_id=record_id,
+        )
+
+    def _project_boundary(
+        self,
+        *,
+        skill: ContactSkillCandidate,
+        record_id: str,
+    ) -> BoundaryProfileBrief:
+        evidence_refs = self._unique(
+            [ref for t in skill.avoid_topics for ref in t.evidence_refs]
+            + [ref for e in skill.important_events for ref in e.evidence_refs],
+        )
+        sensitivities = (
+            [t.sensitivity for t in skill.avoid_topics]
+            + [e.sensitivity for e in skill.important_events]
+            + [skill.sensitivity]
+        )
+        sensitivity_summary = _max_sensitivity(sensitivities, default=skill.sensitivity)
+        return BoundaryProfileBrief(
+            contact_id=skill.contact_id,
+            avoid_topics=[t.topic for t in skill.avoid_topics],
+            boundary_rules=list(skill.user_side_preferences.boundaries),
+            disallowed_uses=list(skill.usage_boundary.disallowed_uses),
+            usage_notes=list(skill.usage_boundary.notes),
+            important_event_summaries=_format_event_summaries(skill.important_events),
+            sensitivity_summary=sensitivity_summary,
+            evidence_refs=evidence_refs,
+            source_skill_record_id=record_id,
+        )
+
+    @staticmethod
+    def _unique(values: list[str]) -> list[str]:
+        seen: set[str] = set()
+        ordered: list[str] = []
+        for v in values:
+            if not v or v in seen:
+                continue
+            seen.add(v)
+            ordered.append(v)
+        return ordered
+
+
+def _build_relationship_state_summary(
+    state: ContactSkillRelationshipState,
+) -> str:
+    return (
+        f"{state.current_status}, "
+        f"closeness={state.closeness:.2f}, "
+        f"trust={state.trust_level:.2f}, "
+        f"freq={state.interaction_frequency}, "
+        f"initiative={state.initiative_balance}"
+    )
+
+
+def _project_communication_style(
+    style: ContactSkillCommunicationStyle,
+) -> CommunicationStyleSnapshot:
+    return CommunicationStyleSnapshot(
+        message_length=style.message_length if style.message_length != "unknown" else None,
+        tone=style.tone if style.tone != "unknown" else None,
+        response_latency=style.response_latency if style.response_latency != "unknown" else None,
+        directness=style.directness if style.directness != "unknown" else None,
+    )
+
+
+def _format_event_summaries(events: list[ContactSkillImportantEvent]) -> list[str]:
+    return [
+        f"{event.event} ({event.date})" if event.date else event.event
+        for event in events
+    ]
+
+
+def _max_sensitivity(values: list[str], *, default: str) -> str:
+    rank = {"low": 0, "medium": 1, "high": 2}
+    filtered = [v for v in values if v in rank]
+    if not filtered:
+        return default
+    return max(filtered, key=lambda v: rank[v])
+
 
 def summarize_distillation_inputs(
     *,

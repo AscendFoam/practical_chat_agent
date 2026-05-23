@@ -1,5 +1,22 @@
 # Decision Log
 
+## D040: T173 PASS, accept task, advance to T174
+
+- Date: 2026-05-23
+- Status: Accepted
+- Context: `docs/review/T173_review.md` gives `PASS` for the projection service task. No blocking issues were found, and the review confirms the task stayed pure, additive, deterministic, and within the allowed file scope.
+- Decision: T173 is complete. The project may continue to T174 `Derived Briefs Context Integration`.
+- Follow-up notes carried forward:
+  - N01 `.claude/settings.json` modification is treated as workspace noise rather than a T173 scope violation.
+  - N02 missing direct assertions for trivial persona field projections is accepted; the risk is negligible and existing tests already exercise those paths sufficiently.
+  - N03 unreachable `_max_sensitivity(default=...)` fallback is accepted as harmless defensive redundancy.
+  - N04 `relationship_state_summary` format is accepted as a T173-local projection convention; T174 must consume it as projection-owned output rather than re-deriving or reformatting it in context assembly.
+- Conditions carried forward:
+  - T174 remains context-integration-only. No planner behavior change, migration, or deprecation is authorized yet.
+  - T174 must preserve the separate `ApprovedContactSkillBrief` fallback path and the separate T164 approved-patch compact-context path.
+  - T174 must treat projected briefs as additive overlays over existing approved-store context, not as a replacement for it.
+- Impact: `docs/04_task_board.md` moves the Current Unique Task from T173 to T174, `docs/07_handoff.md` records the PASS decision, and the T174 task package is tightened around fallback preservation and coexistence with approved-patch context.
+
 ## D039: T172 PASS, accept task, advance to T173
 
 - Date: 2026-05-23

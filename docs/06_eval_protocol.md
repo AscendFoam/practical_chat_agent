@@ -1,5 +1,15 @@
 # Eval Protocol
 
+## Captain Update 2026-05-23 (T173 Review)
+
+T173 has now been accepted with `PASS`.
+
+Current evaluation sequence is now:
+
+- T174: can the repo integrate projected briefs into `ChatContext` / approved-store context while preserving fallback behavior, keeping approved-patch compact context separate, and avoiding any planner or runtime-behavior regression?
+
+T173 changes the evaluation baseline in one important way: M6 no longer needs to prove whether lazy projection can be implemented deterministically and without side effects. That layer now exists. The next evaluation target is integration discipline, not projection fidelity.
+
 ## Captain Update 2026-05-23 (T172 Review)
 
 T172 has now been accepted with `PASS`.

@@ -1,5 +1,15 @@
 # Handoff
 
+## Captain Current State Override 2026-05-23 (T173 Review Decision)
+
+- T173 review decision: `PASS`.
+- T173 is complete as an additive projection-only task.
+- Current Unique Task: T174 Derived Briefs Context Integration.
+- Current task package: `docs/tasks/M6_contactskill_decomposition/T174_derived_briefs_context.md`.
+- M6 may now enter context integration work, but planner behavior and approved-store semantics remain unchanged.
+- T174 is context-integration-only: no planner behavior changes, no ContactSkill mutation, no migration, no new storage, and no deprecation claim.
+- T174 must preserve the `ApprovedContactSkillBrief` fallback, keep derived briefs additive, and coexist cleanly with the T164 approved-patch compact-context path.
+
 ## Captain Current State Override 2026-05-23 (T172 Review Decision)
 
 - T172 review decision: `PASS`.
@@ -2161,7 +2171,59 @@ M1 必须承接的条件：
   - T173 `ContactSkillProjectionService`.
   - The task remains additive and projection-only; no runtime context integration is authorized yet.
 
-## 74. T170 Kickoff Notes
+## 74. T173 Implementation Record
+
+- Files changed:
+  - `src/practical_chat_agent/services/contact_skill.py`
+  - `tests/test_contactskill_projection.py` (new)
+  - `docs/07_handoff.md`
+- Entrypoint:
+  - `ContactSkillProjectionService.project_all(record, approved_patch_hints=None) -> ContactSkillProjectionResult`
+  - Returns a frozen dataclass with `record_id`, `contact_id`, `runtime_ready`, and optional `persona`, `policy`, `boundary` briefs.
+- Runtime-ready gating:
+  - `record.is_runtime_ready()` must return `True` (status=approved, reviewed_by_human=True, last_decision=approved).
+  - Non-runtime-ready records produce a result with `runtime_ready=False` and all three briefs set to `None`.
+  - Candidate, rejected, frozen, and archived records are excluded.
+- How each brief is built:
+  - **PartnerPersonaBrief**: `contact_id` from skill, `relationship_type` from skill, `relationship_state_summary` formatted as `"{current_status}, closeness={closeness:.2f}, trust={trust_level:.2f}, freq={interaction_frequency}, initiative={initiative_balance}"`, `communication_style_snapshot` projected with `"unknown"` → `None` conversion, `preferred_topics` as topic strings, `emotional_pattern_labels` as pattern strings, `evidence_refs` as union of relationship_state + communication_style + preferred_topics + emotional_patterns refs, `source_skill_record_id` from record.
+  - **CommunicationPolicyBrief**: reply strategy fields (default, cold, topic_opener, sensitive) projected from `ContactSkillReplyStrategy`, user-side preferences (user_goal, preferred_reply_style) projected from `ContactSkillUserSidePreferences`, `stable_preference_hints` as pattern strings from `ContactSkillPattern`, `approved_patch_hints` passed through from optional parameter (empty by default — T174 wires the T164 patch loading), `evidence_refs` only from `stable_preferences` entries (faithfully thin — no synthetic evidence for reply strategy or user-side preferences).
+  - **BoundaryProfileBrief**: `avoid_topics` as topic strings, `boundary_rules` from `user_side_preferences.boundaries`, `disallowed_uses` and `usage_notes` from `usage_boundary`, `important_event_summaries` formatted as `"{event} ({date})"` when date exists or `"{event}"` when absent, `sensitivity_summary` computed as `max(avoid_topics sensitivities + important_events sensitivities + parent aggregate sensitivity)` with parent floor, `evidence_refs` as union of avoid_topics + important_events refs.
+- Deterministic guarantees:
+  - Same `ContactSkillStoreRecord` input always produces the same briefs.
+  - Projection writes nothing to disk.
+  - No LLM calls, no raw chat history reads, no ContactSkill mutation.
+- Verification:
+  - `python -m py_compile src/practical_chat_agent/core/models.py src/practical_chat_agent/services/contact_skill.py`: passed.
+  - `pytest tests/test_contactskill_projection.py -v`: 47 passed.
+  - `pytest tests/ -q`: 288 passed (241 existing + 47 new), zero regressions.
+- What T174 can now consume safely:
+  - `ContactSkillProjectionResult` with all three briefs available when the parent record is runtime-ready.
+  - `approved_patch_hints` slot on `CommunicationPolicyBrief` ready for T164 patch wiring.
+  - All briefs carry `contact_id`, `evidence_refs`, and `source_skill_record_id` for traceability and fallback alignment.
+  - `BoundaryProfileBrief.sensitivity_summary` is explicitly computed (not the schema default).
+  - `important_event_summaries` are deterministically formatted.
+  - The projection is pure/additive: `ApprovedContactSkillBrief` fallback remains intact and untouched.
+
+## 75. T173 Review Decision
+
+- Review file:
+  - `docs/review/T173_review.md`
+- Verdict:
+  - `PASS`
+- Captain decision:
+  - T173 is complete within task scope.
+  - The repo now has a committed lazy projection layer from approved store records into all three derived briefs.
+  - No automatic repair pass is needed because no blocking issue was found.
+- Follow-up notes carried forward:
+  - N01 `.claude/settings.json` is accepted as a workspace artifact rather than a task-scope defect.
+  - N02 trivial persona-field projection assertions are not required as a separate follow-up task; current coverage is sufficient.
+  - N03 unreachable `_max_sensitivity` default handling is accepted as harmless redundancy.
+  - N04 `relationship_state_summary` formatting is now a projection-owned contract; T174 must not reinterpret or silently reformat it in context assembly.
+- Next worker task:
+  - T174 `Derived Briefs Context Integration`.
+  - The task remains additive and context-integration-only; no planner behavior change is authorized yet.
+
+## 76. T170 Kickoff Notes
 
 - Task package:
   - `docs/tasks/M6_contactskill_decomposition/T170_decomposition_design.md`

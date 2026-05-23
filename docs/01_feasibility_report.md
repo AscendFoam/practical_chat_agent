@@ -1,5 +1,16 @@
 # Feasibility Report
 
+## Captain Update 2026-05-23 (T173 Review)
+
+T173 confirms that lazy derived-brief projection is feasible in the current repository shape.
+
+The feasibility gap has changed again:
+
+- no longer blocked on whether all three derived briefs can be projected deterministically from approved store records without mutation or side effects
+- now focused on whether T174 can integrate those derived briefs into `ChatContext` while preserving the existing `ApprovedContactSkillBrief` fallback and the separate T164 approved-patch compact-context path
+
+So the project is ready to commit the T173 slice and advance to T174, while keeping context integration additive, fallback-safe, and non-mutating.
+
 ## Captain Update 2026-05-23 (T172 Review)
 
 T172 confirms that the remaining policy and boundary brief schemas are feasible in the current repository shape.

@@ -1,5 +1,15 @@
 # Risks And Open Questions
 
+## Captain Update 2026-05-23 (T173 Review Decision)
+
+Authoritative current risk state after the Captain review of T173:
+
+- R040 remains active but is further narrowed: the decomposition path now has not only committed schemas but also a committed projection layer, reducing the chance of accidental `ContactSkill` replacement during T174.
+- R041 remains active: future derived briefs and approved patch hints must still be interpreted as review-only guidance rather than automatic learning or hidden state mutation.
+- R061 remains active but is further narrowed: projection fidelity is now committed; the remaining M6 risk is integration discipline, especially preserving fallback behavior and keeping derived-brief context separate from approved-patch compact context.
+
+Closed question Q172: T173 is accepted with `PASS`, so the project may proceed to T174 rather than reopening projection work for a blocking repair pass.
+
 ## Captain Update 2026-05-23 (T172 Review Decision)
 
 Authoritative current risk state after the Captain review of T172:
@@ -326,7 +336,7 @@ Closed question Q124: the updated GPT roadmap is directionally aligned, but M4/M
 | R056 | 提案生成对 malformed cluster report 缺少空 `contact_id` 防御 | 手工编辑或损坏的 cluster report 可能触发未处理异常并中断 proposal 生成 | T162 review 接受当前 scope；后续任务应在 proposal 层显式跳过 `contact_id` 为空的 cluster，给出 `missing_contact` 或等价 skip reason |
 | R059 | `ApprovedPatchContextService` loads the full proposal report into memory | 对于包含大量候选的 proposal report 可能产生内存压力 | 当前单用户离线规模可接受；未来若 report 过大，可改为 streaming 或分页加载 |
 | R060 | `ChatContextAssembler` patch path 校验复用 `_ensure_within_private_distilled` | 该方法约束路径在 `private/distilled/` 下，提供约定级隔离而非硬安全边界 | 当前 offline-only 工作流可接受；若未来引入多用户或网络暴露场景，需采用更严格的路径沙箱 |
-| R061 | M6 derived-brief projection fidelity 仍有收口风险 | 若 T173-T174 自行解释 conversion / computation / formatting 规则，可能导致 projection 和 context 集成偏离已提交 contract | T170-T172 已完成 schema/contract 基线；T173 必须显式落地 `unknown` -> `None`、`relationship_state_summary`、`sensitivity_summary`、`important_event_summaries` 规则，并保持 flat `evidence_refs` 与非合成 evidence 边界 |
+| R061 | M6 derived-brief context integration 仍有收口风险 | 若 T174 将 derived briefs 误当作 replacement path，或与 approved-patch compact context 混用，可能破坏 fallback 和现有 runtime contract | T170-T173 已完成 schema/contract/projection 基线；T174 必须保持 derived briefs additive、保留 `ApprovedContactSkillBrief` fallback、与 T164 patch context 共存且不互相覆盖 |
 
 ## Open Questions
 

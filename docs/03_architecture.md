@@ -1,5 +1,32 @@
 # Architecture
 
+## Captain Update 2026-05-23 (T173 Review)
+
+T173 is now complete, so the M6 architecture has a committed projection layer between approved store records and runtime context:
+
+```text
+Approved ContactSkillStoreRecord
+  -> ContactSkillProjectionService
+  -> PartnerPersonaBrief
+  -> CommunicationPolicyBrief
+  -> BoundaryProfileBrief
+  -> later ChatContext integration
+  -> fallback to existing ApprovedContactSkillBrief
+```
+
+The next architectural step is T174, which must stay context-integration-only:
+
+```text
+projection layer committed
+  -> ChatContext / approved-store context wiring
+  -> partial overlay support
+  -> coexistence with approved patch compact context
+  -> no planner behavior change
+  -> no new persistence or migration
+```
+
+This keeps M6 additive, fallback-safe, and runtime-stable.
+
 ## Captain Update 2026-05-23 (T172 Review)
 
 T172 is now complete, so the M6 architecture has all three derived-brief schemas committed:
