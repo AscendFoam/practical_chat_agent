@@ -1,5 +1,48 @@
 # Decision Log
 
+## D042: T180 PASS, accept task, advance to T181
+
+- Date: 2026-05-23
+- Status: Accepted
+- Context: `docs/review/T180_review.md` gives `PASS` for the LLM candidate contract task. No blocking or non-blocking issues were found, and the review confirms the task stayed contract-only, additive, and within the allowed documentation scope.
+- Decision: T180 is complete. The project may continue to T181 `LLM Candidate Offline CLI`.
+- Conditions carried forward:
+  - T181 must stay offline and opt-in. It may not make LLM generation the default planner path.
+  - T181 must consume only safe synthetic/redacted `ChatContext` JSON that already respects T123/T164/T174 compact-context boundaries; no new raw-transcript input path is authorized.
+  - T181 must produce a private `LLMReplyPlan` artifact or structured refusal with deterministic post-generation validation before output is written.
+  - T181 must not modify the existing deterministic `ReplyPlanner`, `ReplyPlanPolicyEngine`, approved-store semantics, or review-only gating.
+- Impact:
+  - `docs/04_task_board.md` moves the Current Unique Task from T180 to T181 and marks T180 complete.
+  - `docs/07_handoff.md` records the T180 review decision and what T181 may assume next.
+  - `docs/tasks/M7_llm_reply_planner/T181_llm_candidate_offline_cli.md` is tightened so the next worker task is explicit, private-output-only, and non-hybrid.
+
+## D041: T174 PASS, complete M6, authorize T180
+
+- Date: 2026-05-23
+- Status: Accepted
+- Context:
+  - `docs/review/T174_review.md` gives `PASS` for the derived-brief context integration task.
+  - `docs/review/M6_review.md` now concludes Gate M6 = `Allow`.
+- Decision:
+  - T174 is complete.
+  - M6 is complete.
+  - The project may enter M7, beginning with T180 `LLM Candidate Generator Contract`.
+- Follow-up notes carried forward:
+  - N01 `.claude/settings.json` modification is treated as workspace noise rather than a T174 scope violation.
+  - N02 per-assembly instantiation of `ContactSkillProjectionService()` is accepted as low-impact offline overhead, not a blocker.
+  - N03 reuse of `ApprovedStoreContextStatus` on `DerivedBriefContext` is accepted as a benign enum-breadth trade-off.
+  - N04 unused `_load_derived_brief_context(contact_id=...)` parameter is accepted as minor dead surface area.
+  - N05 `stable_preference_hints[:2]` compact-note truncation is accepted as small context-budget debt.
+  - M01/M02/M03 from T174 review are accepted as non-blocking residual coverage gaps for the current synthetic-test phase; they do not block M6 closure.
+- Conditions carried forward:
+  - T180 must remain contract-only. No LLM call path, hybrid planner behavior, or runtime mutation is authorized yet.
+  - Any M7 work must preserve T123/T164/T174 compact-context contracts, review-only mode, privacy boundaries, and anti-impersonation rules.
+  - Future planner work must not reinterpret derived briefs or approved patches as automatic learning.
+- Impact:
+  - `docs/04_task_board.md` moves the Current Unique Task from T174 to T180.
+  - `docs/review/M6_review.md` is created as the milestone-level authorization review.
+  - M7 is now opened only at the contract-definition layer.
+
 ## D040: T173 PASS, accept task, advance to T174
 
 - Date: 2026-05-23

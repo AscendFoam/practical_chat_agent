@@ -1,5 +1,33 @@
 # Raw Idea
 
+## Captain Update 2026-05-23 (T180 Review)
+
+T180 has now passed review with `PASS`, so the contract-only M7 opening step is accepted:
+
+- the repo now has an explicit additive contract for optional LLM-generated reply candidates
+- the project still does not permit hybrid planner behavior, default LLM mode, outbound behavior, or hidden state mutation
+- the next safe step is T181 `LLM Candidate Offline CLI`, not immediate planner integration
+
+The Current Unique Task therefore moves to T181 `LLM Candidate Offline CLI`.
+
+## Captain Update 2026-05-23 (M6 Review)
+
+M6 has now passed milestone review with `Allow`:
+
+- the repo now has a complete compatibility-first decomposition path for approved `ContactSkill`
+- the project still does not permit immediate LLM calls, planner-behavior changes, outbound behavior, or hidden state mutation
+- the next safe step is the narrow M7 opening task T180 `LLM Candidate Generator Contract`, not runtime LLM integration
+
+The Current Unique Task therefore moves to T180 `LLM Candidate Generator Contract`.
+
+## Captain Update 2026-05-23 (T174 Review)
+
+T174 has now passed review with `PASS`, so the fifth M6 step is accepted:
+
+- the repo now has derived-brief context integration with preserved `ApprovedContactSkillBrief` fallback
+- the project still does not permit planner behavior changes, migration, or replacement of the existing compact-context path
+- the next step is milestone review for M6, not additional M6 worker implementation
+
 ## Captain Update 2026-05-23 (T173 Review)
 
 T173 has now passed review with `PASS`, so the fourth M6 step is accepted:

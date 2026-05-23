@@ -1,5 +1,36 @@
 # Feasibility Report
 
+## Captain Update 2026-05-23 (T180 Review)
+
+T180 confirms that an optional LLM candidate path can be introduced contract-first in the current repository shape.
+
+The feasibility gap has changed again:
+
+- no longer blocked on whether M7 can define an additive LLM candidate contract without breaking the existing deterministic planner path
+- now focused on whether T181 can implement an opt-in offline CLI that stays within compact-context boundaries, writes only private artifacts, and preserves deterministic post-generation validation
+
+So the project is ready to commit the T180 slice and advance to T181, while keeping LLM work offline, opt-in, and separate from the existing `ReplyPlanner`.
+
+## Captain Update 2026-05-23 (M6 Review)
+
+M6 confirms that ContactSkill-compatible decomposition is feasible in the current repository shape.
+
+The feasibility gap has changed again:
+
+- no longer blocked on whether the repo can decompose approved `ContactSkill` into narrower briefs while preserving compatibility, evidence ownership, and fallback behavior
+- now focused on whether M7 can introduce LLM-related contracts and later execution paths without regressing privacy, boundary adherence, review-only mode, or the newly committed context structure
+
+So the project is ready to commit the T174 slice, close M6 with `Allow`, and advance to T180, while keeping the first M7 step contract-only.
+
+## Captain Update 2026-05-23 (T174 Review)
+
+T174 confirms that derived-brief context integration is feasible in the current repository shape.
+
+The feasibility gap has changed again:
+
+- no longer blocked on whether projected briefs can coexist with the existing `ApprovedContactSkillBrief` fallback and T164 approved-patch compact context
+- now focused on whether the next milestone can stay contract-first before any LLM execution path is introduced
+
 ## Captain Update 2026-05-23 (T173 Review)
 
 T173 confirms that lazy derived-brief projection is feasible in the current repository shape.

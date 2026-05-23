@@ -6,6 +6,7 @@ from pathlib import Path
 from practical_chat_agent.core.models import (
     ApprovedContactSkillBrief,
     ApprovedMemoryFactBrief,
+    ApprovedPatchBrief,
     ApprovedPatchContext,
     ApprovedStoreContext,
     AgentProfile,
@@ -13,12 +14,14 @@ from practical_chat_agent.core.models import (
     ChatContextEvent,
     ContactSkillStoreFile,
     ContactSkillStoreRecord,
+    DerivedBriefContext,
     InboundEvent,
     MemoryFact,
     MemoryFactStoreFile,
     MemoryFactStoreRecord,
     MemoryProfileSnapshot,
 )
+from practical_chat_agent.services.contact_skill import ContactSkillProjectionService
 from practical_chat_agent.services.feedback import ApprovedPatchContextService
 
 
@@ -68,15 +71,26 @@ class ChatContextAssembler:
             for item in recent_events[-self.recent_events_limit :]
         ]
         selected_memory_hits = memory_hits[: self.memory_hits_limit]
-        approved_store_context = self._load_approved_store_context(
+        approved_store_context, eligible_skill_record = self._load_approved_store_context(
             contact_id=event.actor_id,
         )
         approved_patch_context = self._load_approved_patch_context(
             contact_id=event.actor_id,
         )
+        approved_patch_briefs = (
+            approved_patch_context.patches
+            if approved_patch_context.status == "loaded"
+            else None
+        )
+        derived_brief_context = self._load_derived_brief_context(
+            contact_id=event.actor_id,
+            skill_record=eligible_skill_record,
+            approved_patch_briefs=approved_patch_briefs,
+        )
         combined_retrieval_notes = list(memory_retrieval_notes or [])
         combined_retrieval_notes.extend(self._build_approved_store_notes(approved_store_context))
         combined_retrieval_notes.extend(self._build_approved_patch_notes(approved_patch_context))
+        combined_retrieval_notes.extend(self._build_derived_brief_notes(derived_brief_context))
         summary = self._build_summary(
             agent=agent,
             event=event,
@@ -85,6 +99,7 @@ class ChatContextAssembler:
             memory_profile=memory_profile or MemoryProfileSnapshot(),
             approved_store_context=approved_store_context,
             approved_patch_context=approved_patch_context,
+            derived_brief_context=derived_brief_context,
         )
         return ChatContext(
             agent_id=agent.agent_id,
@@ -106,6 +121,7 @@ class ChatContextAssembler:
             memory_retrieval_notes=combined_retrieval_notes,
             approved_store_context=approved_store_context,
             approved_patch_context=approved_patch_context,
+            derived_brief_context=derived_brief_context,
             summary=summary,
         )
 
@@ -119,6 +135,7 @@ class ChatContextAssembler:
         memory_profile: MemoryProfileSnapshot,
         approved_store_context: ApprovedStoreContext,
         approved_patch_context: ApprovedPatchContext,
+        derived_brief_context: DerivedBriefContext,
     ) -> str:
         user_name = event.actor_name or event.actor_id
         latest_text = (event.text or "").strip()
@@ -156,18 +173,27 @@ class ChatContextAssembler:
             pieces.append(
                 f"Approved preference patch hints: {patch_hints}.",
             )
+        if derived_brief_context.status == "loaded":
+            if derived_brief_context.persona is not None:
+                pieces.append(
+                    f"Derived persona brief: {derived_brief_context.persona.relationship_state_summary}.",
+                )
+            if derived_brief_context.boundary is not None:
+                pieces.append(
+                    f"Derived boundary sensitivity: {derived_brief_context.boundary.sensitivity_summary}.",
+                )
         return " ".join(piece for piece in pieces if piece)
 
-    def _load_approved_store_context(self, *, contact_id: str) -> ApprovedStoreContext:
+    def _load_approved_store_context(self, *, contact_id: str) -> tuple[ApprovedStoreContext, ContactSkillStoreRecord | None]:
         if self.approved_store_path is None:
-            return ApprovedStoreContext(status="not_configured")
+            return ApprovedStoreContext(status="not_configured"), None
         resolved_input = self._resolve_configured_store_path(self.approved_store_path)
         if resolved_input is None:
             return ApprovedStoreContext(
                 status="store_path_missing",
                 source_path=self._safe_relative_path(self.approved_store_path),
                 notes=["Configured approved store path does not exist."],
-            )
+            ), None
 
         memory_store_path, skill_store_path = self._resolve_store_files(resolved_input)
         source_path = self._safe_relative_path(resolved_input)
@@ -179,7 +205,7 @@ class ChatContextAssembler:
                 source_path=source_path,
                 contact_id=contact_id,
                 notes=["No evidence validation report found for approved store context."],
-            )
+            ), None
         validation_report = self._load_validation_report(validation_report_path)
         if validation_report_path is not None and validation_report is None:
             return ApprovedStoreContext(
@@ -187,7 +213,7 @@ class ChatContextAssembler:
                 source_path=source_path,
                 validation_report_path=validation_report_relative,
                 notes=["Configured validation report could not be read as a JSON object."],
-            )
+            ), None
 
         validation_records = self._validation_records_by_id(validation_report)
         approved_memory = self._load_runtime_ready_memory_briefs(
@@ -195,7 +221,7 @@ class ChatContextAssembler:
             contact_id=contact_id,
             validation_records=validation_records,
         )
-        approved_skill = self._load_runtime_ready_contact_skill_brief(
+        approved_skill, eligible_record = self._load_runtime_ready_contact_skill_brief(
             skill_store_path=skill_store_path,
             contact_id=contact_id,
             validation_records=validation_records,
@@ -211,7 +237,7 @@ class ChatContextAssembler:
                 validation_report_path=validation_report_relative,
                 contact_id=contact_id,
                 notes=notes or ["No approved runtime-ready store records matched this contact."],
-            )
+            ), None
 
         source_record_ids = []
         evidence_refs = []
@@ -230,7 +256,7 @@ class ChatContextAssembler:
             memory_facts=approved_memory,
             source_record_ids=self._unique_strings(source_record_ids),
             evidence_refs=self._unique_strings(evidence_refs),
-        )
+        ), eligible_record
 
     def _build_approved_store_notes(self, context: ApprovedStoreContext) -> list[str]:
         if context.status != "loaded":
@@ -254,6 +280,54 @@ class ChatContextAssembler:
         if context.memory_facts:
             notes.append(
                 f"approved_memory_facts={'; '.join(item.claim for item in context.memory_facts[:2])}",
+            )
+        return notes
+
+    def _load_derived_brief_context(
+        self,
+        *,
+        contact_id: str,
+        skill_record: ContactSkillStoreRecord | None,
+        approved_patch_briefs: list[ApprovedPatchBrief] | None,
+    ) -> DerivedBriefContext:
+        if skill_record is None:
+            return DerivedBriefContext()
+        projection_service = ContactSkillProjectionService()
+        result = projection_service.project_all(
+            record=skill_record,
+            approved_patch_hints=approved_patch_briefs,
+        )
+        if not result.runtime_ready:
+            return DerivedBriefContext(
+                status="no_runtime_ready_records",
+                notes=["Eligible record is not runtime-ready for derived brief projection."],
+            )
+        return DerivedBriefContext(
+            status="loaded",
+            persona=result.persona,
+            policy=result.policy,
+            boundary=result.boundary,
+            source_skill_record_id=result.record_id,
+        )
+
+    @staticmethod
+    def _build_derived_brief_notes(context: DerivedBriefContext) -> list[str]:
+        if context.status != "loaded":
+            return list(context.notes)
+        notes = [
+            f"derived_brief_context source_skill_record_id={context.source_skill_record_id}",
+        ]
+        if context.persona is not None:
+            notes.append(
+                f"derived_persona_summary={context.persona.relationship_state_summary}",
+            )
+        if context.policy is not None and context.policy.stable_preference_hints:
+            notes.append(
+                f"derived_stable_prefs={'; '.join(context.policy.stable_preference_hints[:2])}",
+            )
+        if context.boundary is not None:
+            notes.append(
+                f"derived_boundary_sensitivity={context.boundary.sensitivity_summary}",
             )
         return notes
 
@@ -330,12 +404,12 @@ class ChatContextAssembler:
         skill_store_path: Path | None,
         contact_id: str,
         validation_records: dict[str, dict],
-    ) -> ApprovedContactSkillBrief | None:
+    ) -> tuple[ApprovedContactSkillBrief | None, ContactSkillStoreRecord | None]:
         if skill_store_path is None or not skill_store_path.is_file():
-            return None
+            return None, None
         store = self._read_json_model(skill_store_path, ContactSkillStoreFile)
         if store is None:
-            return None
+            return None, None
         for record in store.records:
             if not self._contact_skill_record_eligible(
                 record=record,
@@ -360,8 +434,8 @@ class ChatContextAssembler:
                 strategy_hints=self._unique_strings([hint for hint in strategy_hints if hint]),
                 boundary_reminders=self._unique_strings([item for item in boundary_reminders if item]),
                 evidence_refs=self._limit_refs(record.contact_skill.evidence_refs),
-            )
-        return None
+            ), record
+        return None, None
 
     def _memory_record_eligible(
         self,

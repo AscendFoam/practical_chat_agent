@@ -4,17 +4,30 @@ Updated: 2026-05-23
 
 ## Captain Current State Override
 
+- T180 review decision: `PASS`.
+- T180 is complete as the contract-only M7 opening task.
+- Current Unique Task: T181 LLM Candidate Offline CLI.
+- Current task package: `docs/tasks/M7_llm_reply_planner/T181_llm_candidate_offline_cli.md`.
+- T181 must stay offline, opt-in, additive, and private-artifact-only: no hybrid planner behavior, no default LLM mode, no ReplyPlanner behavior changes, no runtime mutation, and no send/platform integration.
+- M7 execution constraints now carried forward:
+  - T181 may consume only safe synthetic/redacted `ChatContext` JSON that already respects the T123/T164/T174 compact-context boundary.
+  - T181 must emit either a validated private `LLMReplyPlan` artifact or a structured refusal; it must not bypass deterministic validation.
+  - T181 must not alter `chat-reply-plan`, `ReplyPlanPolicyEngine`, approved-store semantics, or feedback/review-only gating.
+
+- T174 review decision: `PASS`.
+- T174 is complete as an additive context-integration-only M6 task.
+- Gate M6 is now `Allow`.
+- Current Unique Task: T180 LLM Candidate Generator Contract.
+- Current task package: `docs/tasks/M7_llm_reply_planner/T180_llm_candidate_contract.md`.
+- T180 must stay contract-only, additive, and non-breaking: no LLM calls, no ReplyPlanner behavior changes, no send/platform integration, no runtime mutation, and no deprecation claim.
+- M6 is now complete: T170-T174 together preserve ContactSkill compatibility, evidence ownership boundaries, `ApprovedContactSkillBrief` fallback behavior, and coexistence with the separate T164 approved-patch compact-context path.
+- M7 opening constraints now carried forward:
+  - T180 must define an optional LLM candidate contract only; it must not invoke a model.
+  - Any M7 work must preserve review-only mode, no-impersonation rules, and the existing compact-context contracts from T123/T164/T174.
+  - No LLM-generated output may bypass policy/boundary review or approved-store gating.
+
 - T173 review decision: `PASS`.
 - T173 is complete as an additive projection-only M6 task.
-- Current Unique Task: T174 Derived Briefs Context Integration.
-- Current task package: `docs/tasks/M6_contactskill_decomposition/T174_derived_briefs_context.md`.
-- T174 must stay context-integration-only, additive, and non-breaking: no planner behavior changes, no ContactSkill mutation, no data migration, no new storage, and no deprecation claim.
-- T173 follow-up notes now carried into M6 execution:
-  - T174 must preserve the pure/additive meaning of `ContactSkillProjectionService`; no fallback path may be removed or reinterpreted.
-  - T174 must preserve the structurally thin `CommunicationPolicyBrief.evidence_refs` contract and must not try to backfill evidence in context assembly.
-  - T174 must preserve explicit `sensitivity_summary` values from projection and must not fall back to schema defaults silently.
-  - T174 must keep `important_event_summaries` as projection-owned formatted strings rather than reformatting them in context assembly.
-  - T174 must preserve the separate T164 approved-patch compact-context path and coexist cleanly with derived briefs.
 
 - T172 review decision: `PASS`.
 - T172 is complete as an additive schema-only M6 task.
@@ -102,11 +115,11 @@ Updated: 2026-05-23
 
 ## Current Unique Task
 
-T174: Derived Briefs Context Integration.
+T181: LLM Candidate Offline CLI.
 
-Task package: `docs/tasks/M6_contactskill_decomposition/T174_derived_briefs_context.md`
+Task package: `docs/tasks/M7_llm_reply_planner/T181_llm_candidate_offline_cli.md`
 
-Why now: T173 is now complete and accepted. The next smallest safe step is to integrate the committed projection layer into `ChatContext` while preserving fallback behavior and the separate approved-patch compact-context path.
+Why now: T180 has fixed the contract boundary. The next smallest safe step is to implement an opt-in offline generator CLI before any standalone validator extraction, hybrid planner wiring, or planner-quality claim is introduced.
 
 ## Board Rules
 
@@ -196,13 +209,13 @@ Goal: keep ContactSkill compatible while deriving more focused briefs.
 - [x] T171: PartnerPersonaBrief schema. Review `PASS`.
 - [x] T172: CommunicationPolicyBrief + BoundaryProfileBrief schemas. Review `PASS`.
 - [x] T173: ContactSkill projection service. Review `PASS`.
-- [ ] T174: derived briefs context integration.
+- [x] T174: derived briefs context integration. Review `PASS`.
 
 ## Milestone 7: LLM-Assisted ReplyPlanner
 
 Goal: add optional LLM candidate generation only after regression safety net is in place.
 
-- [ ] T180: LLM candidate contract.
+- [x] T180: LLM candidate contract. Review `PASS`.
 - [ ] T181: LLM candidate offline CLI.
 - [ ] T182: candidate validator.
 - [ ] T183: hybrid ReplyPlanner.
@@ -259,9 +272,9 @@ Goal: keep WeChat as a thin final adapter behind the send gate.
 
 ## Historical Current Unique Task
 
-T173: ContactSkill Projection Service.
+T180: LLM Candidate Generator Contract.
 
-It is now complete and accepted with `PASS`. The next worker task is T174, because lazy projection is now committed and the next safe step is context integration with preserved fallback and patch-context coexistence.
+It is now complete and accepted with `PASS`. The next worker task is T181, because the next safe step is an opt-in offline generator CLI rather than hybrid planner wiring or any default runtime LLM path.
 
 ## Next Captain Output Required
 

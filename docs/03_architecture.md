@@ -1,5 +1,69 @@
 # Architecture
 
+## Captain Update 2026-05-23 (T180 Review)
+
+T180 completes the contract-only M7 opening without changing runtime behavior:
+
+```text
+existing review-only planner path
+  -> optional LLMReplyPlan contract
+  -> separate offline LLM generator surface
+  -> deterministic post-generation validation boundary
+  -> private output artifact only
+  -> no hybrid planner or runtime mutation yet
+```
+
+The next architectural step is T181, which must stay offline and opt-in:
+
+```text
+safe ChatContext JSON
+  -> offline LLM candidate generator CLI
+  -> validated LLMReplyPlan or structured refusal
+  -> private output path
+  -> no change to chat-reply-plan / ReplyPlanner
+```
+
+This keeps M7 additive, review-first, and isolated from the committed deterministic planner flow.
+
+## Captain Update 2026-05-23 (M6 Review)
+
+M6 is now complete. The architecture includes a full compatibility-first decomposition path:
+
+```text
+Approved ContactSkillStoreRecord
+  -> ContactSkillProjectionService
+  -> DerivedBriefContext
+     - PartnerPersonaBrief
+     - CommunicationPolicyBrief
+     - BoundaryProfileBrief
+  -> existing ApprovedContactSkillBrief fallback
+  -> separate ApprovedPatchContext path
+```
+
+The next architectural step is T180, which must stay contract-only:
+
+```text
+existing review-only planner path
+  -> optional LLM candidate contract
+  -> no LLM calls yet
+  -> no planner behavior change yet
+  -> no send/platform/runtime mutation
+```
+
+This keeps M7 narrow, review-first, and compatible with the committed M6 context structure.
+
+## Captain Update 2026-05-23 (T174 Review)
+
+T174 completes the M6 runtime-side wiring without changing planner behavior:
+
+```text
+ContactSkillProjectionService
+  -> DerivedBriefContext on ChatContext
+  -> additive overlay only
+  -> coexistence with ApprovedContactSkillBrief fallback
+  -> coexistence with ApprovedPatchContext
+```
+
 ## Captain Update 2026-05-23 (T173 Review)
 
 T173 is now complete, so the M6 architecture has a committed projection layer between approved store records and runtime context:

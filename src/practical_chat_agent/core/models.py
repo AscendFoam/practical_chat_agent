@@ -646,6 +646,15 @@ class ApprovedPatchContext(BaseModel):
     notes: list[str] = Field(default_factory=list)
 
 
+class DerivedBriefContext(BaseModel):
+    status: ApprovedStoreContextStatus = "not_configured"
+    persona: PartnerPersonaBrief | None = None
+    policy: CommunicationPolicyBrief | None = None
+    boundary: BoundaryProfileBrief | None = None
+    source_skill_record_id: str | None = None
+    notes: list[str] = Field(default_factory=list)
+
+
 class ChatContextEvent(BaseModel):
     event_id: str
     actor_id: str
@@ -677,6 +686,7 @@ class ChatContext(BaseModel):
     memory_retrieval_notes: list[str] = Field(default_factory=list)
     approved_store_context: ApprovedStoreContext = Field(default_factory=ApprovedStoreContext)
     approved_patch_context: ApprovedPatchContext = Field(default_factory=ApprovedPatchContext)
+    derived_brief_context: DerivedBriefContext = Field(default_factory=DerivedBriefContext)
     summary: str | None = None
 
 

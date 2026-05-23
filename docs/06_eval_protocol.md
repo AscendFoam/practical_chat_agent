@@ -1,5 +1,33 @@
 # Eval Protocol
 
+## Captain Update 2026-05-23 (T180 Review)
+
+T180 has now been accepted with `PASS`.
+
+Current evaluation sequence is now:
+
+- T181: can the repo implement an opt-in offline LLM candidate CLI that consumes safe `ChatContext` JSON, emits a private `LLMReplyPlan` artifact or structured refusal, and preserves deterministic post-generation validation without mutating the existing planner/runtime path?
+
+T180 changes the evaluation baseline in one important way: M7 no longer needs to prove whether a contract boundary for optional LLM candidates can be stated cleanly. That layer now exists. The next evaluation target is offline execution discipline, private-output discipline, and validation discipline, not contract definition.
+
+## Captain Update 2026-05-23 (M6 Review)
+
+`docs/review/M6_review.md` now sets the decomposition gate to `Allow`.
+
+Current evaluation sequence is now:
+
+- T180: can the repo define an optional LLM candidate contract that preserves review-only mode, privacy boundaries, no-impersonation rules, and compatibility with the existing T123/T164/T174 compact-context path without calling a model yet?
+
+M6 changes the evaluation baseline in one important way: the repo no longer needs to prove whether ContactSkill-compatible decomposition can preserve compatibility, evidence refs, and fallback behavior. That layer now exists with committed tests. The next evaluation target is contract discipline for optional LLM work, not decomposition safety.
+
+## Captain Update 2026-05-23 (T174 Review)
+
+T174 has now been accepted with `PASS`.
+
+Current evaluation sequence is now:
+
+- M6 review: is the full decomposition path really complete and sufficiently reproducible to authorize M7?
+
 ## Captain Update 2026-05-23 (T173 Review)
 
 T173 has now been accepted with `PASS`.

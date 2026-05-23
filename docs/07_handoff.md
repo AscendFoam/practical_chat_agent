@@ -1,5 +1,33 @@
 # Handoff
 
+## Captain Current State Override 2026-05-23 (T180 Review Decision)
+
+- T180 review decision: `PASS`.
+- T180 is complete as the contract-only M7 opening task.
+- Current Unique Task: T181 LLM Candidate Offline CLI.
+- Current task package: `docs/tasks/M7_llm_reply_planner/T181_llm_candidate_offline_cli.md`.
+- T181 must stay offline, opt-in, additive, and private-output-only: no hybrid planner behavior, no default LLM mode, no ReplyPlanner mutation, and no send/platform integration.
+- T181 may consume only safe synthetic/redacted `ChatContext` JSON that already respects the T123/T164/T174 compact-context boundary.
+- T181 must output a validated private `LLMReplyPlan` artifact or structured refusal; it must not bypass deterministic validation or review-only gating.
+
+## Captain Current State Override 2026-05-23 (M6 Review)
+
+- Gate M6: `Allow`.
+- Current Unique Task: T180 LLM Candidate Generator Contract.
+- Current task package: `docs/tasks/M7_llm_reply_planner/T180_llm_candidate_contract.md`.
+- M6 is complete: approved `ContactSkill` now supports additive decomposition through committed design, schema, projection, and context integration layers without breaking fallback behavior.
+- T180 is contract-only: no LLM calls, no ReplyPlanner behavior changes, no platform/send integration, no runtime mutation, and no deprecation claim.
+- Any M7 work must preserve review-only mode, privacy boundaries, and the compact-context contracts from T123/T164/T174.
+
+## Captain Current State Override 2026-05-23 (T174 Review Decision)
+
+- T174 review decision: `PASS`.
+- T174 is complete as an additive context-integration-only task.
+- Current Unique Task: T180 LLM Candidate Generator Contract.
+- Current task package: `docs/tasks/M7_llm_reply_planner/T180_llm_candidate_contract.md`.
+- M6 may now close after milestone review; no additional M6 worker repair pass is needed.
+- T174 preserved `ApprovedContactSkillBrief` fallback, kept derived briefs additive, and coexisted cleanly with the T164 approved-patch compact-context path.
+
 ## Captain Current State Override 2026-05-23 (T173 Review Decision)
 
 - T173 review decision: `PASS`.
@@ -2223,7 +2251,77 @@ M1 必须承接的条件：
   - T174 `Derived Briefs Context Integration`.
   - The task remains additive and context-integration-only; no planner behavior change is authorized yet.
 
-## 76. T170 Kickoff Notes
+## 76. T174 Implementation Record
+
+- Files changed:
+  - `src/practical_chat_agent/core/models.py`
+  - `src/practical_chat_agent/services/chat_context.py`
+  - `tests/test_chat_context_decomposition.py` (new)
+  - `docs/07_handoff.md`
+- Models added:
+  - `DerivedBriefContext`: wrapper for the three T173-derived briefs. Fields: `status` (reuses `ApprovedStoreContextStatus`), `persona: PartnerPersonaBrief | None`, `policy: CommunicationPolicyBrief | None`, `boundary: BoundaryProfileBrief | None`, `source_skill_record_id: str | None`, `notes: list[str]`.
+  - `ChatContext.derived_brief_context`: new field, defaults to `DerivedBriefContext(status="not_configured")`.
+- ChatContextAssembler changes:
+  - `_load_runtime_ready_contact_skill_brief` now returns `tuple[ApprovedContactSkillBrief | None, ContactSkillStoreRecord | None]` to expose the eligible record for projection.
+  - `_load_approved_store_context` now returns `tuple[ApprovedStoreContext, ContactSkillStoreRecord | None]`.
+  - New `_load_derived_brief_context(contact_id, skill_record, approved_patch_briefs)`: uses `ContactSkillProjectionService.project_all()` to produce derived briefs from the eligible record. Passes approved T164 patch briefs into the projection for `CommunicationPolicyBrief.approved_patch_hints`.
+  - New `_build_derived_brief_notes(context)`: emits compact derived-brief notes including `source_skill_record_id`, `relationship_state_summary`, `stable_preference_hints`, and `sensitivity_summary`.
+  - `_build_summary` extended with `derived_brief_context` parameter; appends derived persona and boundary-sensitivity lines to context summary when derived briefs are loaded.
+  - `assemble()` wires the new derived-brief path: unpacks eligible record from store loading, passes approved patches to projection, adds derived-brief notes to `memory_retrieval_notes`, and includes `derived_brief_context` in returned `ChatContext`.
+- Fallback behavior:
+  - When `approved_store_path` is `None`, `derived_brief_context.status` is `"not_configured"` and all briefs are `None`. Existing `ApprovedContactSkillBrief` path is unchanged.
+  - When store exists but no runtime-ready records match, `derived_brief_context.status` is `"not_configured"`. The `ApprovedStoreContext` reports `"no_runtime_ready_records"` independently.
+  - When store is loaded with an eligible skill record, `derived_brief_context.status` is `"loaded"` and all three briefs are populated. `ApprovedContactSkillBrief` is also loaded alongside.
+- Approved-patch context coexistence:
+  - `ApprovedPatchContext` (T164) remains a separate compact context path. It is loaded independently of derived briefs.
+  - Approved patches are passed to the projection service for `CommunicationPolicyBrief.approved_patch_hints`, so the policy brief carries the same patches as `ApprovedPatchContext`.
+  - Both `ApprovedPatchContext` and `DerivedBriefContext` coexist on `ChatContext` without replacing each other.
+- Projection output preservation:
+  - `relationship_state_summary`, `important_event_summaries`, and `sensitivity_summary` are preserved as projection-owned outputs. The assembler does not reformat or reinterpret them.
+  - Thin `CommunicationPolicyBrief.evidence_refs` (from `stable_preferences` only) is preserved without backfilling.
+  - `"unknown"` → `None` communication-style conversion is preserved from projection.
+- Verification:
+  - `python -m py_compile src/practical_chat_agent/core/models.py src/practical_chat_agent/services/chat_context.py`: passed.
+  - `pytest tests/test_chat_context_decomposition.py -q`: 39 passed.
+  - `pytest tests/ -q`: 327 passed (288 existing + 39 new), zero regressions.
+- What remains unchanged:
+  - The existing T123 `ApprovedContactSkillBrief` fallback path is fully preserved.
+  - The T164 approved-patch compact context path is separate and unmodified.
+  - ReplyPlanner, policy engine, and feedback CLI behavior are unchanged.
+  - No new persistence, migration, or CLI commands were added.
+
+## 77. T174 Review Decision
+
+- Review file:
+  - `docs/review/T174_review.md`
+- Verdict:
+  - `PASS`
+- Captain decision:
+  - T174 is complete within task scope.
+  - The repo now has additive derived-brief context integration with preserved fallback behavior.
+  - No automatic repair pass is needed because no blocking issue was found.
+- Follow-up notes carried forward:
+  - N01 `.claude/settings.json` is accepted as a workspace artifact rather than a task-scope defect.
+  - N02 per-assembly projection-service instantiation is accepted as low-impact offline overhead.
+  - N03 `DerivedBriefContext.status` enum breadth is accepted as a benign consistency trade-off.
+  - N04 unused `contact_id` parameter on `_load_derived_brief_context` is accepted as minor dead surface area.
+  - N05 `stable_preference_hints[:2]` truncation is accepted as minor context-budget debt.
+  - M01/M02/M03 are accepted as non-blocking residual synthetic-coverage gaps for the current stage.
+- Next worker task:
+  - none inside M6; proceed to milestone review.
+
+## 78. M6 Review Decision
+
+- Review file:
+  - `docs/review/M6_review.md`
+- Verdict:
+  - `Allow`
+- Captain decision:
+  - M6 is complete and the project may enter M7.
+  - The next recommended Current Unique Task is T180 `LLM Candidate Generator Contract`.
+  - M7 opens only at the contract-definition layer; no model calls or hybrid planner behavior are authorized yet.
+
+## 79. T170 Kickoff Notes
 
 - Task package:
   - `docs/tasks/M6_contactskill_decomposition/T170_decomposition_design.md`
@@ -2241,3 +2339,48 @@ M1 必须承接的条件：
   - confirm the design is additive and compatibility-first
   - confirm evidence refs and approval gates remain preserved across any derived-brief projection
   - confirm the document does not smuggle in a breaking migration plan or persona-clone scope creep
+
+## 80. T180 Implementation Record
+
+- Files changed:
+  - `docs/data_contracts/llm_candidate_generator_contract.md` (new)
+  - `docs/07_handoff.md`
+- Contract shape:
+  - Defines `LLMReplyPlan` as an extension of the T130 `ReplyPlan` contract with added `generator_type`, `generation_metadata`, and `refusal` fields.
+  - Each candidate carries a `generator_type` literal (`"template_deterministic"` or `"llm_generated"`) for attributable routing.
+  - Input contract limits LLM consumption to existing compact-context boundaries (T123/T164/T174). Raw chat transcripts, full store JSON dumps, and private/chat_history content are explicitly prohibited.
+  - Output contract requires at least 1 `supporting_context_ref` and 1 `boundary_reminder` per candidate, matching T130 `ReplyPlanCandidate` requirements.
+  - Structured refusal shape defined with codes: `PROVIDER_ERROR`, `INPUT_TOO_LARGE`, `MISSING_REQUIRED_CONTEXT`, `SAFETY_FILTER`, `INVALID_OUTPUT_SCHEMA`.
+- Safety / privacy / no-impersonation constraints:
+  - Input must use existing compact-context boundaries only; no new input-assembly path is authorized.
+  - Privacy leakage detection (verbatim input echo) is a required deterministic validator check.
+  - No first-person contact impersonation, no contact simulation, no relationship speculation without evidence refs.
+  - `generator_type` field enables downstream attribution of LLM vs. deterministic output.
+  - Deterministic validation boundary: generation may use LLM (non-deterministic), but acceptance before review must be fully deterministic (schema check, ref scope, rank uniqueness, privacy, impersonation).
+- What T181 may implement next:
+  - An offline CLI that consumes a `ChatContext` JSON and produces an `LLMReplyPlan`.
+  - A generator service calling an LLM provider through an OpenAI-compatible adapter.
+  - Deterministic post-generation validation of LLM output.
+  - Structured refusal handling.
+- What remains intentionally forbidden after T180:
+  - Hybrid `ReplyPlanner` (merging deterministic + LLM candidates) — deferred to T183.
+  - Auto-approval or auto-injection of LLM candidates into any runtime path.
+  - Changes to the existing deterministic `ReplyPlanner` or `ReplyPlanPolicyEngine`.
+  - Storing or caching LLM outputs beyond the generator's output file.
+  - Supplying raw chat transcript, full store JSON, or non-compact context as input.
+  - Bypassing policy/boundary review or human approval for any LLM-generated candidate.
+  - Any claim that LLM candidates are enabled, production-ready, or quality-proven.
+
+## 81. T180 Review Decision
+
+- Review file:
+  - `docs/review/T180_review.md`
+- Verdict:
+  - `PASS`
+- Captain decision:
+  - T180 is complete within task scope.
+  - The repo now has a committed additive contract for optional LLM-generated reply candidates.
+  - No automatic repair pass is needed because no blocking issue was found.
+- Next worker task:
+  - T181 `LLM Candidate Offline CLI`.
+  - The task must remain offline, opt-in, validated, and separate from the existing deterministic `ReplyPlanner`.
