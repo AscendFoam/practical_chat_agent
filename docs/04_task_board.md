@@ -1,19 +1,26 @@
 # Task Board
 
-Updated: 2026-05-22
+Updated: 2026-05-23
 
 ## Captain Current State Override
 
+- T172 review decision: `PASS`.
+- T172 is complete as an additive schema-only M6 task.
+- Current Unique Task: T173 ContactSkill Projection Service.
+- Current task package: `docs/tasks/M6_contactskill_decomposition/T173_projection_service.md`.
+- T173 must stay projection-only, additive, and non-breaking: no `ChatContext` integration, no `ReplyPlanner`/policy runtime changes, no ContactSkill mutation, no data migration, no new storage, and no deprecation claim.
+- T172 follow-up notes now carried into M6 execution:
+  - T173 must preserve the structurally thin `CommunicationPolicyBrief.evidence_refs` contract and must not invent synthetic evidence for reply strategy or user-side preference fields.
+  - T173 must compute `BoundaryProfileBrief.sensitivity_summary` explicitly from the documented reduction rule and must not rely on the model default.
+  - T173 must format `important_event_summaries` consistently from projection logic rather than leaving formatting implicit.
+  - T173 must preserve the existing flat brief-level `evidence_refs` contract.
+  - T174 must preserve the separate T164 approved-patch compact-context path and the `ApprovedContactSkillBrief` fallback.
+
+- T171 review decision: `PASS`.
+- T171 is complete as an additive schema-only M6 task.
+
 - T170 review decision: `PASS`.
 - T170 is complete as a design-only M6 compatibility task.
-- Current Unique Task: T171 PartnerPersonaBrief Schema.
-- Current task package: `docs/tasks/M6_contactskill_decomposition/T171_partner_persona_brief_schema.md`.
-- T171 must stay schema-only, additive, and non-breaking: no projection service, no `ChatContext` integration, no `ReplyPlanner`/policy runtime changes, no ContactSkill mutation, no data migration, and no deprecation claim.
-- T171 must preserve approved `ContactSkill` as the source of truth and must make `source_skill_record_id` / evidence ownership explicit.
-- T170 follow-up notes now carried into M6 execution:
-  - T171 must decide whether `PartnerPersonaBrief.communication_style_snapshot` stays `dict[str, str]` or becomes a structured sub-model.
-  - T172 must formalize `BoundaryProfileBrief.sensitivity_summary` reduction semantics and document how boundary-signaling patch hints relate to boundary ownership.
-  - T172/T174 may revisit `important_event_summaries` placement only if richer persona-layer event context is truly needed without weakening boundary handling.
 
 - T164 review decision: `PASS_WITH_WARNINGS`.
 - T164 is complete as an approved patch compact context task.
@@ -92,11 +99,11 @@ Updated: 2026-05-22
 
 ## Current Unique Task
 
-T171: PartnerPersonaBrief Schema.
+T173: ContactSkill Projection Service.
 
-Task package: `docs/tasks/M6_contactskill_decomposition/T171_partner_persona_brief_schema.md`
+Task package: `docs/tasks/M6_contactskill_decomposition/T173_projection_service.md`
 
-Why now: T170 is now complete and accepted. The next smallest safe step is to formalize the first additive derived-brief schema without changing runtime behavior or weakening ContactSkill compatibility.
+Why now: T172 is now complete and accepted. The next smallest safe step is to project the now-committed brief schemas from approved store records before any `ChatContext` integration begins.
 
 ## Board Rules
 
@@ -183,8 +190,8 @@ Goal: convert repeated feedback into reviewable PreferencePatch candidates witho
 Goal: keep ContactSkill compatible while deriving more focused briefs.
 
 - [x] T170: ContactSkill decomposition design. Review `PASS`.
-- [ ] T171: PartnerPersonaBrief schema.
-- [ ] T172: CommunicationPolicyBrief schema.
+- [x] T171: PartnerPersonaBrief schema. Review `PASS`.
+- [x] T172: CommunicationPolicyBrief + BoundaryProfileBrief schemas. Review `PASS`.
 - [ ] T173: ContactSkill projection service.
 - [ ] T174: derived briefs context integration.
 
@@ -249,9 +256,9 @@ Goal: keep WeChat as a thin final adapter behind the send gate.
 
 ## Historical Current Unique Task
 
-T170: ContactSkill Decomposition Design.
+T172: CommunicationPolicyBrief + BoundaryProfileBrief Schemas.
 
-It is now complete and accepted with `PASS`. The next worker task is T171, because the decomposition direction is now documented and the next safe step is additive schema work rather than immediate runtime projection.
+It is now complete and accepted with `PASS`. The next worker task is T173, because all brief schemas are now committed and the next safe step is lazy projection from approved store records before any runtime context integration.
 
 ## Next Captain Output Required
 

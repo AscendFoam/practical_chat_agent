@@ -1,5 +1,26 @@
 # Handoff
 
+## Captain Current State Override 2026-05-23 (T172 Review Decision)
+
+- T172 review decision: `PASS`.
+- T172 is complete as an additive schema-only task.
+- Current Unique Task: T173 ContactSkill Projection Service.
+- Current task package: `docs/tasks/M6_contactskill_decomposition/T173_projection_service.md`.
+- M6 may now enter lazy projection work, but `ChatContext` and runtime behavior remain unchanged until T174.
+- T173 is projection-only: no `ChatContext` integration, no `ReplyPlanner` or policy runtime changes, no ContactSkill mutation, no migration, no new storage, and no deprecation claim.
+- T173 must preserve thin policy-brief evidence faithfully, compute sensitivity explicitly, and own the deterministic `important_event_summaries` formatting rule.
+
+## Captain Current State Override 2026-05-23 (T171 Review Decision)
+
+- T171 review decision: `PASS`.
+- T171 is complete as an additive schema-only task.
+- Current Unique Task: T172 CommunicationPolicyBrief + BoundaryProfileBrief Schemas.
+- Current task package: `docs/tasks/M6_contactskill_decomposition/T172_communication_policy_brief_schema.md`.
+- M6 may continue with schema work, but projection and runtime behavior remain unchanged until T173-T174.
+- T172 is schema-only: no projection service, no `ChatContext` integration, no `ReplyPlanner` or policy runtime changes, no ContactSkill mutation, no migration, and no deprecation claim.
+- T172 must formalize sensitivity reduction, important-event ownership, and derived-brief versioning strategy.
+- T173 must later make the `unknown` -> `None` communication-style conversion and `relationship_state_summary` projection rules explicit.
+
 ## Captain Current State Override 2026-05-22 (T170 Review Decision)
 
 - T170 review decision: `PASS`.
@@ -2036,7 +2057,111 @@ M1 必须承接的条件：
   - T171 `PartnerPersonaBrief` Schema.
   - The task remains additive and schema-only; no runtime integration is authorized yet.
 
-## 70. T170 Kickoff Notes
+## 70. T171 Implementation Record
+
+- Files changed:
+  - `src/practical_chat_agent/core/models.py`
+  - `docs/data_contracts/contactskill_decomposition_contract.md` (new)
+  - `tests/test_contactskill_persona_brief.py` (new)
+  - `docs/07_handoff.md`
+- Models added:
+  - `CommunicationStyleSnapshot`: structured Pydantic model with four optional string fields (message_length, tone, response_latency, directness). Promoted from `dict[str, str]` as sketched in T170 because all keys are known and stable, and a named model provides type safety, self-documentation, and Pydantic validation.
+  - `PartnerPersonaBrief`: derived brief for who this person is, how the relationship stands, and how they communicate. Fields: contact_id, relationship_type, relationship_state_summary, communication_style_snapshot, preferred_topics, emotional_pattern_labels, evidence_refs, source_skill_record_id.
+- `communication_style_snapshot` typing decision:
+  - Chose structured sub-model (`CommunicationStyleSnapshot`) over `dict[str, str]`.
+  - Reason: the four dimensions are known upfront and map 1:1 from `ContactSkillCommunicationStyle`. A named model prevents typos, enables IDE support, and is consistent with the rest of the codebase. The T170 review note N02 is resolved.
+- Evidence / `source_skill_record_id` traceability:
+  - `evidence_refs` collects per-area evidence from relationship_state, communication_style, preferred_topics, and emotional_patterns sub-models. Top-level `ContactSkillCandidate.evidence_refs` are NOT projected into this brief.
+  - `source_skill_record_id` is required and non-empty, providing a single traceability pointer to the parent `ContactSkillStoreRecord`.
+  - The brief does not carry its own `status`, `review_metadata`, or approval fields. Approval is inherited from the parent record.
+- Fallback relationship:
+  - `PartnerPersonaBrief` is an optional overlay. `ApprovedContactSkillBrief` remains the minimum guaranteed output.
+  - The brief does not replace or deprecate `ApprovedContactSkillBrief`.
+- Verification:
+  - `python -m py_compile src/practical_chat_agent/core/models.py`: passed.
+  - `pytest tests/test_contactskill_persona_brief.py -q`: 21 passed.
+  - `pytest tests/ -q`: 210 passed (189 existing + 21 new), zero regressions.
+- What T172 still needs to define:
+  - `CommunicationPolicyBrief` schema (reply strategy + user-side preferences + stable preferences + approved patch hints).
+  - `BoundaryProfileBrief` schema (avoid topics + boundary rules + disallowed uses + usage notes + important events + sensitivity_summary).
+  - Formalize `BoundaryProfileBrief.sensitivity_summary` reduction semantics (T170 review N01).
+  - Document how boundary-signaling patch hints relate to boundary ownership (T170 review N04).
+
+## 71. T171 Review Decision
+
+- Review file:
+  - `docs/review/T171_review.md`
+- Verdict:
+  - `PASS`
+- Captain decision:
+  - T171 is complete within task scope.
+  - The repo now has the first committed derived-brief schema and contract for approved `ContactSkill`.
+  - No automatic repair pass is needed because no blocking issue was found.
+- Follow-up notes carried forward:
+  - N01 `.claude/settings.json` is accepted as a workspace artifact rather than a task-scope defect.
+  - N02 the `ContactSkillCommunicationStyle` `"unknown"` -> brief `None` conversion rule is deferred to T173 projection logic and documentation.
+  - N03 `relationship_state_summary` stays free-form at schema stage; T173 must document how it is composed from `ContactSkillRelationshipState`.
+  - N04 flat brief-level `evidence_refs` is accepted as the current contract; later tasks must preserve it unless a future schema change explicitly widens scope.
+  - N05 missing brief-local `schema_version` is low risk now; T172 must explicitly decide whether later briefs add their own version marker or continue relying on parent-store versioning.
+- Next worker task:
+  - T172 `CommunicationPolicyBrief` + `BoundaryProfileBrief` Schemas.
+  - The task remains additive and schema-only; no projection or runtime integration is authorized yet.
+
+## 72. T172 Implementation Record
+
+- Files changed:
+  - `src/practical_chat_agent/core/models.py`
+  - `docs/data_contracts/contactskill_decomposition_contract.md`
+  - `tests/test_contactskill_policy_briefs.py` (new)
+  - `docs/07_handoff.md`
+- Models added:
+  - `CommunicationPolicyBrief`: how the system should draft replies. Fields: contact_id, default_approach, cold_contact_approach, topic_opener_approach, sensitive_topic_approach, user_goal, preferred_reply_style, stable_preference_hints, approved_patch_hints, evidence_refs, source_skill_record_id.
+  - `BoundaryProfileBrief`: what to avoid, what is sensitive, and what the hard limits are. Fields: contact_id, avoid_topics, boundary_rules, disallowed_uses, usage_notes, important_event_summaries, sensitivity_summary, evidence_refs, source_skill_record_id.
+- Fields belonging to CommunicationPolicyBrief vs BoundaryProfileBrief:
+  - CommunicationPolicyBrief: reply_strategy (default, cold, topic_opener, sensitive), user_side_preferences (user_goal, preferred_reply_style), stable_preferences (pattern strings), approved_patch_hints.
+  - BoundaryProfileBrief: avoid_topics (topic strings), user_side_preferences.boundaries (boundary_rules), usage_boundary (disallowed_uses, usage_notes), important_events (compact summaries), sensitivity_summary.
+- Finalized sensitivity reduction rule (T170 N01):
+  - `sensitivity_summary = max(avoid_topics sensitivities, important_events sensitivities, parent aggregate sensitivity)`.
+  - Ordering: "low" < "medium" < "high".
+  - Parent aggregate sensitivity serves as a floor; sub-model sensitivities can raise it.
+  - If no avoid_topics and no important_events exist, the result is the parent aggregate sensitivity.
+- Final ownership decision for important_event_summaries (T170 N03):
+  - Stays in BoundaryProfileBrief because important events can be sensitive, and the boundary profile carries the sensitivity_summary needed to govern how aggressively to reference them.
+- Versioning decision for derived briefs (T171 N05):
+  - Derived briefs do NOT carry their own `schema_version`. Versioning is inherited through `source_skill_record_id` pointing to the parent `ContactSkillStoreRecord`, which carries `schema_version`.
+- How approved patch hints are handled without broadening patch semantics (T170 N04):
+  - `approved_patch_hints` lives on `CommunicationPolicyBrief` only. Patches are communication instructions, and the policy brief is the correct owner. BoundaryProfileBrief does NOT get its own patch-hints field. This avoids duplicating T164's single-source patch contract.
+- Verification:
+  - `python -m py_compile src/practical_chat_agent/core/models.py`: passed.
+  - `pytest tests/test_contactskill_policy_briefs.py -q`: 31 passed.
+  - `pytest tests/ -q`: 241 passed (210 existing + 31 new), zero regressions.
+- What T173 can now assume for projection logic:
+  - All three brief schemas (PartnerPersonaBrief, CommunicationPolicyBrief, BoundaryProfileBrief) are defined.
+  - Each brief has `contact_id`, `evidence_refs`, and `source_skill_record_id` for traceability.
+  - The sensitivity reduction rule is specified (Section 7 of contract doc).
+  - Patch enrichment for CommunicationPolicyBrief uses existing `ApprovedPatchBrief` from T164.
+  - None of the briefs carry their own approval or status fields; T173 checks `record.is_runtime_ready()` before projecting.
+
+## 73. T172 Review Decision
+
+- Review file:
+  - `docs/review/T172_review.md`
+- Verdict:
+  - `PASS`
+- Captain decision:
+  - T172 is complete within task scope.
+  - The repo now has committed policy and boundary derived-brief schemas and the corresponding contract notes.
+  - No automatic repair pass is needed because no blocking issue was found.
+- Follow-up notes carried forward:
+  - N01 thin `CommunicationPolicyBrief.evidence_refs` is accepted as an upstream-model limitation; T173 must preserve it and must not invent synthetic evidence for reply strategy or user-side preference fields.
+  - N02 `BoundaryProfileBrief.sensitivity_summary` default is a schema fallback only; T173 must compute the actual value explicitly.
+  - N03 `important_event_summaries` format remains a projection concern; T173 must keep formatting deterministic and documented.
+  - N04 `.claude/settings.json` is accepted as a workspace artifact rather than a task-scope defect.
+- Next worker task:
+  - T173 `ContactSkillProjectionService`.
+  - The task remains additive and projection-only; no runtime context integration is authorized yet.
+
+## 74. T170 Kickoff Notes
 
 - Task package:
   - `docs/tasks/M6_contactskill_decomposition/T170_decomposition_design.md`

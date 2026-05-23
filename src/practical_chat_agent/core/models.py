@@ -921,6 +921,50 @@ class PreferencePatchCandidate(BaseModel):
         return self.review_metadata.is_runtime_ready(status=self.status)
 
 
+class CommunicationStyleSnapshot(BaseModel):
+    message_length: str | None = None
+    tone: str | None = None
+    response_latency: str | None = None
+    directness: str | None = None
+
+
+class PartnerPersonaBrief(BaseModel):
+    contact_id: str = Field(..., min_length=1)
+    relationship_type: ContactRelationshipType
+    relationship_state_summary: str = Field(..., min_length=1)
+    communication_style_snapshot: CommunicationStyleSnapshot = Field(default_factory=CommunicationStyleSnapshot)
+    preferred_topics: list[str] = Field(default_factory=list)
+    emotional_pattern_labels: list[str] = Field(default_factory=list)
+    evidence_refs: list[str] = Field(default_factory=list)
+    source_skill_record_id: str = Field(..., min_length=1)
+
+
+class CommunicationPolicyBrief(BaseModel):
+    contact_id: str = Field(..., min_length=1)
+    default_approach: str | None = None
+    cold_contact_approach: str | None = None
+    topic_opener_approach: str | None = None
+    sensitive_topic_approach: str | None = None
+    user_goal: str | None = None
+    preferred_reply_style: str | None = None
+    stable_preference_hints: list[str] = Field(default_factory=list)
+    approved_patch_hints: list[ApprovedPatchBrief] = Field(default_factory=list)
+    evidence_refs: list[str] = Field(default_factory=list)
+    source_skill_record_id: str = Field(..., min_length=1)
+
+
+class BoundaryProfileBrief(BaseModel):
+    contact_id: str = Field(..., min_length=1)
+    avoid_topics: list[str] = Field(default_factory=list)
+    boundary_rules: list[str] = Field(default_factory=list)
+    disallowed_uses: list[str] = Field(default_factory=list)
+    usage_notes: list[str] = Field(default_factory=list)
+    important_event_summaries: list[str] = Field(default_factory=list)
+    sensitivity_summary: DistillationSensitivity = "low"
+    evidence_refs: list[str] = Field(default_factory=list)
+    source_skill_record_id: str = Field(..., min_length=1)
+
+
 ChatContext.model_rebuild()
 AgentTurnResult.model_rebuild()
 MeetingLivePreview.model_rebuild()

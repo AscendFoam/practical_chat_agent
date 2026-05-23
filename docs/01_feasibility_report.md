@@ -1,5 +1,27 @@
 # Feasibility Report
 
+## Captain Update 2026-05-23 (T172 Review)
+
+T172 confirms that the remaining policy and boundary brief schemas are feasible in the current repository shape.
+
+The feasibility gap has changed again:
+
+- no longer blocked on whether M6 can formalize policy and boundary semantics without mutating runtime behavior
+- now focused on whether T173 can project those schemas faithfully from approved store records without inventing synthetic evidence, relying on schema defaults, or weakening fallback behavior
+
+So the project is ready to commit the T172 slice and advance to T173, while keeping projection work lazy, deterministic, and non-mutating.
+
+## Captain Update 2026-05-23 (T171 Review)
+
+T171 confirms that additive derived-brief schema work is feasible in the current repository shape.
+
+The feasibility gap has changed again:
+
+- no longer blocked on whether the first focused derived brief can be represented cleanly and tested without runtime wiring
+- now focused on whether policy and boundary semantics can be formalized with explicit sensitivity, ownership, and versioning decisions before projection starts
+
+So the project is ready to commit the T171 slice and advance to T172, while keeping M6 schema work additive, reviewable, and non-breaking.
+
 ## Captain Update 2026-05-22 (T170 Review)
 
 T170 confirms that a compatibility-first `ContactSkill` decomposition path is feasible in the current repository shape.

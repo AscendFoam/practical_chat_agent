@@ -1,5 +1,25 @@
 # Eval Protocol
 
+## Captain Update 2026-05-23 (T172 Review)
+
+T172 has now been accepted with `PASS`.
+
+Current evaluation sequence is now:
+
+- T173: can the repo project all three derived briefs lazily from approved, runtime-ready `ContactSkillStoreRecord` inputs while preserving evidence fidelity, explicit sensitivity computation, deterministic formatting, and existing compatibility boundaries?
+
+T172 changes the evaluation baseline in one important way: M6 no longer needs to prove whether the policy and boundary brief schemas can be formalized cleanly. That layer now exists. The next evaluation target is projection fidelity, not schema completeness.
+
+## Captain Update 2026-05-23 (T171 Review)
+
+T171 has now been accepted with `PASS`.
+
+Current evaluation sequence is now:
+
+- T172: can the repo define additive `CommunicationPolicyBrief` and `BoundaryProfileBrief` schemas, resolve boundary sensitivity and ownership semantics, and preserve existing `ContactSkill` compatibility without any projection or runtime integration?
+
+T171 changes the evaluation baseline in one important way: M6 no longer needs to prove whether the first focused derived brief can be represented and regression-tested cleanly. That layer now exists. The next evaluation target is policy/boundary schema precision, not persona-brief typing.
+
 ## Captain Update 2026-05-22 (T170 Review)
 
 T170 has now been accepted with `PASS`.

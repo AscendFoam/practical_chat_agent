@@ -1,5 +1,40 @@
 # Decision Log
 
+## D039: T172 PASS, accept task, advance to T173
+
+- Date: 2026-05-23
+- Status: Accepted
+- Context: `docs/review/T172_review.md` gives `PASS` for the `CommunicationPolicyBrief` + `BoundaryProfileBrief` schema task. No blocking issues were found, and the review confirms the task stayed additive, schema-only, and within the allowed file scope.
+- Decision: T172 is complete. The project may continue to T173 `ContactSkillProjectionService`.
+- Follow-up notes carried forward:
+  - N01 `CommunicationPolicyBrief.evidence_refs` remains structurally thin because upstream `reply_strategy` and `user_side_preferences` models do not carry direct evidence refs. This is accepted as an inherited model limitation; T173 must preserve it faithfully and must not invent synthetic evidence.
+  - N02 `BoundaryProfileBrief.sensitivity_summary` model default is a schema fallback only. T173 must compute the value explicitly from the documented reduction rule rather than relying on the default.
+  - N03 `important_event_summaries` remains free-form at schema level. T173 must own the formatting rule explicitly and keep it deterministic.
+  - N04 `.claude/settings.json` modification is treated as workspace noise rather than a T172 scope violation.
+- Conditions carried forward:
+  - T173 remains a pure, lazy projection layer only. No `ChatContext` integration, ReplyPlanner behavior change, migration, or deprecation is authorized yet.
+  - T173 must project only from approved, runtime-ready `ContactSkillStoreRecord` inputs.
+  - T174 must preserve the existing `ApprovedContactSkillBrief` fallback and the separate T164 approved-patch compact-context path.
+- Impact: `docs/04_task_board.md` moves the Current Unique Task from T172 to T173, `docs/07_handoff.md` records the PASS decision, and the T173 task package is tightened around evidence fidelity, sensitivity computation, and event-summary formatting.
+
+## D038: T171 PASS, accept task, advance to T172
+
+- Date: 2026-05-23
+- Status: Accepted
+- Context: `docs/review/T171_review.md` gives `PASS` for the `PartnerPersonaBrief` schema task. No blocking issues were found, and the review confirms the task stayed additive, schema-only, and within the allowed file scope.
+- Decision: T171 is complete. The project may continue to T172 `CommunicationPolicyBrief` + `BoundaryProfileBrief` Schemas.
+- Follow-up notes carried forward:
+  - N01 `.claude/settings.json` modification is treated as workspace noise rather than a T171 scope violation.
+  - N02 the `ContactSkillCommunicationStyle` `"unknown"` -> brief `None` conversion rule is accepted as a projection-layer concern and must be made explicit in T173.
+  - N03 `relationship_state_summary` remains structurally valid at schema stage; T173 must define and document how `ContactSkillRelationshipState` fields project into that summary.
+  - N04 flat brief-level `evidence_refs` is an accepted design trade-off; T173/T174 must preserve this contract and not invent per-area attribution unless a later task explicitly changes the model.
+  - N05 lack of a brief-local `schema_version` field is acceptable for T171 scope, but T172 must explicitly decide whether later derived briefs add version markers or continue relying on parent store versioning.
+- Conditions carried forward:
+  - T172 remains model/contract work only. No projection service, `ChatContext` integration, ReplyPlanner behavior change, migration, or deprecation is authorized yet.
+  - T173 must remain a pure, lazy projection layer over approved, runtime-ready `ContactSkillStoreRecord` inputs.
+  - T174 must preserve the existing `ApprovedContactSkillBrief` fallback and the separate T164 approved-patch compact-context path.
+- Impact: `docs/04_task_board.md` moves the Current Unique Task from T171 to T172, `docs/07_handoff.md` records the PASS decision, and the T172/T173 task packages are tightened around the remaining M6 schema/projection semantics.
+
 ## D037: T170 PASS, accept task, advance to T171
 
 - Date: 2026-05-22

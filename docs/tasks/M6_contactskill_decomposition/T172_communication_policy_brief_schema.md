@@ -1,4 +1,4 @@
-# Task T172: CommunicationPolicyBrief Schema
+# Task T172: CommunicationPolicyBrief + BoundaryProfileBrief Schemas
 
 ## Task ID
 
@@ -27,6 +27,7 @@ T172 is the second schema slice after T171. It formalizes the policy and boundar
 - T170 reviewer note N01 must be resolved here: formalize how `BoundaryProfileBrief.sensitivity_summary` is derived.
 - T170 reviewer note N03 must be handled explicitly: either keep `important_event_summaries` under the boundary brief with a documented rationale or revise the contract with a clearly justified ownership decision.
 - T170 reviewer note N04 must be documented conservatively: approved patch hints may enrich communication policy, but this task must not broaden patch semantics beyond the existing review-only compact-hint contract from T164.
+- T171 reviewer note N05 must be resolved or explicitly deferred here: decide whether these derived briefs need their own `schema_version` field, or document why parent-store versioning remains sufficient.
 
 ## Allowed Files
 
@@ -55,6 +56,7 @@ Produce:
   - evidence/source traceability
   - the exact sensitivity reduction rule
   - the chosen ownership for `important_event_summaries`
+  - the derived-brief versioning decision
   - how approved patch hints relate to the policy brief without changing T164 semantics
 - committed synthetic validation tests covering:
   - valid construction of both briefs
@@ -75,6 +77,7 @@ Append a T172 implementation record to `docs/07_handoff.md` that captures:
 - which fields belong to `CommunicationPolicyBrief` vs `BoundaryProfileBrief`
 - the finalized sensitivity reduction rule
 - the final ownership decision for `important_event_summaries`
+- the versioning decision for these derived briefs
 - how approved patch hints are handled without broadening patch semantics
 - what T173 can now assume for projection logic
 

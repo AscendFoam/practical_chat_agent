@@ -1,5 +1,25 @@
 # Raw Idea
 
+## Captain Update 2026-05-23 (T172 Review)
+
+T172 has now passed review with `PASS`, so the third M6 step is accepted:
+
+- the repo now has committed policy and boundary derived-brief schemas for approved `ContactSkill`
+- the project still does not permit runtime integration, migration, deprecation of `ContactSkill`, or persisted derived-brief storage
+- the next safe step is T173 projection service work, not `ChatContext` integration
+
+The Current Unique Task therefore moves to T173 `ContactSkillProjectionService`.
+
+## Captain Update 2026-05-23 (T171 Review)
+
+T171 has now passed review with `PASS`, so the second M6 step is accepted:
+
+- the repo now has the first additive derived-brief schema for approved `ContactSkill`
+- the project still does not permit projection service logic, runtime integration, migration, or deprecation of `ContactSkill`
+- the next safe step is schema-only T172 `CommunicationPolicyBrief` + `BoundaryProfileBrief`, not projection or context wiring
+
+The Current Unique Task therefore moves to T172 `CommunicationPolicyBrief` Schema.
+
 ## Captain Update 2026-05-22 (T170 Review)
 
 T170 has now passed review with `PASS`, so the first M6 step is accepted:

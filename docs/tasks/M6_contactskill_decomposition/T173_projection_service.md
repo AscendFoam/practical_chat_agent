@@ -25,6 +25,14 @@ T173 begins only after T171-T172 have frozen the brief schemas and contract sema
 - Projection must be lazy and computed from the parent approved record; do not persist derived briefs as a new store format.
 - Only approved + runtime-ready parent records may produce briefs.
 - T120-T123 evidence and approval rules still belong to the parent record. This task projects them; it does not redefine them.
+- T171 contract follow-ups must be made explicit here:
+  - convert `ContactSkillCommunicationStyle` `"unknown"` values to `None` in `CommunicationStyleSnapshot` exactly as documented in the contract
+  - define how `ContactSkillRelationshipState` fields feed `relationship_state_summary`
+  - preserve the current flat brief-level `evidence_refs` contract rather than inventing per-area attribution
+- T172 contract follow-ups must be made explicit here:
+  - preserve thin `CommunicationPolicyBrief.evidence_refs` faithfully; do not invent synthetic evidence for reply strategy or user-side preference fields
+  - compute `BoundaryProfileBrief.sensitivity_summary` from the documented reduction rule instead of relying on the schema default
+  - format `important_event_summaries` deterministically from projection logic (for example `Event (date)` when date exists)
 
 ## Allowed Files
 
@@ -53,6 +61,11 @@ Produce:
   - approved/runtime-ready projection success
   - non-runtime-ready exclusion
   - contact-id / traceability preservation
+  - `"unknown"` -> `None` communication-style conversion
+  - `relationship_state_summary` projection rule
+  - non-synthetic handling of thin policy evidence
+  - explicit `sensitivity_summary` computation
+  - deterministic `important_event_summaries` formatting
   - sensitivity and policy-field mapping according to the T171-T172 contract
 
 ## Verification

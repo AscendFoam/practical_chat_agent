@@ -1,5 +1,57 @@
 # Architecture
 
+## Captain Update 2026-05-23 (T172 Review)
+
+T172 is now complete, so the M6 architecture has all three derived-brief schemas committed:
+
+```text
+Approved ContactSkill
+  -> PartnerPersonaBrief
+  -> CommunicationPolicyBrief
+  -> BoundaryProfileBrief
+  -> lazy projection later
+  -> fallback to existing ApprovedContactSkillBrief
+```
+
+The next architectural step is T173, which must stay projection-only:
+
+```text
+brief schemas committed
+  -> lazy projection service
+  -> explicit conversion rules
+  -> runtime-ready gating
+  -> no ChatContext integration yet
+  -> no new persistence or migration
+```
+
+This keeps M6 additive, deterministic, and runtime-stable until T174.
+
+## Captain Update 2026-05-23 (T171 Review)
+
+T171 is now complete, so the M6 architecture has its first committed derived-brief model:
+
+```text
+Approved ContactSkill
+  -> PartnerPersonaBrief schema
+  -> later CommunicationPolicyBrief
+  -> later BoundaryProfileBrief
+  -> lazy projection later
+  -> fallback to existing ApprovedContactSkillBrief
+```
+
+The next architectural step is T172, which must stay schema-only:
+
+```text
+persona brief committed
+  -> policy + boundary brief models + contract rules
+  -> sensitivity reduction semantics
+  -> important-event ownership decision
+  -> no projection service yet
+  -> no ChatContext/runtime integration yet
+```
+
+This keeps M6 additive, typed, and runtime-stable until T173-T174.
+
 ## Captain Update 2026-05-22 (T170 Review)
 
 T170 is now complete, so the M6 architecture has an explicit compatibility-first decomposition contract:
