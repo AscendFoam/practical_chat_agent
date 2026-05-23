@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -277,6 +278,23 @@ class LLMReplyGeneratorService:
                 for p in patches.patches[:3]
             ]
 
+        # --- safety context: signal thin/sensitive conditions to the LLM ---
+        safety_flags: list[str] = []
+        if approved.status in ("not_configured", "no_runtime_ready_records"):
+            safety_flags.append(
+                "thin_context: no approved relationship data available — "
+                "avoid assuming familiarity or asking engaging questions",
+            )
+        if derived.status == "loaded" and derived.boundary is not None:
+            summary = (derived.boundary.sensitivity_summary or "").lower()
+            if "sensitive" in summary or "high" in summary:
+                safety_flags.append(
+                    "boundary_sensitive: relationship requires careful boundaries — "
+                    "avoid warmth, follow-up pressure, and intimacy escalation",
+                )
+        if safety_flags:
+            compact["safety_context"] = safety_flags
+
         compact["recent_event_count"] = len(context.recent_events)
         compact["memory_hit_count"] = len(context.memory_hits)
 
@@ -326,8 +344,15 @@ class LLMReplyGeneratorService:
             "1. Do NOT impersonate the contact. All drafts are from the user's perspective.\n"
             "2. Use only the provided context — do not invent relationship details.\n"
             "3. Keep wording natural, low-pressure, and review-friendly.\n"
-            "4. When context is thin or sensitive, prefer conservative drafts.\n"
+            "4. Safety: If the input JSON includes a 'safety_context' array, "
+            "you MUST follow the safety guidance in each item. "
+            "For 'thin_context', do NOT ask engaging questions or assume familiarity. "
+            "For 'boundary_sensitive', be extra conservative — "
+            "avoid warmth, follow-up pressure, or intimacy escalation.\n"
             "5. No markdown formatting in draft_text. Plain text only.\n"
+            "6. Language: All draft_text must be written in Chinese (中文).\n"
+            "7. approach_label naming: Use snake_case "
+            "(e.g., 'conservative_acknowledgment', 'warm_greeting').\n"
             "Return a JSON object with a 'candidates' array. "
             "Each candidate has: approach_label, draft_text, rationale, "
             "boundary_reminders (array of strings), risk_flags (array of strings), "
@@ -385,7 +410,9 @@ class LLMReplyGeneratorService:
             if not draft_text:
                 continue
             rationale = (raw.get("rationale") or "").strip()
-            approach_label = (raw.get("approach_label") or "").strip() or "llm_generated"
+            approach_label = self._normalize_label(
+                (raw.get("approach_label") or "").strip() or "llm_generated",
+            )
 
             supporting_refs = self._build_default_refs()
             boundary_reminders = raw.get("boundary_reminders")
@@ -421,6 +448,17 @@ class LLMReplyGeneratorService:
                 continue
             candidates.append(candidate)
         return candidates
+
+    @staticmethod
+    def _normalize_label(label: str) -> str:
+        """Convert an approach_label to consistent snake_case."""
+        if not label or not label.strip():
+            return "llm_generated"
+        normalized = label.strip().lower()
+        normalized = re.sub(r"[^a-z0-9]+", "_", normalized)
+        normalized = normalized.strip("_")
+        normalized = re.sub(r"_+", "_", normalized)
+        return normalized or "llm_generated"
 
     @staticmethod
     def _build_default_refs() -> list[ReplyPlanContextRef]:

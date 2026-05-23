@@ -1,5 +1,29 @@
 # Feasibility Report
 
+## Captain Update 2026-05-23 (T185 / M7 Review)
+
+M7 is now feasible and complete within its intended scope.
+
+The final feasibility question for M7 changed again:
+
+- no longer blocked on whether an opt-in hybrid planner surface can be wired safely
+- no longer blocked on whether holdout evaluation can produce useful evidence
+- no longer blocked on whether the observed language/safety/label/merge gaps can be repaired within the existing architecture
+- now focused on whether M8 can define a conservative multidimensional relationship-state model without collapsing back into a scalar score or auto-update behavior
+
+So the project is ready to commit the T185 slice, close M7 with `Allow`, and advance to T190 while keeping relationship-state work review-first and non-mutating.
+
+## Captain Update 2026-05-23 (T184 Review)
+
+T184 confirms that the hybrid planner path is viable on anonymized holdout scenarios, but the milestone is not yet fully closed.
+
+The feasibility gap has changed again:
+
+- no longer blocked on whether the hybrid path can be evaluated on real anonymized scenarios with evidence-backed results
+- now focused on whether T185 can remove the language/safety/merge coverage gaps that keep Gate M7 at `Conditional`
+
+So the project is ready to commit the T184 slice and advance to T185, while keeping the M7 gate open until the narrow alignment work is complete.
+
 ## Captain Update 2026-05-23 (T183 Review)
 
 T183 confirms that an opt-in hybrid planner surface is feasible in the current repository shape.

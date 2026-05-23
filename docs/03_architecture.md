@@ -1,5 +1,53 @@
 # Architecture
 
+## Captain Update 2026-05-23 (T185 / M7 Review)
+
+M7 architecture is now closed as an opt-in, review-only, regression-hardened hybrid path:
+
+```text
+template ReplyPlan
+  -> opt-in hybrid ReplyPlan
+  -> holdout evaluation evidence
+  -> narrow alignment hardening
+  -> Gate M7 closes with Allow
+```
+
+The next architectural step is M8 / T190, which must stay conservative:
+
+```text
+RelationshipState schema
+  -> multidimensional fields
+  -> evidence refs + timestamps
+  -> no scalar collapse
+  -> no auto-update
+```
+
+This keeps the next milestone additive and preserves the review-first boundary established by M7.
+
+## Captain Update 2026-05-23 (T184 Review)
+
+T184 shows the current M7 architecture is usable, but not yet final:
+
+```text
+template ReplyPlan
+  -> opt-in hybrid ReplyPlan
+  -> holdout evaluation evidence
+  -> quality judgment
+  -> Gate M7 stays Conditional until alignment gaps are fixed
+```
+
+The next architectural step is T185, which must stay narrow:
+
+```text
+hybrid planner
+  -> Chinese language alignment
+  -> explicit thin-context / boundary-sensitive safety constraints
+  -> normalized approach labels
+  -> committed merge-path regression coverage
+```
+
+This keeps M7 evidence-backed without overstating readiness.
+
 ## Captain Update 2026-05-23 (T183 Review)
 
 T183 completes the opt-in hybrid planner wiring without claiming quality completion:

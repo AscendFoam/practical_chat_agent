@@ -1,5 +1,26 @@
 # Raw Idea
 
+## Captain Update 2026-05-23 (T185 / M7 Review)
+
+T185 has now passed review with `PASS_WITH_WARNINGS`, and the M7 milestone review now allows M7 to close:
+
+- the repo now has a committed, opt-in hybrid planner that remains review-only and template-compatible
+- the project no longer needs to treat the holdout-stage gaps as open gate conditions, because language alignment, conservative safety prompting, label normalization, and merge-path regression coverage are now committed
+- the remaining concerns are real but no longer blocking: heuristic safety-context detection, prompt-level language enforcement, and uncalibrated confidence remain future hardening work
+- the next safe step is T190 `RelationshipState Schema`, not more M7 repair work
+
+The Current Unique Task therefore moves to T190 `RelationshipState Schema`.
+
+## Captain Update 2026-05-23 (T184 Review)
+
+T184 has now passed review with `PASS_WITH_WARNINGS`, but the M7 holdout stage remains `Conditional`:
+
+- the repo now has evidence that the hybrid planner improves naturalness and evidence usage on anonymized holdout scenarios
+- the project still does not permit claiming M7 is complete, because language mismatch, thin-context safety drift, and merge-path test coverage remain open
+- the next safe step is T185 `Hybrid Planner Language and Safety Alignment`, not entry into M8
+
+The Current Unique Task therefore moves to T185 `Hybrid Planner Language and Safety Alignment`.
+
 ## Captain Update 2026-05-23 (T183 Review)
 
 T183 has now passed review with `PASS_WITH_WARNINGS`, so the hybrid planner integration step is accepted:

@@ -4,6 +4,21 @@ Updated: 2026-05-23
 
 ## Captain Current State Override
 
+- T185 review decision: `PASS_WITH_WARNINGS`.
+- T185 is complete as the narrow hybrid alignment task.
+- T185 warning disposition:
+  - Accepted: N01 `.claude/settings.json` workspace-artifact overrun, N02 heuristic safety-context detection, N03 prompt-level language enforcement instead of a hard validator.
+  - Deferred: none.
+  - Rejected: none.
+- Gate M7 verdict: `Allow`.
+- Current Unique Task: T190 RelationshipState schema.
+- Current task package: `docs/tasks/M8_relationship_state/T190_relationship_state_schema.md`.
+- T190 must stay schema-only and conservative: no signal extraction, no review CLI, no auto-update, no send/platform integration, and no single-score collapse.
+- M8 execution constraints now carried forward:
+  - T190 should define multidimensional `RelationshipState` and `RelationshipDeltaCandidate` concepts with explicit evidence refs and timestamps.
+  - T190 must preserve review-only delta modeling and avoid automatic state mutation.
+  - T190 should not claim M8 completion until later review/eval tasks are revisited.
+
 - T183 review decision: `PASS_WITH_WARNINGS`.
 - T183 is complete as the opt-in hybrid planner integration M7 task.
 - T183 warning disposition:
@@ -157,11 +172,11 @@ Updated: 2026-05-23
 
 ## Current Unique Task
 
-T184: Planner Holdout Eval.
+T185: Hybrid Planner Language and Safety Alignment.
 
-Task package: `docs/tasks/M7_llm_reply_planner/T184_llm_planner_holdout_eval.md`
+Task package: `docs/tasks/M7_llm_reply_planner/T185_hybrid_planner_language_and_safety_alignment.md`
 
-Why now: T183 has landed the opt-in hybrid planner surface with `PASS_WITH_WARNINGS`. The next smallest safe step is holdout evaluation, not more planner wiring or quality claims without evidence.
+Why now: T184 has landed the holdout evidence with `PASS_WITH_WARNINGS`, but Gate M7 remains `Conditional`. The next smallest safe step is a narrow alignment pass that fixes the open language/safety/merge gaps before any claim of M7 closure.
 
 ## Board Rules
 
@@ -261,7 +276,8 @@ Goal: add optional LLM candidate generation only after regression safety net is 
 - [x] T181: LLM candidate offline CLI. Review `PASS_WITH_WARNINGS`.
 - [x] T182: candidate validator. Review `PASS_WITH_WARNINGS`.
 - [x] T183: hybrid ReplyPlanner. Review `PASS_WITH_WARNINGS`.
-- [ ] T184: planner holdout eval.
+- [x] T184: planner holdout eval. Review `PASS_WITH_WARNINGS`.
+- [x] T185: hybrid planner language and safety alignment. Review `PASS_WITH_WARNINGS`. Gate M7 `Allow`.
 
 ## Milestone 8: RelationshipState
 
@@ -314,9 +330,9 @@ Goal: keep WeChat as a thin final adapter behind the send gate.
 
 ## Historical Current Unique Task
 
-T183: Hybrid ReplyPlanner.
+T185: Hybrid Planner Language and Safety Alignment.
 
-It is now complete and accepted with `PASS_WITH_WARNINGS`. The next worker task is T184, because the next safe step is holdout evaluation rather than additional planner wiring or a quality claim.
+It is now complete and accepted with `PASS_WITH_WARNINGS`. The next worker task is T190, because M7 is closed and the next safe step is the M8 RelationshipState schema.
 
 ## Next Captain Output Required
 

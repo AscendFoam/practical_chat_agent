@@ -1,5 +1,51 @@
 # Decision Log
 
+## D047: T185 PASS_WITH_WARNINGS, close M7 with Allow, advance to T190
+
+- Date: 2026-05-23
+- Status: Accepted
+- Context: `docs/review/T185_review.md` gives `PASS_WITH_WARNINGS` for the narrow hybrid alignment task. The review confirms that the four M7 gate conditions from `docs/review/T184_milestone_review.md` are now resolved. The Captain milestone review in `docs/review/M7_review.md` therefore revisits Gate M7 positively.
+- Decision: T185 is complete. M7 is closed with `Allow`. The project may proceed to M8 beginning with T190 `RelationshipState Schema`.
+- Warning handling:
+  - Accepted:
+    - N01 `.claude/settings.json` modification is treated as workspace-artifact noise rather than a blocker.
+    - N02 heuristic safety-context detection is acceptable for the current prompt-level alignment scope.
+    - N03 language enforcement remaining prompt-level is acceptable for current scope and does not justify reopening M7.
+  - Deferred: none from the T185 task review itself.
+  - Rejected: none.
+- Milestone judgment:
+  - M7 now has a complete additive chain from contract -> offline generation -> shared validation -> hybrid integration -> holdout evidence -> narrow alignment repair.
+  - M7 is allowed to close because hybrid mode remains opt-in and review-only, the committed merge-path regression gap is closed, and no blocking pseudo-completion was found.
+  - M7 closure does not mean calibrated confidence, perfect safety-context detection, or automatic-send readiness.
+- Impact:
+  - `docs/review/M7_review.md` is created as the milestone-level authorization review.
+  - `docs/04_task_board.md` moves the Current Unique Task from T185 to T190 and marks Gate M7 `Allow`.
+  - `docs/07_handoff.md` records the T185 review decision and the M7 milestone review decision.
+  - `docs/08_risks_and_open_questions.md` closes the M7 gate questions and carries forward only the residual heuristic/prompt-level/calibration risks.
+  - `docs/tasks/M8_relationship_state/T190_relationship_state_schema.md` is tightened so the first M8 worker step is explicit and schema-only.
+
+## D046: T184 PASS_WITH_WARNINGS, Gate M7 Conditional, advance to T185
+
+- Date: 2026-05-23
+- Status: Accepted
+- Context: `docs/review/T184_review.md` gives `PASS_WITH_WARNINGS` for the holdout evaluation task, and `docs/review/T184_milestone_review.md` sets Gate M7 to `Conditional`. The eval produced evidence, but the milestone is not yet fully closed.
+- Decision: T184 is complete. The project may continue to T185 `Hybrid Planner Language and Safety Alignment`, but M7 remains open.
+- Warning handling:
+  - Accepted:
+    - N01 `.claude/settings.json` modification is treated as workspace-artifact noise rather than a blocker.
+    - N02 self-reported ratings without independent verification are acceptable for this MVP milestone eval.
+    - N03 candidate-diversity measured by `approach_label` count only is acceptable as a first proxy.
+  - Deferred: none from the task review itself.
+- Conditions carried forward from Gate M7:
+  - T185 must fix the language mismatch, prompt-level safety gap, approach_label normalization gap, and committed merge-path regression gap.
+  - T185 must stay narrow and must not expand planner scope or make hybrid mode default.
+  - T184 evidence remains evidence, not final readiness proof; M7 stays `Conditional` until the narrow follow-up is resolved.
+- Impact:
+  - `docs/04_task_board.md` moves the Current Unique Task from T184 to T185 and marks T184 complete with Gate M7 `Conditional`.
+  - `docs/07_handoff.md` records the T184 review decision and the Gate M7 conditions.
+  - `docs/08_risks_and_open_questions.md` records the language/safety/label/merge gaps as active risks.
+  - `docs/tasks/M7_llm_reply_planner/T185_hybrid_planner_language_and_safety_alignment.md` is created as the next narrow worker task.
+
 ## D045: T183 PASS_WITH_WARNINGS, accept task, advance to T184
 
 - Date: 2026-05-23

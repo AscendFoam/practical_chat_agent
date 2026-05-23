@@ -1,5 +1,25 @@
 # Eval Protocol
 
+## Captain Update 2026-05-23 (T184 Review)
+
+T184 has now been accepted with `PASS_WITH_WARNINGS`, and the narrow follow-up has since closed M7 with `Allow`.
+
+Current evaluation sequence is now:
+
+- T190: can the repo define a multidimensional RelationshipState schema and RelationshipDeltaCandidate contract without collapsing the model into a single score or auto-updating state?
+
+T184 changed the evaluation baseline in one important way: the project no longer needed to prove that holdout evaluation was feasible. That step is now committed, and M7 is closed. The next evaluation target is RelationshipState schema design, not more M7 repair work.
+
+## Captain Update 2026-05-23 (T185 + M7 Review)
+
+T185 has now been accepted with `PASS_WITH_WARNINGS`, and the milestone review has closed M7 with `Allow`.
+
+Current evaluation sequence is now:
+
+- T190: can the repo define a multidimensional RelationshipState schema and RelationshipDeltaCandidate contract without collapsing the model into a single score or auto-updating state?
+
+M7 changes the evaluation baseline in one important way: the project no longer needs to prove whether an opt-in hybrid LLM planner can be introduced safely. That layer now exists and is regression-hardened. The next evaluation target is relationship-state schema design, not more M7 alignment work.
+
 ## Captain Update 2026-05-23 (T183 Review)
 
 T183 has now been accepted with `PASS_WITH_WARNINGS`.

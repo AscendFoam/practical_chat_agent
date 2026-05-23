@@ -23,8 +23,12 @@ from pathlib import Path
 import pytest
 
 from practical_chat_agent.core.models import (
+    LLMGenerationMetadata,
+    LLMReplyPlan,
+    LLMReplyPlanCandidate,
     ReplyPlan,
     ReplyPlanCandidate,
+    ReplyPlanContextRef,
 )
 from practical_chat_agent.services.llm_reply_generator import (
     LLMReplyGeneratorService,
@@ -326,3 +330,99 @@ class TestCLIHybridFlag:
         assert result.exit_code == 0
         payload = json.loads(result.stdout)
         assert payload["plan_mode"] == "candidate_review_only"
+
+
+# =========================================================================
+# 8. Hybrid merge success path (T185)
+# =========================================================================
+
+
+class TestHybridMergeSuccessPath:
+    """T185: Committed regression test for valid-candidate merge success path."""
+
+    class _MockSuccessGenerator(LLMReplyGeneratorService):
+        """Generator that returns pre-built valid LLM candidates."""
+
+        def generate(self, *, context) -> LLMReplyPlan:  # type: ignore[override]
+            return LLMReplyPlan(
+                contact_id=context.user_id.strip() or "test",
+                source_context_snapshot={"approved_store_status": "loaded"},
+                generation_metadata=LLMGenerationMetadata(
+                    provider="mock",
+                    model="mock",
+                ),
+                candidates=[
+                    LLMReplyPlanCandidate(
+                        approach_label="llm_candidate_1",
+                        priority_rank=1,
+                        draft_text="LLM draft candidate one for review.",
+                        rationale="Mock LLM candidate 1 rationale.",
+                        supporting_context_refs=[
+                            ReplyPlanContextRef(
+                                ref_type="policy_boundary",
+                                ref_id="boundary_review_only",
+                                note="review only",
+                            ),
+                        ],
+                        boundary_reminders=["Mock boundary 1."],
+                        confidence=0.85,
+                    ),
+                    LLMReplyPlanCandidate(
+                        approach_label="llm_candidate_2",
+                        priority_rank=2,
+                        draft_text="LLM draft candidate two for review.",
+                        rationale="Mock LLM candidate 2 rationale.",
+                        supporting_context_refs=[
+                            ReplyPlanContextRef(
+                                ref_type="policy_boundary",
+                                ref_id="boundary_review_only",
+                                note="review only",
+                            ),
+                        ],
+                        boundary_reminders=["Mock boundary 2."],
+                        confidence=0.80,
+                    ),
+                ],
+            )
+
+    def test_merge_keeps_template_first(self, baseline_friend_context) -> None:
+        """Template candidate 1 is always preserved as safety baseline."""
+        planner = ReplyPlanner(
+            hybrid_mode=True,
+            llm_generator=self._MockSuccessGenerator(
+                api_key="sk-test",
+                base_url="https://api.example.com/v1",
+                model="gpt-4o",
+            ),
+        )
+        plan = planner.generate(context=baseline_friend_context)
+        assert len(plan.candidates) == 3
+        assert plan.candidates[0].approach_label == "conservative_acknowledgment"
+
+    def test_merge_includes_llm_candidates(self, baseline_friend_context) -> None:
+        """LLM candidates replace template candidates 2+."""
+        planner = ReplyPlanner(
+            hybrid_mode=True,
+            llm_generator=self._MockSuccessGenerator(
+                api_key="sk-test",
+                base_url="https://api.example.com/v1",
+                model="gpt-4o",
+            ),
+        )
+        plan = planner.generate(context=baseline_friend_context)
+        assert len(plan.candidates) == 3
+        assert plan.candidates[1].approach_label == "llm_candidate_1"
+        assert plan.candidates[2].approach_label == "llm_candidate_2"
+
+    def test_merge_ranks_contiguous(self, baseline_friend_context) -> None:
+        """After merge, all 3 candidates have contiguous 1..3 ranks."""
+        planner = ReplyPlanner(
+            hybrid_mode=True,
+            llm_generator=self._MockSuccessGenerator(
+                api_key="sk-test",
+                base_url="https://api.example.com/v1",
+                model="gpt-4o",
+            ),
+        )
+        plan = planner.generate(context=baseline_friend_context)
+        assert [c.priority_rank for c in plan.candidates] == [1, 2, 3]

@@ -1,5 +1,34 @@
 # Handoff
 
+## Captain Current State Override 2026-05-23 (T184 Review Decision)
+
+- T184 review decision: `PASS_WITH_WARNINGS`.
+- T184 is complete as the holdout evaluation task.
+- T184 remains historical; M7 closure is determined by the later T185 review + M7 milestone review.
+- The current task state below supersedes this historical entry.
+
+## Captain Current State Override 2026-05-23 (T185 Review Decision + M7 Review)
+
+- T185 review decision: `PASS_WITH_WARNINGS`.
+- T185 warning disposition:
+  - Accepted: N01 `.claude/settings.json` workspace-artifact overrun, N02 heuristic safety-context detection, N03 prompt-level language enforcement rather than a hard validator.
+  - Deferred: none.
+  - Rejected: none.
+- T185 is complete as the narrow hybrid alignment task.
+- Gate M7 verdict: `Allow`.
+- M7 milestone review verdict: `Allow`.
+- M7 is now closed: the optional hybrid planner path is committed, regression-hardened, and aligned to the observed holdout gaps.
+- Current Unique Task: T190 RelationshipState schema.
+- Current task package: `docs/tasks/M8_relationship_state/T190_relationship_state_schema.md`.
+- T190 must stay schema-only and conservative: no signal extraction, no review CLI, no auto-update, no send/platform integration, and no single-score collapse.
+- T190 should define multidimensional `RelationshipState` and `RelationshipDeltaCandidate` concepts with explicit evidence refs and timestamps.
+- T185/T190 boundary:
+  - M7 remains opt-in, review-only, and template-compatible.
+  - M8 must not auto-update relationship state or send messages.
+  - Future relationship work should remain review-first and conservative.
+
+## Captain Current State Override 2026-05-23 (T183 Review Decision)
+
 ## Captain Current State Override 2026-05-23 (T183 Review Decision)
 
 - T183 review decision: `PASS_WITH_WARNINGS`.
@@ -2542,6 +2571,46 @@ M1 必须承接的条件：
   - T184 `Planner Holdout Eval`.
   - The task remains evaluation-only: compare template vs hybrid outputs on anonymized holdout scenarios, record evidence, and do not modify planner code.
 
+## 86. T184 Review Decision
+
+- Review file:
+  - `docs/review/T184_review.md`
+- Verdict:
+  - `PASS_WITH_WARNINGS`
+- Captain decision:
+  - T184 is complete within task scope.
+  - The repo now has holdout evidence showing the hybrid path improves naturalness and evidence usage, but this is not yet enough to close M7.
+  - No automatic repair pass is needed because no blocking issue was found in the task review.
+- Warning disposition:
+  - Accepted:
+    - N01 allowed-files overrun for `.claude/settings.json` is treated as workspace-artifact noise rather than a blocker.
+    - N02 self-reported ratings without independent verification are acceptable for the milestone eval scope.
+    - N03 candidate-diversity based on `approach_label` count only is an acceptable proxy for this eval.
+  - Deferred: none from the task review itself.
+  - Rejected: none.
+- Next worker task:
+  - T185 `Hybrid Planner Language and Safety Alignment`.
+  - The task should remain narrow and repair the language/safety/label/merge gaps identified by T184.
+
+## 87. T184 Milestone Review Decision
+
+- Review file:
+  - `docs/review/T184_milestone_review.md`
+- Verdict:
+  - `Conditional`
+- Captain decision:
+  - Gate M7 is not yet closed.
+  - The holdout evidence is real and useful, but it also shows the hybrid path still needs a narrow alignment pass before M8 can be considered.
+  - The project may continue to T185, but it should not treat M7 as complete.
+- Gate conditions carried forward:
+  - LLM output language should match template language (Chinese) or the mixed-language trade-off must be made explicit.
+  - LLM draft text must honor thin_context and boundary_sensitive safety intent, not only the policy flag.
+  - Hybrid LLM approach labels should follow the template naming convention.
+  - A committed synthetic valid-candidate merge test must exist before relying on the hybrid path for broader evaluation claims.
+- Next worker task:
+  - T185 `Hybrid Planner Language and Safety Alignment`.
+  - The task should remain narrow and should not expand planner scope, add provider integrations, or change template-only behavior.
+
 ## 84. T182 Implementation Record
 
 - Files added:
@@ -2658,3 +2727,102 @@ M1 必须承接的条件：
   - LLM candidate quality is not evaluated in T183 — T184 holdout eval remains the quality gate.
   - Merge rule (keep template[0], replace 2+) is deterministic but not validated against real LLM output diversity.
   - If LLM returns only 1 valid candidate, the merge pads with template candidates, which may produce a mixed-style output.
+
+## 86. T184 Eval Record
+
+### Goal
+
+Evaluate template vs hybrid planner behavior on 6 anonymized holdout scenarios and record whether the hybrid path improves or regresses review-only quality without compromising safety.
+
+### Eval Artifacts
+
+All private outputs under `private/distilled/t184_holdout_eval/`:
+- `contexts/*.context.json` — 6 synthetic anonymized ChatContext inputs
+- `plans_template/*.plan.json` — 6 template-mode ReplyPlan outputs
+- `plans_hybrid/*.plan.json` — 6 hybrid-mode ReplyPlan outputs
+- `eval_analysis.json` — structured comparison
+
+### Eval Coverage
+
+6 scenarios × 2 modes = 12 ReplyPlans evaluated:
+
+| Scenario | Type | Template diversity | Hybrid diversity | Baseline preserved |
+|----------|------|-------------------|-----------------|--------------------|
+| S1 new_job | warm baseline | 3 labels | 3 labels | Yes |
+| S2 work | neutral task | 3 labels | 3 labels | Yes |
+| S3 sensitive | boundary-heavy | 3 labels | 3 labels | Yes |
+| S4 thin | no approved store | 3 labels | 3 labels | Yes |
+| S5 memory | evidence-rich | 3 labels | 3 labels | Yes |
+| S6 low_pressure | boundary-sensitive | 3 labels | 3 labels | Yes |
+
+### Key Findings
+
+- **Naturalness**: Hybrid +1 (4/5 vs 3/5). LLM candidates are consistently more natural and situation-appropriate.
+- **Evidence usage**: Hybrid +0.5 (3.5/5 vs 3/5). S5 memory-rich scenario shows strong LLM evidence usage (references hiking trip directly); template stays generic.
+- **Boundary adherence**: Hybrid -1 (3/5 vs 4/5). Policy flags are correctly applied but LLM draft text can contradict the flags (e.g., S4 thin_context LLM candidate asks engaging questions despite thin_context flag).
+- **Mixed language**: Template candidates are Chinese; LLM candidates default to English. This creates a jarring UX when reviewing hybrid output.
+- **LLM confidence inflation**: LLM candidates range 0.79-0.95 vs template 0.45-0.78. Not calibrated to actual quality variance.
+- **Approach_label inconsistency**: Hybrid labels mix snake_case, title case, and sentence fragments.
+- **Privacy safety**: 5/5 for both modes — no leaks.
+- **Merge stability**: 6/6 scenarios preserve template[0] as rank 1 baseline with contiguous ranks.
+
+### Live Provider
+
+All 6 hybrid scenarios used Deepseek (api.deepseek.com, deepseek-chat) via `chat-reply-plan --hybrid`.
+
+### Gate M7 (Holdout Eval Stage) Verdict
+
+**Conditional**
+
+Conditions carried forward:
+1. Language consistency — LLM should generate in the same language as template (Chinese), or mixed-language output must be accepted as a design trade-off.
+2. Safety constraint enforcement — LLM draft text must respect thin_context and boundary_sensitive flags at the text level, not just at the policy-flag level.
+3. Approach_label normalization — hybrid labels should follow the same convention as template labels.
+4. Merge success path regression coverage — add a committed synthetic valid-candidate merge test.
+
+### Remaining Risks
+
+1. Mixed-language output is a real UX concern — English LLM candidates alongside Chinese template candidates.
+2. LLM safety constraint bypass — draft text can contradict assigned risk flags.
+3. LLM confidence is consistently high and uncalibrated, which may mislead human reviewers.
+4. No committed regression test for hybrid valid-candidate merge path (carried from T183).
+5. Approach_label naming inconsistency may affect downstream consumers (e.g., feedback clustering).
+
+## 88. T185 Completion Record
+
+### Goal
+
+Fix the alignment gaps identified by T184 holdout evaluation: enforce LLM output language to match template language (Chinese), add explicit safety constraints for thin_context/boundary_sensitive scenarios, normalize approach_label naming, and add a committed regression test for the valid-candidate merge path.
+
+### Files Changed
+
+- `src/practical_chat_agent/services/llm_reply_generator.py`
+- `tests/test_hybrid_reply_planner.py`
+
+No changes to `reply_planner.py` or `app/main.py` were needed; all fixes are prompt/label/validation-level.
+
+### Changes
+
+1. **System prompt language enforcement**: Added rule 6 requiring all `draft_text` to be written in Chinese (中文). This aligns LLM output language with template output language, resolving the T184 mixed-language UX concern.
+
+2. **Safety constraint enforcement**: Added rule 4 with explicit guidance for thin_context and boundary_sensitive scenarios. Also added automatic `safety_context` detection in `_build_llm_input()`: when `approved_store_context.status` is `not_configured` or `no_runtime_ready_records`, a `thin_context` flag is included; when `derived_brief_context.boundary.sensitivity_summary` contains `sensitive` or `high`, a `boundary_sensitive` flag is included. The system prompt instructs the LLM to obey these flags.
+
+3. **Approach_label normalization**: Added `_normalize_label()` static method that converts arbitrary approach_label values to consistent `snake_case` (lowercase, non-alphanumeric characters replaced with underscores). Applied in `_build_candidates()` so all LLM approach labels follow the same convention as template labels.
+
+4. **Merge success path regression test**: Added `TestHybridMergeSuccessPath` with 3 tests in `test_hybrid_reply_planner.py`. Uses `_MockSuccessGenerator` that returns pre-built valid LLM candidates without calling a real provider. Verifies: template[0] is preserved as safety baseline, LLM candidates replace template 2+, and final ranks are contiguous 1..3.
+
+### Verification
+
+- `python -m py_compile src/practical_chat_agent/services/llm_reply_generator.py src/practical_chat_agent/services/reply_planner.py src/practical_chat_agent/app/main.py` — pass
+- `pytest tests/test_hybrid_reply_planner.py -q` — 21 passed (3 new)
+- `pytest tests/test_llm_reply_generator.py -q` — 47 passed
+- `pytest tests/test_reply_candidate_validator.py -q` — 46 passed
+- `pytest tests/ -q` — 441 passed (438 existing + 3 new), zero regressions
+
+### Remaining Risks
+
+1. **LLM behavior not fully deterministic**: The system prompt and safety context flags guide LLM behavior, but the LLM may still generate non-Chinese text or boundary-violating content in edge cases. The deterministic validator still catches impersonation and privacy leaks as a second line of defense.
+2. **Safety context detection is heuristic**: The current detection uses `approved_store_context.status` and `boundary.sensitivity_summary` to infer thin/sensitive conditions. A more accurate approach would use the `ReplyPlanPolicyEngine` directly, which is outside the generator's scope.
+3. **LLM confidence still uncalibrated**: This task did not address LLM confidence calibration; the uncalibrated 0.79-0.95 range noted in T184 remains.
+4. **Label normalization may truncate some LLM labels**: Long or unusually formatted labels are collapsed to snake_case, which preserves consistency but may lose information.
+5. **Template-only behavior unchanged**: Verified — all 438 existing tests pass without modification.

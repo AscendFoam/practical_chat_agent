@@ -138,7 +138,15 @@
       "Bash(PYTHONPATH=src 'C:/ProgramData/anaconda3/envs/practical-chat-agent/python.exe' -m pytest tests/test_hybrid_reply_planner.py -v)",
       "Bash(PYTHONPATH=src 'C:/ProgramData/anaconda3/envs/practical-chat-agent/python.exe' -m pytest tests/test_reply_planner.py tests/test_reply_candidate_validator.py tests/test_llm_reply_generator.py -q)",
       "Bash(PYTHONPATH=src python -m pytest tests/test_hybrid_reply_planner.py -v)",
-      "Bash(PYTHONPATH=src python -m pytest tests/test_reply_planner.py tests/test_reply_candidate_validator.py tests/test_llm_reply_generator.py -q)"
+      "Bash(PYTHONPATH=src python -m pytest tests/test_reply_planner.py tests/test_reply_candidate_validator.py tests/test_llm_reply_generator.py -q)",
+      "Bash(PYTHONPATH=src python private/t184_run_eval.py)",
+      "Bash(PYTHONPATH=src python -m practical_chat_agent.app.main chat-reply-plan --input private/distilled/t184_holdout_eval/contexts/s1_new_job.context.json --output private/distilled/t184_holdout_eval/plans_template/s1_new_job.plan.json)",
+      "Bash(conda env *)",
+      "Bash(PYTHONPATH=src \"C:\\\\ProgramData\\\\anaconda3\\\\envs\\\\practical-chat-agent\\\\python.exe\" -m practical_chat_agent.app.main chat-reply-plan --input private/distilled/t184_holdout_eval/contexts/s1_new_job.context.json --output private/distilled/t184_holdout_eval/plans_template/s1_new_job.plan.json)",
+      "Bash(PYTHONPATH=src \"C:\\\\ProgramData\\\\anaconda3\\\\envs\\\\practical-chat-agent\\\\python.exe\" private/t184_run_eval.py)",
+      "Bash(PYTHONPATH=src 'C:\\\\ProgramData\\\\anaconda3\\\\envs\\\\practical-chat-agent\\\\python.exe' -c ' *)",
+      "Bash(python -c \"import json; d=json.load\\(open\\('private/distilled/t184_holdout_eval/eval_analysis.json'\\)\\); print\\(json.dumps\\({k:{kk:vv for kk,vv in v.items\\(\\) if kk != 'template_labels' and kk != 'hybrid_labels'} for k,v in d.items\\(\\)}, indent=2, ensure_ascii=False\\)\\)\")",
+      "Bash('C:/ProgramData/anaconda3/envs/practical-chat-agent/python.exe' -m py_compile src/practical_chat_agent/services/llm_reply_generator.py src/practical_chat_agent/services/reply_planner.py src/practical_chat_agent/app/main.py)"
     ]
   }
 }

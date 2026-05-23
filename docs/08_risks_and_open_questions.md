@@ -1,5 +1,34 @@
 # Risks And Open Questions
 
+## Captain Update 2026-05-23 (T185 Review Decision + M7 Review)
+
+Authoritative current risk state after the Captain review of T185 and the M7 milestone review:
+
+- R039 remains active: M7 is closed, but LLM quality and confidence can still be over-read as readiness for unmonitored use.
+- R040 remains active as a compact-context boundary rule: M8 and later work must continue to use anonymized/safe inputs only.
+- R041 remains active: approved patches, derived briefs, and future relationship state must still be interpreted as review-only guidance rather than automatic learning or hidden state mutation.
+- R069 is active and deferred: safety-context detection remains heuristic rather than policy-engine-native.
+- R070 is active and deferred: Chinese output alignment is still prompt-level rather than hard post-generation enforcement.
+- R071 is active and deferred: LLM confidence calibration remains unresolved and should not be treated as a probability.
+
+Closed question Q181: T185 is accepted with `PASS_WITH_WARNINGS`, so the project may proceed to T190 rather than reopening M7 repair work.
+Closed question Q182: Gate M7 is `Allow`, so the project may enter M8 beginning with T190.
+
+## Captain Update 2026-05-23 (T184 Review Decision)
+
+Authoritative current risk state after the Captain review of T184:
+
+- R039 remains active: the holdout evidence supports improvement, but not readiness for unmonitored use or broad quality claims.
+- R040 remains active as a compact-context boundary rule: T185 and later work must continue to use anonymized/safe holdout inputs only.
+- R041 remains active: approved patches and derived briefs must still be interpreted as review-only guidance rather than automatic learning or hidden state mutation.
+- R065 remains active and now is clearly exposed by holdout eval: the hybrid merge success path still lacks a committed regression test.
+- R066 is active and deferred: hybrid LLM candidates default to English while template candidates are Chinese, creating a mixed-language review UX gap.
+- R067 is active and deferred: LLM draft text can contradict thin_context / boundary_sensitive safety intent even when policy flags are present.
+- R068 is active and deferred: hybrid LLM `approach_label` values are not normalized to the same naming convention as template labels.
+
+Closed question Q179: T184 is accepted with `PASS_WITH_WARNINGS`, so the project may proceed to T185 rather than reopening holdout evaluation for a blocking repair pass.
+Closed question Q180: Gate M7 is `Conditional`, so the project may continue within M7 but may not claim the milestone is fully closed until T185 resolves the remaining conditions.
+
 ## Captain Update 2026-05-23 (T183 Review Decision)
 
 Authoritative current risk state after the Captain review of T183:
@@ -407,6 +436,9 @@ Closed question Q124: the updated GPT roadmap is directionally aligned, but M4/M
 | R063 | `INPUT_TOO_LARGE` preflight exists but the T182 call site passes `str(estimated_size)` instead of the serialized payload | Oversize compact-context input still falls through to provider-error handling, so the dedicated deterministic refusal path remains non-functional despite appearing implemented | T183 or a narrow follow-up should fix the call site and add a regression test that proves `INPUT_TOO_LARGE` is returned before provider call |
 | R064 | Candidate-path regression coverage is much stronger after T182, but the `INPUT_TOO_LARGE` refusal path still lacks committed coverage | The current preflight bug could persist or regress silently even though most validator/generator branches are now protected | Add a dedicated refusal-path regression test before or during T183 so hybrid integration does not build on an unverified preflight |
 | R065 | T183 hybrid merge success path is only smoke-validated, not committed-test validated | A refactor could break valid LLM candidate merging, reranking, or policy assessment without immediate regression signal | Add a committed synthetic valid-candidate merge test before relying on the hybrid path for broader evaluation claims |
+| R066 | T184 holdout showed hybrid LLM candidates defaulted to English while template candidates remained Chinese | This was a real UX gap during T184 and was addressed by T185 language alignment | Closed by T185 |
+| R067 | T184 holdout showed thin_context / boundary_sensitive policy flags did not always constrain LLM draft text | This was a real safety-gap exposure during T184 and was addressed by T185 prompt-level constraints | Closed by T185 |
+| R068 | T184 holdout showed hybrid `approach_label` values were not normalized to the template naming convention | This was a real downstream-consistency gap during T184 and was addressed by T185 label normalization | Closed by T185 |
 
 ## Open Questions
 
@@ -418,6 +450,8 @@ Closed question Q124: the updated GPT roadmap is directionally aligned, but M4/M
 
 | ID | 结论 | 关闭依据 |
 | --- | --- | --- |
+| Q180 | Gate M7 是否已经可以关闭并进入 M8？还不可以；它仍是 `Conditional`，必须先完成 T185 的窄范围对齐修复。 | `docs/review/T184_milestone_review.md` + Captain decision |
+| Q179 | T184 是否可以作为已完成任务接受并推进到 T185？可以；以 `PASS_WITH_WARNINGS` 接受，holdout 证据有效但 gate 仍 `Conditional`。 | `docs/review/T184_review.md` + Captain decision |
 | Q178 | T183 是否可以作为已完成任务接受并推进到 T184？可以；以 `PASS_WITH_WARNINGS` 接受，deferred 项收敛到 hybrid merge success test 缺口。 | `docs/review/T183_review.md` + Captain decision |
 | Q177 | T182 是否可以作为已完成任务接受并推进到 T183？可以；以 `PASS_WITH_WARNINGS` 接受，deferred 项收敛到 `INPUT_TOO_LARGE` 预检 bug 及其测试缺口。 | `docs/review/T182_review.md` + Captain decision |
 | Q176 | T181 是否可以作为已完成任务接受并推进到 T182？可以；以 `PASS_WITH_WARNINGS` 接受，deferred 项转入 validator/privacy/test hardening 风险。 | `docs/review/T181_review.md` + Captain decision |
