@@ -1,4 +1,5 @@
 """T181: LLM Reply Generator Tests.
+T182: Extended with M01-M04 regression tests for T181 review gaps.
 
 Deterministic tests covering LLMReplyPlanValidator and the offline
 generator service surface.  No LLM provider calls are made in these tests.
@@ -19,6 +20,10 @@ Coverage areas:
  12. CLI dry run prints availability status
  13. CLI rejects invalid ChatContext JSON
  14. CLI writes output to specified path
+ [M01] _build_llm_input output-shape expectations
+ [M02] _parse_provider_response error paths
+ [M03] Generator-to-validator end-to-end synthetic pipeline
+ [M04] CLI stdout privacy regression
 """
 
 from __future__ import annotations
@@ -30,16 +35,31 @@ import pytest
 
 from practical_chat_agent.core.models import (
     ApprovedContactSkillBrief,
+    ApprovedMemoryFactBrief,
+    ApprovedPatchBrief,
+    ApprovedPatchContext,
     ApprovedStoreContext,
+    BoundaryProfileBrief,
     ChatContext,
+    DerivedBriefContext,
     LLMGenerationMetadata,
     LLMReplyPlan,
     LLMReplyPlanCandidate,
     LLMReplyPlanRefusal,
+    PartnerPersonaBrief,
     ReplyPlanContextRef,
-    ReplyPlanContextRefType,
+)
+from practical_chat_agent.core.enums import (
+    ChannelType,
+    ChatIntent,
+    ContentType,
+    Direction,
+    PersonaType,
+    Platform,
+    SourceType,
 )
 from practical_chat_agent.services.llm_reply_generator import (
+    LLMReplyGeneratorError,
     LLMReplyGeneratorService,
     LLMReplyPlanValidator,
 )
@@ -514,3 +534,465 @@ class TestCLI:
             assert data["schema_version"] == "llm_reply_plan_v1"
             assert data["generator_type"] == "llm_generated"
             assert "generator_id" in data
+
+
+# =========================================================================
+# [M01] _build_llm_input output-shape tests
+# =========================================================================
+
+
+class TestBuildLlmInputShape:
+    """Regression tests for _build_llm_input output shape (T181 M01 gap)."""
+
+    def test_minimal_context(self) -> None:
+        """Minimal context returns base keys only."""
+        service = LLMReplyGeneratorService(
+            api_key="sk-test",
+            base_url="https://api.example.com/v1",
+            model="gpt-4o",
+            enabled=True,
+        )
+        ctx = context(contact_id="contact_min", latest_message_text="hi")
+        result = service._build_llm_input(context=ctx)
+        assert result is not None
+        assert result["contact_id"] == "contact_min"
+        assert "latest_message_text" in result
+        assert "relationship_summary" not in result
+        assert "approved_memory_claims" not in result
+        assert "persona_summary" not in result
+
+    def test_with_skill_brief(self) -> None:
+        """Skill brief fields are included when contact_skill is present."""
+        service = LLMReplyGeneratorService(
+            api_key="sk-test",
+            base_url="https://api.example.com/v1",
+            model="gpt-4o",
+            enabled=True,
+        )
+        skill = skill_brief(
+            record_id="skill_m01_001",
+            contact_id="contact_m01",
+            relationship_summary="test relationship",
+            strategy_hints=["hint one", "hint two"],
+            boundary_reminders=["boundary one"],
+        )
+        store = ApprovedStoreContext(
+            status="loaded",
+            contact_id="contact_m01",
+            contact_skill=skill,
+            evidence_refs=["ev_m01_001"],
+        )
+        ctx = context(contact_id="contact_m01", approved_store_context=store)
+        result = service._build_llm_input(context=ctx)
+        assert result is not None
+        assert result["relationship_summary"] == "test relationship"
+        assert "hint one" in result["strategy_hints"]
+        assert "boundary one" in result["boundary_reminders"]
+
+    def test_with_memory_facts(self) -> None:
+        """Approved memory claims are included when memory_facts exist."""
+        service = LLMReplyGeneratorService(
+            api_key="sk-test",
+            base_url="https://api.example.com/v1",
+            model="gpt-4o",
+            enabled=True,
+        )
+        memories = [
+            ApprovedMemoryFactBrief(
+                record_id="mem_m01_001",
+                memory_id="mem_m01_001",
+                memory_type="semantic",
+                claim="likes hiking",
+                evidence_refs=["ev_m01_002"],
+            ),
+        ]
+        store = ApprovedStoreContext(
+            status="loaded",
+            contact_id="contact_m01",
+            memory_facts=memories,
+            evidence_refs=["ev_m01_002"],
+        )
+        ctx = context(contact_id="contact_m01", approved_store_context=store)
+        result = service._build_llm_input(context=ctx)
+        assert result is not None
+        assert "likes hiking" in result["approved_memory_claims"]
+
+    def test_with_derived_briefs(self) -> None:
+        """Derived brief fields are included when derived context is loaded."""
+        service = LLMReplyGeneratorService(
+            api_key="sk-test",
+            base_url="https://api.example.com/v1",
+            model="gpt-4o",
+            enabled=True,
+        )
+        persona = PartnerPersonaBrief(
+            contact_id="contact_m01",
+            relationship_type="friend",
+            relationship_state_summary="casual friendship",
+            source_skill_record_id="skill_m01_001",
+        )
+        boundary = BoundaryProfileBrief(
+            contact_id="contact_m01",
+            sensitivity_summary="medium",
+            source_skill_record_id="skill_m01_001",
+        )
+        derived = DerivedBriefContext(
+            status="loaded",
+            persona=persona,
+            boundary=boundary,
+        )
+        ctx = context(contact_id="contact_m01")
+        ctx.derived_brief_context = derived
+        result = service._build_llm_input(context=ctx)
+        assert result is not None
+        assert result["persona_summary"] == "casual friendship"
+        assert result["boundary_sensitivity"] == "medium"
+
+    def test_with_approved_patches(self) -> None:
+        """Approved patch hints are included when patches are loaded."""
+        service = LLMReplyGeneratorService(
+            api_key="sk-test",
+            base_url="https://api.example.com/v1",
+            model="gpt-4o",
+            enabled=True,
+        )
+        patch = ApprovedPatchBrief(
+            patch_id="patch_m01_001",
+            compact_instruction="keep replies short",
+            patch_type="tone",
+            sensitivity="low",
+        )
+        patches = ApprovedPatchContext(
+            status="loaded",
+            contact_id="contact_m01",
+            patches=[patch],
+        )
+        ctx = context(contact_id="contact_m01")
+        ctx.approved_patch_context = patches
+        result = service._build_llm_input(context=ctx)
+        assert result is not None
+        assert "[tone] keep replies short" in result["approved_patch_hints"]
+
+    def test_empty_contact_id_returns_none(self) -> None:
+        """Empty or whitespace contact_id causes _build_llm_input to return None."""
+        service = LLMReplyGeneratorService(
+            api_key="sk-test",
+            base_url="https://api.example.com/v1",
+            model="gpt-4o",
+            enabled=True,
+        )
+        ctx = context(contact_id="   ")
+        result = service._build_llm_input(context=ctx)
+        assert result is None
+
+    def test_event_and_memory_counts(self) -> None:
+        """recent_event_count and memory_hit_count are always present."""
+        service = LLMReplyGeneratorService(
+            api_key="sk-test",
+            base_url="https://api.example.com/v1",
+            model="gpt-4o",
+            enabled=True,
+        )
+        ctx = context(
+            contact_id="contact_m01",
+            recent_events=[
+                event("ev_m01_a", "event a"),
+                event("ev_m01_b", "event b"),
+            ],
+            memory_hits=[
+                memory("mem_m01_a", "fact a"),
+                memory("mem_m01_b", "fact b"),
+            ],
+        )
+        result = service._build_llm_input(context=ctx)
+        assert result is not None
+        assert result["recent_event_count"] == 2
+        assert result["memory_hit_count"] == 2
+
+
+# =========================================================================
+# [M02] _parse_provider_response error path tests
+# =========================================================================
+
+
+class TestParseProviderResponse:
+    """Regression tests for _parse_provider_response error paths (T181 M02 gap)."""
+
+    def _make_service(self) -> LLMReplyGeneratorService:
+        return LLMReplyGeneratorService(
+            api_key="sk-test",
+            base_url="https://api.example.com/v1",
+            model="gpt-4o",
+            enabled=True,
+        )
+
+    def test_missing_choices(self) -> None:
+        """Response without 'choices' key raises error."""
+        service = self._make_service()
+        with pytest.raises(LLMReplyGeneratorError, match="no choices"):
+            service._parse_provider_response(response={})
+
+    def test_empty_choices(self) -> None:
+        """Response with empty choices list raises error."""
+        service = self._make_service()
+        with pytest.raises(LLMReplyGeneratorError, match="no choices"):
+            service._parse_provider_response(response={"choices": []})
+
+    def test_choices_not_a_list(self) -> None:
+        """Response where choices is not a list raises error."""
+        service = self._make_service()
+        with pytest.raises(LLMReplyGeneratorError, match="no choices"):
+            service._parse_provider_response(response={"choices": "not_a_list"})
+
+    def test_non_dict_choice(self) -> None:
+        """Choice entry that is not a dict raises error."""
+        service = self._make_service()
+        with pytest.raises(LLMReplyGeneratorError, match="not a dict"):
+            service._parse_provider_response(response={"choices": [42]})
+
+    def test_missing_message(self) -> None:
+        """Choice without 'message' key raises error."""
+        service = self._make_service()
+        with pytest.raises(LLMReplyGeneratorError, match="message is missing"):
+            service._parse_provider_response(response={"choices": [{"not_message": True}]})
+
+    def test_non_dict_message(self) -> None:
+        """Message that is not a dict raises error."""
+        service = self._make_service()
+        with pytest.raises(LLMReplyGeneratorError, match="message is missing"):
+            service._parse_provider_response(response={"choices": [{"message": "string"}]})
+
+    def test_empty_content(self) -> None:
+        """Empty string content raises error."""
+        service = self._make_service()
+        with pytest.raises(LLMReplyGeneratorError, match="content is empty"):
+            service._parse_provider_response(response={"choices": [{"message": {"content": ""}}]})
+
+    def test_invalid_json_content(self) -> None:
+        """Non-JSON content raises error."""
+        service = self._make_service()
+        with pytest.raises(LLMReplyGeneratorError, match="not valid JSON"):
+            service._parse_provider_response(response={
+                "choices": [{"message": {"content": "not json at all"}}],
+            })
+
+    def test_json_not_object(self) -> None:
+        """JSON content that is not a dict raises error."""
+        service = self._make_service()
+        with pytest.raises(LLMReplyGeneratorError, match="not a JSON object"):
+            service._parse_provider_response(response={
+                "choices": [{"message": {"content": '"just a string"'}}],
+            })
+
+    def test_valid_response_returns_candidates(self) -> None:
+        """Valid response returns the candidates list."""
+        service = self._make_service()
+        response = {
+            "choices": [{"message": {"content": '{"candidates": [{"draft_text": "hello"}]}'}}],
+        }
+        result = service._parse_provider_response(response=response)
+        assert len(result) == 1
+        assert result[0]["draft_text"] == "hello"
+
+
+# =========================================================================
+# [M03] Generator-to-validator pipeline test
+# =========================================================================
+
+
+class TestGeneratorToValidatorPipeline:
+    """End-to-end synthetic pipeline: mock provider → parse → build → validate."""
+
+    def test_synthetic_pipeline_produces_validated_plan(self) -> None:
+        """Full pipeline produces validated LLMReplyPlan from mock response."""
+        service = LLMReplyGeneratorService(
+            api_key="sk-test",
+            base_url="https://api.example.com/v1",
+            model="gpt-4o",
+            enabled=True,
+        )
+        ctx = context(
+            contact_id="contact_pipe",
+            latest_message_text="how are you?",
+        )
+
+        # 1. Build input
+        llm_input = service._build_llm_input(context=ctx)
+        assert llm_input is not None
+
+        # 2. Simulate provider response
+        mock_response = {
+            "choices": [{
+                "message": {
+                    "content": json.dumps({
+                        "candidates": [
+                            {
+                                "approach_label": "conservative_acknowledgment",
+                                "draft_text": "收到，我先接住这条消息。",
+                                "rationale": "Keeps reply low-pressure.",
+                                "boundary_reminders": ["Do not sound overly intimate."],
+                                "risk_flags": [],
+                                "confidence": 0.78,
+                            },
+                            {
+                                "approach_label": "optional_follow_up",
+                                "draft_text": "如果你愿意，可以再补充细节。",
+                                "rationale": "Leaves room for more.",
+                                "boundary_reminders": ["Keep optional."],
+                                "risk_flags": ["invites_more_disclosure"],
+                                "confidence": 0.70,
+                            },
+                        ],
+                    }),
+                },
+            }],
+        }
+
+        # 3. Parse
+        raw_candidates = service._parse_provider_response(response=mock_response)
+        assert len(raw_candidates) == 2
+
+        # 4. Build candidates
+        candidates = service._build_candidates(raw_candidates=raw_candidates)
+        assert len(candidates) == 2
+
+        # 5. Build plan
+        context_texts = LLMReplyGeneratorService._collect_context_texts(context=ctx)
+        plan = LLMReplyPlan(
+            contact_id="contact_pipe",
+            source_context_snapshot=service._build_source_snapshot(context=ctx),
+            generation_metadata=service._build_metadata(latency_ms=100),
+            candidates=candidates,
+        )
+
+        # 6. Validate
+        validated = LLMReplyPlanValidator.validate(
+            plan=plan,
+            context_texts=context_texts,
+        )
+        assert len(validated.candidates) == 2
+        assert validated.contact_id == "contact_pipe"
+        assert validated.schema_version == "llm_reply_plan_v1"
+        assert validated.generator_type == "llm_generated"
+        assert validated.candidates[0].priority_rank == 1
+        assert validated.candidates[1].priority_rank == 2
+
+    def test_pipeline_rejects_invalid_candidate(self) -> None:
+        """Pipeline filters out candidate with privacy leak during validation."""
+        service = LLMReplyGeneratorService(
+            api_key="sk-test",
+            base_url="https://api.example.com/v1",
+            model="gpt-4o",
+            enabled=True,
+        )
+        ctx = context(
+            contact_id="contact_pipe2",
+            latest_message_text="my private detail is secret123",
+        )
+
+        # Build input
+        llm_input = service._build_llm_input(context=ctx)
+        assert llm_input is not None
+
+        # Simulate provider response where one candidate leaks context text
+        mock_response = {
+            "choices": [{
+                "message": {
+                    "content": json.dumps({
+                        "candidates": [
+                            {
+                                "approach_label": "leaky",
+                                "draft_text": "I understand your private detail is secret123.",
+                                "rationale": "Acknowledges.",
+                                "boundary_reminders": ["Be careful."],
+                                "risk_flags": [],
+                                "confidence": 0.50,
+                            },
+                            {
+                                "approach_label": "safe",
+                                "draft_text": "收到，我先接住。",
+                                "rationale": "Safe.",
+                                "boundary_reminders": ["Be careful."],
+                                "risk_flags": [],
+                                "confidence": 0.70,
+                            },
+                        ],
+                    }),
+                },
+            }],
+        }
+
+        # Parse → build → plan → validate
+        raw = service._parse_provider_response(response=mock_response)
+        candidates = service._build_candidates(raw_candidates=raw)
+        context_texts = LLMReplyGeneratorService._collect_context_texts(context=ctx)
+        plan = LLMReplyPlan(
+            contact_id="contact_pipe2",
+            source_context_snapshot=service._build_source_snapshot(context=ctx),
+            generation_metadata=service._build_metadata(latency_ms=50),
+            candidates=candidates,
+        )
+        validated = LLMReplyPlanValidator.validate(plan=plan, context_texts=context_texts)
+
+        # Only the safe candidate should survive
+        assert len(validated.candidates) == 1
+        assert validated.candidates[0].approach_label == "safe"
+
+
+# =========================================================================
+# [M04] CLI stdout privacy regression
+# =========================================================================
+
+
+class TestCLIStdoutPrivacy:
+    """CLI stdout emits only safe metadata, never draft_text or private text."""
+
+    def test_dry_run_stdout_no_draft_text(self, tmp_path: Path) -> None:
+        """Dry run stdout contains no draft_text."""
+        from practical_chat_agent.app.main import app as typer_app
+        from typer.testing import CliRunner
+
+        runner = CliRunner()
+        ctx = context(
+            contact_id="contact_priv",
+            latest_message_text="private text abc123",
+        )
+        input_file = tmp_path / "test_context.json"
+        input_file.write_text(ctx.model_dump_json(indent=2), encoding="utf-8")
+
+        result = runner.invoke(
+            typer_app,
+            [
+                "chat-reply-generate-llm",
+                "--input", str(input_file),
+                "--output", str(tmp_path / "out.json"),
+                "--dry-run",
+            ],
+        )
+        assert result.exit_code == 0
+        assert "draft_text" not in result.stdout
+        assert "private text" not in result.stdout
+
+    def test_generate_stdout_no_draft_text(self, tmp_path: Path) -> None:
+        """Generation stdout (even when refusing) contains no draft_text."""
+        from practical_chat_agent.app.main import app as typer_app
+        from typer.testing import CliRunner
+
+        runner = CliRunner()
+        ctx = context(
+            contact_id="contact_priv",
+            latest_message_text="some private detail",
+        )
+        input_file = tmp_path / "test_context.json"
+        input_file.write_text(ctx.model_dump_json(indent=2), encoding="utf-8")
+
+        result = runner.invoke(
+            typer_app,
+            [
+                "chat-reply-generate-llm",
+                "--input", str(input_file),
+                "--output", str(tmp_path / "out.json"),
+            ],
+        )
+        assert result.exit_code is not None
+        assert "draft_text" not in result.stdout

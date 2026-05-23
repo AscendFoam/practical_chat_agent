@@ -1,5 +1,16 @@
 # Feasibility Report
 
+## Captain Update 2026-05-23 (T182 Review)
+
+T182 confirms that shared deterministic candidate validation is feasible in the current repository shape.
+
+The feasibility gap has changed again:
+
+- no longer blocked on whether template and LLM candidate paths can share reusable deterministic validation and stronger regression coverage
+- now focused on whether T183 can add an opt-in hybrid planner mode without regressing template-mode compatibility, review-only policy enforcement, or compact-context boundaries
+
+So the project is ready to commit the T182 slice and advance to T183, while keeping hybrid integration opt-in, non-default, and policy-gated.
+
 ## Captain Update 2026-05-23 (T181 Review)
 
 T181 confirms that an optional offline LLM generation path is feasible in the current repository shape.

@@ -13,6 +13,7 @@ from practical_chat_agent.services.policy import (
     ReplyPlanPolicyEngine,
     ReplyPlanPolicyProfile,
 )
+from practical_chat_agent.services.reply_candidate_validator import check_ranks_contiguous
 
 _BOUNDARY_REVIEW_ONLY = "Drafts are for human review only."
 _BOUNDARY_NO_IMPERSONATION = "Do not imitate the contact or write as if they are speaking."
@@ -398,11 +399,11 @@ class ReplyPlanner:
     def _validate_plan(*, plan: ReplyPlan, contact_id: str) -> None:
         if plan.contact_id != contact_id:
             raise ReplyPlannerError("ReplyPlan.contact_id must match the routed contact id.")
-        priority_ranks = [candidate.priority_rank for candidate in plan.candidates]
-        if len(priority_ranks) != len(set(priority_ranks)):
-            raise ReplyPlannerError("ReplyPlan candidate priority_rank values must be unique.")
-        if sorted(priority_ranks) != list(range(1, len(priority_ranks) + 1)):
-            raise ReplyPlannerError("ReplyPlan candidate priority_rank values must form a stable 1..N sequence.")
+        if not check_ranks_contiguous(plan.candidates):
+            raise ReplyPlannerError(
+                "ReplyPlan candidate priority_rank values must be unique "
+                "and form a stable 1..N sequence.",
+            )
 
     @staticmethod
     def _clamp_confidence(value: float) -> float:

@@ -4,6 +4,20 @@ Updated: 2026-05-23
 
 ## Captain Current State Override
 
+- T182 review decision: `PASS_WITH_WARNINGS`.
+- T182 is complete as the shared validator-hardening M7 task.
+- T182 warning disposition:
+  - Accepted: N02 `.claude/settings.json` workspace-artifact overrun.
+  - Deferred: N01 broken `INPUT_TOO_LARGE` preflight call-site bug, M01 missing regression test for the `INPUT_TOO_LARGE` refusal path.
+  - Rejected: none.
+- Current Unique Task: T183 Hybrid ReplyPlanner.
+- Current task package: `docs/tasks/M7_llm_reply_planner/T183_hybrid_reply_planner.md`.
+- T183 must stay opt-in, additive, and review-only: no default LLM mode, no send/platform integration, no runtime mutation, and no bypass of validator or policy gating.
+- M7 execution constraints now carried forward:
+  - T183 may integrate template and optional LLM candidates into one review-only planner surface, but template mode must remain backward-compatible and authoritative by default.
+  - T183 must preserve compact-context boundaries, deterministic validation, policy/boundary review, and private-artifact discipline.
+  - T183 must not claim quality completion; holdout quality judgment remains deferred to T184.
+
 - T181 review decision: `PASS_WITH_WARNINGS`.
 - T181 is complete as the first executable M7 task.
 - T181 warning disposition:
@@ -129,11 +143,11 @@ Updated: 2026-05-23
 
 ## Current Unique Task
 
-T182: Candidate Validator.
+T183: Hybrid ReplyPlanner.
 
-Task package: `docs/tasks/M7_llm_reply_planner/T182_candidate_validator.md`
+Task package: `docs/tasks/M7_llm_reply_planner/T183_hybrid_reply_planner.md`
 
-Why now: T181 has landed the offline generator path with `PASS_WITH_WARNINGS`. The next smallest safe step is to extract and harden deterministic candidate validation before any hybrid planner wiring, default runtime LLM path, or planner-quality claim is introduced.
+Why now: T182 has landed shared deterministic validation with `PASS_WITH_WARNINGS`. The next smallest safe step is to add an opt-in hybrid planner mode before any quality claim or holdout evaluation work, while keeping template mode backward-compatible and non-LLM by default.
 
 ## Board Rules
 
@@ -231,7 +245,7 @@ Goal: add optional LLM candidate generation only after regression safety net is 
 
 - [x] T180: LLM candidate contract. Review `PASS`.
 - [x] T181: LLM candidate offline CLI. Review `PASS_WITH_WARNINGS`.
-- [ ] T182: candidate validator.
+- [x] T182: candidate validator. Review `PASS_WITH_WARNINGS`.
 - [ ] T183: hybrid ReplyPlanner.
 - [ ] T184: planner holdout eval.
 
@@ -286,9 +300,9 @@ Goal: keep WeChat as a thin final adapter behind the send gate.
 
 ## Historical Current Unique Task
 
-T181: LLM Candidate Offline CLI.
+T182: Candidate Validator.
 
-It is now complete and accepted with `PASS_WITH_WARNINGS`. The next worker task is T182, because the next safe step is validator extraction and hardening rather than hybrid planner wiring or any default runtime LLM path.
+It is now complete and accepted with `PASS_WITH_WARNINGS`. The next worker task is T183, because the next safe step is opt-in hybrid planner integration rather than quality claims or a default runtime LLM path.
 
 ## Next Captain Output Required
 

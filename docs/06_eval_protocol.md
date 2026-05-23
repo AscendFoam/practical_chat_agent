@@ -1,5 +1,15 @@
 # Eval Protocol
 
+## Captain Update 2026-05-23 (T182 Review)
+
+T182 has now been accepted with `PASS_WITH_WARNINGS`.
+
+Current evaluation sequence is now:
+
+- T183: can the repo add an opt-in hybrid planner mode that combines template and optional LLM candidates while preserving template-mode backward compatibility, deterministic validation, policy/boundary gating, compact-context boundaries, and review-only output semantics?
+
+T182 changes the evaluation baseline in one important way: M7 no longer needs to prove whether candidate validation can be extracted and regression-hardened across sources. That layer now exists. The next evaluation target is integration discipline, not validator reuse.
+
 ## Captain Update 2026-05-23 (T181 Review)
 
 T181 has now been accepted with `PASS_WITH_WARNINGS`.

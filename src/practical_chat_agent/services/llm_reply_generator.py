@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import re
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -13,11 +12,20 @@ from urllib.request import Request, urlopen
 from practical_chat_agent.core.models import (
     ChatContext,
     LLMGenerationMetadata,
-    LLMGeneratorType,
     LLMReplyPlan,
     LLMReplyPlanCandidate,
     LLMReplyPlanRefusal,
     ReplyPlanContextRef,
+)
+from practical_chat_agent.services.reply_candidate_validator import (
+    check_boundary_reminders,
+    check_input_size,
+    check_ref_types,
+    check_supporting_refs,
+    check_text_non_empty,
+    has_impersonation,
+    has_privacy_leak,
+    normalize_ranks,
 )
 
 
@@ -32,15 +40,11 @@ class LLMReplyPlanValidator:
     LLM Candidate Generator Contract.  Validation is stateless and
     per-candidate: invalid candidates are excluded silently, and only
     the validated subset is returned.
-    """
 
-    _IMPERSONATION_PATTERNS: list[re.Pattern] = [
-        re.compile(r"\bI\s+\(?\s*(?:would|think|feel|believe|know|want)",
-                   re.IGNORECASE),
-        re.compile(r"\b(?:he|she)\s+would\s+say\b", re.IGNORECASE),
-        re.compile(r"(^|[^A-Za-z])对方会"),
-        re.compile(r"\b(?:作为|以).*(?:身份|角色).*(?:说|回复|回答)", re.IGNORECASE),
-    ]
+    Core validation logic is delegated to
+    ``practical_chat_agent.services.reply_candidate_validator`` for
+    reuse across template and LLM-generated candidate paths.
+    """
 
     @classmethod
     def validate(
@@ -64,7 +68,7 @@ class LLMReplyPlanValidator:
 
         validated = plan.model_copy(deep=True)
         validated.candidates = valid_candidates
-        cls.validate_ranks(validated.candidates)
+        normalize_ranks(validated.candidates)
         return validated
 
     @classmethod
@@ -74,68 +78,24 @@ class LLMReplyPlanValidator:
         candidate: LLMReplyPlanCandidate,
         context_texts: list[str] | None,
     ) -> bool:
-        if not candidate.draft_text.strip():
+        if not check_text_non_empty(candidate.draft_text):
             return False
-        if len(candidate.supporting_context_refs) < 1:
+        if not check_supporting_refs(candidate.supporting_context_refs):
             return False
-        if len(candidate.boundary_reminders) < 1:
+        if not check_boundary_reminders(candidate.boundary_reminders):
             return False
-        if not cls._refs_are_valid(candidate.supporting_context_refs):
+        if not check_ref_types(candidate.supporting_context_refs):
             return False
         if candidate.generator_type != "llm_generated":
             return False
-        if context_texts and cls._has_privacy_leak(
+        if context_texts and has_privacy_leak(
             draft_text=candidate.draft_text,
             context_texts=context_texts,
         ):
             return False
-        if cls._has_impersonation(candidate.draft_text):
+        if has_impersonation(candidate.draft_text):
             return False
         return True
-
-    @staticmethod
-    def _refs_are_valid(refs: list[ReplyPlanContextRef]) -> bool:
-        valid_types = {
-            "approved_contact_skill_record",
-            "approved_memory_fact_record",
-            "approved_store_evidence_ref",
-            "recent_event",
-            "memory_hit",
-            "policy_boundary",
-        }
-        for ref in refs:
-            if ref.ref_type not in valid_types:
-                return False
-        return True
-
-    @staticmethod
-    def _ranks_are_contiguous(candidates: list[LLMReplyPlanCandidate]) -> bool:
-        if not candidates:
-            return True
-        ranks = sorted(c.priority_rank for c in candidates)
-        return ranks == list(range(1, len(ranks) + 1))
-
-    @staticmethod
-    def _has_privacy_leak(*, draft_text: str, context_texts: list[str]) -> bool:
-        clean_draft = " ".join(draft_text.split()).strip().lower()
-        for ctx in context_texts:
-            clean_ctx = " ".join(ctx.split()).strip().lower()
-            if not clean_ctx or len(clean_ctx) < 8:
-                continue
-            if clean_ctx in clean_draft:
-                return True
-        return False
-
-    @classmethod
-    def _has_impersonation(cls, draft_text: str) -> bool:
-        return any(p.search(draft_text) for p in cls._IMPERSONATION_PATTERNS)
-
-    @classmethod
-    def validate_ranks(cls, candidates: list[LLMReplyPlanCandidate]) -> list[LLMReplyPlanCandidate]:
-        """Re-assign priority_rank values to a stable 1..N sequence."""
-        for idx, candidate in enumerate(candidates, start=1):
-            candidate.priority_rank = idx
-        return candidates
 
 
 class LLMReplyGeneratorService:
@@ -157,6 +117,7 @@ class LLMReplyGeneratorService:
         timeout_seconds: float = 45.0,
         enabled: bool = True,
         default_model: str = "deepseek-chat",
+        max_input_chars: int = 20_000,
     ) -> None:
         self.api_key = (api_key or "").strip() or None
         self.base_url = (base_url or "").strip() or None
@@ -164,6 +125,7 @@ class LLMReplyGeneratorService:
         self.timeout_seconds = max(float(timeout_seconds), 3.0)
         self.enabled = enabled
         self.default_model = default_model
+        self.max_input_chars = max_input_chars
         self._prompt_template_hash = self._compute_prompt_hash()
 
     @property
@@ -214,6 +176,21 @@ class LLMReplyGeneratorService:
 
         context_texts = self._collect_context_texts(context=context)
 
+        # --- input size preflight ---
+        system_prompt = self._build_system_prompt()
+        input_json = json.dumps(llm_input, ensure_ascii=False)
+        estimated_size = len(system_prompt) + len(input_json)
+        if not check_input_size(str(estimated_size), max_chars=self.max_input_chars):
+            return self._refusal(
+                contact_id=contact_id,
+                code="INPUT_TOO_LARGE",
+                reason=(
+                    f"Estimated input size ({estimated_size} chars) exceeds "
+                    f"limit ({self.max_input_chars})."
+                ),
+                retryable=False,
+            )
+
         # --- call provider ---
         start = datetime.now(timezone.utc)
         try:
@@ -256,9 +233,6 @@ class LLMReplyGeneratorService:
             plan=plan,
             context_texts=context_texts,
         )
-
-        # --- renumber ranks after validation filtering ---
-        LLMReplyPlanValidator.validate_ranks(validated.candidates)
 
         return validated
 

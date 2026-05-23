@@ -1,5 +1,18 @@
 # Handoff
 
+## Captain Current State Override 2026-05-23 (T182 Review Decision)
+
+- T182 review decision: `PASS_WITH_WARNINGS`.
+- T182 warning disposition:
+  - Accepted: N02 `.claude/settings.json` workspace-artifact overrun.
+  - Deferred: N01 broken `INPUT_TOO_LARGE` preflight call-site bug, M01 missing regression test for the `INPUT_TOO_LARGE` refusal path.
+  - Rejected: none.
+- T182 is complete as the shared validator-hardening M7 task.
+- Current Unique Task: T183 Hybrid ReplyPlanner.
+- Current task package: `docs/tasks/M7_llm_reply_planner/T183_hybrid_reply_planner.md`.
+- T183 must stay opt-in, additive, and review-only: no default LLM mode, no ReplyPlanner runtime mutation that bypasses gating, and no send/platform integration.
+- T183 may integrate optional LLM candidates only behind explicit controls and must preserve shared deterministic validation, compact-context boundaries, and policy/boundary review.
+
 ## Captain Current State Override 2026-05-23 (T181 Review Decision)
 
 - T181 review decision: `PASS_WITH_WARNINGS`.
@@ -2472,3 +2485,79 @@ M1 必须承接的条件：
 - Next worker task:
   - T182 `Candidate Validator`.
   - The task remains validator-only: extract/harden shared deterministic validation, add explicit budget/refusal handling, and close the missing regression coverage without adding new generation paths or hybrid planner wiring.
+
+## 84. T182 Review Decision
+
+- Review file:
+  - `docs/review/T182_review.md`
+- Verdict:
+  - `PASS_WITH_WARNINGS`
+- Captain decision:
+  - T182 is complete within task scope.
+  - The repo now has a committed shared deterministic validator layer and broader regression coverage for template and LLM candidate paths.
+  - No automatic repair pass is needed because no blocking issue was found.
+- Warning disposition:
+  - Accepted:
+    - N02 `.claude/settings.json` modification is treated as workspace-artifact noise rather than a blocker.
+  - Deferred:
+    - N01 the `INPUT_TOO_LARGE` preflight call-site bug keeps the dedicated deterministic refusal path effectively dead.
+    - M01 no regression test yet locks the `INPUT_TOO_LARGE` refusal path.
+  - Rejected: none.
+- Next worker task:
+  - T183 `Hybrid ReplyPlanner`.
+  - The task remains opt-in and review-only: integrate template and optional LLM candidate paths without making LLM the default, without bypassing validator/policy gating, and without changing compact-context boundaries.
+
+## 84. T182 Implementation Record
+
+- Files added:
+  - `src/practical_chat_agent/services/reply_candidate_validator.py`
+  - `tests/test_reply_candidate_validator.py`
+- Files modified:
+  - `src/practical_chat_agent/services/llm_reply_generator.py`
+  - `src/practical_chat_agent/services/reply_planner.py`
+  - `tests/test_llm_reply_generator.py`
+  - `docs/07_handoff.md` (this entry)
+- Shared validator module (`reply_candidate_validator.py`):
+  - Module-level functions for deterministic validation, no class wrapper:
+    - `check_text_non_empty()` — candidate draft must be non-empty
+    - `check_supporting_refs()` — at least one supporting context ref
+    - `check_boundary_reminders()` — at least one boundary reminder
+    - `check_ref_types()` — all ref types in `VALID_REF_TYPES` frozenset
+    - `has_privacy_leak()` — two-tier check: full normalized substring (min 8 chars, existing) plus 4+ consecutive word sequence match (new, catches partial fragments)
+    - `has_impersonation()` — regex patterns from T181, now reusable
+    - `normalize_ranks()` — renumber priority_rank to 1..N (in-place)
+    - `check_ranks_contiguous()` — validate rank contiguity (non-mutating)
+    - `check_input_size()` — character-count proxy for token budget
+  - Constants `VALID_REF_TYPES` (frozenset, 6 types), `MAX_INPUT_CHARS` (20,000), and `_IMPERSONATION_PATTERNS` are module-level and importable for inspection.
+- LLMReplyPlanValidator now delegates to shared functions:
+  - `_candidate_is_valid()` calls shared `check_text_non_empty`, `check_supporting_refs`, `check_boundary_reminders`, `check_ref_types`, `has_privacy_leak`, `has_impersonation`.
+  - `validate()` still does deep-copy + filter + renumber via shared `normalize_ranks`.
+  - Dead methods removed: `_IMPERSONATION_PATTERNS`, `_refs_are_valid`, `_ranks_are_contiguous`, `_has_privacy_leak`, `_has_impersonation`, `validate_ranks`.
+- INPUT_TOO_LARGE preflight:
+  - Added to `LLMReplyGeneratorService.generate()` between `_build_llm_input` and provider call.
+  - Estimates total size (system prompt + serialized input dict).
+  - Returns structured refusal with `INPUT_TOO_LARGE` code when exceeded.
+  - Configurable via `max_input_chars` parameter (default 20,000).
+- ReplyPlanner rank validation:
+  - `_validate_plan()` now uses shared `check_ranks_contiguous()` instead of inline rank logic.
+  - Uniqueness and contiguity are checked together with a single error message.
+- Regression tests closing T181 deferred gaps:
+  - **M01** (7 tests): `_build_llm_input` output-shape expectations — minimal context, skill brief, memory facts, derived briefs, approved patches, empty contact id, event/memory counts.
+  - **M02** (10 tests): `_parse_provider_response` error paths — missing choices, empty choices, non-list choices, non-dict choice, missing message, non-dict message, empty content, invalid JSON, non-object JSON, valid response.
+  - **M03** (2 tests): Generator-to-validator end-to-end synthetic pipeline — mock provider → parse → build candidates → construct plan → validate; second test validates privacy leak filtering in the pipeline.
+  - **M04** (2 tests): CLI stdout privacy regression — dry-run and generate modes both assert `draft_text` and private text not in stdout.
+- Shared validator test coverage (46 tests):
+  - text non-empty (3), supporting refs (2), boundary reminders (2), ref types (5), privacy leak (8), impersonation (9), normalize ranks (5), check ranks contiguous (6), input size (4).
+- LLMReplyPlanValidator now delegates 6 of 7 checks to the shared module, keeping only `generator_type` filtering as LLM-specific.
+- The redundant second `validate_ranks` call in `generate()` (T181 N03) is now removed.
+- Verification:
+  - `python -m py_compile` passed for all modified files.
+  - `pytest tests/test_reply_candidate_validator.py -q`: 46 passed.
+  - `pytest tests/test_llm_reply_generator.py -q`: 47 passed.
+  - `pytest tests/test_reply_planner.py -q`: existing tests pass unchanged.
+  - `pytest tests/ -q`: **420 passed** (327 existing + 47 T181/T182 + 46 shared validator), zero regressions.
+- Remaining risks:
+  - Privacy-leak detection is improved but still deterministic (exact-match only). Paraphrased leaks remain undetected.
+  - Input-size preflight uses character-count proxy, not token-count. May slightly over- or under-estimate actual provider token usage.
+  - `ReplyCandidateValidator` impersonation patterns are module-level constants (not injectable). Extending requires modifying source.
+  - No live provider smoke test was executed (same constraint as T181).

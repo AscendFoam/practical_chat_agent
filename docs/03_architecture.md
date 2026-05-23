@@ -1,5 +1,33 @@
 # Architecture
 
+## Captain Update 2026-05-23 (T182 Review)
+
+T182 completes the shared validation layer without changing planner selection behavior:
+
+```text
+template candidates / LLM candidates
+  -> shared deterministic validator helpers
+  -> privacy + impersonation + ref checks
+  -> rank normalization
+  -> stronger regression coverage
+  -> existing planner/runtime behavior unchanged
+```
+
+The next architectural step is T183, which must stay opt-in and review-only:
+
+```text
+ReplyPlanner
+  -> template-only mode (existing default)
+  -> optional hybrid mode
+     - template candidates
+     - optional LLM candidates
+     - shared deterministic validation
+     - policy/boundary review before final output
+  -> ReplyPlan output only
+```
+
+This keeps M7 additive, non-default, and compatible with the committed deterministic planner flow.
+
 ## Captain Update 2026-05-23 (T181 Review)
 
 T181 completes the first executable M7 path without changing the existing planner runtime:

@@ -1,5 +1,28 @@
 # Decision Log
 
+## D044: T182 PASS_WITH_WARNINGS, accept task, advance to T183
+
+- Date: 2026-05-23
+- Status: Accepted
+- Context: `docs/review/T182_review.md` gives `PASS_WITH_WARNINGS` for the shared validator-hardening task. No blocking issues were found, and the review confirms the extraction/reuse/regression-hardening work is solid overall.
+- Decision: T182 is complete. The project may continue to T183 `Hybrid ReplyPlanner`.
+- Warning handling:
+  - Accepted:
+    - N02 `.claude/settings.json` modification is treated as workspace-artifact noise rather than a task-scope defect, consistent with prior precedent.
+  - Deferred:
+    - N01 the `INPUT_TOO_LARGE` preflight call-site bug means the dedicated deterministic refusal path is still non-functional in practice.
+    - M01 no committed regression test yet covers the `INPUT_TOO_LARGE` refusal path, so the preflight bug could regress silently.
+  - Rejected: none.
+- Conditions carried forward:
+  - T183 must keep template mode backward-compatible and must not make hybrid/LLM behavior the default path.
+  - T183 must preserve shared deterministic validation, policy/boundary review, compact-context boundaries, and review-only output semantics.
+  - T183 may integrate optional LLM candidates only behind explicit opt-in controls and must not bypass refusal handling or validator gates.
+- Impact:
+  - `docs/04_task_board.md` moves the Current Unique Task from T182 to T183 and marks T182 complete.
+  - `docs/07_handoff.md` records the T182 review decision and what T183 may assume next.
+  - `docs/08_risks_and_open_questions.md` records the still-open `INPUT_TOO_LARGE` preflight/test debt.
+  - `docs/tasks/M7_llm_reply_planner/T183_hybrid_reply_planner.md` is tightened into a formal worker task package.
+
 ## D043: T181 PASS_WITH_WARNINGS, accept task, advance to T182
 
 - Date: 2026-05-23

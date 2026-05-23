@@ -1,5 +1,15 @@
 # Raw Idea
 
+## Captain Update 2026-05-23 (T182 Review)
+
+T182 has now passed review with `PASS_WITH_WARNINGS`, so the validator-hardening step is accepted:
+
+- the repo now has a shared deterministic validator layer and broader regression coverage for template and LLM candidate paths
+- the project still does not permit default LLM mode, outbound behavior, or hidden state mutation
+- the next safe step is T183 `Hybrid ReplyPlanner`, but only as an opt-in, review-only integration step
+
+The Current Unique Task therefore moves to T183 `Hybrid ReplyPlanner`.
+
 ## Captain Update 2026-05-23 (T181 Review)
 
 T181 has now passed review with `PASS_WITH_WARNINGS`, so the offline LLM generator step is accepted:
