@@ -1,5 +1,18 @@
 # Risks And Open Questions
 
+## Captain Update 2026-05-23 (T181 Review Decision)
+
+Authoritative current risk state after the Captain review of T181:
+
+- R039 remains active: entering T182/T183 can still reintroduce LLM scope creep if validator work drifts into hybrid planner behavior or default runtime LLM mode.
+- R040 remains active as a compact-context boundary rule: T182 may harden validation, but it must not invent a new raw-transcript or full-store input path.
+- R041 remains active: approved patches and derived briefs must still be interpreted as review-only guidance rather than automatic learning or hidden state mutation.
+- R062 is active and deferred: T181 privacy leak detection is substring-based and misses paraphrase/key-detail leakage.
+- R063 is active and deferred: `INPUT_TOO_LARGE` exists in the refusal contract but has no explicit preflight budget enforcement, so oversize input currently collapses into provider-error handling.
+- R064 is active and deferred: T181 lacks committed regression coverage for `_build_llm_input`, provider parse errors, generator-to-validator end-to-end flow, and CLI stdout privacy.
+
+Closed question Q176: T181 is accepted with `PASS_WITH_WARNINGS`, so the project may proceed to T182 rather than reopening offline generator work for a blocking repair pass.
+
 ## Captain Update 2026-05-23 (T180 Review Decision)
 
 Authoritative current risk state after the Captain review of T180:
@@ -367,6 +380,9 @@ Closed question Q124: the updated GPT roadmap is directionally aligned, but M4/M
 | R056 | 提案生成对 malformed cluster report 缺少空 `contact_id` 防御 | 手工编辑或损坏的 cluster report 可能触发未处理异常并中断 proposal 生成 | T162 review 接受当前 scope；后续任务应在 proposal 层显式跳过 `contact_id` 为空的 cluster，给出 `missing_contact` 或等价 skip reason |
 | R059 | `ApprovedPatchContextService` loads the full proposal report into memory | 对于包含大量候选的 proposal report 可能产生内存压力 | 当前单用户离线规模可接受；未来若 report 过大，可改为 streaming 或分页加载 |
 | R060 | `ChatContextAssembler` patch path 校验复用 `_ensure_within_private_distilled` | 该方法约束路径在 `private/distilled/` 下，提供约定级隔离而非硬安全边界 | 当前 offline-only 工作流可接受；若未来引入多用户或网络暴露场景，需采用更严格的路径沙箱 |
+| R062 | T181 privacy leak detection only checks normalized substring overlap | Verbatim echo can be caught, but paraphrased or partial-detail leakage may still pass validation and reach private review artifacts | T182 should harden deterministic leak detection and add regression coverage that proves safe rejection on richer leak patterns |
+| R063 | `INPUT_TOO_LARGE` refusal exists in contract only; no explicit preflight budget enforcement is implemented | Oversize compact-context input can currently fail later as `PROVIDER_ERROR`, weakening refusal semantics and operator diagnosis | T182 should add explicit budget checks or equivalent deterministic refusal logic before provider call |
+| R064 | T181 validator/generator regression coverage is incomplete | `_build_llm_input`, provider parse errors, generator-to-validator pipeline behavior, and CLI stdout privacy can regress silently | T182 should add committed tests that lock these behaviors before T183 hybrid planner work |
 
 ## Open Questions
 
@@ -378,6 +394,7 @@ Closed question Q124: the updated GPT roadmap is directionally aligned, but M4/M
 
 | ID | 结论 | 关闭依据 |
 | --- | --- | --- |
+| Q176 | T181 是否可以作为已完成任务接受并推进到 T182？可以；以 `PASS_WITH_WARNINGS` 接受，deferred 项转入 validator/privacy/test hardening 风险。 | `docs/review/T181_review.md` + Captain decision |
 | Q001 | SDK 包名为 `wechatbot-sdk`，验证版本 `0.2.1`，导入路径为 `from wechatbot import WeChatBot`。 | T00 notes + T00 review |
 | Q002 | 是否继续修微信扫码登录？不继续。 | 用户本轮明确跳过微信聊天记录扫描/SDK路线 |
 | Q100 | WeFlow 顶层行类型稳定分为 `header`、`member`、`message`；normalized event 只需要消费 `_type=message`。 | T100 worker draft + `docs/review/T100_review.md` PASS |

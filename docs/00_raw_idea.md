@@ -1,5 +1,15 @@
 # Raw Idea
 
+## Captain Update 2026-05-23 (T181 Review)
+
+T181 has now passed review with `PASS_WITH_WARNINGS`, so the offline LLM generator step is accepted:
+
+- the repo now has an opt-in offline CLI that can turn safe `ChatContext` JSON into a validated private `LLMReplyPlan` artifact or structured refusal
+- the project still does not permit hybrid planner behavior, default LLM mode, outbound behavior, or hidden state mutation
+- the next safe step is T182 `Candidate Validator`, not immediate planner integration
+
+The Current Unique Task therefore moves to T182 `Candidate Validator`.
+
 ## Captain Update 2026-05-23 (T180 Review)
 
 T180 has now passed review with `PASS`, so the contract-only M7 opening step is accepted:

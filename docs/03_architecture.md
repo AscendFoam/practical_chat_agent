@@ -1,5 +1,32 @@
 # Architecture
 
+## Captain Update 2026-05-23 (T181 Review)
+
+T181 completes the first executable M7 path without changing the existing planner runtime:
+
+```text
+safe ChatContext JSON
+  -> offline LLM candidate generator CLI
+  -> OpenAI-compatible provider call
+  -> deterministic post-generation validation
+  -> validated LLMReplyPlan or structured refusal
+  -> private output artifact only
+  -> existing ReplyPlanner unchanged
+```
+
+The next architectural step is T182, which must stay validator-only:
+
+```text
+template candidates / LLM candidates
+  -> shared deterministic validator layer
+  -> stronger privacy + impersonation + ref checks
+  -> explicit input-budget refusal path
+  -> regression coverage
+  -> still no hybrid planner default path
+```
+
+This keeps M7 additive, review-first, and isolated from the committed deterministic planner flow.
+
 ## Captain Update 2026-05-23 (T180 Review)
 
 T180 completes the contract-only M7 opening without changing runtime behavior:

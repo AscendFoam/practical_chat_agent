@@ -4,6 +4,20 @@ Updated: 2026-05-23
 
 ## Captain Current State Override
 
+- T181 review decision: `PASS_WITH_WARNINGS`.
+- T181 is complete as the first executable M7 task.
+- T181 warning disposition:
+  - Accepted: N01 allowed-files overrun for `.claude/settings.json` and `docs/reference/AI_coding_workflow.md`, N02 default `policy_boundary` refs rather than LLM-provided supporting refs, N03 redundant `validate_ranks` call.
+  - Deferred: N04 substring-only privacy leak detection, N05 dead `INPUT_TOO_LARGE` refusal path, M01 `_build_llm_input` output-shape coverage gap, M02 `_parse_provider_response` error-path coverage gap, M03 missing generator-to-validator pipeline test, M04 missing CLI stdout privacy regression test.
+  - Rejected: none.
+- Current Unique Task: T182 Candidate Validator.
+- Current task package: `docs/tasks/M7_llm_reply_planner/T182_candidate_validator.md`.
+- T182 must stay validator-only, additive, and private-by-default: no new candidate generation path, no hybrid planner behavior, no default LLM mode, no send/platform integration, and no runtime mutation.
+- M7 execution constraints now carried forward:
+  - T182 may harden deterministic validation shared across template and LLM candidates, but it must not change the compact-context input boundary established by T123/T164/T174/T181.
+  - T182 may add explicit input-size refusal enforcement, privacy/impersonation hardening, and regression tests, but it must not rewrite planner strategy selection or claim quality completion.
+  - T182 must preserve review-only mode, no-impersonation rules, approved-store semantics, and human-approved outbound policy.
+
 - T180 review decision: `PASS`.
 - T180 is complete as the contract-only M7 opening task.
 - Current Unique Task: T181 LLM Candidate Offline CLI.
@@ -115,11 +129,11 @@ Updated: 2026-05-23
 
 ## Current Unique Task
 
-T181: LLM Candidate Offline CLI.
+T182: Candidate Validator.
 
-Task package: `docs/tasks/M7_llm_reply_planner/T181_llm_candidate_offline_cli.md`
+Task package: `docs/tasks/M7_llm_reply_planner/T182_candidate_validator.md`
 
-Why now: T180 has fixed the contract boundary. The next smallest safe step is to implement an opt-in offline generator CLI before any standalone validator extraction, hybrid planner wiring, or planner-quality claim is introduced.
+Why now: T181 has landed the offline generator path with `PASS_WITH_WARNINGS`. The next smallest safe step is to extract and harden deterministic candidate validation before any hybrid planner wiring, default runtime LLM path, or planner-quality claim is introduced.
 
 ## Board Rules
 
@@ -216,7 +230,7 @@ Goal: keep ContactSkill compatible while deriving more focused briefs.
 Goal: add optional LLM candidate generation only after regression safety net is in place.
 
 - [x] T180: LLM candidate contract. Review `PASS`.
-- [ ] T181: LLM candidate offline CLI.
+- [x] T181: LLM candidate offline CLI. Review `PASS_WITH_WARNINGS`.
 - [ ] T182: candidate validator.
 - [ ] T183: hybrid ReplyPlanner.
 - [ ] T184: planner holdout eval.
@@ -272,9 +286,9 @@ Goal: keep WeChat as a thin final adapter behind the send gate.
 
 ## Historical Current Unique Task
 
-T180: LLM Candidate Generator Contract.
+T181: LLM Candidate Offline CLI.
 
-It is now complete and accepted with `PASS`. The next worker task is T181, because the next safe step is an opt-in offline generator CLI rather than hybrid planner wiring or any default runtime LLM path.
+It is now complete and accepted with `PASS_WITH_WARNINGS`. The next worker task is T182, because the next safe step is validator extraction and hardening rather than hybrid planner wiring or any default runtime LLM path.
 
 ## Next Captain Output Required
 

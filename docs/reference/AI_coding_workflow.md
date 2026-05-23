@@ -299,6 +299,7 @@ Worker prompt：
 5. 更新任务包指定的 docs。
 6. 不直接标记task已结束，因为我会手动让claude code审核。
 7. 最后报告：改了什么、如何验证、剩余风险。
+8. 将你最后报告的内容同步写入 `docs/worker_summary` 目录下，以 `TaskID_worker_summary.md` 格式命名。
 ```
 
 #### 3. Reviewer 审查

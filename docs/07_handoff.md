@@ -1,5 +1,18 @@
 # Handoff
 
+## Captain Current State Override 2026-05-23 (T181 Review Decision)
+
+- T181 review decision: `PASS_WITH_WARNINGS`.
+- T181 warning disposition:
+  - Accepted: N01 allowed-files overrun for `.claude/settings.json` and `docs/reference/AI_coding_workflow.md`, N02 default `policy_boundary` refs instead of LLM-provided supporting refs, N03 redundant `validate_ranks` call.
+  - Deferred: N04 substring-only privacy leak detection, N05 dead `INPUT_TOO_LARGE` refusal path, M01 `_build_llm_input` output-shape coverage gap, M02 `_parse_provider_response` error-path coverage gap, M03 missing generator-to-validator pipeline test, M04 missing CLI stdout privacy regression test.
+  - Rejected: none.
+- T181 is complete as the first executable M7 task.
+- Current Unique Task: T182 Candidate Validator.
+- Current task package: `docs/tasks/M7_llm_reply_planner/T182_candidate_validator.md`.
+- T182 must stay validator-only, additive, and private-by-default: no new candidate generation path, no hybrid planner behavior, no default LLM mode, no ReplyPlanner runtime mutation, and no send/platform integration.
+- T182 may harden shared deterministic validation, explicit input-budget refusal handling, and regression coverage, but it must preserve the compact-context boundary and review-only gating.
+
 ## Captain Current State Override 2026-05-23 (T180 Review Decision)
 
 - T180 review decision: `PASS`.
@@ -2384,3 +2397,78 @@ M1 必须承接的条件：
 - Next worker task:
   - T181 `LLM Candidate Offline CLI`.
   - The task must remain offline, opt-in, validated, and separate from the existing deterministic `ReplyPlanner`.
+
+
+## 82. T181 Implementation Record
+
+- Files changed:
+  - `src/practical_chat_agent/core/models.py`
+  - `src/practical_chat_agent/services/llm_reply_generator.py` (new)
+  - `src/practical_chat_agent/app/main.py`
+  - `tests/test_llm_reply_generator.py` (new)
+  - `docs/07_handoff.md`
+- CLI name: `chat-reply-generate-llm`
+  - `--input` (required): safe ChatContext JSON file path.
+  - `--output` (required): private output path for LLMReplyPlan JSON artifact.
+  - `--dry-run` (optional): load context and print availability status without calling the LLM provider.
+  - stdout emits only safe metadata (action, paths, contact_id, candidate_count, generator_type, generator_id, refusal_code/reason).
+  - Output is always written to the specified path, even when the result is a structured refusal.
+- Models added to `core/models.py`:
+  - `LLMGeneratorType`: Literal `"template_deterministic"` | `"llm_generated"`.
+  - `LLMGenerationMetadata`: provider, model, temperature, prompt_template_hash, generated_at, latency_ms.
+  - `LLMReplyPlanRefusal`: refusal_code (PROVIDER_ERROR | INPUT_TOO_LARGE | MISSING_REQUIRED_CONTEXT | SAFETY_FILTER | INVALID_OUTPUT_SCHEMA), refusal_reason, is_retryable.
+  - `LLMReplyPlanCandidate`: extends `ReplyPlanCandidate` with `generator_type` field.
+  - `LLMReplyPlan`: schema_version v1, generator_type, generator_id, contact_id, source_context_snapshot, generation_metadata, candidates, refusal.
+- Generator service (`services/llm_reply_generator.py`):
+  - `LLMReplyGeneratorService`: offline generator that consumes safe `ChatContext` and calls an OpenAI-compatible provider. Uses the same `_post_json` / `_extract_message_content` / `_parse_json_content` pattern as `ChatlogDistillationService`.
+  - Input is restricted to compact `ChatContext` fields only (approved_store_context briefs, derived_brief_context, approved_patch_context, recent_event/memory counts). No raw chat history, full store JSON, or non-compact context.
+  - Provider errors and unavailable provider are captured as structured refusals, not raised exceptions.
+  - Refusal shape follows the T180 contract: refusal_code, refusal_reason, is_retryable.
+  - System prompt instructs no impersonation, evidence-grounded generation, conservative defaults.
+- Deterministic post-generation validation:
+  - `LLMReplyPlanValidator` performs 7 per-candidate checks: non-empty draft_text, >=1 supporting_context_ref, >=1 boundary_reminder, ref types in approved set, generator_type=="llm_generated", no privacy leakage (verbatim input echo), no impersonation patterns.
+  - Invalid candidates are excluded silently per the T180 contract.
+  - Ranks are re-assigned to a contiguous 1..N sequence after filtering.
+  - Privacy leakage check: exact substring match of input context text against draft_text (minimum 8 chars).
+  - Impersonation detection: first-person contact voice ("I would say", "he would say"), Chinese impersonation pattern ("对方会"), "作为/以...身份/角色" patterns.
+- Verification:
+  - `python -m py_compile src/practical_chat_agent/core/models.py src/practical_chat_agent/services/llm_reply_generator.py src/practical_chat_agent/services/reply_planner.py src/practical_chat_agent/app/main.py`: passed.
+  - `pytest tests/test_llm_reply_generator.py -q`: 26 passed.
+  - `pytest tests/ -q`: 353 passed (327 existing + 26 new), zero regressions.
+- Provider/runtime assumptions verified:
+  - Without OPENAI_API_KEY / OPENAI_BASE_URL env vars, the CLI produces a structured refusal at the output path instead of crashing.
+  - Dry-run (`--dry-run`) shows LLM availability status without calling the provider.
+  - Deterministic validation works independently of provider availability.
+  - Live provider access was not available during this task; smoke run with real provider was not executed.
+- What T182 may extract or harden next:
+  - Standalone `LLMReplyPlanValidator` extraction into its own module for reuse.
+  - Hardened prompt template engineering for better candidate quality.
+  - Expanded impersonation pattern detection.
+  - Input-size budget enforcement (INPUT_TOO_LARGE refusal path).
+
+## 83. T181 Review Decision
+
+- Review file:
+  - `docs/review/T181_review.md`
+- Verdict:
+  - `PASS_WITH_WARNINGS`
+- Captain decision:
+  - T181 is complete within task scope.
+  - The repo now has a committed offline LLM candidate CLI that writes validated private artifacts or structured refusals without mutating the existing deterministic planner path.
+  - No automatic repair pass is needed because no blocking issue was found.
+- Warning disposition:
+  - Accepted:
+    - N01 allowed-files overrun for `.claude/settings.json` and `docs/reference/AI_coding_workflow.md` is treated as low-risk workspace/process noise rather than a blocker.
+    - N02 default `policy_boundary` refs in `_build_candidates` are accepted for the MVP generator stage.
+    - N03 redundant `validate_ranks` call is accepted as harmless dead work.
+  - Deferred:
+    - N04 substring-only privacy leak detection remains validator hardening debt.
+    - N05 `INPUT_TOO_LARGE` refusal path remains unimplemented preflight debt.
+    - M01 `_build_llm_input` output-shape coverage remains missing.
+    - M02 `_parse_provider_response` error-path coverage remains missing.
+    - M03 end-to-end generator-to-validator pipeline coverage remains missing.
+    - M04 CLI stdout privacy regression coverage remains missing.
+  - Rejected: none.
+- Next worker task:
+  - T182 `Candidate Validator`.
+  - The task remains validator-only: extract/harden shared deterministic validation, add explicit budget/refusal handling, and close the missing regression coverage without adding new generation paths or hybrid planner wiring.

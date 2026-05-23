@@ -728,6 +728,45 @@ class ReplyPlan(BaseModel):
     candidates: list[ReplyPlanCandidate] = Field(..., min_length=3)
 
 
+LLMGeneratorType = Literal["template_deterministic", "llm_generated"]
+
+
+class LLMGenerationMetadata(BaseModel):
+    provider: str = "unknown"
+    model: str = "unknown"
+    temperature: float = 0.7
+    prompt_template_hash: str | None = None
+    generated_at: datetime = Field(default_factory=utc_now)
+    latency_ms: int | None = None
+
+
+class LLMReplyPlanRefusal(BaseModel):
+    refusal_code: Literal[
+        "PROVIDER_ERROR",
+        "INPUT_TOO_LARGE",
+        "MISSING_REQUIRED_CONTEXT",
+        "SAFETY_FILTER",
+        "INVALID_OUTPUT_SCHEMA",
+    ]
+    refusal_reason: str = Field(..., min_length=1)
+    is_retryable: bool
+
+
+class LLMReplyPlanCandidate(ReplyPlanCandidate):
+    generator_type: LLMGeneratorType = "llm_generated"
+
+
+class LLMReplyPlan(BaseModel):
+    schema_version: str = "llm_reply_plan_v1"
+    generator_type: LLMGeneratorType = "llm_generated"
+    generator_id: str = Field(default_factory=lambda: new_id("llm_gen"))
+    contact_id: str | None = None
+    source_context_snapshot: dict[str, Any] = Field(default_factory=dict)
+    generation_metadata: LLMGenerationMetadata | None = None
+    candidates: list[LLMReplyPlanCandidate] = Field(default_factory=list)
+    refusal: LLMReplyPlanRefusal | None = None
+
+
 class ChatSuggestion(BaseModel):
     backend: str
     model: str | None = None

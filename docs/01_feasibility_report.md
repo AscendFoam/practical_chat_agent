@@ -1,5 +1,16 @@
 # Feasibility Report
 
+## Captain Update 2026-05-23 (T181 Review)
+
+T181 confirms that an optional offline LLM generation path is feasible in the current repository shape.
+
+The feasibility gap has changed again:
+
+- no longer blocked on whether M7 can call an OpenAI-compatible provider through a separate offline CLI while preserving private-output-only discipline
+- now focused on whether T182 can extract and harden deterministic candidate validation so both template and LLM candidates share stronger privacy, boundary, and refusal enforcement
+
+So the project is ready to commit the T181 slice and advance to T182, while keeping M7 validator work deterministic, additive, and separate from hybrid planner wiring.
+
 ## Captain Update 2026-05-23 (T180 Review)
 
 T180 confirms that an optional LLM candidate path can be introduced contract-first in the current repository shape.

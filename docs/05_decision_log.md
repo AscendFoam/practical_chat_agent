@@ -1,5 +1,34 @@
 # Decision Log
 
+## D043: T181 PASS_WITH_WARNINGS, accept task, advance to T182
+
+- Date: 2026-05-23
+- Status: Accepted
+- Context: `docs/review/T181_review.md` gives `PASS_WITH_WARNINGS` for the offline LLM candidate CLI task. No blocking issues were found, and the review confirms the task stayed offline, opt-in, additive, and separate from the existing deterministic planner path.
+- Decision: T181 is complete. The project may continue to T182 `Candidate Validator`.
+- Warning handling:
+  - Accepted:
+    - N01 allowed-files overrun for `.claude/settings.json` and `docs/reference/AI_coding_workflow.md` is treated as low-risk workspace/process noise rather than a T181 implementation blocker.
+    - N02 default `policy_boundary` refs in `_build_candidates` are accepted for the MVP generator stage; evidence-grounded LLM-provided refs remain later work.
+    - N03 redundant `validate_ranks` call is accepted as dead work with no correctness impact.
+  - Deferred:
+    - N04 substring-only privacy leak detection remains too narrow for paraphrase/key-detail leakage and is carried forward as validator hardening debt.
+    - N05 `INPUT_TOO_LARGE` refusal code exists without explicit budget enforcement and is carried forward as validator/preflight debt.
+    - M01 `_build_llm_input` output-shape coverage is still missing.
+    - M02 `_parse_provider_response` error-path coverage is still missing.
+    - M03 no committed end-to-end generator-to-validator pipeline test yet exists.
+    - M04 no committed CLI stdout privacy regression test yet exists.
+  - Rejected: none.
+- Conditions carried forward:
+  - T182 must stay validator-only. No new candidate generation mode, hybrid planner wiring, or default runtime LLM path is authorized yet.
+  - T182 may harden deterministic validation, privacy checks, impersonation checks, shared candidate validation reuse, and explicit input-budget refusal handling.
+  - T182 must preserve compact-context boundaries, review-only mode, approved-store semantics, and human-approved outbound policy.
+- Impact:
+  - `docs/04_task_board.md` moves the Current Unique Task from T181 to T182 and marks T181 complete.
+  - `docs/07_handoff.md` records the T181 review decision and what T182 may assume next.
+  - `docs/08_risks_and_open_questions.md` records deferred validator/privacy/test hardening debt.
+  - `docs/tasks/M7_llm_reply_planner/T182_candidate_validator.md` is rewritten into a stricter worker task package.
+
 ## D042: T180 PASS, accept task, advance to T181
 
 - Date: 2026-05-23

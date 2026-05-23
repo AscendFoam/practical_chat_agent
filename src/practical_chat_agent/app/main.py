@@ -69,6 +69,7 @@ from practical_chat_agent.services.feedback import (
     PatchProposalService,
     PatchReviewService,
 )
+from practical_chat_agent.services.llm_reply_generator import LLMReplyGeneratorService
 from practical_chat_agent.services.reply_planner import ReplyPlanner, ReplyPlannerError
 from practical_chat_agent.ui.live_caption_window import MeetingLiveCaptionWindow
 
@@ -2003,6 +2004,84 @@ def chat_reply_plan(
             indent=2,
         ),
     )
+
+
+@app.command("chat-reply-generate-llm")
+def chat_reply_generate_llm(
+    input_path: Path = typer.Option(
+        ...,
+        "--input",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        readable=True,
+        help="Input safe ChatContext JSON file.",
+    ),
+    output_path: Path = typer.Option(
+        ...,
+        "--output",
+        help="Output path under private/ for the LLMReplyPlan JSON artifact.",
+    ),
+    dry_run: bool = typer.Option(
+        False,
+        "--dry-run",
+        help="Load context and print availability status without calling the LLM provider.",
+    ),
+) -> None:
+    """Generate an LLMReplyPlan from safe ChatContext JSON. Opt-in offline CLI."""
+
+    try:
+        context = ChatContext.model_validate_json(input_path.read_text(encoding="utf-8"))
+    except OSError as exc:
+        raise typer.BadParameter(f"Unable to read input: {input_path}") from exc
+    except ValidationError as exc:
+        raise typer.BadParameter(f"Invalid ChatContext JSON: {exc}") from exc
+
+    settings = get_settings()
+    service = LLMReplyGeneratorService(
+        api_key=settings.openai_api_key,
+        base_url=settings.openai_base_url,
+        model=settings.chat_suggestion_model,
+        timeout_seconds=settings.chat_suggestion_timeout_seconds,
+    )
+
+    if dry_run:
+        reason = service.availability_reason()
+        typer.echo(
+            json.dumps(
+                {
+                    "action": "dry_run",
+                    "input_path": _safe_cli_path(input_path),
+                    "llm_available": reason is None,
+                    "availability_reason": reason,
+                    "model": service.resolved_model,
+                },
+                ensure_ascii=False,
+                indent=2,
+            ),
+        )
+        return
+
+    plan = service.generate(context=context)
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    payload = json.dumps(plan.model_dump(mode="json"), ensure_ascii=False, indent=2)
+    output_path.write_text(payload, encoding="utf-8")
+
+    safe_stdout = {
+        "action": "generated",
+        "input_path": _safe_cli_path(input_path),
+        "output_path": _safe_cli_path(output_path),
+        "contact_id": plan.contact_id,
+        "candidate_count": len(plan.candidates),
+        "generator_type": plan.generator_type,
+        "generator_id": plan.generator_id,
+    }
+    if plan.refusal is not None:
+        safe_stdout["refusal_code"] = plan.refusal.refusal_code
+        safe_stdout["refusal_reason"] = plan.refusal.refusal_reason
+
+    typer.echo(json.dumps(safe_stdout, ensure_ascii=False, indent=2))
 
 
 @app.command("chat-reply-feedback")

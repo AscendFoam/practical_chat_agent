@@ -1,5 +1,15 @@
 # Eval Protocol
 
+## Captain Update 2026-05-23 (T181 Review)
+
+T181 has now been accepted with `PASS_WITH_WARNINGS`.
+
+Current evaluation sequence is now:
+
+- T182: can the repo extract and harden a deterministic validator layer that applies to template and LLM candidates, enforces privacy/no-impersonation/ref/rank rules more cleanly, and closes the missing regression coverage without changing generation scope or planner runtime behavior?
+
+T181 changes the evaluation baseline in one important way: M7 no longer needs to prove whether an offline LLM generator CLI can exist at all. That layer now exists. The next evaluation target is validator quality and regression completeness, not first-call provider wiring.
+
 ## Captain Update 2026-05-23 (T180 Review)
 
 T180 has now been accepted with `PASS`.
