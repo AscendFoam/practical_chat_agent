@@ -311,18 +311,14 @@ class TestCheckRanksContiguous:
 
 class TestCheckInputSize:
     def test_within_limit_passes(self) -> None:
-        data = "x" * 1000
-        assert check_input_size(data, max_chars=2000) is True
+        assert check_input_size(1000, max_chars=2000) is True
 
     def test_exceeds_limit_fails(self) -> None:
-        data = "x" * 3000
-        assert check_input_size(data, max_chars=2000) is False
+        assert check_input_size(3000, max_chars=2000) is False
 
     def test_exactly_at_limit_passes(self) -> None:
-        data = "x" * 20000
-        assert check_input_size(data, max_chars=20000) is True
+        assert check_input_size(20000, max_chars=20000) is True
 
     def test_default_max_chars(self) -> None:
-        data = "x" * MAX_INPUT_CHARS
-        assert check_input_size(data) is True
-        assert check_input_size(data + "x") is False
+        assert check_input_size(MAX_INPUT_CHARS) is True
+        assert check_input_size(MAX_INPUT_CHARS + 1) is False

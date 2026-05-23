@@ -4,6 +4,20 @@ Updated: 2026-05-23
 
 ## Captain Current State Override
 
+- T183 review decision: `PASS_WITH_WARNINGS`.
+- T183 is complete as the opt-in hybrid planner integration M7 task.
+- T183 warning disposition:
+  - Accepted: N01 `.claude/settings.json` workspace-artifact overrun.
+  - Deferred: N02 no committed test exercises the valid LLM-candidate merge success path, M01 no end-to-end hybrid success test, M02 no explicit reranked-order assertion after merge.
+  - Rejected: none.
+- Current Unique Task: T184 Planner Holdout Eval.
+- Current task package: `docs/tasks/M7_llm_reply_planner/T184_llm_planner_holdout_eval.md`.
+- T184 must stay evaluation-only: no planner code changes, no send/platform integration, no raw private content in committed artifacts, and no quality claim without evidence.
+- M7 execution constraints now carried forward:
+  - T184 may compare template vs hybrid outputs on anonymized holdout scenarios, but it must not modify planner logic or promote quality claims beyond the observed evidence.
+  - T184 must preserve privacy, boundary safety, and review-only semantics.
+  - T184 should clearly distinguish committed tests from private smoke evaluation and should not treat smoke-only evidence as a substitute for committed regression coverage.
+
 - T182 review decision: `PASS_WITH_WARNINGS`.
 - T182 is complete as the shared validator-hardening M7 task.
 - T182 warning disposition:
@@ -143,11 +157,11 @@ Updated: 2026-05-23
 
 ## Current Unique Task
 
-T183: Hybrid ReplyPlanner.
+T184: Planner Holdout Eval.
 
-Task package: `docs/tasks/M7_llm_reply_planner/T183_hybrid_reply_planner.md`
+Task package: `docs/tasks/M7_llm_reply_planner/T184_llm_planner_holdout_eval.md`
 
-Why now: T182 has landed shared deterministic validation with `PASS_WITH_WARNINGS`. The next smallest safe step is to add an opt-in hybrid planner mode before any quality claim or holdout evaluation work, while keeping template mode backward-compatible and non-LLM by default.
+Why now: T183 has landed the opt-in hybrid planner surface with `PASS_WITH_WARNINGS`. The next smallest safe step is holdout evaluation, not more planner wiring or quality claims without evidence.
 
 ## Board Rules
 
@@ -246,7 +260,7 @@ Goal: add optional LLM candidate generation only after regression safety net is 
 - [x] T180: LLM candidate contract. Review `PASS`.
 - [x] T181: LLM candidate offline CLI. Review `PASS_WITH_WARNINGS`.
 - [x] T182: candidate validator. Review `PASS_WITH_WARNINGS`.
-- [ ] T183: hybrid ReplyPlanner.
+- [x] T183: hybrid ReplyPlanner. Review `PASS_WITH_WARNINGS`.
 - [ ] T184: planner holdout eval.
 
 ## Milestone 8: RelationshipState
@@ -300,9 +314,9 @@ Goal: keep WeChat as a thin final adapter behind the send gate.
 
 ## Historical Current Unique Task
 
-T182: Candidate Validator.
+T183: Hybrid ReplyPlanner.
 
-It is now complete and accepted with `PASS_WITH_WARNINGS`. The next worker task is T183, because the next safe step is opt-in hybrid planner integration rather than quality claims or a default runtime LLM path.
+It is now complete and accepted with `PASS_WITH_WARNINGS`. The next worker task is T184, because the next safe step is holdout evaluation rather than additional planner wiring or a quality claim.
 
 ## Next Captain Output Required
 

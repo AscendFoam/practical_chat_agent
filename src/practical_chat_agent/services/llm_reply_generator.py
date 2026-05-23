@@ -180,7 +180,7 @@ class LLMReplyGeneratorService:
         system_prompt = self._build_system_prompt()
         input_json = json.dumps(llm_input, ensure_ascii=False)
         estimated_size = len(system_prompt) + len(input_json)
-        if not check_input_size(str(estimated_size), max_chars=self.max_input_chars):
+        if not check_input_size(estimated_size, max_chars=self.max_input_chars):
             return self._refusal(
                 contact_id=contact_id,
                 code="INPUT_TOO_LARGE",

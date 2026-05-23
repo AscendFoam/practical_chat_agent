@@ -1,5 +1,15 @@
 # Eval Protocol
 
+## Captain Update 2026-05-23 (T183 Review)
+
+T183 has now been accepted with `PASS_WITH_WARNINGS`.
+
+Current evaluation sequence is now:
+
+- T184: can the repo evaluate template vs hybrid planner behavior on anonymized holdout scenarios and produce evidence-backed quality judgment without modifying planner code?
+
+T183 changes the evaluation baseline in one important way: M7 no longer needs to prove whether an opt-in hybrid planner surface can be wired safely. That layer now exists. The next evaluation target is holdout-quality evidence, not integration safety.
+
 ## Captain Update 2026-05-23 (T182 Review)
 
 T182 has now been accepted with `PASS_WITH_WARNINGS`.

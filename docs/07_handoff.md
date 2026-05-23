@@ -1,5 +1,18 @@
 # Handoff
 
+## Captain Current State Override 2026-05-23 (T183 Review Decision)
+
+- T183 review decision: `PASS_WITH_WARNINGS`.
+- T183 warning disposition:
+  - Accepted: N01 `.claude/settings.json` workspace-artifact overrun.
+  - Deferred: N02 no committed test exercises the valid LLM-candidate merge success path, M01 no end-to-end hybrid success test, M02 no explicit reranked-order assertion after merge.
+  - Rejected: none.
+- T183 is complete as the opt-in hybrid planner integration M7 task.
+- Current Unique Task: T184 Planner Holdout Eval.
+- Current task package: `docs/tasks/M7_llm_reply_planner/T184_llm_planner_holdout_eval.md`.
+- T184 must stay evaluation-only: no planner code changes, no send/platform integration, no raw private content in committed artifacts, and no quality claim without evidence.
+- T184 may compare template vs hybrid outputs on anonymized scenarios, but it must distinguish private smoke evidence from committed tests and must not overclaim quality without holdout data.
+
 ## Captain Current State Override 2026-05-23 (T182 Review Decision)
 
 - T182 review decision: `PASS_WITH_WARNINGS`.
@@ -2507,6 +2520,28 @@ M1 必须承接的条件：
   - T183 `Hybrid ReplyPlanner`.
   - The task remains opt-in and review-only: integrate template and optional LLM candidate paths without making LLM the default, without bypassing validator/policy gating, and without changing compact-context boundaries.
 
+## 85. T183 Review Decision
+
+- Review file:
+  - `docs/review/T183_review.md`
+- Verdict:
+  - `PASS_WITH_WARNINGS`
+- Captain decision:
+  - T183 is complete within task scope.
+  - The repo now has a committed opt-in hybrid planner surface that can merge template and optional LLM candidates without making LLM behavior default.
+  - No automatic repair pass is needed because no blocking issue was found.
+- Warning disposition:
+  - Accepted:
+    - N01 allowed-files overrun for `.claude/settings.json` is treated as workspace-artifact noise rather than a blocker.
+  - Deferred:
+    - N02 no committed test exercises the valid LLM-candidate merge success path.
+    - M01 no end-to-end hybrid success test exists.
+    - M02 no explicit reranked-order assertion after merge exists.
+  - Rejected: none.
+- Next worker task:
+  - T184 `Planner Holdout Eval`.
+  - The task remains evaluation-only: compare template vs hybrid outputs on anonymized holdout scenarios, record evidence, and do not modify planner code.
+
 ## 84. T182 Implementation Record
 
 - Files added:
@@ -2561,3 +2596,65 @@ M1 必须承接的条件：
   - Input-size preflight uses character-count proxy, not token-count. May slightly over- or under-estimate actual provider token usage.
   - `ReplyCandidateValidator` impersonation patterns are module-level constants (not injectable). Extending requires modifying source.
   - No live provider smoke test was executed (same constraint as T181).
+
+## 85. T183 Implementation Record
+
+- Files added:
+  - `tests/test_hybrid_reply_planner.py`
+- Files modified:
+  - `src/practical_chat_agent/services/reply_planner.py`
+  - `src/practical_chat_agent/services/reply_candidate_validator.py` (T182 N01 fix)
+  - `src/practical_chat_agent/services/llm_reply_generator.py` (T182 N01 fix)
+  - `src/practical_chat_agent/app/main.py`
+  - `tests/test_reply_candidate_validator.py` (T182 N01 test fix)
+  - `docs/07_handoff.md` (this entry)
+- Hybrid ReplyPlanner design:
+  - `ReplyPlanner.__init__()` now accepts `llm_generator` (optional `LLMReplyGeneratorService`) and `hybrid_mode` (bool, default `False`).
+  - `generate()` also accepts `force_template` (bool) to skip LLM even in hybrid mode.
+  - When `hybrid_mode=True` and `llm_generator` is available:
+    1. Template candidates are built as baseline (always).
+    2. `_generate_llm_candidates()` calls `llm_generator.generate()` — catches all exceptions, never raises.
+    3. LLM candidates go through `_build_llm_candidate()` which applies `policy_engine.assess_candidate()` (same policy assessment as template candidates).
+    4. `_merge_candidates()` merges deterministically: keep template candidate 1 as safety baseline, replace 2+ with up to 2 LLM candidates, pad to exactly 3 from remaining template candidates, renumber ranks to 1..3.
+    5. If LLM generator is unavailable, refuses, or raises, hybrid mode falls back to clean template-only output (never crashes, never produces hybrid partial output).
+    6. `_build_candidate_difference_notes()` updated to add LLM-specific notes when hybrid candidates are present.
+  - The `force_template` parameter gives callers explicit control to bypass LLM even when hybrid mode is configured.
+- T182 N01 INPUT_TOO_LARGE fix:
+  - `check_input_size()` signature changed from `(serialized_json: str, ...)` to `(size: int, ...)` — callers pass integer character count.
+  - Call site in `LLMReplyGeneratorService.generate()` passes `estimated_size` (int) instead of `str(estimated_size)`.
+  - Test values changed from string length checks to direct integer comparisons.
+- CLI wiring:
+  - `chat-reply-plan` now accepts `--hybrid` flag (default `False`).
+  - When `--hybrid` is set, reads LLM provider settings via `get_settings()` and constructs an `LLMReplyGeneratorService`.
+  - Template-only behavior is preserved when `--hybrid` is not set.
+- Test coverage (18 tests in `test_hybrid_reply_planner.py`):
+  - Backward compatibility: default planner has no LLM, produces valid 3-candidate plan.
+  - Opt-in: hybrid_mode defaults to False; must be explicitly set.
+  - LLM refusal fallback: when API key is unconfigured, hybrid mode returns template-only without crash.
+  - LLM error fallback: when generator raises, hybrid mode returns template-only without crash.
+  - `force_template` override: skips LLM even when hybrid mode is configured.
+  - Policy assessment: all candidates carry risk_flags, boundary_reminders, confidence.
+  - Output contract: always `candidate_review_only`, valid schema, review-ready candidates.
+  - CLI: `--hybrid` flag accepted, produces valid ReplyPlan even when provider is unavailable.
+- Verification:
+  - `python -m py_compile` passed for all modified files.
+  - `pytest tests/test_hybrid_reply_planner.py -q`: 18 passed.
+  - `pytest tests/test_reply_planner.py -q`: existing tests pass unchanged.
+  - `pytest tests/test_llm_reply_generator.py -q`: 47 passed.
+  - `pytest tests/test_reply_candidate_validator.py -q`: 46 passed.
+  - `pytest tests/ -q`: **438 passed** (420 existing + 18 new), zero regressions.
+- Live provider smoke test:
+  - Successfully executed with Deepseek (api.deepseek.com, model deepseek-chat).
+  - Command: `chat-reply-plan --hybrid` with synthetic ChatContext.
+  - Result: 3 candidates produced (1 template baseline + 2 LLM-generated).
+    - Template candidate 1 (conservative_acknowledgment, 中文, confidence 0.78).
+    - LLM candidate 2 (enthusiastic follow-up, 英文, confidence 0.90).
+    - LLM candidate 3 (casual support, 英文, confidence 0.85).
+  - Merge rule verified: template[0] kept as safety baseline, LLM[0:2] replaced ranks 2 and 3.
+  - Policy assessment applied: boundary_reminders carried through to LLM candidates.
+  - Output written to `private/distilled/t183_smoke/hybrid_plan.json`.
+  - Notable observation: LLM returned English drafts while template uses Chinese — the prompt does not specify language preference.
+- Remaining risks:
+  - LLM candidate quality is not evaluated in T183 — T184 holdout eval remains the quality gate.
+  - Merge rule (keep template[0], replace 2+) is deterministic but not validated against real LLM output diversity.
+  - If LLM returns only 1 valid candidate, the merge pads with template candidates, which may produce a mixed-style output.

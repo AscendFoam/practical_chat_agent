@@ -1,5 +1,32 @@
 # Architecture
 
+## Captain Update 2026-05-23 (T183 Review)
+
+T183 completes the opt-in hybrid planner wiring without claiming quality completion:
+
+```text
+ReplyPlanner
+  -> template-only mode (default)
+  -> opt-in hybrid mode
+     - template candidates
+     - optional LLM candidates
+     - shared deterministic validator
+     - policy/boundary assessment
+     - review-only ReplyPlan output
+```
+
+The next architectural step is T184, which must stay holdout-eval-only:
+
+```text
+hybrid ReplyPlanner
+  -> anonymized holdout scenarios
+  -> compare template vs hybrid outputs
+  -> score naturalness / evidence / boundary / privacy / diversity
+  -> no planner code changes
+```
+
+This keeps M7 additive and separates implementation success from quality judgment.
+
 ## Captain Update 2026-05-23 (T182 Review)
 
 T182 completes the shared validation layer without changing planner selection behavior:

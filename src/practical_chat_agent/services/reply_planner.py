@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
+from typing import TYPE_CHECKING
 
 from practical_chat_agent.core.models import (
     ChatContext,
@@ -13,7 +14,16 @@ from practical_chat_agent.services.policy import (
     ReplyPlanPolicyEngine,
     ReplyPlanPolicyProfile,
 )
-from practical_chat_agent.services.reply_candidate_validator import check_ranks_contiguous
+from practical_chat_agent.services.reply_candidate_validator import (
+    check_ranks_contiguous,
+    normalize_ranks,
+)
+
+if TYPE_CHECKING:
+    from practical_chat_agent.services.llm_reply_generator import (
+        LLMReplyGeneratorService,
+        LLMReplyPlanCandidate,
+    )
 
 _BOUNDARY_REVIEW_ONLY = "Drafts are for human review only."
 _BOUNDARY_NO_IMPERSONATION = "Do not imitate the contact or write as if they are speaking."
@@ -29,12 +39,35 @@ class ReplyPlannerError(ValueError):
 
 
 class ReplyPlanner:
-    """Build a review-only ReplyPlan from compact runtime context."""
+    """Build a review-only ReplyPlan from compact runtime context.
 
-    def __init__(self, *, policy_engine: ReplyPlanPolicyEngine | None = None) -> None:
+    Supports two modes:
+
+    - **template_only** (default): generates 3 deterministic template
+      candidates.  Backward-compatible with T150 regression tests.
+    - **hybrid**: also requests LLM-generated candidates via an optional
+      ``LLMReplyGeneratorService``, then merges them deterministically
+      with template candidates.  Template candidate 1 is always kept as
+      the safety baseline.
+    """
+
+    def __init__(
+        self,
+        *,
+        policy_engine: ReplyPlanPolicyEngine | None = None,
+        llm_generator: LLMReplyGeneratorService | None = None,
+        hybrid_mode: bool = False,
+    ) -> None:
         self.policy_engine = policy_engine or ReplyPlanPolicyEngine()
+        self.llm_generator = llm_generator
+        self.hybrid_mode = hybrid_mode
 
-    def generate(self, *, context: ChatContext) -> ReplyPlan:
+    def generate(
+        self,
+        *,
+        context: ChatContext,
+        force_template: bool = False,
+    ) -> ReplyPlan:
         contact_id = context.user_id.strip()
         if not contact_id:
             raise ReplyPlannerError("ChatContext.user_id must be a non-empty contact id.")
@@ -46,14 +79,29 @@ class ReplyPlanner:
             context=context,
             policy_profile=policy_profile,
         )
-        candidates = self._build_candidates(
+        template_candidates = self._build_candidates(
             context=context,
             source_context=source_context,
             policy_profile=policy_profile,
         )
+
+        # --- opt-in hybrid: request LLM candidates ---
+        llm_candidates: list[ReplyPlanCandidate] = []
+        if self.hybrid_mode and not force_template and self.llm_generator is not None:
+            llm_candidates = self._generate_llm_candidates(
+                context=context,
+                policy_profile=policy_profile,
+            )
+
+        candidates = self._merge_candidates(
+            template_candidates=template_candidates,
+            llm_candidates=llm_candidates,
+        )
+
         notes_on_candidate_differences = self._build_candidate_difference_notes(
             context=context,
             policy_profile=policy_profile,
+            has_llm_candidates=bool(llm_candidates),
         )
 
         plan = ReplyPlan(
@@ -263,16 +311,111 @@ class ReplyPlanner:
         ]
         return candidates
 
+    # ------------------------------------------------------------------
+    # Hybrid (LLM-assisted) generation helpers
+    # ------------------------------------------------------------------
+
+    def _generate_llm_candidates(
+        self,
+        *,
+        context: ChatContext,
+        policy_profile: ReplyPlanPolicyProfile,
+    ) -> list[ReplyPlanCandidate]:
+        """Request LLM candidates, validate, apply policy assessment.
+
+        Returns an empty list if the generator is unavailable, refuses,
+        or produces no valid candidates.  Never raises.
+        """
+        if self.llm_generator is None:
+            return []
+        try:
+            llm_plan = self.llm_generator.generate(context=context)
+        except Exception:
+            return []
+        if llm_plan.refusal is not None or not llm_plan.candidates:
+            return []
+        return [
+            self._build_llm_candidate(c, policy_profile=policy_profile)
+            for c in llm_plan.candidates
+        ]
+
+    def _build_llm_candidate(
+        self,
+        candidate: LLMReplyPlanCandidate,
+        *,
+        policy_profile: ReplyPlanPolicyProfile,
+    ) -> ReplyPlanCandidate:
+        """Apply policy assessment to an LLM-generated candidate."""
+        assessment = self.policy_engine.assess_candidate(
+            policy_profile=policy_profile,
+            candidate_text=candidate.draft_text,
+            approach_label=candidate.approach_label,
+        )
+        base_confidence = candidate.confidence if candidate.confidence is not None else 0.5
+        return ReplyPlanCandidate(
+            candidate_id=candidate.candidate_id,
+            approach_label=candidate.approach_label,
+            priority_rank=candidate.priority_rank,
+            draft_text=candidate.draft_text,
+            rationale=candidate.rationale,
+            supporting_context_refs=candidate.supporting_context_refs,
+            risk_flags=self._dedupe([*candidate.risk_flags, *assessment.risk_flags]),
+            boundary_reminders=self._candidate_boundaries(
+                candidate.boundary_reminders,
+                *assessment.boundary_reminders,
+            ),
+            confidence=self._clamp_confidence(base_confidence - assessment.confidence_penalty),
+        )
+
+    @staticmethod
+    def _merge_candidates(
+        *,
+        template_candidates: list[ReplyPlanCandidate],
+        llm_candidates: list[ReplyPlanCandidate],
+    ) -> list[ReplyPlanCandidate]:
+        """Merge template and LLM candidates into a deterministic 3-candidate list.
+
+        Rules:
+        - Template candidate 1 is always kept as the safety baseline.
+        - If LLM candidates exist, replace template candidates 2+ with
+          up to 2 top-ranked LLM candidates.
+        - If fewer than 3 candidates after merge, pad with remaining
+          template candidates.
+        - Final list is exactly 3 candidates with contiguous 1..3 ranks.
+        """
+        if not llm_candidates:
+            return list(template_candidates)
+
+        merged: list[ReplyPlanCandidate] = [template_candidates[0]]
+        merged.extend(llm_candidates[:2])
+
+        # Pad to exactly 3 from remaining template candidates
+        while len(merged) < 3:
+            idx = len(merged)
+            if idx < len(template_candidates):
+                merged.append(template_candidates[idx])
+            else:
+                break
+
+        merged = merged[:3]
+        normalize_ranks(merged)
+        return merged
+
     def _build_candidate_difference_notes(
         self,
         *,
         context: ChatContext,
         policy_profile: ReplyPlanPolicyProfile,
+        has_llm_candidates: bool = False,
     ) -> list[str]:
         notes = [
             "Candidate 1 acknowledges the message without extending the thread.",
-            "Candidate 2 adds an optional follow-up that invites clarification.",
-            "Candidate 3 suggests a paced next step and needs closer tone review.",
+            "Candidate 2 adds an optional follow-up that invites clarification."
+            if not has_llm_candidates
+            else "Candidate 2 is an LLM-generated draft and may use more natural phrasing.",
+            "Candidate 3 suggests a paced next step and needs closer tone review."
+            if not has_llm_candidates
+            else "Candidate 3 is an LLM-generated draft; review tone and boundary adherence.",
         ]
         if policy_profile.conservative_mode:
             notes[1] = "Candidate 2 keeps a no-pressure reopening option instead of a direct push for more detail."
@@ -281,6 +424,8 @@ class ReplyPlanner:
             notes.append("Approved store context is thin, so all options stay on the conservative side.")
         if policy_profile.boundary_sensitive:
             notes.append("Sensitive or boundary-heavy context shifted the wording toward acknowledgment and slower pacing.")
+        if has_llm_candidates:
+            notes.append("LLM-generated candidates are included; review for impersonation, privacy, and boundary fit.")
         return notes
 
     def _shared_boundary_reminders(

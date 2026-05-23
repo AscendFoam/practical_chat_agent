@@ -1,5 +1,16 @@
 # Feasibility Report
 
+## Captain Update 2026-05-23 (T183 Review)
+
+T183 confirms that an opt-in hybrid planner surface is feasible in the current repository shape.
+
+The feasibility gap has changed again:
+
+- no longer blocked on whether template and LLM candidates can be composed into a single review-only planner surface without making LLM behavior the default
+- now focused on whether T184 can evaluate the resulting hybrid planner on holdout scenarios and separate quality evidence from implementation success
+
+So the project is ready to commit the T183 slice and advance to T184, while keeping quality judgment separate from integration success.
+
 ## Captain Update 2026-05-23 (T182 Review)
 
 T182 confirms that shared deterministic candidate validation is feasible in the current repository shape.

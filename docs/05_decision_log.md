@@ -1,5 +1,29 @@
 # Decision Log
 
+## D045: T183 PASS_WITH_WARNINGS, accept task, advance to T184
+
+- Date: 2026-05-23
+- Status: Accepted
+- Context: `docs/review/T183_review.md` gives `PASS_WITH_WARNINGS` for the hybrid planner integration task. No blocking issues were found, and the review confirms the hybrid surface is additive, opt-in, and review-only.
+- Decision: T183 is complete. The project may continue to T184 `Planner Holdout Eval`.
+- Warning handling:
+  - Accepted:
+    - N01 `.claude/settings.json` modification is treated as workspace-artifact noise rather than a task-scope defect, consistent with prior precedent.
+  - Deferred:
+    - N02 no committed test exercises the valid LLM-candidate merge success path.
+    - M01 no end-to-end hybrid success test exists.
+    - M02 no explicit reranked-order assertion after merge exists.
+  - Rejected: none.
+- Conditions carried forward:
+  - T184 must remain evaluation-only. No planner code changes, no send/platform integration, and no raw private content in committed artifacts.
+  - T184 must distinguish private smoke evidence from committed tests and must not overclaim quality without holdout data.
+  - T184 should assess template vs hybrid behavior on anonymized scenarios and record the result as evidence, not as a code change request.
+- Impact:
+  - `docs/04_task_board.md` moves the Current Unique Task from T183 to T184 and marks T183 complete.
+  - `docs/07_handoff.md` records the T183 review decision and what T184 may assume next.
+  - `docs/08_risks_and_open_questions.md` records the missing committed coverage for hybrid merge success.
+  - `docs/tasks/M7_llm_reply_planner/T184_llm_planner_holdout_eval.md` is tightened into a formal worker task package.
+
 ## D044: T182 PASS_WITH_WARNINGS, accept task, advance to T183
 
 - Date: 2026-05-23

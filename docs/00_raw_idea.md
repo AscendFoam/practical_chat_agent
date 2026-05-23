@@ -1,5 +1,15 @@
 # Raw Idea
 
+## Captain Update 2026-05-23 (T183 Review)
+
+T183 has now passed review with `PASS_WITH_WARNINGS`, so the hybrid planner integration step is accepted:
+
+- the repo now has an opt-in hybrid planner surface that can combine template and optional LLM candidates without making LLM behavior the default
+- the project still does not permit quality claims without holdout evaluation, outbound behavior, or hidden state mutation
+- the next safe step is T184 `LLM Planner Holdout Eval`, not more planner wiring
+
+The Current Unique Task therefore moves to T184 `LLM Planner Holdout Eval`.
+
 ## Captain Update 2026-05-23 (T182 Review)
 
 T182 has now passed review with `PASS_WITH_WARNINGS`, so the validator-hardening step is accepted:

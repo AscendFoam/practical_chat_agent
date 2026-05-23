@@ -157,10 +157,11 @@ def check_ranks_contiguous(candidates: list) -> bool:
 # ---------------------------------------------------------------------------
 
 
-def check_input_size(serialized_json: str, max_chars: int = MAX_INPUT_CHARS) -> bool:
-    """Check if a serialized payload fits within the size budget.
+def check_input_size(size: int, max_chars: int = MAX_INPUT_CHARS) -> bool:
+    """Check if a payload size fits within the character budget.
 
     This is a character-count proxy for token estimation.  Callers
-    should pass the serialized JSON that would be sent to the provider.
+    should pass the total estimated size (in characters) of the data
+    that would be sent to the provider.
     """
-    return len(serialized_json) <= max_chars
+    return size <= max_chars

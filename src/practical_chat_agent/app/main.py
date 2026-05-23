@@ -1968,6 +1968,11 @@ def chat_reply_plan(
         "--output",
         help="Optional ReplyPlan JSON output path.",
     ),
+    hybrid: bool = typer.Option(
+        False,
+        "--hybrid",
+        help="Enable hybrid mode: also request LLM-generated candidates if provider is configured.",
+    ),
 ) -> None:
     """Generate a review-only ReplyPlan from safe ChatContext JSON."""
 
@@ -1978,7 +1983,20 @@ def chat_reply_plan(
     except ValidationError as exc:
         raise typer.BadParameter(f"Invalid ChatContext JSON: {exc}") from exc
 
-    planner = ReplyPlanner()
+    llm_generator: LLMReplyGeneratorService | None = None
+    if hybrid:
+        settings = get_settings()
+        llm_generator = LLMReplyGeneratorService(
+            api_key=settings.openai_api_key,
+            base_url=settings.openai_base_url,
+            model=settings.chat_suggestion_model,
+            timeout_seconds=settings.chat_suggestion_timeout_seconds,
+        )
+
+    planner = ReplyPlanner(
+        llm_generator=llm_generator,
+        hybrid_mode=hybrid,
+    )
     try:
         plan = planner.generate(context=context)
     except ReplyPlannerError as exc:

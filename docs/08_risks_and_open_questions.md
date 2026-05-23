@@ -1,5 +1,16 @@
 # Risks And Open Questions
 
+## Captain Update 2026-05-23 (T183 Review Decision)
+
+Authoritative current risk state after the Captain review of T183:
+
+- R039 remains active: entering T184 can still overstate LLM quality if holdout evidence is treated as proof of general readiness rather than a bounded evaluation.
+- R040 remains active as a compact-context boundary rule: T184 must evaluate only anonymized/safe holdout inputs and must not reopen raw-transcript or full-store paths.
+- R041 remains active: approved patches and derived briefs must still be interpreted as review-only guidance rather than automatic learning or hidden state mutation.
+- R065 is active and deferred: the hybrid merge success path does not have a committed regression test, so future refactors could break valid-candidate merging without immediate detection.
+
+Closed question Q178: T183 is accepted with `PASS_WITH_WARNINGS`, so the project may proceed to T184 rather than reopening hybrid integration work for a blocking repair pass.
+
 ## Captain Update 2026-05-23 (T182 Review Decision)
 
 Authoritative current risk state after the Captain review of T182:
@@ -395,6 +406,7 @@ Closed question Q124: the updated GPT roadmap is directionally aligned, but M4/M
 | R062 | T181 privacy leak detection only checks normalized substring overlap | Verbatim echo can be caught, but paraphrased or partial-detail leakage may still pass validation and reach private review artifacts | T182 should harden deterministic leak detection and add regression coverage that proves safe rejection on richer leak patterns |
 | R063 | `INPUT_TOO_LARGE` preflight exists but the T182 call site passes `str(estimated_size)` instead of the serialized payload | Oversize compact-context input still falls through to provider-error handling, so the dedicated deterministic refusal path remains non-functional despite appearing implemented | T183 or a narrow follow-up should fix the call site and add a regression test that proves `INPUT_TOO_LARGE` is returned before provider call |
 | R064 | Candidate-path regression coverage is much stronger after T182, but the `INPUT_TOO_LARGE` refusal path still lacks committed coverage | The current preflight bug could persist or regress silently even though most validator/generator branches are now protected | Add a dedicated refusal-path regression test before or during T183 so hybrid integration does not build on an unverified preflight |
+| R065 | T183 hybrid merge success path is only smoke-validated, not committed-test validated | A refactor could break valid LLM candidate merging, reranking, or policy assessment without immediate regression signal | Add a committed synthetic valid-candidate merge test before relying on the hybrid path for broader evaluation claims |
 
 ## Open Questions
 
@@ -406,6 +418,7 @@ Closed question Q124: the updated GPT roadmap is directionally aligned, but M4/M
 
 | ID | 结论 | 关闭依据 |
 | --- | --- | --- |
+| Q178 | T183 是否可以作为已完成任务接受并推进到 T184？可以；以 `PASS_WITH_WARNINGS` 接受，deferred 项收敛到 hybrid merge success test 缺口。 | `docs/review/T183_review.md` + Captain decision |
 | Q177 | T182 是否可以作为已完成任务接受并推进到 T183？可以；以 `PASS_WITH_WARNINGS` 接受，deferred 项收敛到 `INPUT_TOO_LARGE` 预检 bug 及其测试缺口。 | `docs/review/T182_review.md` + Captain decision |
 | Q176 | T181 是否可以作为已完成任务接受并推进到 T182？可以；以 `PASS_WITH_WARNINGS` 接受，deferred 项转入 validator/privacy/test hardening 风险。 | `docs/review/T181_review.md` + Captain decision |
 | Q001 | SDK 包名为 `wechatbot-sdk`，验证版本 `0.2.1`，导入路径为 `from wechatbot import WeChatBot`。 | T00 notes + T00 review |
