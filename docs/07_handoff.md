@@ -1,5 +1,62 @@
 # Handoff
 
+## Captain Current State Override 2026-05-24 (T190 Review Decision)
+
+- T190 review decision: `PASS_WITH_WARNINGS`.
+- T190 warning disposition:
+  - Accepted: N01 `.claude/settings.json` workspace-artifact overrun, N04 `RelationshipState.source_type` may stay extensible until approved-delta application actually exists.
+  - Deferred: N02 `RelationshipDeltaDimension.magnitude` is not schema-enforced against `current_value` / `proposed_value`, N03 `RelationshipDeltaDirection="stable"` lacks contract guidance, M01 no committed automated schema validation tests yet exist.
+  - Rejected: none.
+- T190 is complete as the schema-only opening task for M8.
+- Current Unique Task: T191 Relationship signal extractor.
+- Current task package: `docs/tasks/M8_relationship_state/T191_relationship_signal_extractor.md`.
+- T191 must stay extraction-only and conservative:
+  - no raw chat-history reads
+  - no RelationshipState auto-update
+  - no delta generation or review CLI
+  - no send/platform integration
+  - no LLM dependency unless a later Captain task explicitly expands scope
+- T190/T191 boundary:
+  - T190 remains the authoritative contract for `RelationshipState` and `RelationshipDeltaCandidate`.
+  - T191 may emit relationship signals only; it must not mutate state or imply milestone closure.
+  - T192 must later resolve delta-direction / magnitude semantics before state-change review is introduced.
+
+## T190 Worker Completion Record
+
+- Files changed:
+  - `src/practical_chat_agent/core/models.py`
+  - `docs/data_contracts/relationship_state_contract.md` (new)
+  - `docs/07_handoff.md`
+- Model/enum names added:
+  - `InteractionTemperature` (Literal: warm, neutral, cold, mixed, unknown)
+  - `RelationshipDeltaDirection` (Literal: increase, decrease, stable, unknown)
+  - `RELATIONSHIP_DIMENSION_NAMES` (Literal: familiarity, trust, warmth, reciprocity, conflict_level, boundary_risk, initiative_allowance, intimacy_level)
+  - `RelationshipState` (Pydantic BaseModel)
+  - `RelationshipDeltaDimension` (Pydantic BaseModel)
+  - `RelationshipDeltaCandidate` (Pydantic BaseModel)
+- Schema design:
+  - `RelationshipState` has 8 independent float dimensions (0.0-1.0), each named explicitly. No single scalar score or weighted combination is derived.
+  - `uncertainty` (0.0-1.0) captures overall assessment confidence.
+  - `recent_interaction_temperature` uses categorical labels instead of a float, keeping interpretation explicit and reviewable.
+  - `evidence_refs` is required (min_length=1). A state without evidence is structurally invalid.
+  - `assessment_rationale`, `source_type`, and `source_skill_record_id` provide provenance tracking.
+  - `status` defaults to `"candidate"`. `is_runtime_ready()` requires `status == "approved"` AND `reviewed_by_human == True` AND `last_decision == "approved"`.
+  - `dimension_snapshot()` returns a dict of dimension names to float values for downstream comparison.
+  - `RelationshipDeltaCandidate` captures proposed changes to specific dimensions, with `evidence_refs` (required) and optional `signal_refs` for T191 signals.
+  - `RelationshipDeltaDimension` specifies per-dimension current/proposed values, direction, magnitude, and optional rationale.
+  - Both models reuse `DistilledArtifactReviewMetadata` for review lifecycle compatibility with T122/T163.
+- Relationship to existing `ContactSkillRelationshipState`:
+  - The existing model (T111) remains the compatibility fallback inside `ContactSkillCandidate`.
+  - The new `RelationshipState` is a separate, more structured model for M8 relationship tracking.
+  - They are not merged or replaced.
+- Verification:
+  - Compile passed.
+  - Synthetic model validation passed: created a `RelationshipState` and `RelationshipDeltaCandidate` with safe ids, confirmed `status == "candidate"`, `is_runtime_ready() == False`, and `evidence_refs` enforcement works.
+- Explicit non-actions:
+  - No signal extraction, review CLI, auto-update, or send/platform integration was added.
+  - No raw chat text, feedback text, or private content was stored in any model field.
+  - No LLM call, runtime mutation, or downstream integration was added.
+
 ## Captain Current State Override 2026-05-23 (T184 Review Decision)
 
 - T184 review decision: `PASS_WITH_WARNINGS`.

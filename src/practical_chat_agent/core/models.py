@@ -1014,6 +1014,106 @@ class BoundaryProfileBrief(BaseModel):
     source_skill_record_id: str = Field(..., min_length=1)
 
 
+InteractionTemperature = Literal["warm", "neutral", "cold", "mixed", "unknown"]
+
+RelationshipDeltaDirection = Literal["increase", "decrease", "stable", "unknown"]
+
+RELATIONSHIP_DIMENSION_NAMES = Literal[
+    "familiarity",
+    "trust",
+    "warmth",
+    "reciprocity",
+    "conflict_level",
+    "boundary_risk",
+    "initiative_allowance",
+    "intimacy_level",
+]
+
+
+class RelationshipState(BaseModel):
+    schema_version: str = "relationship_state_v1"
+    state_id: str = Field(default_factory=lambda: new_id("relstate"))
+    contact_id: str = Field(..., min_length=1)
+
+    familiarity: float = Field(..., ge=0.0, le=1.0)
+    trust: float = Field(..., ge=0.0, le=1.0)
+    warmth: float = Field(..., ge=0.0, le=1.0)
+    reciprocity: float = Field(..., ge=0.0, le=1.0)
+    conflict_level: float = Field(..., ge=0.0, le=1.0)
+    boundary_risk: float = Field(..., ge=0.0, le=1.0)
+    initiative_allowance: float = Field(..., ge=0.0, le=1.0)
+    intimacy_level: float = Field(..., ge=0.0, le=1.0)
+
+    uncertainty: float = Field(..., ge=0.0, le=1.0)
+    recent_interaction_temperature: InteractionTemperature = "unknown"
+
+    first_interaction_at: datetime | None = None
+    last_interaction_at: datetime | None = None
+    assessed_at: datetime = Field(default_factory=utc_now)
+
+    evidence_refs: list[str] = Field(..., min_length=1)
+    assessment_rationale: str | None = None
+
+    source_type: Literal["heuristic", "signal_extractor", "manual", "unknown"] = "unknown"
+    source_skill_record_id: str | None = None
+
+    status: DistillationStatus = "candidate"
+    review_metadata: DistilledArtifactReviewMetadata = Field(
+        default_factory=DistilledArtifactReviewMetadata,
+    )
+
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
+
+    def is_runtime_ready(self) -> bool:
+        return self.review_metadata.is_runtime_ready(status=self.status)
+
+    def dimension_snapshot(self) -> dict[str, float]:
+        return {
+            "familiarity": self.familiarity,
+            "trust": self.trust,
+            "warmth": self.warmth,
+            "reciprocity": self.reciprocity,
+            "conflict_level": self.conflict_level,
+            "boundary_risk": self.boundary_risk,
+            "initiative_allowance": self.initiative_allowance,
+            "intimacy_level": self.intimacy_level,
+        }
+
+
+class RelationshipDeltaDimension(BaseModel):
+    dimension_name: RELATIONSHIP_DIMENSION_NAMES
+    current_value: float = Field(..., ge=0.0, le=1.0)
+    proposed_value: float = Field(..., ge=0.0, le=1.0)
+    direction: RelationshipDeltaDirection = "unknown"
+    magnitude: float = Field(default=0.0, ge=0.0, le=1.0)
+    rationale: str | None = None
+
+
+class RelationshipDeltaCandidate(BaseModel):
+    schema_version: str = "relationship_delta_candidate_v1"
+    delta_id: str = Field(default_factory=lambda: new_id("reldelta"))
+    contact_id: str = Field(..., min_length=1)
+    source_state_id: str = Field(..., min_length=1)
+
+    dimension_changes: list[RelationshipDeltaDimension] = Field(..., min_length=1)
+    delta_rationale: str = Field(..., min_length=1)
+
+    evidence_refs: list[str] = Field(..., min_length=1)
+    signal_refs: list[str] = Field(default_factory=list)
+
+    status: DistillationStatus = "candidate"
+    review_metadata: DistilledArtifactReviewMetadata = Field(
+        default_factory=DistilledArtifactReviewMetadata,
+    )
+
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
+
+    def is_runtime_ready(self) -> bool:
+        return self.review_metadata.is_runtime_ready(status=self.status)
+
+
 ChatContext.model_rebuild()
 AgentTurnResult.model_rebuild()
 MeetingLivePreview.model_rebuild()

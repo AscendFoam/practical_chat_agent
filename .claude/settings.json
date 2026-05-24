@@ -146,7 +146,10 @@
       "Bash(PYTHONPATH=src \"C:\\\\ProgramData\\\\anaconda3\\\\envs\\\\practical-chat-agent\\\\python.exe\" private/t184_run_eval.py)",
       "Bash(PYTHONPATH=src 'C:\\\\ProgramData\\\\anaconda3\\\\envs\\\\practical-chat-agent\\\\python.exe' -c ' *)",
       "Bash(python -c \"import json; d=json.load\\(open\\('private/distilled/t184_holdout_eval/eval_analysis.json'\\)\\); print\\(json.dumps\\({k:{kk:vv for kk,vv in v.items\\(\\) if kk != 'template_labels' and kk != 'hybrid_labels'} for k,v in d.items\\(\\)}, indent=2, ensure_ascii=False\\)\\)\")",
-      "Bash('C:/ProgramData/anaconda3/envs/practical-chat-agent/python.exe' -m py_compile src/practical_chat_agent/services/llm_reply_generator.py src/practical_chat_agent/services/reply_planner.py src/practical_chat_agent/app/main.py)"
+      "Bash('C:/ProgramData/anaconda3/envs/practical-chat-agent/python.exe' -m py_compile src/practical_chat_agent/services/llm_reply_generator.py src/practical_chat_agent/services/reply_planner.py src/practical_chat_agent/app/main.py)",
+      "Bash('C:\\\\ProgramData\\\\anaconda3\\\\envs\\\\practical-chat-agent\\\\python.exe' -m compileall src/practical_chat_agent/core/models.py)",
+      "Bash('C:/ProgramData/anaconda3/envs/practical-chat-agent/python.exe' -m py_compile src/practical_chat_agent/core/models.py)",
+      "Bash(PYTHONPATH=src 'C:/ProgramData/anaconda3/envs/practical-chat-agent/python.exe' -m pytest tests/ -x -q --tb=short)"
     ]
   }
 }

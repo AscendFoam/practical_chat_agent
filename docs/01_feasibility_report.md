@@ -1,5 +1,16 @@
 # Feasibility Report
 
+## Captain Update 2026-05-24 (T190 Review)
+
+T190 confirms that conservative relationship-state modeling is feasible in the current repository shape.
+
+The feasibility gap has changed again:
+
+- no longer blocked on whether M8 can define a multidimensional relationship-state contract without collapsing to a scalar score
+- now focused on whether T191 can extract conservative, evidence-backed relationship signals from approved metadata and feedback artifacts without reading raw chat history or mutating state
+
+So the project is ready to commit the T190 slice and advance to T191, while keeping M8 extraction work review-first, additive, and non-mutating.
+
 ## Captain Update 2026-05-23 (T185 / M7 Review)
 
 M7 is now feasible and complete within its intended scope.

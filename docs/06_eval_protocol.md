@@ -1,5 +1,15 @@
 # Eval Protocol
 
+## Captain Update 2026-05-24 (T190 Review)
+
+T190 has now been accepted with `PASS_WITH_WARNINGS`.
+
+Current evaluation sequence is now:
+
+- T191: can the repo extract conservative, evidence-backed relationship signals from approved metadata and feedback artifacts without reading raw chat history, auto-updating `RelationshipState`, or collapsing into speculative judgments?
+
+T190 changes the evaluation baseline in one important way: M8 no longer needs to prove whether a multidimensional relationship-state contract can be stated cleanly. That layer now exists. The next evaluation target is signal-extraction discipline, not schema definition.
+
 ## Captain Update 2026-05-23 (T184 Review)
 
 T184 has now been accepted with `PASS_WITH_WARNINGS`, and the narrow follow-up has since closed M7 with `Allow`.

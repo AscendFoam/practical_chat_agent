@@ -1,8 +1,22 @@
 # Task Board
 
-Updated: 2026-05-23
+Updated: 2026-05-24
 
 ## Captain Current State Override
+
+- T190 review decision: `PASS_WITH_WARNINGS`.
+- T190 is complete as the schema-only opening task for M8.
+- T190 warning disposition:
+  - Accepted: N01 `.claude/settings.json` workspace-artifact overrun, N04 `RelationshipState.source_type` can remain extensible for a later approved-delta source.
+  - Deferred: N02 `RelationshipDeltaDimension.magnitude` is not schema-enforced against `current_value` / `proposed_value`, N03 `RelationshipDeltaDirection="stable"` lacks contract guidance, M01 no committed automated schema validation tests yet exist.
+  - Rejected: none.
+- Current Unique Task: T191 Relationship signal extractor.
+- Current task package: `docs/tasks/M8_relationship_state/T191_relationship_signal_extractor.md`.
+- T191 must stay extraction-only and conservative: no raw chat-history reads, no RelationshipState auto-update, no delta generation, no review CLI, no send/platform integration, and no LLM dependency unless a later Captain task explicitly permits it.
+- M8 execution constraints now carried forward:
+  - T191 should emit evidence-backed relationship signals that later T192 delta generation can reference.
+  - T191 should prefer under-generation over speculative inference; ambiguous cases should be skipped rather than forced into a dimension.
+  - T191 must preserve T190 schema semantics and keep M8 review-first; T190 does not close M8.
 
 - T185 review decision: `PASS_WITH_WARNINGS`.
 - T185 is complete as the narrow hybrid alignment task.
@@ -283,7 +297,7 @@ Goal: add optional LLM candidate generation only after regression safety net is 
 
 Goal: model multi-axis relationship state with human-reviewed deltas rather than a single scalar affinity score.
 
-- [ ] T190: RelationshipState schema.
+- [x] T190: RelationshipState schema. Review `PASS_WITH_WARNINGS`.
 - [ ] T191: relationship signal extractor.
 - [ ] T192: RelationshipDeltaCandidate.
 - [ ] T193: relationship review CLI.
@@ -330,9 +344,9 @@ Goal: keep WeChat as a thin final adapter behind the send gate.
 
 ## Historical Current Unique Task
 
-T185: Hybrid Planner Language and Safety Alignment.
+T190: RelationshipState schema.
 
-It is now complete and accepted with `PASS_WITH_WARNINGS`. The next worker task is T190, because M7 is closed and the next safe step is the M8 RelationshipState schema.
+It is now complete and accepted with `PASS_WITH_WARNINGS`. The next worker task is T191, because the schema layer is in place and the next safe M8 step is conservative relationship-signal extraction.
 
 ## Next Captain Output Required
 

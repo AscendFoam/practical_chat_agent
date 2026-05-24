@@ -1,5 +1,18 @@
 # Risks And Open Questions
 
+## Captain Update 2026-05-24 (T190 Review Decision)
+
+Authoritative current risk state after the Captain review of T190:
+
+- R040 remains active as a compact-context and privacy boundary rule: T191 and later M8 work must continue to use approved metadata / anonymized-safe artifacts only and must not reopen raw-transcript ingestion.
+- R041 remains active: relationship-state work must stay review-only and must not turn feedback, derived briefs, or future signals into automatic learning or hidden state mutation.
+- R071 remains active: LLM confidence calibration is still unresolved, but it is orthogonal to T190 and does not block M8 schema acceptance.
+- R072 is active and deferred: `RelationshipDeltaDimension.magnitude` is not schema-enforced against `current_value` / `proposed_value`, so downstream code cannot yet assume that magnitude is internally consistent.
+- R073 is active and deferred: `RelationshipDeltaDirection="stable"` exists without contract guidance, so later M8 tasks could diverge on what a no-change delta means unless T192/T193 narrow the semantics explicitly.
+- R074 is active and deferred: no committed automated tests yet cover `RelationshipState` / `RelationshipDeltaCandidate` validation, helper behavior, or runtime-ready gating.
+
+Closed question Q183: T190 is accepted with `PASS_WITH_WARNINGS`, so the project may proceed to T191 rather than reopening the schema-only M8 opening step.
+
 ## Captain Update 2026-05-23 (T185 Review Decision + M7 Review)
 
 Authoritative current risk state after the Captain review of T185 and the M7 milestone review:
@@ -439,6 +452,12 @@ Closed question Q124: the updated GPT roadmap is directionally aligned, but M4/M
 | R066 | T184 holdout showed hybrid LLM candidates defaulted to English while template candidates remained Chinese | This was a real UX gap during T184 and was addressed by T185 language alignment | Closed by T185 |
 | R067 | T184 holdout showed thin_context / boundary_sensitive policy flags did not always constrain LLM draft text | This was a real safety-gap exposure during T184 and was addressed by T185 prompt-level constraints | Closed by T185 |
 | R068 | T184 holdout showed hybrid `approach_label` values were not normalized to the template naming convention | This was a real downstream-consistency gap during T184 and was addressed by T185 label normalization | Closed by T185 |
+| R069 | T185 safety-context detection remains heuristic rather than policy-engine-native | Hybrid LLM safety alignment could drift if prompt-side heuristics and planner-side policy semantics diverge | Track as deferred hardening; do not treat T185 prompt behavior as a substitute for policy-engine-native enforcement |
+| R070 | T185 Chinese output alignment is prompt-level rather than hard post-generation enforcement | A provider could still return non-Chinese text in edge cases, creating review UX inconsistency | Track as deferred hardening; current scope accepts prompt alignment but does not claim hard language enforcement |
+| R071 | LLM candidate confidence remains uncalibrated | Reviewers could over-read high confidence values as probabilities or production readiness | Keep documented as non-probabilistic confidence; revisit only if later milestones rely on calibration-sensitive ranking |
+| R072 | `RelationshipDeltaDimension.magnitude` defaults to a free value and is not enforced to match `abs(proposed_value - current_value)` | Future delta-generation or review code could consume internally inconsistent deltas unless it recomputes or validates magnitude explicitly | T192 or later hardening should compute/validate magnitude explicitly before downstream consumers rely on it |
+| R073 | `RelationshipDeltaDirection=\"stable\"` exists without contract guidance | T192/T193 could disagree on whether a "stable" entry is a real delta, a no-op, or an invalid review artifact | T192 should either avoid generating stable deltas or document exact semantics before T193 review flow depends on them |
+| R074 | No committed automated tests yet cover `RelationshipState` / `RelationshipDeltaCandidate` validation or helpers | Schema regressions in bounds, required evidence, runtime-ready gating, or helper behavior could slip in silently | Add committed schema validation tests in a later M8 hardening slice or when T191/T192 introduce executable signal/delta flows |
 
 ## Open Questions
 
@@ -450,6 +469,7 @@ Closed question Q124: the updated GPT roadmap is directionally aligned, but M4/M
 
 | ID | 结论 | 关闭依据 |
 | --- | --- | --- |
+| Q183 | T190 是否可以作为已完成任务接受并推进到 T191？可以；以 `PASS_WITH_WARNINGS` 接受，deferred 项转入 M8 风险台账并由 T191/T192+ 承接。 | `docs/review/T190_review.md` + Captain decision |
 | Q180 | Gate M7 是否已经可以关闭并进入 M8？还不可以；它仍是 `Conditional`，必须先完成 T185 的窄范围对齐修复。 | `docs/review/T184_milestone_review.md` + Captain decision |
 | Q179 | T184 是否可以作为已完成任务接受并推进到 T185？可以；以 `PASS_WITH_WARNINGS` 接受，holdout 证据有效但 gate 仍 `Conditional`。 | `docs/review/T184_review.md` + Captain decision |
 | Q178 | T183 是否可以作为已完成任务接受并推进到 T184？可以；以 `PASS_WITH_WARNINGS` 接受，deferred 项收敛到 hybrid merge success test 缺口。 | `docs/review/T183_review.md` + Captain decision |

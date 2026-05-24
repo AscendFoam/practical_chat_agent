@@ -1,5 +1,31 @@
 # Architecture
 
+## Captain Update 2026-05-24 (T190 Review)
+
+T190 completes the contract-first opening for M8:
+
+```text
+RelationshipState schema
+  -> multidimensional fields
+  -> evidence refs + timestamps
+  -> review-only delta contract
+  -> no scalar collapse
+  -> no auto-update
+```
+
+The next architectural step is T191, which must stay extractor-only:
+
+```text
+approved feedback / approved metadata
+  -> conservative relationship signals
+  -> explicit dimension refs + evidence refs
+  -> no state mutation
+  -> no delta generation
+  -> no raw transcript dependency
+```
+
+This keeps M8 additive and preserves the review-first boundary established by T190.
+
 ## Captain Update 2026-05-23 (T185 / M7 Review)
 
 M7 architecture is now closed as an opt-in, review-only, regression-hardened hybrid path:

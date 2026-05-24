@@ -1,5 +1,15 @@
 # Raw Idea
 
+## Captain Update 2026-05-24 (T190 Review)
+
+T190 has now passed review with `PASS_WITH_WARNINGS`, so the first M8 step is accepted:
+
+- the repo now has a conservative `RelationshipState` schema and `RelationshipDeltaCandidate` contract
+- the project still does not permit signal extraction from raw chat history, automatic state mutation, delta auto-approval, or runtime send behavior
+- the next safe step is T191 `Relationship Signal Extractor`, not delta application or context injection
+
+The Current Unique Task therefore moves to T191 `Relationship Signal Extractor`.
+
 ## Captain Update 2026-05-23 (T185 / M7 Review)
 
 T185 has now passed review with `PASS_WITH_WARNINGS`, and the M7 milestone review now allows M7 to close:

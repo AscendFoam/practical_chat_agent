@@ -1,5 +1,31 @@
 # Decision Log
 
+## D048: T190 PASS_WITH_WARNINGS, accept schema task, advance to T191
+
+- Date: 2026-05-24
+- Status: Accepted
+- Context: `docs/review/T190_review.md` gives `PASS_WITH_WARNINGS` for the RelationshipState schema task. No blocking issues were found, and the review confirms the task stayed schema-only, conservative, and within the intended M8 boundary.
+- Decision: T190 is complete. The project may continue to T191 `Relationship Signal Extractor`.
+- Warning handling:
+  - Accepted:
+    - N01 `.claude/settings.json` modification is treated as workspace-artifact noise rather than a T190 scope defect.
+    - N04 `RelationshipState.source_type` not yet including an approved-delta variant is acceptable forward-compatibility debt for the schema-opening step.
+  - Deferred:
+    - N02 `RelationshipDeltaDimension.magnitude` is not enforced to match `abs(proposed_value - current_value)`, so downstream consumers must not treat it as schema-guaranteed until T192 or later hardening constrains it.
+    - N03 `RelationshipDeltaDirection="stable"` is available but not yet contract-guided, so T191/T192 must avoid inventing contradictory stable-delta semantics.
+    - M01 no committed automated tests yet exercise `RelationshipState` / `RelationshipDeltaCandidate` validation, helper behavior, or boundary enforcement.
+  - Rejected: none.
+- Conditions carried forward:
+  - T191 must stay extraction-only. No raw chat-history reads, no state mutation, no delta generation, no review CLI, and no LLM dependency are authorized.
+  - T191 should emit evidence-backed relationship signals that later T192 delta generation can reference.
+  - T192 must either enforce or explicitly compute `magnitude` / direction semantics so later reviewers are not left with ambiguous delta interpretation.
+  - M8 remains open; T190 is contract completion, not milestone closure.
+- Impact:
+  - `docs/04_task_board.md` moves the Current Unique Task from T190 to T191 and marks T190 complete.
+  - `docs/07_handoff.md` records the T190 review decision and what T191 may assume next.
+  - `docs/08_risks_and_open_questions.md` records the deferred schema-consistency and test-coverage risks from the T190 review.
+  - `docs/tasks/M8_relationship_state/T191_relationship_signal_extractor.md` is rewritten into a stricter worker task package.
+
 ## D047: T185 PASS_WITH_WARNINGS, close M7 with Allow, advance to T190
 
 - Date: 2026-05-23
