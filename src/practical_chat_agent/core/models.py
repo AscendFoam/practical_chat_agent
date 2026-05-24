@@ -1114,6 +1114,33 @@ class RelationshipDeltaCandidate(BaseModel):
         return self.review_metadata.is_runtime_ready(status=self.status)
 
 
+RelationshipSignalProvenance = Literal[
+    "feedback_boundary",
+    "feedback_action",
+    "metadata_derived",
+    "unknown",
+]
+
+
+class RelationshipSignal(BaseModel):
+    signal_id: str = Field(default_factory=lambda: new_id("relsig"))
+    contact_id: str = Field(..., min_length=1)
+    dimension_name: RELATIONSHIP_DIMENSION_NAMES
+    direction: RelationshipDeltaDirection = "unknown"
+    strength: float = Field(..., ge=0.0, le=1.0)
+    evidence_refs: list[str] = Field(..., min_length=1)
+    provenance: RelationshipSignalProvenance = "unknown"
+    signal_description: str | None = None
+    status: DistillationStatus = "candidate"
+    review_metadata: DistilledArtifactReviewMetadata = Field(
+        default_factory=DistilledArtifactReviewMetadata,
+    )
+    created_at: datetime = Field(default_factory=utc_now)
+
+    def is_runtime_ready(self) -> bool:
+        return self.review_metadata.is_runtime_ready(status=self.status)
+
+
 ChatContext.model_rebuild()
 AgentTurnResult.model_rebuild()
 MeetingLivePreview.model_rebuild()

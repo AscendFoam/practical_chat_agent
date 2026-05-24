@@ -1,5 +1,21 @@
 # Risks And Open Questions
 
+## Captain Update 2026-05-24 (T191 Review Decision)
+
+Authoritative current risk state after the Captain review of T191:
+
+- R040 remains active as a compact-context and privacy boundary rule: T192 and later M8 work must continue to use approved metadata / anonymized-safe artifacts only and must not reopen raw-transcript ingestion.
+- R041 remains active: relationship-state work must stay review-only and must not turn feedback, derived briefs, or future signals into automatic learning or hidden state mutation.
+- R071 remains active: LLM confidence calibration is still unresolved, but it is orthogonal to T191 and does not block M8 signal acceptance.
+- R072 is active and deferred: `RelationshipDeltaDimension.magnitude` is still not schema-enforced against `current_value` / `proposed_value`, so T192 must validate or recompute it explicitly.
+- R073 is active and deferred: `RelationshipDeltaDirection="stable"` still lacks contract guidance, so T192/T193 could diverge unless the delta semantics are narrowed explicitly.
+- R074 remains active: no committed automated tests yet cover `RelationshipState` / `RelationshipDeltaCandidate` validation, helper behavior, or runtime-ready gating.
+- R075 is active and deferred: `RelationshipSignal` lacks an `updated_at` field, so later review/update flows will not have an explicit mutation timestamp unless T193 or a follow-up adds one.
+- R076 is active and deferred: `RelationshipSignal` runtime-ready approval path is not yet committed-test covered.
+- R077 is active and deferred: `RelationshipSignal.signal_id` format and non-emptiness are not yet covered by a dedicated committed test.
+
+Closed question Q184: T191 is accepted with `PASS_WITH_WARNINGS`, so the project may proceed to T192 rather than reopening the signal-extraction task.
+
 ## Captain Update 2026-05-24 (T190 Review Decision)
 
 Authoritative current risk state after the Captain review of T190:
@@ -458,6 +474,9 @@ Closed question Q124: the updated GPT roadmap is directionally aligned, but M4/M
 | R072 | `RelationshipDeltaDimension.magnitude` defaults to a free value and is not enforced to match `abs(proposed_value - current_value)` | Future delta-generation or review code could consume internally inconsistent deltas unless it recomputes or validates magnitude explicitly | T192 or later hardening should compute/validate magnitude explicitly before downstream consumers rely on it |
 | R073 | `RelationshipDeltaDirection=\"stable\"` exists without contract guidance | T192/T193 could disagree on whether a "stable" entry is a real delta, a no-op, or an invalid review artifact | T192 should either avoid generating stable deltas or document exact semantics before T193 review flow depends on them |
 | R074 | No committed automated tests yet cover `RelationshipState` / `RelationshipDeltaCandidate` validation or helpers | Schema regressions in bounds, required evidence, runtime-ready gating, or helper behavior could slip in silently | Add committed schema validation tests in a later M8 hardening slice or when T191/T192 introduce executable signal/delta flows |
+| R075 | `RelationshipSignal` lacks an `updated_at` field | Later approval/update flows for signals will not have an explicit mutation timestamp unless another task adds one | T193 or a follow-up can add `updated_at` if mutation timing becomes important |
+| R076 | No committed automated test exercises an approved `RelationshipSignal` runtime-ready path | The approval→runtime-ready transition on signals could regress without a direct test | Add a committed lifecycle test when T193 makes signal review/update behavior executable |
+| R077 | No committed automated test covers `RelationshipSignal.signal_id` format or non-emptiness | Signal id generation would remain untested at the model boundary | Add a dedicated model test when signal schema hardening is revisited |
 
 ## Open Questions
 
@@ -470,6 +489,7 @@ Closed question Q124: the updated GPT roadmap is directionally aligned, but M4/M
 | ID | 结论 | 关闭依据 |
 | --- | --- | --- |
 | Q183 | T190 是否可以作为已完成任务接受并推进到 T191？可以；以 `PASS_WITH_WARNINGS` 接受，deferred 项转入 M8 风险台账并由 T191/T192+ 承接。 | `docs/review/T190_review.md` + Captain decision |
+| Q184 | T191 是否可以作为已完成任务接受并推进到 T192？可以；以 `PASS_WITH_WARNINGS` 接受，deferred 项转入 M8 风险台账并由 T192/T193+ 承接。 | `docs/review/T191_review.md` + Captain decision |
 | Q180 | Gate M7 是否已经可以关闭并进入 M8？还不可以；它仍是 `Conditional`，必须先完成 T185 的窄范围对齐修复。 | `docs/review/T184_milestone_review.md` + Captain decision |
 | Q179 | T184 是否可以作为已完成任务接受并推进到 T185？可以；以 `PASS_WITH_WARNINGS` 接受，holdout 证据有效但 gate 仍 `Conditional`。 | `docs/review/T184_review.md` + Captain decision |
 | Q178 | T183 是否可以作为已完成任务接受并推进到 T184？可以；以 `PASS_WITH_WARNINGS` 接受，deferred 项收敛到 hybrid merge success test 缺口。 | `docs/review/T183_review.md` + Captain decision |

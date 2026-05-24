@@ -1,5 +1,15 @@
 # Eval Protocol
 
+## Captain Update 2026-05-24 (T191 Review)
+
+T191 has now been accepted with `PASS_WITH_WARNINGS`.
+
+Current evaluation sequence is now:
+
+- T192: can the repo turn conservative relationship signals into reviewable `RelationshipDeltaCandidate` records with explicit dimension changes, evidence refs, and no auto-approval or scalar collapse?
+
+T191 changes the evaluation baseline in one important way: M8 no longer needs to prove whether a sparse, boundary-driven signal extractor can exist. That layer now exists. The next evaluation target is delta-generation discipline, not signal extraction.
+
 ## Captain Update 2026-05-24 (T190 Review)
 
 T190 has now been accepted with `PASS_WITH_WARNINGS`.

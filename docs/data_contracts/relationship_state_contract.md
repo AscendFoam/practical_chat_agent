@@ -149,11 +149,72 @@ Each dimension is an independent float in [0.0, 1.0]. No single score or weighte
 
 ## Compatibility with Later M8 Tasks
 
-- T191 (signal extractor) produces signal records that `RelationshipDeltaCandidate.signal_refs` can reference.
+- T191 (signal extractor) produces `RelationshipSignal` records from boundary-labeled feedback. Each signal has a `signal_id` that `RelationshipDeltaCandidate.signal_refs` can reference.
 - T192 (delta candidate generation) creates `RelationshipDeltaCandidate` instances with at least one `dimension_changes` entry and non-empty `evidence_refs`.
 - T193 (review CLI) updates `status` and `review_metadata`, using the same `DistilledArtifactReviewMetadata` pattern as T122/T163.
 - T194 (compact context) reads only `status="approved"` states where `is_runtime_ready() == True`, producing a compact brief for `ChatContext` without exposing full dimension values.
 - T195 (relationship-aware eval) evaluates whether the dimension model improves reply quality over the flat `ContactSkillRelationshipState`.
+
+## RelationshipSignal (T191)
+
+A `RelationshipSignal` is a single, conservative, evidence-backed observation about one relationship dimension. Signals are intermediate artifacts: they are **not** state snapshots and **not** delta proposals. They exist so that T192 delta generation can aggregate multiple signals into a reviewable `RelationshipDeltaCandidate` without reading raw chat history or feedback text.
+
+### How Signals Differ from State and Delta
+
+| Layer | Model | Purpose |
+| --- | --- | --- |
+| Observation | `RelationshipSignal` | One dimension, one direction, one strength; evidence-backed |
+| State snapshot | `RelationshipState` | Full multidimensional snapshot; requires approved deltas |
+| Proposed change | `RelationshipDeltaCandidate` | Reviewable change proposal referencing signals |
+
+### Signal Extraction Rules
+
+The extractor operates only on boundary-labeled feedback records with known high-confidence patterns. Unknown labels, non-boundary actions, and ambiguous inputs produce **no signals** (under-generation preferred).
+
+| Boundary Label | Dimension(s) | Direction | Strength |
+| --- | --- | --- | --- |
+| `boundary_violation` | `boundary_risk` | increase | 0.7 |
+| `too_intimate` | `boundary_risk` | increase | 0.5 |
+| `too_intimate` | `intimacy_level` | decrease | 0.4 |
+| `too_eager` | `initiative_allowance` | decrease | 0.5 |
+
+Labels not listed above (`too_cold`, `too_formal`, `too_long`, `good_tone`, `not_like_me`, or any unknown label) produce no signal. Non-boundary actions (`accept`, `reject`, `edit`) also produce no signal.
+
+### RelationshipSignal Fields
+
+#### Required Fields
+
+| Field | Type | Constraint | Description |
+| --- | --- | --- | --- |
+| `contact_id` | `str` | min_length=1 | Target contact |
+| `dimension_name` | `RELATIONSHIP_DIMENSION_NAMES` | enum | Which relationship dimension |
+| `strength` | `float` | 0.0–1.0 | How strong the observed signal is |
+| `evidence_refs` | `list[str]` | min_length=1 | References to feedback records backing this signal |
+
+#### Optional Fields
+
+| Field | Type | Default | Description |
+| --- | --- | --- | --- |
+| `direction` | `RelationshipDeltaDirection` | `"unknown"` | increase / decrease / stable / unknown |
+| `provenance` | `RelationshipSignalProvenance` | `"unknown"` | How this signal was produced |
+| `signal_description` | `str or None` | `None` | Brief generic description of the observation |
+
+#### Metadata Fields
+
+| Field | Type | Default | Description |
+| --- | --- | --- | --- |
+| `signal_id` | `str` | auto-generated | Unique identifier |
+| `status` | `DistillationStatus` | `"candidate"` | Review lifecycle status |
+| `review_metadata` | `DistilledArtifactReviewMetadata` | default factory | Compatible with existing review pattern |
+| `created_at` | `datetime` | utc_now | Creation timestamp |
+
+### Signal Safety Constraints
+
+1. **Evidence-backed**: `evidence_refs` is required with `min_length=1`. A signal without evidence is structurally invalid.
+2. **No raw text**: No field stores raw chat transcript, raw feedback text, edited reply text, boundary notes, or user notes.
+3. **Dimension-specific**: Each signal targets exactly one dimension. Multi-dimension observations produce separate signals.
+4. **Conservative extraction**: Only boundary labels with clear, high-confidence relationship implications produce signals.
+5. **Candidate-only by default**: `status` defaults to `"candidate"`. `is_runtime_ready()` returns `False` until human review approves.
 
 ## Relationship to Existing ContactSkillRelationshipState
 

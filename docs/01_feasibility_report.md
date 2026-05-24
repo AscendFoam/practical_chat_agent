@@ -1,5 +1,16 @@
 # Feasibility Report
 
+## Captain Update 2026-05-24 (T191 Review)
+
+T191 confirms that conservative relationship-signal extraction is feasible in the current repository shape.
+
+The feasibility gap has changed again:
+
+- no longer blocked on whether boundary-labeled feedback can be converted into sparse, evidence-backed relationship signals without raw-text leakage
+- now focused on whether T192 can turn those signals into reviewable `RelationshipDeltaCandidate` records with explicit dimension semantics and no auto-approval
+
+So the project is ready to commit the T191 slice and advance to T192, while keeping M8 delta work review-first and non-mutating.
+
 ## Captain Update 2026-05-24 (T190 Review)
 
 T190 confirms that conservative relationship-state modeling is feasible in the current repository shape.

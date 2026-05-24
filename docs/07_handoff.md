@@ -1,5 +1,62 @@
 # Handoff
 
+## Captain Current State Override 2026-05-24 (T191 Review Decision)
+
+- T191 review decision: `PASS_WITH_WARNINGS`.
+- T191 warning disposition:
+  - Accepted: N01 handoff test-count mismatch is a documentation accuracy issue, N02 `.claude/settings.json` workspace-artifact overrun, N04 static rule-table typing suppression is acceptable for the current deterministic extractor scope, N05 sparse coverage over three dimensions is intentional and conservative.
+  - Deferred: N03 `RelationshipSignal` lacks an `updated_at` field, M01 no committed test yet exercises an approved `RelationshipSignal` runtime-ready path, M02 no committed test yet covers `signal_id` format or non-emptiness.
+  - Rejected: none.
+- T191 is complete as the conservative signal-extraction task for M8.
+- Current Unique Task: T192 RelationshipDeltaCandidate.
+- Current task package: `docs/tasks/M8_relationship_state/T192_relationship_delta_candidate.md`.
+- T192 must stay delta-only and reviewable:
+  - no auto-approve or auto-apply
+  - no RelationshipState mutation
+  - no send/platform integration
+  - no scalar-collapse
+  - no raw-text dependency
+- T191/T192 boundary:
+  - T191 emits signals only.
+  - T192 consumes signals and proposes candidate deltas only.
+  - T193 later handles human review of those deltas.
+
+## T191 Worker Completion Record
+
+- Files changed:
+  - `src/practical_chat_agent/core/models.py`
+  - `src/practical_chat_agent/services/feedback.py`
+  - `docs/data_contracts/relationship_state_contract.md`
+  - `tests/test_relationship_signals.py` (new)
+  - `docs/07_handoff.md`
+- Model/type names added:
+  - `RelationshipSignalProvenance` (Literal: feedback_boundary, feedback_action, metadata_derived, unknown)
+  - `RelationshipSignal` (Pydantic BaseModel)
+- Service added:
+  - `RelationshipSignalExtractor` in `services/feedback.py` with `extract_from_feedback()` method
+- Signal extraction design:
+  - Only boundary-labeled feedback with known high-confidence patterns produces signals.
+  - `boundary_violation` → boundary_risk increase (0.7 strength).
+  - `too_intimate` → boundary_risk increase (0.5) + intimacy_level decrease (0.4).
+  - `too_eager` → initiative_allowance decrease (0.5).
+  - All other actions (accept, reject, edit), boundary labels without rules, and unlabeled boundary feedback produce zero signals.
+  - Each signal carries `evidence_refs` pointing to the source `feedback_id`.
+  - No raw text (boundary_note, user_note, edited_text, draft_text) is stored in any signal field.
+  - `provenance` is always `"feedback_boundary"` for current extraction rules.
+  - `status` defaults to `"candidate"`, `is_runtime_ready()` requires human review approval.
+- Relationship to T190:
+  - T190 schemas remain intact and unchanged.
+  - `RelationshipSignal.signal_id` values can be referenced by future `RelationshipDeltaCandidate.signal_refs`.
+  - No `RelationshipState` mutation or `RelationshipDeltaCandidate` generation occurs.
+- Verification:
+  - Compile passed for models.py and feedback.py.
+  - T191 test suite: 21 tests covering clear boundary patterns, no-signal behavior, evidence-ref preservation, no-raw-text, valid-record filtering, multi-contact, and model validation.
+  - Full existing test suite: no regressions.
+- Explicit non-actions:
+  - No raw chat history, raw feedback text, edited text, boundary notes, or user notes were stored.
+  - No LLM call, RelationshipState mutation, RelationshipDeltaCandidate generation, review CLI, or send/platform integration was added.
+  - No ContactSkill, MemoryFact, approved store, or planner template was modified.
+
 ## Captain Current State Override 2026-05-24 (T190 Review Decision)
 
 - T190 review decision: `PASS_WITH_WARNINGS`.

@@ -18,6 +18,8 @@ from practical_chat_agent.core.models import (
     DistillationStatus,
     PreferencePatchCandidate,
     PreferencePatchType,
+    RelationshipDeltaDirection,
+    RelationshipSignal,
     ReplyFeedbackAction,
     ReplyFeedbackLog,
     ReplyFeedbackRecord,
@@ -1198,3 +1200,96 @@ class ApprovedPatchContextService:
             return str(path.resolve().relative_to(Path.cwd().resolve())).replace("\\", "/")
         except ValueError:
             return str(path).replace("\\", "/")
+
+
+class RelationshipSignalExtractor:
+    """Conservative extractor that turns validated feedback records into
+    evidence-backed relationship signals.
+
+    Only boundary-labeled feedback with known high-confidence patterns produces
+    signals.  Ambiguous, unlabeled, or unsupported inputs are skipped.
+    """
+
+    _BOUNDARY_RULES: dict[str, list[dict]] = {
+        "boundary_violation": [
+            {
+                "dimension": "boundary_risk",
+                "direction": "increase",
+                "strength": 0.7,
+                "description": "User flagged a boundary violation in the reply",
+            },
+        ],
+        "too_intimate": [
+            {
+                "dimension": "boundary_risk",
+                "direction": "increase",
+                "strength": 0.5,
+                "description": "User flagged reply as too intimate for the relationship",
+            },
+            {
+                "dimension": "intimacy_level",
+                "direction": "decrease",
+                "strength": 0.4,
+                "description": "User indicated lower intimacy comfort than assumed",
+            },
+        ],
+        "too_eager": [
+            {
+                "dimension": "initiative_allowance",
+                "direction": "decrease",
+                "strength": 0.5,
+                "description": "User flagged reply as too eager or proactive",
+            },
+        ],
+    }
+
+    def extract_from_feedback(
+        self,
+        *,
+        feedback_log: ReplyFeedbackLog,
+        valid_record_ids: set[str] | None = None,
+    ) -> list[RelationshipSignal]:
+        """Extract relationship signals from a validated feedback log.
+
+        Parameters
+        ----------
+        feedback_log : ReplyFeedbackLog
+            The feedback log to scan.
+        valid_record_ids : set[str] | None
+            If provided, only records whose ``feedback_id`` is in this set are
+            considered.  Pass *None* to consider all records.
+
+        Returns
+        -------
+        list[RelationshipSignal]
+            Zero or more conservative relationship signals.
+        """
+        signals: list[RelationshipSignal] = []
+
+        for record in feedback_log.records:
+            if valid_record_ids is not None and record.feedback_id not in valid_record_ids:
+                continue
+
+            if record.action != "boundary":
+                continue
+
+            if not record.boundary_label:
+                continue
+
+            rules = self._BOUNDARY_RULES.get(record.boundary_label)
+            if not rules:
+                continue
+
+            for rule in rules:
+                signal = RelationshipSignal(
+                    contact_id=record.contact_id,
+                    dimension_name=rule["dimension"],  # type: ignore[arg-type]
+                    direction=rule["direction"],  # type: ignore[arg-type]
+                    strength=rule["strength"],
+                    evidence_refs=[record.feedback_id],
+                    provenance="feedback_boundary",
+                    signal_description=rule["description"],
+                )
+                signals.append(signal)
+
+        return signals

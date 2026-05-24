@@ -4,6 +4,20 @@ Updated: 2026-05-24
 
 ## Captain Current State Override
 
+- T191 review decision: `PASS_WITH_WARNINGS`.
+- T191 is complete as the conservative signal-extraction task for M8.
+- T191 warning disposition:
+  - Accepted: N01 handoff test-count mismatch is a documentation accuracy issue, N02 `.claude/settings.json` workspace-artifact overrun, N04 static rule-table typing suppression is acceptable for the current deterministic extractor scope, N05 sparse coverage over 3 of 8 dimensions is intentional and conservative.
+  - Deferred: N03 `RelationshipSignal` missing `updated_at`, M01 no committed test for approved `RelationshipSignal` runtime-ready path, M02 no committed test for `signal_id` format.
+  - Rejected: none.
+- Current Unique Task: T192 RelationshipDeltaCandidate.
+- Current task package: `docs/tasks/M8_relationship_state/T192_relationship_delta_candidate.md`.
+- T192 must stay delta-only and reviewable: no auto-approve, no auto-apply, no send/platform integration, no scalar-collapse, and no raw-text dependency.
+- M8 execution constraints now carried forward:
+  - T192 should consume T191 signals and emit explicit dimension deltas with evidence refs and signal refs.
+  - T192 should recompute or validate magnitude/direction semantics rather than assuming schema defaults are sufficient.
+  - T192 must preserve T190/T191 review-first semantics and not claim state-update completion.
+
 - T190 review decision: `PASS_WITH_WARNINGS`.
 - T190 is complete as the schema-only opening task for M8.
 - T190 warning disposition:
@@ -298,7 +312,7 @@ Goal: add optional LLM candidate generation only after regression safety net is 
 Goal: model multi-axis relationship state with human-reviewed deltas rather than a single scalar affinity score.
 
 - [x] T190: RelationshipState schema. Review `PASS_WITH_WARNINGS`.
-- [ ] T191: relationship signal extractor.
+- [x] T191: relationship signal extractor. Review `PASS_WITH_WARNINGS`.
 - [ ] T192: RelationshipDeltaCandidate.
 - [ ] T193: relationship review CLI.
 - [ ] T194: RelationshipState compact context.
@@ -344,9 +358,9 @@ Goal: keep WeChat as a thin final adapter behind the send gate.
 
 ## Historical Current Unique Task
 
-T190: RelationshipState schema.
+T191: relationship signal extractor.
 
-It is now complete and accepted with `PASS_WITH_WARNINGS`. The next worker task is T191, because the schema layer is in place and the next safe M8 step is conservative relationship-signal extraction.
+It is now complete and accepted with `PASS_WITH_WARNINGS`. The next worker task is T192, because the signal layer is in place and the next safe M8 step is reviewable delta generation.
 
 ## Next Captain Output Required
 

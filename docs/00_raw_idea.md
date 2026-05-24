@@ -1,5 +1,15 @@
 # Raw Idea
 
+## Captain Update 2026-05-24 (T191 Review)
+
+T191 has now passed review with `PASS_WITH_WARNINGS`, so the signal-extraction step is accepted:
+
+- the repo now has a conservative `RelationshipSignal` layer that turns specific boundary-labeled feedback into evidence-backed signals
+- the project still does not permit raw chat-history reads, relationship-state auto-update, or delta generation from T191 alone
+- the next safe step is T192 `RelationshipDeltaCandidate`, not review CLI or state mutation
+
+The Current Unique Task therefore moves to T192 `RelationshipDeltaCandidate`.
+
 ## Captain Update 2026-05-24 (T190 Review)
 
 T190 has now passed review with `PASS_WITH_WARNINGS`, so the first M8 step is accepted:

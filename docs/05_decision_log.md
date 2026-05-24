@@ -1,5 +1,33 @@
 # Decision Log
 
+## D049: T191 PASS_WITH_WARNINGS, accept signal-extraction task, advance to T192
+
+- Date: 2026-05-24
+- Status: Accepted
+- Context: `docs/review/T191_review.md` gives `PASS_WITH_WARNINGS` for the RelationshipSignal extractor task. No blocking issues were found, and the review confirms the task stayed conservative, evidence-backed, and within the intended M8 boundary.
+- Decision: T191 is complete. The project may continue to T192 `RelationshipDeltaCandidate`.
+- Warning handling:
+  - Accepted:
+    - N01 the handoff test-count mismatch is a documentation accuracy issue, not a code defect.
+    - N02 `.claude/settings.json` modification is treated as workspace-artifact noise rather than a T191 scope defect.
+    - N04 the static rule-table `# type: ignore[arg-type]` is acceptable for the current deterministic extractor scope.
+    - N05 sparse signal coverage across only three dimensions is intentional and conservative for this task.
+  - Deferred:
+    - N03 `RelationshipSignal` lacks an `updated_at` field, so T193 should make update timing explicit or accept the asymmetry knowingly.
+    - M01 no committed test yet exercises an approved `RelationshipSignal` runtime-ready path.
+    - M02 no committed test yet covers `signal_id` format or non-emptiness.
+  - Rejected: none.
+- Conditions carried forward:
+  - T192 must stay delta-only. No auto-approval, no state mutation, no send/platform integration, and no scalar-collapse are authorized.
+  - T192 should consume T191 signals and make dimension-change semantics explicit, including magnitude and direction handling.
+  - T193 should later use the same review/lifecycle pattern already established for other M8 reviewable artifacts.
+  - M8 remains open; T191 is executable signal extraction, not milestone closure.
+- Impact:
+  - `docs/04_task_board.md` moves the Current Unique Task from T191 to T192 and marks T191 complete.
+  - `docs/07_handoff.md` records the T191 review decision and what T192 may assume next.
+  - `docs/08_risks_and_open_questions.md` records the deferred signal-model and coverage risks from the T191 review.
+  - `docs/tasks/M8_relationship_state/T192_relationship_delta_candidate.md` is rewritten into a stricter worker task package.
+
 ## D048: T190 PASS_WITH_WARNINGS, accept schema task, advance to T191
 
 - Date: 2026-05-24

@@ -1,5 +1,30 @@
 # Architecture
 
+## Captain Update 2026-05-24 (T191 Review)
+
+T191 adds the first executable layer on top of the M8 schema:
+
+```text
+boundary-labeled feedback
+  -> conservative RelationshipSignal
+  -> evidence refs + provenance
+  -> no raw-text storage
+  -> no state mutation
+```
+
+The next architectural step is T192, which must stay delta-only:
+
+```text
+RelationshipSignal records
+  -> RelationshipDeltaCandidate
+  -> explicit dimension changes
+  -> review-only output
+  -> no auto-approval
+  -> no RelationshipState update
+```
+
+This keeps M8 additive and preserves the review-first boundary established by T190 and T191.
+
 ## Captain Update 2026-05-24 (T190 Review)
 
 T190 completes the contract-first opening for M8:
