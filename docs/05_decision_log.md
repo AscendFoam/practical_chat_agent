@@ -1,5 +1,87 @@
 # Decision Log
 
+## D058: T210 PASS, accept behavior schema, advance to T211
+
+- Date: 2026-05-25
+- Status: Accepted
+- Context: `docs/review/T210_review.md` gives `PASS` for the behavior schema task. No blocking issues were found. The review confirms T210 is schema-only, draft-only, non-executable, and did not introduce planner logic, scheduling, platform integration, message sending, memory mutation, LLM calls, or raw transcript paths.
+- Decision: T210 is complete. The project may continue to T211 `Action Planner Rule Engine`.
+- Review observation handling:
+  - Accepted:
+    - N01 `docs/for_human/T210_review_explanation.md` allowed-files overrun is treated as established reviewer-convention noise.
+    - N02 `docs/worker_summary/T210_worker_summary.md` allowed-files overrun is treated as established worker-summary convention noise.
+    - N03 / M03 missing explicit `access_token` and `api_key` forbidden-key tests are accepted as low-risk test-strength observations because the full forbidden-key set is enforced by the shared metadata validator.
+    - N04 reuse of `DistillationStatus` for `CandidateAction.status` is accepted for this schema-first stage and matches nearby lifecycle patterns.
+    - N05 duplicated safety invariant fields on `BehaviorPolicy` and `CandidateAction` are accepted because each artifact remains independently safe when detached.
+    - M01 no dedicated `BehaviorPolicy.max_candidates <= 0` test is accepted because the schema constraint is present and this is not blocking.
+    - M02 no `AgentSelfState(contact_id=None)` round-trip test is accepted as minor boundary coverage debt.
+    - M04 no explicit `CandidateActionPayload.review_notes` round-trip test is accepted as minor boundary coverage debt.
+  - Deferred: none.
+  - Rejected: none.
+- Conditions carried forward:
+  - T211 may implement deterministic rule-based candidate generation only.
+  - T211 must emit draft-only `CandidateAction` artifacts and preserve all T210 safety invariants.
+  - T211 must not send messages, schedule actions, integrate platforms, call LLMs, mutate memory/ContactSkill/RelationshipState/approved stores, or bypass human review.
+- Impact:
+  - `docs/04_task_board.md` moves the Current Unique Task from T210 to T211 and marks T210 complete.
+  - `docs/07_handoff.md` records the T210 review decision and T211 task boundary.
+  - `docs/08_risks_and_open_questions.md` records that no new deferred T210 risks are opened.
+  - `docs/tasks/M10_behavior_planner/T211_action_planner_rule_engine.md` is expanded into a complete worker task package.
+
+## D057: T203 PASS, accept optional Mem0 adapter spike, advance to T210
+
+- Date: 2026-05-24
+- Status: Accepted
+- Context: `docs/review/T203_review.md` gives `PASS` for the optional Mem0 adapter spike. No blocking issues were found. The review confirms the adapter is additive, lazy-imported, optional/off-by-default, covered by 45 tests, and does not introduce a required dependency, raw transcript path, write path, store mutation, ChatContext wiring, planner changes, send behavior, or platform integration.
+- Decision: T203 is complete. M9 is complete at the task level. The project may continue to T210 `Behavior Schema`.
+- Warning handling:
+  - Accepted:
+    - N01 `.claude/settings.json` allowed-files overrun is treated as established workspace-artifact convention noise.
+    - N02 `docs/worker_summary/T203_worker_summary.md` allowed-files overrun is treated as established worker-summary convention noise.
+    - N03 T203 reuses the T202 eval case shape rather than importing the T202 runner directly; acceptable for a spike, but a production external adapter should use the T202 runner directly.
+    - N04 documentation/test-count discrepancies are harmless documentation nits and do not affect safety or functionality.
+    - N05 `_infer_memory_type` English keyword heuristics are acceptable for a spike but should not be treated as multilingual production classification.
+    - M01 no dedicated `limit=0` test is acceptable for spike scope.
+    - M02 no empty-string `contact_id` test is acceptable for spike scope.
+    - M03 no direct `ImportError` simulation is acceptable because absent-config behavior covers the safe `not_configured` path and import is lazy.
+    - M04 no non-`Exception` error test is acceptable because allowing `KeyboardInterrupt` / `SystemExit` to propagate is correct behavior.
+  - Deferred: none.
+  - Rejected: none.
+- Conditions carried forward:
+  - The Mem0 adapter remains optional and off-by-default; it is not production external-memory adoption.
+  - Any future external-memory production task must add review enforcement, evidence mapping, SDK/dependency pinning, and operational error handling before runtime use.
+  - T210 must stay schema-only and draft-only: no message sending, no scheduled real actions, no platform integration, no automatic memory mutation, and no autonomous behavior claims.
+- Impact:
+  - `docs/04_task_board.md` moves the Current Unique Task from T203 to T210 and marks T203 complete.
+  - `docs/07_handoff.md` records the T203 review decision and T210 task boundary.
+  - `docs/08_risks_and_open_questions.md` records that no new T203 deferred risks are opened.
+  - `docs/tasks/M10_behavior_planner/T210_behavior_schema.md` is expanded into a complete worker task package.
+
+## D056: T202 PASS, accept retrieval eval set, advance to T203
+
+- Date: 2026-05-24
+- Status: Accepted
+- Context: `docs/review/T202_review.md` gives `PASS` for the retrieval eval set task. No blocking issues were found. The review confirms T202 is additive and eval-only, uses synthetic data, exercises retrievers through the public `MemoryRetriever` protocol, and does not introduce raw transcript access, external dependencies, mutation, ChatContext wiring, planner changes, or outbound behavior changes.
+- Decision: T202 is complete. The project may continue to T203 `Optional Mem0 Adapter Spike`.
+- Warning handling:
+  - Accepted:
+    - N01 `.claude/settings.json` allowed-files overrun is treated as established workspace-artifact convention noise.
+    - N02 `docs/worker_summary/T202_worker_summary.md` allowed-files overrun is treated as established worker-summary convention noise.
+    - N03 eval coverage targets `LocalApprovedStoreRetriever` rather than the older context-bound `LocalMemoryRetriever`; this is acceptable because T202's goal is a reusable protocol eval set and the older adapter requires live `AgentProfile`, `InboundEvent`, and `MemoryFact` setup.
+    - M01 lack of a dedicated empty-string query case is accepted because T201 already covers it and T202 covers `None`, whitespace, case-insensitive, substring, miss, and multi-token query behavior.
+    - M02 excluded records use uniform importance/confidence values; this is acceptable because T202's exclusion assertions are about runtime-readiness boundaries, not ranking among excluded records.
+  - Deferred: none.
+  - Rejected: none.
+- Conditions carried forward:
+  - T203 must remain a spike and must not make Mem0 or any external memory package a required runtime dependency.
+  - T203 may add an optional adapter boundary only behind the `MemoryRetriever` protocol and should reuse the T202 eval set where feasible.
+  - T203 must not read private chat history, index raw transcripts, auto-write memory, mutate approved stores, call external services in tests, wire into `ChatContext`, change `ReplyPlanner` / policy / send behavior, or claim production adoption.
+- Impact:
+  - `docs/04_task_board.md` moves the Current Unique Task from T202 to T203 and marks T202 complete.
+  - `docs/07_handoff.md` records the T202 review decision and T203 task boundary.
+  - `docs/08_risks_and_open_questions.md` records that no new T202 deferred risks are opened.
+  - `docs/tasks/M9_memory_retrieval_layer/T203_optional_mem0_adapter_spike.md` is expanded into a complete worker task package.
+
 ## D055: T201 PASS, accept local approved-store retriever, advance to T202
 
 - Date: 2026-05-24

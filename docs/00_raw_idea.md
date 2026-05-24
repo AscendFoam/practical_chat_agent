@@ -1,5 +1,39 @@
 # Raw Idea
 
+## Captain Update 2026-05-25 (T210 Review)
+
+T210 has now passed review with `PASS`, so M10 has its draft-only behavior schema foundation:
+
+- the repo now has `AgentSelfState`, `BehaviorPolicy`, `CandidateActionPayload`, and `CandidateAction` as typed proactive-behavior contracts
+- the contracts are explicitly non-executable: no auto-send, no platform execution, no scheduler, no platform target, no memory mutation, and no raw transcript payloads
+- reviewer non-blocking observations are accepted as test-strength/schema-style notes under a `PASS` verdict; no repair pass and no deferred review risk are opened
+- the next safe step is T211 `Action Planner Rule Engine`, limited to deterministic candidate generation over safe approved context, still without sending, scheduling, platform integration, LLM calls, or review bypass
+
+The Current Unique Task therefore moves to T211 `Action Planner Rule Engine`.
+
+## Captain Update 2026-05-24 (T203 Review)
+
+T203 has now passed review with `PASS`, so M9 is complete at the task level:
+
+- the repo now has a contract-first memory retrieval layer (`MemoryRetriever`, `MemoryHit`, `MemoryRetrieverResult`)
+- local approved-store retrieval is implemented and covered by synthetic evals
+- an optional Mem0 adapter boundary has been spiked without adding a required dependency, write path, private transcript path, or runtime wiring
+- Mem0 remains optional/off-by-default and is not accepted as production external memory until review integration, evidence mapping, SDK pinning, and error recovery are handled later
+- the next safe step is M10/T210 `Behavior Schema`, limited to draft-only proactive action models
+
+The Current Unique Task therefore moves to T210 `Behavior Schema`.
+
+## Captain Update 2026-05-24 (T202 Review)
+
+T202 has now passed review with `PASS`, so M9 has a committed synthetic retrieval eval baseline:
+
+- the repo now has reusable synthetic eval cases around the `MemoryRetriever` protocol and `MemoryRetrieverResult`
+- the eval set covers relevant hits, non-runtime-ready exclusions, query behavior, ordering, boundary behavior, result-contract checks, and reuse through the protocol
+- the eval remains synthetic and review-safe: no private chat content, no raw transcript retrieval, no external services, no adapter dependency, and no planner/send behavior change
+- the next safe step is T203 `Optional Mem0 Adapter Spike`, but only as a contained optional adapter feasibility spike behind the existing contract
+
+The Current Unique Task therefore moves to T203 `Optional Mem0 Adapter Spike`.
+
 ## Captain Update 2026-05-24 (T201 Review)
 
 T201 has now passed review with `PASS`, so M9 has a local approved-store retriever implementation:

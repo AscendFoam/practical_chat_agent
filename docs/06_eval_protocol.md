@@ -1,5 +1,35 @@
 # Eval Protocol
 
+## Captain Update 2026-05-25 (T210 Review)
+
+T210 has now been accepted with `PASS`.
+
+Current evaluation sequence is now:
+
+- T211: can the repo implement deterministic rules that produce draft-only `CandidateAction` records from safe approved context and `AgentSelfState`, while preserving all T210 non-execution invariants and avoiding LLM calls, scheduling, platform integration, message sending, memory mutation, and human-review bypass?
+
+T210 changes the evaluation baseline in one important way: M10 no longer needs to prove whether proactive action contracts can be stated safely. The next evaluation target is deterministic rule behavior and safety preservation, not schema definition.
+
+## Captain Update 2026-05-24 (T203 Review)
+
+T203 has now been accepted with `PASS`.
+
+Current evaluation sequence is now:
+
+- T210: can the repo define draft-only proactive behavior schemas (`AgentSelfState`, `BehaviorPolicy`, `CandidateAction`) that are explicit enough for later planning/eval work while forbidding message sending, real scheduling, platform integration, automatic memory mutation, and autonomous-action claims?
+
+T203 changes the evaluation baseline in one important way: M9 no longer needs to prove whether optional external-memory adapter boundaries are feasible. That boundary exists as a spike, but production external-memory adoption remains unproven and intentionally deferred. The next evaluation target is proactive-action schema discipline, not retrieval.
+
+## Captain Update 2026-05-24 (T202 Review)
+
+T202 has now been accepted with `PASS`.
+
+Current evaluation sequence is now:
+
+- T203: can the repo evaluate an optional Mem0 adapter boundary behind the existing `MemoryRetriever` protocol without making an external dependency required, calling external services in committed tests, reading raw/private transcripts, auto-writing memory, or changing runtime planner/context/send behavior?
+
+T202 changes the evaluation baseline in one important way: M9 no longer needs to prove whether retrieval relevance and safety boundaries can be measured from committed synthetic cases. The next evaluation target is optional adapter feasibility and graceful unavailability, not retrieval-contract design or local-store behavior.
+
 ## Captain Update 2026-05-24 (T201 Review)
 
 T201 has now been accepted with `PASS`.

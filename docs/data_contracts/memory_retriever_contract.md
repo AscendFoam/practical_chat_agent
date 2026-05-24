@@ -216,6 +216,35 @@ Candidate, rejected, frozen, archived records, not-human-reviewed records, recor
 
 No raw transcript content, no embedding vectors, no file paths, no review metadata, no write/mutation methods.
 
+## T202 Eval Set
+
+T202 added a committed synthetic retrieval eval set at `tests/test_memory_retriever_eval_set.py` with contract documentation at `docs/data_contracts/memory_retriever_eval_set.md`.
+
+The eval set:
+
+- Defines `RetrievalEvalCase` dataclasses specifying expected retrieval behavior.
+- Builds a deterministic synthetic store with two contacts (synth_alice with 12 records, synth_bob with 3 records).
+- Provides `run_eval_case()` as a generic eval runner that works with any `MemoryRetriever`.
+- Covers relevant hits, all 6 non-runtime-ready exclusion types, query matching, deterministic ordering, limit enforcement, cross-contact isolation, and boundary behavior.
+- Can be reused by future retriever implementations (e.g., T203 external adapter) without rewriting the cases.
+
+## T203 Optional Mem0 Adapter Spike
+
+T203 added an optional `Mem0AdapterRetriever` at `src/practical_chat_agent/services/optional_mem0_adapter.py` as a contained feasibility spike.
+
+The adapter:
+
+- Implements the `MemoryRetriever` protocol (runtime `isinstance` check passes).
+- Degrades to `status="not_configured"` when the `mem0` package is not installed or no API key is provided.
+- Uses `mem0.Memory.search()` when a query is provided, `mem0.Memory.get_all()` otherwise.
+- Returns `MemoryHit` items with `source="external_adapter"`.
+- Does not call write methods (`add`, `delete`, `update`) on the Mem0 client.
+- Does not introduce `mem0` as a required dependency.
+
+Spike findings are documented at `docs/spikes/T203_mem0_adapter_spike.md`. Committed tests at `tests/test_optional_mem0_adapter_spike.py` use mocked clients and do not require Mem0 or network access.
+
+Key limitations: no review/approval enforcement on Mem0 results, heuristic memory type inference, synthetic evidence refs, ordering depends on Mem0's scoring.
+
 ## Intentional Gaps
 
 These are explicitly deferred to later tasks:

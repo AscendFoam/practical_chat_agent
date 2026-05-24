@@ -1,5 +1,41 @@
 # Feasibility Report
 
+## Captain Update 2026-05-25 (T210 Review)
+
+T210 confirms that proactive behavior can be represented safely in the current repository shape, but only as reviewable draft artifacts.
+
+The feasibility question has changed again:
+
+- no longer blocked on whether M10 can define schema-level proactive action boundaries without crossing into sending, scheduling, platform execution, or hidden memory mutation
+- now focused on whether T211 can implement a deterministic rule engine that proposes `CandidateAction` records from safe approved context and `AgentSelfState`, while keeping output candidate-only and review-only
+- still explicitly not ready for autonomous behavior, reminders, platform adapters, or outbound delivery; those remain behind later review and send-gate milestones
+
+So the project is ready to commit the T210 slice and advance to T211, while keeping BehaviorPlanner work deterministic, local, non-sending, and human-review-first.
+
+## Captain Update 2026-05-24 (T203 Review)
+
+T203 confirms that an optional external-memory adapter boundary is feasible in the current repository shape, but only as an off-by-default spike.
+
+The feasibility question has changed again:
+
+- no longer blocked on whether Mem0 can be wrapped behind the `MemoryRetriever` protocol without becoming a required dependency
+- now explicitly aware that external adapter adoption still needs review enforcement, real evidence mapping, SDK version pinning, error recovery, and operational configuration before production use
+- now focused on whether M10 can define draft-only proactive behavior schemas without sending messages, scheduling real actions, mutating memory, or integrating platforms
+
+So the project is ready to commit the T203 slice, close M9 at task level, and advance to T210 while keeping proactive behavior strictly review-only and non-sending.
+
+## Captain Update 2026-05-24 (T202 Review)
+
+T202 confirms that retrieval behavior can be evaluated from committed synthetic cases in the current repository shape.
+
+The feasibility question has changed again:
+
+- no longer blocked on whether the T200/T201 retriever surface can be measured through a reusable eval baseline
+- now focused on whether T203 can evaluate an optional Mem0 adapter boundary without making Mem0 a required dependency, reading private/raw transcripts, auto-writing memory, or wiring external retrieval into runtime behavior
+- still explicitly not ready for production external-memory integration; T203 is a spike, not an adoption decision
+
+So the project is ready to commit the T202 slice and advance to T203, while keeping M9 contract-bound, synthetic-testable, optional, and review-safe.
+
 ## Captain Update 2026-05-24 (T201 Review)
 
 T201 confirms that local approved-store retrieval is feasible in the current repository shape.

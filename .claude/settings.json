@@ -188,7 +188,30 @@
       "Bash(python -m pytest tests/test_local_approved_store_retriever.py -q)",
       "Bash(pip install *)",
       "Bash(python -m pytest tests/test_memory_retriever_contract.py tests/test_local_approved_store_retriever.py -q)",
-      "Bash(python -m pytest tests/ -q --ignore=tests/test_memory_retriever_contract.py --ignore=tests/test_local_approved_store_retriever.py)"
+      "Bash(python -m pytest tests/ -q --ignore=tests/test_memory_retriever_contract.py --ignore=tests/test_local_approved_store_retriever.py)",
+      "Bash(TEMP=__TRACKED_VAR__/tmp_eval TMP=__TRACKED_VAR__/tmp_eval mkdir -p tmp_eval)",
+      "Bash(PYTHONPATH=src 'C:\\\\ProgramData\\\\anaconda3\\\\envs\\\\practical-chat-agent\\\\python.exe' -m pytest tests/test_memory_retriever_eval_set.py -q)",
+      "Bash(TEMP=__TRACKED_VAR__/tmp_eval TMP=__TRACKED_VAR__/tmp_eval PYTHONPATH=src 'C:\\\\ProgramData\\\\anaconda3\\\\envs\\\\practical-chat-agent\\\\python.exe' -m pytest tests/test_memory_retriever_eval_set.py -q)",
+      "Bash(TEMP=__TRACKED_VAR__/tmp_eval TMP=__TRACKED_VAR__/tmp_eval PYTHONPATH=src 'C:\\\\ProgramData\\\\anaconda3\\\\envs\\\\practical-chat-agent\\\\python.exe' -m pytest tests/test_memory_retriever_contract.py tests/test_local_approved_store_retriever.py tests/test_memory_retriever_eval_set.py -q)",
+      "Bash(TEMP=__TRACKED_VAR__/tmp_eval TMP=__TRACKED_VAR__/tmp_eval PYTHONPATH=src 'C:\\\\ProgramData\\\\anaconda3\\\\envs\\\\practical-chat-agent\\\\python.exe' -m pytest tests/ -q)",
+      "Bash(PYTHONPATH=src python -m pytest tests/test_memory_retriever_eval_set.py -q)",
+      "Bash(PYTHONPATH=src python -m pytest tests/test_memory_retriever_contract.py tests/test_local_approved_store_retriever.py tests/test_memory_retriever_eval_set.py -q)",
+      "Bash(PYTHONPATH=src python -m py_compile src/practical_chat_agent/services/memory_retrieval.py)",
+      "Bash(PYTHONPATH=src python -m pytest tests/ -q)",
+      "Bash(PYTHONPATH=src 'C:\\\\ProgramData\\\\anaconda3\\\\envs\\\\practical-chat-agent\\\\python.exe' -m py_compile src/practical_chat_agent/services/optional_mem0_adapter.py)",
+      "Bash(PYTHONPATH=src 'C:\\\\ProgramData\\\\anaconda3\\\\envs\\\\practical-chat-agent\\\\python.exe' -m py_compile src/practical_chat_agent/services/memory_retrieval.py)",
+      "Bash(PYTHONPATH=src TEMP=__TRACKED_VAR__/tmp_eval TMP=__TRACKED_VAR__/tmp_eval mkdir -p tmp_eval)",
+      "Bash('C:\\\\ProgramData\\\\anaconda3\\\\envs\\\\practical-chat-agent\\\\python.exe' -m pytest tests/test_optional_mem0_adapter_spike.py -q)",
+      "Bash(PYTHONPATH=src TEMP=__TRACKED_VAR__/tmp_eval TMP=__TRACKED_VAR__/tmp_eval 'C:\\\\ProgramData\\\\anaconda3\\\\envs\\\\practical-chat-agent\\\\python.exe' -m pytest tests/test_memory_retriever_contract.py tests/test_local_approved_store_retriever.py tests/test_memory_retriever_eval_set.py tests/test_optional_mem0_adapter_spike.py -q)",
+      "Bash(PYTHONPATH=src TEMP=__TRACKED_VAR__/tmp_eval TMP=__TRACKED_VAR__/tmp_eval 'C:\\\\ProgramData\\\\anaconda3\\\\envs\\\\practical-chat-agent\\\\python.exe' -m pytest tests/ -q)",
+      "Bash(PYTHONPATH=src python -m py_compile src/practical_chat_agent/services/optional_mem0_adapter.py)",
+      "Bash(PYTHONPATH=src TEMP=tmp_eval TMP=tmp_eval python -m pytest tests/test_optional_mem0_adapter_spike.py -q)",
+      "Bash(PYTHONPATH=src TEMP=tmp_eval TMP=tmp_eval python -m pytest tests/test_memory_retriever_contract.py tests/test_local_approved_store_retriever.py tests/test_memory_retriever_eval_set.py tests/test_optional_mem0_adapter_spike.py -q)",
+      "Bash(PYTHONPATH=src TEMP=tmp_eval TMP=tmp_eval python -m pytest tests/ -q)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(mkdir -p .tmp/pytest .tmp/pytest_cache)",
+      "Bash(TEMP=.tmp/pytest TMP=.tmp/pytest pytest tests/test_behavior_schema.py -q -o cache_dir=.tmp/pytest_cache)",
+      "Bash(TEMP=.tmp/pytest TMP=.tmp/pytest pytest tests/ -q -o cache_dir=.tmp/pytest_cache)"
     ]
   }
 }

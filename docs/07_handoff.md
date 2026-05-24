@@ -1,5 +1,148 @@
 # Handoff
 
+## Captain Current State Override 2026-05-25 (T210 Review Decision)
+
+- T210 review decision: `PASS`.
+- T210 is complete as the schema-only opening task for M10.
+- T210 review observation disposition:
+  - Accepted: N01 reviewer explanation allowed-files overrun is established convention noise, N02 worker-summary allowed-files overrun is established convention noise, N03/M03 missing explicit `access_token` / `api_key` tests are low-risk because the shared forbidden-key validator covers the full set, N04 `DistillationStatus` reuse is acceptable for the schema-first lifecycle, N05 duplicated safety invariant fields are acceptable independent-safety redundancy, M01 `max_candidates` boundary test gap is minor, M02 `AgentSelfState(contact_id=None)` round-trip gap is minor, M04 `review_notes` round-trip gap is minor.
+  - Deferred: none.
+  - Rejected: none.
+- Captain decision: no T210 repair pass is needed.
+- Current Unique Task: T211 Action Planner Rule Engine.
+- Current task package: `docs/tasks/M10_behavior_planner/T211_action_planner_rule_engine.md`.
+- T211 must remain deterministic, local, candidate-only, and review-only:
+  - may introduce a rule-engine service that emits zero or more `CandidateAction` records from `AgentSelfState`, safe refs, and approved/review-safe context signals
+  - must preserve T210 invariants: `human_review_required=True`, `auto_send_allowed=False`, `platform_execution_allowed=False`, `scheduler_allowed=False`, `platform_target=None`
+  - must not send messages, schedule actions, integrate platforms, call LLMs, mutate memory/ContactSkill/RelationshipState/approved stores/private artifacts, add runtime/CLI wiring, or bypass human review
+  - must not read `private/chat_history/` or commit private content
+- Captain verification basis:
+  - Reviewer reported `python -m py_compile src/practical_chat_agent/core/models.py` passed.
+  - Reviewer reported `pytest tests/test_behavior_schema.py -q` passed: 25 tests.
+  - Reviewer reported `pytest tests/ -q` had no T210-related regressions; the reported unrelated full-suite failures were pre-existing missing-`typer` CLI environment failures in that review run.
+  - Worker summary reports a separate full-suite run with workspace temp/cache passed: 747 tests.
+- No new deferred T210 risk is opened. Existing project-wide review-only/outbound-gate risks remain active.
+
+## Captain Current State Override 2026-05-24 (T203 Review Decision)
+
+- T203 review decision: `PASS`.
+- T203 warning disposition:
+  - Accepted: N01 `.claude/settings.json` workspace-artifact overrun is established convention noise, N02 `docs/worker_summary/T203_worker_summary.md` is established worker-summary convention noise, N03 T203 reuses the T202 eval shape rather than importing the T202 runner directly which is acceptable for a spike, N04 documentation/test-count discrepancies are harmless, N05 English keyword memory-type inference is acceptable for spike scope, M01 no `limit=0` test is acceptable for spike scope, M02 no empty-string `contact_id` test is acceptable for spike scope, M03 no direct `ImportError` simulation is acceptable because safe not-configured behavior is covered, M04 non-`Exception` propagation is correct behavior.
+  - Deferred: none.
+  - Rejected: none.
+- T203 is complete as the optional Mem0 adapter spike task for M9.
+- M9 completion status: M9 is complete at the task level with Gate M9 `Allow`.
+- Current Unique Task: T210 Behavior Schema.
+- Current task package: `docs/tasks/M10_behavior_planner/T210_behavior_schema.md`.
+- T210 must remain schema-only and draft-only:
+  - define `AgentSelfState`, `BehaviorPolicy`, and `CandidateAction` or equivalently named behavior-planner contracts
+  - no message sending, send-gate bypass, platform adapter, real scheduler, or background job
+  - no memory write-back, ContactSkill mutation, relationship-state mutation, or automatic learning
+  - no raw transcript reads or private chat content in committed fixtures/docs/tests
+  - no planner execution beyond model validation and contract examples
+- Captain verification:
+  - `python -m py_compile src/practical_chat_agent/core/models.py src/practical_chat_agent/services/memory_retrieval.py src/practical_chat_agent/services/optional_mem0_adapter.py src/practical_chat_agent/services/chat_context.py` passed.
+  - After setting `TEMP`/`TMP` to a workspace temp directory, `pytest tests/test_optional_mem0_adapter_spike.py tests/test_memory_retriever_contract.py tests/test_local_approved_store_retriever.py tests/test_memory_retriever_eval_set.py -q` passed: 181 tests, with only `.pytest_cache` permission warnings.
+  - After setting `TEMP`/`TMP` to a workspace temp directory, `pytest tests/ -q` passed: 722 tests, with only `.pytest_cache` permission warnings.
+- No T203 repair pass is needed because no blocking issue or deferred warning exists.
+
+## T203 Worker Completion Record
+
+- T203 is the optional Mem0 adapter spike task for M9.
+- Worker must not mark T203 as complete in `docs/04_task_board.md`; only the Captain may do so after review.
+- Files changed:
+  - `src/practical_chat_agent/services/optional_mem0_adapter.py` (new)
+  - `tests/test_optional_mem0_adapter_spike.py` (new)
+  - `docs/spikes/T203_mem0_adapter_spike.md` (new)
+  - `docs/data_contracts/memory_retriever_contract.md`
+  - `docs/07_handoff.md`
+- Adapter design:
+  - `Mem0AdapterRetriever` implements `MemoryRetriever` protocol (runtime `isinstance` check passes).
+  - Accepts a `mem0` cloud API key. If absent or empty, every `retrieve()` returns `status="not_configured"`.
+  - If `mem0` package is not installed, returns `not_configured` via lazy import. No hard dependency.
+  - Uses `mem0.Memory.search(query, user_id, limit)` when a query is provided.
+  - Uses `mem0.Memory.get_all(user_id)` when no query is provided.
+  - Converts Mem0 results to `MemoryHit` with `source="external_adapter"`.
+  - Memory type inference via keyword heuristics (preference/relationship/reflection/fact).
+  - Score from Mem0's `score` field, defaulting to 0.5 when absent.
+  - Evidence refs fabricated as `["mem0:<id>"]` since Mem0 lacks structured evidence refs.
+  - Does not call `add()`, `delete()`, `update()`, or any write method on the Mem0 client.
+  - Test injection via `_client` parameter (documented prototype placeholder for the spike).
+- Spike findings:
+  - The `MemoryRetriever` protocol is flexible enough for external adapters.
+  - Graceful degradation works cleanly when package or config is absent.
+  - Key limitations: no review/approval enforcement, heuristic type inference, synthetic evidence refs, ordering depends on Mem0.
+  - Recommendation: adapter is technically feasible but should remain optional/off-by-default until review integration, evidence mapping, SDK pinning, and error recovery are addressed.
+- Relationship to existing code:
+  - No changes to `models.py`, `memory_retrieval.py`, `chat_context.py`, or any runtime/service code.
+  - No ReplyPlanner, policy-engine, send-gate, or outbound behavior changes.
+  - No ChatContextAssembler modifications.
+  - `LocalApprovedStoreRetriever` is unchanged and remains the primary retriever.
+- Explicit non-actions:
+  - No `mem0` or `mem0ai` dependency added to any requirements file.
+  - No vector DB, embedding, or external provider calls in committed code.
+  - No auto-write or runtime mutation of memories or store files.
+  - No raw chat transcript retrieval path introduced.
+  - No ChatContext wiring, planner, policy, or send behavior changes.
+  - No production adoption claim.
+
+## Captain Current State Override 2026-05-24 (T202 Review Decision)
+
+- T202 review decision: `PASS`.
+- T202 warning disposition:
+  - Accepted: N01 `.claude/settings.json` workspace-artifact overrun is established convention noise, N02 `docs/worker_summary/T202_worker_summary.md` is established worker-summary convention noise, N03 eval coverage on `LocalApprovedStoreRetriever` rather than context-bound `LocalMemoryRetriever` is acceptable for the reusable protocol eval baseline, M01 no dedicated empty-string query case is acceptable because T201 covers it and T202 covers adjacent query boundaries, M02 uniform excluded-record scores are acceptable because exclusion is the behavior under test.
+  - Deferred: none.
+  - Rejected: none.
+- T202 is complete as the retrieval eval set task for M9.
+- Current Unique Task: T203 Optional Mem0 Adapter Spike.
+- Current task package: `docs/tasks/M9_memory_retrieval_layer/T203_optional_mem0_adapter_spike.md`.
+- T203 must remain optional and spike-only:
+  - no required Mem0 dependency
+  - no production external-memory adoption claim
+  - no provider or external service calls in committed tests
+  - no private chat content or raw transcript indexing
+  - no auto-write, approved-store mutation, or hidden memory update
+  - no ChatContext wiring, ReplyPlanner/policy/send behavior change, or platform integration
+  - any adapter code must sit behind `MemoryRetriever.retrieve()` / `MemoryRetrieverResult` and gracefully degrade when unavailable
+- Captain verification:
+  - `python -m py_compile src/practical_chat_agent/core/models.py src/practical_chat_agent/services/memory_retrieval.py src/practical_chat_agent/services/chat_context.py` passed.
+  - After setting `TEMP`/`TMP` to a workspace temp directory, `pytest tests/test_memory_retriever_contract.py tests/test_local_approved_store_retriever.py tests/test_memory_retriever_eval_set.py -q` passed: 136 tests, with only `.pytest_cache` permission warnings.
+  - After setting `TEMP`/`TMP` to a workspace temp directory, `pytest tests/ -q` passed: 677 tests, with only `.pytest_cache` permission warnings.
+- No T202 repair pass is needed because no blocking issue or deferred warning exists.
+
+## T202 Worker Completion Record
+
+- T202 is the retrieval eval set task for M9.
+- Worker must not mark T202 as complete in `docs/04_task_board.md`; only the Captain may do so after review.
+- Files changed:
+  - `tests/test_memory_retriever_eval_set.py` (new)
+  - `docs/data_contracts/memory_retriever_eval_set.md` (new)
+  - `docs/data_contracts/memory_retriever_contract.md`
+  - `docs/07_handoff.md`
+- Eval set design:
+  - `RetrievalEvalCase` dataclass defining eval case contract: case_id, description, contact_id, query, limit, expected_status, expected_hit_memory_ids, expected_min/max_hits, forbidden_memory_ids, expected_candidate_count, tags.
+  - `build_synthetic_eval_store()` producing a deterministic `MemoryFactStoreFile` with 15 records: 6 approved + 6 excluded for synth_alice, 3 approved for synth_bob.
+  - `run_eval_case()` generic eval runner that asserts expectations on any `MemoryRetriever` through the public `retrieve()` surface.
+  - 19 eval cases (E01–E19) covering relevant hits, all 6 non-runtime-ready exclusion types, query matching (single/multi/miss/case-insensitive/substring), deterministic ordering, limit enforcement, cross-contact isolation, unknown-contact boundary, and combined exclusions.
+  - 8 contract boundary tests: source provenance, score boundedness, evidence refs, memory type validity, hit/result JSON round-trip, store immutability.
+  - 6 coverage audit tests: required tags present, all excluded types covered, multiple contacts, deterministic store build, ordering case requirements, expected record count.
+  - 1 reuse demonstration: `run_eval_case()` works through the `MemoryRetriever` protocol interface.
+- Synthetic store content:
+  - synth_alice approved (6): procedural/0.90, relationship/0.85, episodic/0.75, semantic/0.70, reflection/0.60, procedural/0.50.
+  - synth_alice excluded (6): candidate, rejected, frozen, archived, not-human-reviewed, failed-evidence-validation.
+  - synth_bob approved (3): semantic/0.80, procedural/0.70, relationship/0.65.
+- Relationship to existing code:
+  - No changes to `models.py`, `memory_retrieval.py`, `chat_context.py`, or any runtime/service code.
+  - No ReplyPlanner, policy-engine, send-gate, or outbound behavior changes.
+  - No ChatContextAssembler modifications.
+  - Tests consume retrievers through the public `MemoryRetriever` protocol only.
+- Explicit non-actions:
+  - No retrieval algorithm or scoring changes.
+  - No vector DB, Mem0/Zep adapter, or external memory dependency introduced.
+  - No auto-write or runtime mutation of memories or store files.
+  - No raw chat transcript retrieval path introduced.
+  - No provider calls, embedding calls, or external services added.
+
 ## Captain Current State Override 2026-05-24 (T201 Review Decision)
 
 - T201 review decision: `PASS`.
@@ -2921,3 +3064,78 @@ No changes to `reply_planner.py` or `app/main.py` were needed; all fixes are pro
 3. **LLM confidence still uncalibrated**: This task did not address LLM confidence calibration; the uncalibrated 0.79-0.95 range noted in T184 remains.
 4. **Label normalization may truncate some LLM labels**: Long or unusually formatted labels are collapsed to snake_case, which preserves consistency but may lose information.
 5. **Template-only behavior unchanged**: Verified 閳?all 438 existing tests pass without modification.
+## T210 Worker Completion Record
+
+### Goal
+
+Define the opening M10 behavior-planner contracts as schema-only, draft-only
+artifacts before any planner execution, scheduler, outbound gate, platform
+adapter, or send behavior exists.
+
+### Files Changed
+
+- `src/practical_chat_agent/core/models.py`
+- `tests/test_behavior_schema.py`
+- `docs/data_contracts/behavior_planner_contract.md`
+- `docs/worker_summary/T210_worker_summary.md`
+- `docs/07_handoff.md`
+
+### Models Added
+
+- `AgentSelfState`: compact review-safe assistant/user/contact state snapshot
+  with identifiers, safe context refs, signal refs, and risk flags only.
+- `BehaviorPolicy`: draft-only policy envelope with hard schema invariants:
+  human review required, auto-send disallowed, platform execution disallowed,
+  and scheduler use disallowed.
+- `CandidateActionPayload`: non-executable payload with required
+  `safe_summary`, optional `draft_text`, review notes, and metadata that rejects
+  transport, scheduling, credential, and raw-transcript keys.
+- `CandidateAction`: review-only proactive behavior candidate with stable id,
+  contact/user scope, action type, rationale, supporting context refs, risk
+  flags, review metadata, and hard no-send/no-platform/no-scheduler invariants.
+
+### Contract Boundaries
+
+- Allowed action types are limited to draft/review categories:
+  `relationship_check_in_draft`, `reply_follow_up_draft`, `topic_suggestion`,
+  `boundary_review_note`, `memory_review_prompt`, and `do_nothing`.
+- `CandidateAction.is_runtime_visible()` requires approved human-review
+  metadata, but runtime visibility remains non-executable.
+- `platform_target` is always `null`; setting a platform target is rejected by
+  schema validation.
+- No raw transcript, private chat-history, platform transport, scheduling, or
+  credential field is required or allowed in committed behavior payloads.
+
+### Explicit Non-Actions
+
+- No message sending.
+- No real scheduler, background job, timer, reminder, or automation.
+- No Feishu, WeChat, browser, desktop, notification, email, or other platform
+  integration.
+- No BehaviorPlanner execution logic, rule engine, ranking engine, or CLI.
+- No mutation of `MemoryFact`, `ContactSkill`, relationship state, approved
+  patches, stores, or private artifacts.
+- No private chat-history reads or committed private content.
+- No LLM calls, provider configuration, embeddings, vector DBs, Mem0/Zep
+  production use, or fine-tuning.
+
+### Verification
+
+Commands were run with `TEMP` and `TMP` set to `.tmp/pytest`, and pytest cache
+set to `.tmp/pytest_cache` to avoid the Windows default temp/cache permission
+warnings observed in this sandbox.
+
+- `python -m py_compile src/practical_chat_agent/core/models.py`: passed.
+- `pytest tests/test_behavior_schema.py -q -o cache_dir=.tmp\pytest_cache`: 25 passed.
+- `pytest tests/ -q -o cache_dir=.tmp\pytest_cache`: 747 passed.
+
+### Remaining Risks
+
+- T210 is schema-only. It does not define planner rules, candidate ranking,
+  review CLI behavior, or outbound send-gate integration.
+- The metadata forbidden-key guard currently applies to
+  `CandidateActionPayload.metadata`; future payload fields must preserve the
+  same no-platform/no-scheduler/no-raw boundary.
+- Runtime visibility is intentionally separate from execution. Later tasks must
+  not treat `approved` candidate actions as sendable or schedulable without an
+  explicit OutboundSendGate task and review.

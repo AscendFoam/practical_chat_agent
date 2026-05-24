@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from practical_chat_agent.core.enums import (
     ActionKind,
@@ -50,6 +50,17 @@ ReplyPlanContextRefType = Literal[
     "memory_hit",
     "policy_boundary",
 ]
+AgentAvailabilityState = Literal["unknown", "available", "busy", "offline"]
+BehaviorActionType = Literal[
+    "relationship_check_in_draft",
+    "reply_follow_up_draft",
+    "topic_suggestion",
+    "boundary_review_note",
+    "memory_review_prompt",
+    "do_nothing",
+]
+BehaviorPolicyMode = Literal["draft_only_review_required"]
+CandidateActionMode = Literal["draft_only_review_required"]
 
 
 class InboundEvent(BaseModel):
@@ -795,6 +806,145 @@ class LLMReplyPlan(BaseModel):
     generation_metadata: LLMGenerationMetadata | None = None
     candidates: list[LLMReplyPlanCandidate] = Field(default_factory=list)
     refusal: LLMReplyPlanRefusal | None = None
+
+
+class AgentSelfState(BaseModel):
+    """Compact review-safe state for future proactive behavior drafting.
+
+    This model intentionally stores identifiers, safe summaries, and artifact
+    refs only. It is not a transcript cache and has no execution capability.
+    """
+
+    schema_version: str = "agent_self_state_v1"
+    state_id: str = Field(default_factory=lambda: new_id("agentstate"))
+    agent_id: str = Field(..., min_length=1)
+    user_id: str = Field(..., min_length=1)
+    contact_id: str | None = Field(default=None, min_length=1)
+    availability_state: AgentAvailabilityState = "unknown"
+    current_focus: str | None = None
+    approved_context_refs: list[str] = Field(default_factory=list)
+    recent_signal_refs: list[str] = Field(default_factory=list)
+    risk_flags: list[str] = Field(default_factory=list)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
+
+
+_CANDIDATE_ACTION_FORBIDDEN_PAYLOAD_FIELDS = frozenset(
+    {
+        "send_at",
+        "scheduled_at",
+        "platform",
+        "channel_id",
+        "webhook_url",
+        "recipient_address",
+        "raw_transcript",
+        "chat_history",
+        "private_messages",
+        "access_token",
+        "api_key",
+    },
+)
+
+
+class BehaviorPolicy(BaseModel):
+    """Draft-only policy envelope for future CandidateAction artifacts."""
+
+    schema_version: str = "behavior_policy_v1"
+    policy_id: str = Field(default_factory=lambda: new_id("behpolicy"))
+    policy_mode: BehaviorPolicyMode = "draft_only_review_required"
+    human_review_required: Literal[True] = True
+    auto_send_allowed: Literal[False] = False
+    platform_execution_allowed: Literal[False] = False
+    scheduler_allowed: Literal[False] = False
+    allowed_action_types: list[BehaviorActionType] = Field(
+        default_factory=lambda: [
+            "relationship_check_in_draft",
+            "reply_follow_up_draft",
+            "topic_suggestion",
+            "boundary_review_note",
+            "memory_review_prompt",
+            "do_nothing",
+        ],
+        min_length=1,
+    )
+    forbidden_payload_fields: list[str] = Field(
+        default_factory=lambda: sorted(_CANDIDATE_ACTION_FORBIDDEN_PAYLOAD_FIELDS),
+    )
+    boundary_rules: list[str] = Field(
+        default_factory=lambda: [
+            "Candidate actions are review artifacts only.",
+            "Do not send, schedule, or execute without a later explicit send-gate milestone.",
+        ],
+    )
+    max_candidates: int = Field(default=5, ge=1)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
+
+
+class CandidateActionPayload(BaseModel):
+    """Non-executable payload carried by a CandidateAction.
+
+    `metadata` is deliberately restricted from transport, scheduling, platform,
+    credential, and raw transcript keys.
+    """
+
+    safe_summary: str = Field(..., min_length=1)
+    draft_text: str | None = None
+    review_notes: list[str] = Field(default_factory=list)
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+    @field_validator("metadata")
+    @classmethod
+    def reject_forbidden_metadata_keys(cls, value: dict[str, Any]) -> dict[str, Any]:
+        forbidden = _CANDIDATE_ACTION_FORBIDDEN_PAYLOAD_FIELDS.intersection(value)
+        if forbidden:
+            keys = ", ".join(sorted(forbidden))
+            raise ValueError(f"CandidateActionPayload metadata contains forbidden key(s): {keys}")
+        return value
+
+
+class CandidateAction(BaseModel):
+    """Review-only proactive behavior candidate.
+
+    Approval may make the artifact visible to later review/runtime surfaces, but
+    this schema never permits sending, scheduling, platform execution, or store
+    mutation by itself.
+    """
+
+    schema_version: str = "candidate_action_v1"
+    action_id: str = Field(default_factory=lambda: new_id("candact"))
+    action_mode: CandidateActionMode = "draft_only_review_required"
+    contact_id: str = Field(..., min_length=1)
+    user_id: str = Field(..., min_length=1)
+    action_type: BehaviorActionType
+    title: str = Field(..., min_length=1)
+    rationale: str = Field(..., min_length=1)
+    supporting_context_refs: list[ReplyPlanContextRef] = Field(..., min_length=1)
+    risk_flags: list[str] = Field(default_factory=list)
+    payload: CandidateActionPayload = Field(
+        default_factory=lambda: CandidateActionPayload(safe_summary="No action."),
+    )
+    policy: BehaviorPolicy = Field(default_factory=BehaviorPolicy)
+    status: DistillationStatus = "candidate"
+    review_metadata: DistilledArtifactReviewMetadata = Field(
+        default_factory=DistilledArtifactReviewMetadata,
+    )
+    human_review_required: Literal[True] = True
+    auto_send_allowed: Literal[False] = False
+    platform_execution_allowed: Literal[False] = False
+    scheduler_allowed: Literal[False] = False
+    platform_target: None = None
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
+
+    @model_validator(mode="after")
+    def action_type_is_allowed_by_policy(self) -> CandidateAction:
+        if self.action_type not in self.policy.allowed_action_types:
+            raise ValueError("CandidateAction action_type is not allowed by its BehaviorPolicy.")
+        return self
+
+    def is_runtime_visible(self) -> bool:
+        return self.review_metadata.is_runtime_ready(status=self.status)
 
 
 class ChatSuggestion(BaseModel):

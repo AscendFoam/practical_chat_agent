@@ -1,5 +1,79 @@
 # Architecture
 
+## Captain Update 2026-05-25 (T210 Review)
+
+T210 completes the schema-only opening of M10:
+
+```text
+approved compact context / memory / relationship signals
+  -> AgentSelfState
+  -> BehaviorPolicy
+  -> CandidateActionPayload
+  -> CandidateAction
+  -> human review before visibility
+  -> no sending, scheduling, platform execution, platform target, or mutation
+```
+
+The next architectural step is T211, which must add only deterministic candidate proposal rules:
+
+```text
+AgentSelfState + review-safe context signals
+  -> BehaviorRulePlanner / equivalent service
+  -> zero or more CandidateAction records
+  -> stable rule rationale + supporting refs + risk flags
+  -> still no LLM, CLI, scheduler, platform adapter, outbound gate, or store mutation
+```
+
+This keeps M10 on the safe side of the autonomy boundary: T211 may decide what to suggest for human review, but it must not decide to execute anything.
+
+## Captain Update 2026-05-24 (T203 Review)
+
+T203 completes the optional adapter spike for M9:
+
+```text
+MemoryRetriever contract
+  -> LocalApprovedStoreRetriever (primary local path)
+  -> optional Mem0AdapterRetriever spike
+  -> graceful not_configured when dependency/config is absent
+  -> no hard dependency, no auto-write, no ChatContext/planner/send behavior change
+```
+
+The next architectural step is M10/T210, which must stay schema-only and draft-only:
+
+```text
+approved compact context / memory / relationship signals
+  -> future BehaviorPlanner inputs
+  -> AgentSelfState / BehaviorPolicy / CandidateAction schemas
+  -> human review before any action
+  -> no scheduling, no platform integration, no outbound send
+```
+
+This moves the architecture from retrieval infrastructure to proactive-action modeling without crossing the send or autonomy boundary.
+
+## Captain Update 2026-05-24 (T202 Review)
+
+T202 completes the reusable eval layer of M9:
+
+```text
+synthetic retrieval eval cases
+  -> MemoryRetriever protocol
+  -> MemoryRetrieverResult contract checks
+  -> reusable local/external retriever baseline
+  -> no raw transcript, no external service, no runtime wiring
+```
+
+The next architectural step is T203, which must stay an optional adapter spike:
+
+```text
+optional Mem0 adapter boundary
+  -> behind MemoryRetriever protocol
+  -> reuse synthetic eval shape where possible
+  -> graceful not_configured / unavailable behavior
+  -> no required dependency, no auto-write, no ChatContext or planner behavior change
+```
+
+This keeps M9 from jumping from a retrieval contract directly into external-memory adoption without a reviewable adapter boundary.
+
 ## Captain Update 2026-05-24 (T201 Review)
 
 T201 completes the local implementation layer of M9:

@@ -1,8 +1,52 @@
 # Task Board
 
-Updated: 2026-05-24
+Updated: 2026-05-25
 
 ## Captain Current State Override
+
+- T210 review decision: `PASS`.
+- T210 is complete as the schema-only opening task for M10.
+- T210 review observation disposition:
+  - Accepted: N01 reviewer explanation allowed-files overrun is established convention noise, N02 worker-summary allowed-files overrun is established convention noise, N03/M03 explicit credential-key test gap is a low-risk test-strength note because the shared metadata validator covers the full forbidden-key set, N04 `CandidateAction.status` reuse of `DistillationStatus` is acceptable for this schema-first stage, N05 duplicated safety invariant fields on policy/action artifacts are acceptable independent-safety redundancy, M01 `max_candidates` boundary test gap is minor, M02 `AgentSelfState(contact_id=None)` round-trip gap is minor, M04 `review_notes` round-trip gap is minor.
+  - Deferred: none.
+  - Rejected: none.
+- Current Unique Task: T211 Action Planner Rule Engine.
+- Current task package: `docs/tasks/M10_behavior_planner/T211_action_planner_rule_engine.md`.
+- T211 must stay deterministic, local, and candidate-only: produce review-only `CandidateAction` records from safe approved context and `AgentSelfState`, but do not send messages, schedule real actions, integrate platforms, call LLMs, mutate stores, add CLI/runtime wiring, or bypass human review.
+- M10 execution constraints now carried forward:
+  - T210 schemas are accepted as non-executable contracts only.
+  - `CandidateAction.status="approved"` or `is_runtime_visible()` must not be interpreted as sendable or schedulable.
+  - Any future outbound/platform work remains behind later OutboundSendGate milestones.
+  - BehaviorPlanner work must consume only approved/review-safe context surfaces and must not reopen raw transcript ingestion.
+
+- T203 review decision: `PASS`.
+- T203 is complete as the optional Mem0 adapter spike task for M9.
+- T203 warning disposition:
+  - Accepted: N01 `.claude/settings.json` workspace-artifact overrun is established convention noise, N02 `docs/worker_summary/T203_worker_summary.md` worker-summary overrun is established convention noise, N03 T203 reuses the T202 eval shape rather than importing the T202 runner directly which is acceptable for a spike, N04 documentation/test-count discrepancies are harmless, N05 English keyword memory-type inference is acceptable for spike scope, M01 no `limit=0` test is acceptable for spike scope, M02 no empty-string `contact_id` test is acceptable for spike scope, M03 no direct `ImportError` simulation is acceptable because safe not-configured behavior is covered, M04 non-`Exception` propagation is correct behavior.
+  - Deferred: none.
+  - Rejected: none.
+- M9 completion status: M9 is complete at the task level with Gate M9 `Allow`.
+- Current Unique Task: T210 Behavior Schema.
+- Current task package: `docs/tasks/M10_behavior_planner/T210_behavior_schema.md`.
+- T210 must stay schema-only and draft-only: define proactive-behavior data contracts but do not send messages, schedule real actions, integrate platforms, mutate memory, wire runtime planners, or claim autonomous behavior.
+- M10 execution constraints now carried forward:
+  - Candidate actions must be review-only artifacts, not executable actions.
+  - Any future send/platform work remains behind later OutboundSendGate milestones.
+  - BehaviorPlanner work must consume only approved/review-safe context surfaces and must not reopen raw transcript ingestion.
+
+- T202 review decision: `PASS`.
+- T202 is complete as the retrieval eval set task for M9.
+- T202 warning disposition:
+  - Accepted: N01 `.claude/settings.json` workspace-artifact overrun is established convention noise, N02 `docs/worker_summary/T202_worker_summary.md` worker-summary overrun is established convention noise, N03 eval coverage on `LocalApprovedStoreRetriever` rather than context-bound `LocalMemoryRetriever` is acceptable for a reusable protocol eval baseline, M01 no dedicated empty-string query case is acceptable because T201 covers it and T202 covers adjacent query boundaries, M02 uniform excluded-record scores are acceptable because exclusion is the behavior under test.
+  - Deferred: none.
+  - Rejected: none.
+- Current Unique Task: T203 Optional Mem0 Adapter Spike.
+- Current task package: `docs/tasks/M9_memory_retrieval_layer/T203_optional_mem0_adapter_spike.md`.
+- T203 must stay a contained optional adapter spike: no required Mem0 dependency, no production external-memory adoption, no provider/service calls in committed tests, no private chat content, no raw transcript indexing, no memory auto-write, no approved-store mutation, no ChatContext wiring, no ReplyPlanner/policy/send behavior changes, and no platform integration.
+- M9 execution constraints now carried forward:
+  - T203 should place any adapter work behind `MemoryRetriever.retrieve()` and `MemoryRetrieverResult`.
+  - T203 should reuse the T202 synthetic eval shape where feasible.
+  - T203 should gracefully handle missing optional dependency/configuration as `not_configured` or an explicitly documented spike limitation.
 
 - T201 review decision: `PASS`.
 - T201 is complete as the local approved-store retriever task for M9.
@@ -285,11 +329,11 @@ Updated: 2026-05-24
 
 ## Current Unique Task
 
-T202: Retrieval Eval Set.
+T211: Action Planner Rule Engine.
 
-Task package: `docs/tasks/M9_memory_retrieval_layer/T202_retrieval_eval_set.md`
+Task package: `docs/tasks/M10_behavior_planner/T211_action_planner_rule_engine.md`
 
-Why now: T201 has landed with `PASS` and proves the T200 retriever contract against approved local store records. The next smallest safe step is a synthetic retrieval eval set that can measure relevance and boundary behavior before any optional external memory adapter spike.
+Why now: T210 has landed with `PASS`, completing the non-executable behavior schema layer for M10. The next smallest safe step is deterministic rule-based `CandidateAction` proposal generation that preserves all draft-only/no-send/no-scheduler/no-platform invariants before any review CLI, draft text generator, outbound gate, or adapter work.
 
 ## Board Rules
 
@@ -409,14 +453,14 @@ Goal: define a retriever abstraction before evaluating external memory adapters.
 
 - [x] T200: MemoryRetriever interface.
 - [x] T201: local approved-store retriever.
-- [ ] T202: retrieval eval set.
-- [ ] T203: optional Mem0 adapter spike.
+- [x] T202: retrieval eval set.
+- [x] T203: optional Mem0 adapter spike. Gate M9 `Allow`.
 
 ## Milestone 10: BehaviorPlanner
 
 Goal: generate draft-only proactive action candidates without automatic sending.
 
-- [ ] T210: behavior schema.
+- [x] T210: behavior schema. Review `PASS`.
 - [ ] T211: action-planner rule engine.
 - [ ] T212: proactive draft generator.
 - [ ] T213: CandidateAction review CLI.
@@ -443,9 +487,13 @@ Goal: keep WeChat as a thin final adapter behind the send gate.
 
 ## Historical Current Unique Task
 
-T201: Local Approved-Store Retriever.
+T210: Behavior Schema.
 
-It is now complete and accepted with `PASS`. The next worker task is T202, because M9 now has both the retriever contract and a local approved-store implementation, and needs a synthetic eval baseline before retrieval quality claims or external adapter work.
+It is now complete and accepted with `PASS`. The next worker task is T211, because M10 can now move from non-executable contracts to deterministic draft-only candidate proposal rules while preserving the no-send/no-scheduler/no-platform boundary.
+
+T203: Optional Mem0 Adapter Spike.
+
+It is now complete and accepted with `PASS`. M9 is complete at task level with Gate M9 `Allow`. The next worker task is T210, because proactive behavior must start with draft-only schemas before planner logic, scheduling, sending, or platform integration.
 
 ## Next Captain Output Required
 
