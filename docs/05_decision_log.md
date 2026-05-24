@@ -1,5 +1,34 @@
 # Decision Log
 
+## D050: T192 PASS_WITH_WARNINGS, accept delta-generation task, advance to T193
+
+- Date: 2026-05-24
+- Status: Accepted
+- Context: `docs/review/T192_review.md` gives `PASS_WITH_WARNINGS` for the RelationshipDeltaCandidate generation task. No blocking issues were found, and the review confirms the task stayed conservative, reviewable, and within the intended M8 boundary.
+- Decision: T192 is complete. The project may continue to T193 `Relationship Review CLI`.
+- Warning handling:
+  - Accepted:
+    - N01 heuristic `_MAGNITUDE_SCALE=0.2` and `_MIN_STRENGTH=0.3` are acceptable for candidate-only scope.
+    - N02 max-strength aggregation is acceptable for current conservative scope even though it loses signal-count information.
+    - N03 `.claude/settings.json` modification is treated as workspace-artifact noise rather than a T192 scope defect.
+    - N04 `dimension_name` type-ignore suppression is acceptable cosmetic typing debt for the current deterministic generator.
+    - N05 `_DIRECTION_SIGN` string-key typing is acceptable and does not create a correctness issue.
+  - Deferred:
+    - M01 no committed test yet confirms that a signal for an unknown dimension name is skipped safely.
+    - M02 no committed test yet covers mixed known-direction plus unknown/stable companion signals on the same dimension.
+    - M04 no committed test yet covers the state-evidence-only deduplication edge case that could leave `evidence_refs` empty.
+  - Rejected: none.
+- Conditions carried forward:
+  - T193 must stay review-only. No auto-apply to `RelationshipState`, no send/platform integration, and no hidden mutation are authorized.
+  - T193 should preserve the T192 candidate surface as an auditable artifact with explicit approve/reject/freeze/archive decisions.
+  - Partial dimension-level approval remains an open design question; T193 should either stay all-or-nothing or document any finer-grained semantics explicitly before implementing them.
+  - M8 remains open; T192 is candidate generation, not approved-state application.
+- Impact:
+  - `docs/04_task_board.md` moves the Current Unique Task from T192 to T193 and marks T192 complete.
+  - `docs/07_handoff.md` records the T192 review decision and what T193 may assume next.
+  - `docs/08_risks_and_open_questions.md` records the deferred delta-generation test gaps from the T192 review.
+  - `docs/tasks/M8_relationship_state/T193_relationship_review_cli.md` is rewritten into a stricter worker task package.
+
 ## D049: T191 PASS_WITH_WARNINGS, accept signal-extraction task, advance to T192
 
 - Date: 2026-05-24

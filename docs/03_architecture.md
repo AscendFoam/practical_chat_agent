@@ -1,5 +1,30 @@
 # Architecture
 
+## Captain Update 2026-05-24 (T192 Review)
+
+T192 completes the second executable layer in M8:
+
+```text
+RelationshipSignal
+  -> RelationshipDeltaGenerator
+  -> RelationshipDeltaCandidate
+  -> explicit dimension changes
+  -> evidence refs + signal refs
+  -> no state mutation
+```
+
+The next architectural step is T193, which must stay review-only:
+
+```text
+RelationshipDeltaCandidate
+  -> manual review CLI
+  -> approve / reject / freeze / archive
+  -> review metadata update
+  -> no auto-apply to RelationshipState
+```
+
+This keeps M8 additive and preserves the review-first boundary from schema -> signal -> delta.
+
 ## Captain Update 2026-05-24 (T191 Review)
 
 T191 adds the first executable layer on top of the M8 schema:

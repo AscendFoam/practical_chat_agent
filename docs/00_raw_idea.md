@@ -1,5 +1,15 @@
 # Raw Idea
 
+## Captain Update 2026-05-24 (T192 Review)
+
+T192 has now passed review with `PASS_WITH_WARNINGS`, so the delta-generation step is accepted:
+
+- the repo now has a conservative `RelationshipDeltaCandidate` generation layer on top of T191 signals
+- the project still does not permit delta auto-approval, relationship-state mutation, or platform/send behavior
+- the next safe step is T193 `Relationship Review CLI`, not compact-context injection or state application
+
+The Current Unique Task therefore moves to T193 `Relationship Review CLI`.
+
 ## Captain Update 2026-05-24 (T191 Review)
 
 T191 has now passed review with `PASS_WITH_WARNINGS`, so the signal-extraction step is accepted:

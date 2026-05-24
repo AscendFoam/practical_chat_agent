@@ -1,5 +1,15 @@
 # Eval Protocol
 
+## Captain Update 2026-05-24 (T192 Review)
+
+T192 has now been accepted with `PASS_WITH_WARNINGS`.
+
+Current evaluation sequence is now:
+
+- T193: can the repo add explicit human review over `RelationshipDeltaCandidate` records while preserving evidence refs, signal refs, review history, and the no-auto-apply boundary?
+
+T192 changes the evaluation baseline in one important way: M8 no longer needs to prove whether conservative signals can be turned into reviewable deltas at all. That layer now exists. The next evaluation target is review-flow discipline, not delta generation.
+
 ## Captain Update 2026-05-24 (T191 Review)
 
 T191 has now been accepted with `PASS_WITH_WARNINGS`.

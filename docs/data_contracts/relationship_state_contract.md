@@ -1,6 +1,6 @@
 # RelationshipState Contract
 
-Updated: 2026-05-24
+Updated: 2026-05-24 (T192)
 
 ## Purpose
 
@@ -10,7 +10,7 @@ Updated: 2026-05-24
 
 ## Scope
 
-This contract covers T190 (schema definition) only. Later M8 tasks handle signal extraction (T191), delta generation (T192), review CLI (T193), compact context integration (T194), and relationship-aware eval (T195). This contract must remain stable across those tasks without schema breakage.
+This contract covers T190 (schema definition) and T192 (delta generation). Later M8 tasks handle review CLI (T193), compact context integration (T194), and relationship-aware eval (T195). This contract must remain stable across those tasks without schema breakage.
 
 ## Review-Only Lifecycle
 
@@ -215,6 +215,48 @@ Labels not listed above (`too_cold`, `too_formal`, `too_long`, `good_tone`, `not
 3. **Dimension-specific**: Each signal targets exactly one dimension. Multi-dimension observations produce separate signals.
 4. **Conservative extraction**: Only boundary labels with clear, high-confidence relationship implications produce signals.
 5. **Candidate-only by default**: `status` defaults to `"candidate"`. `is_runtime_ready()` returns `False` until human review approves.
+
+## RelationshipDeltaCandidate Generation (T192)
+
+T192 introduces `RelationshipDeltaGenerator` which consumes T191 `RelationshipSignal` records and a current `RelationshipState` to produce reviewable `RelationshipDeltaCandidate` records. No auto-approve, no auto-apply, no state mutation.
+
+### Delta Generation Rules
+
+1. **Contact filtering**: Only signals matching `current_state.contact_id` are considered.
+2. **Dimension grouping**: Signals are grouped by `dimension_name`.
+3. **Direction consistency**: All signals for a dimension must agree on direction (`increase` or `decrease`). Contradictory or all-unknown/all-stable directions skip the dimension.
+4. **Strength aggregation**: The maximum signal strength in each dimension group is used as the effective delta magnitude (attenuated by a scale factor).
+5. **Minimum strength**: Dimensions where the maximum signal strength falls below a configurable threshold (default 0.3) are skipped.
+6. **Magnitude attenuation**: Signal strength is scaled by a configurable factor (default 0.2) to produce dimension-scale delta values.
+7. **Magnitude recomputation**: The final `magnitude` in `RelationshipDeltaDimension` is recomputed as `abs(proposed_value - current_value)`, not copied from signal strength.
+8. **Direction validation**: The final `direction` is derived from the actual `proposed_value` vs `current_value` comparison, not blindly trusted from signal direction.
+9. **Boundary clamping**: Proposed values are clamped to [0.0, 1.0]. If clamping produces no effective change (magnitude < 1e-6), the dimension is skipped.
+10. **Evidence deduplication**: `evidence_refs` from all contributing signals are collected and deduplicated. State evidence refs are not included.
+11. **Signal refs**: All contributing `signal_id` values are collected into `signal_refs`.
+
+### Delta Generation Parameters
+
+| Parameter | Default | Description |
+| --- | --- | --- |
+| `_MAGNITUDE_SCALE` | 0.2 | Scale factor from signal strength to dimension-scale delta |
+| `_MIN_STRENGTH` | 0.3 | Minimum signal strength required to produce a dimension change |
+
+### Example Delta Generation
+
+Given signals from a `boundary_violation` feedback record:
+
+- Signal A: `boundary_risk`, direction=`increase`, strength=0.7
+- Current state: `boundary_risk=0.3`
+
+Result: `RelationshipDeltaDimension` with `current_value=0.3`, `proposed_value=0.44`, `direction=increase`, `magnitude=0.14`.
+
+### Delta Safety Constraints
+
+1. **No auto-approve**: Generated deltas always have `status="candidate"`.
+2. **No state mutation**: The `RelationshipState` passed to the generator is never modified.
+3. **No raw text**: Delta rationale contains only signal counts and strength values, never raw feedback text.
+4. **Evidence-backed**: Delta `evidence_refs` come from signal evidence, not state evidence.
+5. **Conservative aggregation**: Weak or ambiguous signal sets produce no delta rather than a speculative one.
 
 ## Relationship to Existing ContactSkillRelationshipState
 

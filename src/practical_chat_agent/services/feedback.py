@@ -18,8 +18,11 @@ from practical_chat_agent.core.models import (
     DistillationStatus,
     PreferencePatchCandidate,
     PreferencePatchType,
+    RelationshipDeltaCandidate,
+    RelationshipDeltaDimension,
     RelationshipDeltaDirection,
     RelationshipSignal,
+    RelationshipState,
     ReplyFeedbackAction,
     ReplyFeedbackLog,
     ReplyFeedbackRecord,
@@ -1293,3 +1296,125 @@ class RelationshipSignalExtractor:
                 signals.append(signal)
 
         return signals
+
+
+class RelationshipDeltaGenerator:
+    """Conservative delta generator that turns T191 relationship signals into
+    reviewable RelationshipDeltaCandidate records.
+
+    Only produces deltas for dimensions with consistent, sufficiently strong
+    signals.  Ambiguous, contradictory, or weak signal sets are skipped.
+    No auto-approve, no auto-apply, no state mutation.
+    """
+
+    _DIRECTION_SIGN: dict[str, float] = {
+        "increase": 1.0,
+        "decrease": -1.0,
+    }
+
+    _MAGNITUDE_SCALE: float = 0.2
+    _MIN_STRENGTH: float = 0.3
+
+    def generate_from_signals(
+        self,
+        *,
+        signals: list[RelationshipSignal],
+        current_state: RelationshipState,
+    ) -> list[RelationshipDeltaCandidate]:
+        contact_signals = [
+            s for s in signals
+            if s.contact_id == current_state.contact_id
+        ]
+        if not contact_signals:
+            return []
+
+        by_dimension: dict[str, list[RelationshipSignal]] = defaultdict(list)
+        for signal in contact_signals:
+            by_dimension[signal.dimension_name].append(signal)
+
+        snapshot = current_state.dimension_snapshot()
+        dimension_changes: list[RelationshipDeltaDimension] = []
+        all_evidence_refs: list[str] = []
+        all_signal_refs: list[str] = []
+
+        for dim_name, dim_signals in sorted(by_dimension.items()):
+            change = self._compute_dimension_change(dim_name, dim_signals, snapshot)
+            if change is None:
+                continue
+            dimension_changes.append(change)
+            for sig in dim_signals:
+                all_evidence_refs.extend(sig.evidence_refs)
+                all_signal_refs.append(sig.signal_id)
+
+        if not dimension_changes:
+            return []
+
+        seen: set[str] = set()
+        unique_evidence: list[str] = []
+        for ref in all_evidence_refs:
+            if ref not in seen:
+                seen.add(ref)
+                unique_evidence.append(ref)
+
+        delta = RelationshipDeltaCandidate(
+            contact_id=current_state.contact_id,
+            source_state_id=current_state.state_id,
+            dimension_changes=dimension_changes,
+            delta_rationale=(
+                f"Proposed based on {len(contact_signals)} signal(s)"
+                f" across {len(dimension_changes)} dimension(s)."
+            ),
+            evidence_refs=unique_evidence,
+            signal_refs=all_signal_refs,
+        )
+
+        return [delta]
+
+    def _compute_dimension_change(
+        self,
+        dim_name: str,
+        signals: list[RelationshipSignal],
+        snapshot: dict[str, float],
+    ) -> RelationshipDeltaDimension | None:
+        current_value = snapshot.get(dim_name)
+        if current_value is None:
+            return None
+
+        directions = {s.direction for s in signals}
+        known_directions = directions - {"unknown", "stable"}
+        if len(known_directions) != 1:
+            return None
+
+        effective_direction = next(iter(known_directions))
+        sign = self._DIRECTION_SIGN.get(effective_direction, 0.0)
+        if sign == 0.0:
+            return None
+
+        max_strength = max(s.strength for s in signals)
+        if max_strength < self._MIN_STRENGTH:
+            return None
+
+        raw_magnitude = max_strength * self._MAGNITUDE_SCALE
+        proposed_value = round(
+            max(0.0, min(1.0, current_value + sign * raw_magnitude)), 4,
+        )
+
+        recomputed_magnitude = round(abs(proposed_value - current_value), 4)
+        if recomputed_magnitude < 1e-6:
+            return None
+
+        if proposed_value > current_value:
+            validated_direction: RelationshipDeltaDirection = "increase"
+        elif proposed_value < current_value:
+            validated_direction = "decrease"
+        else:
+            validated_direction = "stable"
+
+        return RelationshipDeltaDimension(
+            dimension_name=dim_name,  # type: ignore[arg-type]
+            current_value=current_value,
+            proposed_value=proposed_value,
+            direction=validated_direction,
+            magnitude=recomputed_magnitude,
+            rationale=f"{len(signals)} signal(s) with max strength {max_strength:.2f}",
+        )

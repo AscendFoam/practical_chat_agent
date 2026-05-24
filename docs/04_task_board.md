@@ -4,6 +4,20 @@ Updated: 2026-05-24
 
 ## Captain Current State Override
 
+- T192 review decision: `PASS_WITH_WARNINGS`.
+- T192 is complete as the conservative delta-generation task for M8.
+- T192 warning disposition:
+  - Accepted: N01 heuristic `_MAGNITUDE_SCALE` / `_MIN_STRENGTH` defaults are acceptable for candidate-only scope, N02 max-strength aggregation is acceptable for current conservative scope, N03 `.claude/settings.json` workspace-artifact overrun, N04 `dimension_name` type-ignore suppression is cosmetic typing debt, N05 `_DIRECTION_SIGN` uses string keys but is functionally safe.
+  - Deferred: M01 no committed test for unknown dimension names being skipped safely, M02 no committed test for mixed known+unknown/stable direction sets on the same dimension, M04 no committed test for empty `evidence_refs` after state-evidence-only deduplication.
+  - Rejected: none.
+- Current Unique Task: T193 Relationship review CLI.
+- Current task package: `docs/tasks/M8_relationship_state/T193_relationship_review_cli.md`.
+- T193 must stay review-only and auditable: no auto-apply to `RelationshipState`, no unrelated memory/ContactSkill mutation, no send/platform integration, and no dimension semantics rewrite.
+- M8 execution constraints now carried forward:
+  - T193 should review `RelationshipDeltaCandidate` records as whole candidate artifacts with explicit human decisions.
+  - T193 should preserve evidence refs, signal refs, and review history.
+  - T193 must keep delta review separate from actual state application; T194 is still later and context-only.
+
 - T191 review decision: `PASS_WITH_WARNINGS`.
 - T191 is complete as the conservative signal-extraction task for M8.
 - T191 warning disposition:
@@ -313,7 +327,7 @@ Goal: model multi-axis relationship state with human-reviewed deltas rather than
 
 - [x] T190: RelationshipState schema. Review `PASS_WITH_WARNINGS`.
 - [x] T191: relationship signal extractor. Review `PASS_WITH_WARNINGS`.
-- [ ] T192: RelationshipDeltaCandidate.
+- [x] T192: RelationshipDeltaCandidate. Review `PASS_WITH_WARNINGS`.
 - [ ] T193: relationship review CLI.
 - [ ] T194: RelationshipState compact context.
 - [ ] T195: relationship-aware reply eval.
@@ -358,9 +372,9 @@ Goal: keep WeChat as a thin final adapter behind the send gate.
 
 ## Historical Current Unique Task
 
-T191: relationship signal extractor.
+T192: RelationshipDeltaCandidate.
 
-It is now complete and accepted with `PASS_WITH_WARNINGS`. The next worker task is T192, because the signal layer is in place and the next safe M8 step is reviewable delta generation.
+It is now complete and accepted with `PASS_WITH_WARNINGS`. The next worker task is T193, because the delta layer is in place and the next safe M8 step is explicit human review over those deltas.
 
 ## Next Captain Output Required
 

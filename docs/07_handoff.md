@@ -1,5 +1,60 @@
 # Handoff
 
+## Captain Current State Override 2026-05-24 (T192 Review Decision)
+
+- T192 review decision: `PASS_WITH_WARNINGS`.
+- T192 warning disposition:
+  - Accepted: N01 heuristic `_MAGNITUDE_SCALE` / `_MIN_STRENGTH` defaults are acceptable for candidate-only scope, N02 max-strength aggregation is acceptable for current conservative scope, N03 `.claude/settings.json` workspace-artifact overrun, N04 `dimension_name` typing suppression is cosmetic debt, N05 `_DIRECTION_SIGN` string-key typing is functionally safe.
+  - Deferred: M01 no committed test yet confirms unknown dimensions are skipped safely, M02 no committed test yet covers mixed known+unknown/stable direction sets, M04 no committed test yet covers the state-evidence-only deduplication edge case.
+  - Rejected: none.
+- T192 is complete as the conservative delta-generation task for M8.
+- Current Unique Task: T193 Relationship review CLI.
+- Current task package: `docs/tasks/M8_relationship_state/T193_relationship_review_cli.md`.
+- T193 must stay review-only and auditable:
+  - no auto-apply to `RelationshipState`
+  - no unrelated memory/ContactSkill mutation
+  - no send/platform integration
+  - no dimension semantics rewrite
+- T192/T193 boundary:
+  - T192 generates candidate deltas only.
+  - T193 records explicit human review decisions on those deltas.
+  - State application remains outside this task.
+
+## T192 Worker Completion Record
+
+- Files changed:
+  - `src/practical_chat_agent/services/feedback.py`
+  - `tests/test_relationship_deltas.py` (new)
+  - `docs/data_contracts/relationship_state_contract.md`
+  - `docs/07_handoff.md`
+- Service added:
+  - `RelationshipDeltaGenerator` in `services/feedback.py` with `generate_from_signals()` method
+- Delta generation design:
+  - Consumes T191 `RelationshipSignal` records and a current `RelationshipState`.
+  - Filters signals to those matching the state's `contact_id`.
+  - Groups signals by `dimension_name`.
+  - Requires consistent direction (all increase or all decrease) per dimension; contradictory, unknown, or stable directions are skipped.
+  - Uses max signal strength as the effective delta magnitude, attenuated by `_MAGNITUDE_SCALE=0.2`.
+  - Skips dimensions where max strength < `_MIN_STRENGTH=0.3`.
+  - Recomputes `magnitude` as `abs(proposed_value - current_value)` rather than trusting signal strength directly.
+  - Validates `direction` from actual proposed vs current values rather than blindly trusting signal direction.
+  - Clamps proposed values to [0.0, 1.0]; skips dimensions where clamping produces no effective change.
+  - Collects and deduplicates `evidence_refs` from all contributing signals; state evidence refs are not included.
+  - Collects all `signal_id` values into `signal_refs`.
+  - Generated deltas always have `status="candidate"`; no auto-approve or state mutation.
+- Relationship to T191:
+  - T191 signals are the only input surface.
+  - The generator does not read raw feedback, raw chat history, or raw text.
+  - Delta rationale contains only signal counts and strength values, never raw feedback text.
+- Verification:
+  - Compile passed for feedback.py.
+  - T192 test suite: 26 tests covering clear signal-to-delta mapping, no-delta behavior, magnitude/direction consistency, evidence/signal ref preservation, boundary clamping, state immutability, delta candidate properties, multi-signal aggregation.
+  - Full existing test suite: 488 tests passed (26 new + 462 existing), no regressions.
+- Explicit non-actions:
+  - No `RelationshipState` mutation, auto-approve, review CLI, or state application was added.
+  - No LLM call, send/platform integration, scalar collapse, or raw-text dependency was added.
+  - No `models.py` change was needed; T190 schemas were sufficient.
+
 ## Captain Current State Override 2026-05-24 (T191 Review Decision)
 
 - T191 review decision: `PASS_WITH_WARNINGS`.

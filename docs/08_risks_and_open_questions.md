@@ -1,5 +1,26 @@
 # Risks And Open Questions
 
+## Captain Update 2026-05-24 (T192 Review Decision)
+
+Authoritative current risk state after the Captain review of T192:
+
+- R040 remains active as a compact-context and privacy boundary rule: T193 and later M8 work must continue to use approved metadata / anonymized-safe artifacts only and must not reopen raw-transcript ingestion.
+- R041 remains active: relationship-state work must stay review-only and must not turn deltas into automatic learning or hidden state mutation.
+- R071 remains active: LLM confidence calibration is still unresolved, but it is orthogonal to T192 and does not block M8 delta acceptance.
+- R072 remains active and narrowed: T192 now recomputes/validates magnitude programmatically, but the schema itself still does not enforce the invariant.
+- R073 remains active: `RelationshipDeltaDirection="stable"` still lacks a fully explicit contract meaning across later review/application flows.
+- R074 remains active: no committed automated tests yet cover `RelationshipState` / `RelationshipDeltaCandidate` validation helpers at the model boundary.
+- R075 remains active and deferred: `RelationshipSignal` lacks an `updated_at` field, so later review/update flows will not have an explicit mutation timestamp unless T193 or a follow-up adds one.
+- R076 remains active and deferred: `RelationshipSignal` runtime-ready approval path is not yet committed-test covered.
+- R077 remains active and deferred: `RelationshipSignal.signal_id` format and non-emptiness are not yet covered by a dedicated committed test.
+- R078 is active and deferred: no committed test yet confirms that unknown dimension names are skipped safely by T192.
+- R079 is active and deferred: no committed test yet covers mixed known-direction plus unknown/stable companion signals on the same dimension.
+- R080 is active and deferred: no committed test yet covers the state-evidence-only deduplication edge case that could leave delta `evidence_refs` empty.
+- R081 is active and deferred: T192 uses heuristic `_MAGNITUDE_SCALE` / `_MIN_STRENGTH` defaults and max-strength aggregation, which are explicit and reviewable but uncalibrated.
+- R082 is active and deferred: T193 still needs a clear decision on whether relationship-delta review is all-or-nothing or can support dimension-level partial approval.
+
+Closed question Q185: T192 is accepted with `PASS_WITH_WARNINGS`, so the project may proceed to T193 rather than reopening the delta-generation task.
+
 ## Captain Update 2026-05-24 (T191 Review Decision)
 
 Authoritative current risk state after the Captain review of T191:
@@ -477,6 +498,11 @@ Closed question Q124: the updated GPT roadmap is directionally aligned, but M4/M
 | R075 | `RelationshipSignal` lacks an `updated_at` field | Later approval/update flows for signals will not have an explicit mutation timestamp unless another task adds one | T193 or a follow-up can add `updated_at` if mutation timing becomes important |
 | R076 | No committed automated test exercises an approved `RelationshipSignal` runtime-ready path | The approval→runtime-ready transition on signals could regress without a direct test | Add a committed lifecycle test when T193 makes signal review/update behavior executable |
 | R077 | No committed automated test covers `RelationshipSignal.signal_id` format or non-emptiness | Signal id generation would remain untested at the model boundary | Add a dedicated model test when signal schema hardening is revisited |
+| R078 | No committed test confirms that unknown dimension names are skipped safely by T192 | A malformed or future signal dimension could regress from safe-skip behavior without direct test coverage | Add a dedicated T192 regression test for unknown dimensions before or during later M8 hardening |
+| R079 | No committed test covers mixed known-direction plus unknown/stable companion signals on the same dimension | Future refactors could unintentionally change the tolerance for unknown/stable companions in an otherwise valid signal group | Add a dedicated aggregation test when T192/T193 hardening is revisited |
+| R080 | No committed test covers the state-evidence-only deduplication edge case for T192 | A future change could allow empty `evidence_refs` to emerge after deduplication, violating the delta contract | Add a defensive test and, if needed, guard logic before relying on broader signal sources |
+| R081 | T192 uses heuristic `_MAGNITUDE_SCALE` / `_MIN_STRENGTH` defaults and max-strength aggregation | Delta magnitudes may be reviewable and conservative, but they are not empirically calibrated and may underuse corroborating signals | Keep candidate-only and human-reviewed for now; revisit calibration/aggregation only if later milestones need denser signal use |
+| R082 | T193 has an open design question around dimension-level partial approval | If a delta changes multiple dimensions, review semantics could become ambiguous unless the CLI enforces all-or-nothing or explicitly supports partial approval | T193 should document and implement one review model explicitly rather than leaving this implicit |
 
 ## Open Questions
 
@@ -490,6 +516,7 @@ Closed question Q124: the updated GPT roadmap is directionally aligned, but M4/M
 | --- | --- | --- |
 | Q183 | T190 是否可以作为已完成任务接受并推进到 T191？可以；以 `PASS_WITH_WARNINGS` 接受，deferred 项转入 M8 风险台账并由 T191/T192+ 承接。 | `docs/review/T190_review.md` + Captain decision |
 | Q184 | T191 是否可以作为已完成任务接受并推进到 T192？可以；以 `PASS_WITH_WARNINGS` 接受，deferred 项转入 M8 风险台账并由 T192/T193+ 承接。 | `docs/review/T191_review.md` + Captain decision |
+| Q185 | T192 是否可以作为已完成任务接受并推进到 T193？可以；以 `PASS_WITH_WARNINGS` 接受，deferred 项转入 M8 风险台账并由 T193+ 承接。 | `docs/review/T192_review.md` + Captain decision |
 | Q180 | Gate M7 是否已经可以关闭并进入 M8？还不可以；它仍是 `Conditional`，必须先完成 T185 的窄范围对齐修复。 | `docs/review/T184_milestone_review.md` + Captain decision |
 | Q179 | T184 是否可以作为已完成任务接受并推进到 T185？可以；以 `PASS_WITH_WARNINGS` 接受，holdout 证据有效但 gate 仍 `Conditional`。 | `docs/review/T184_review.md` + Captain decision |
 | Q178 | T183 是否可以作为已完成任务接受并推进到 T184？可以；以 `PASS_WITH_WARNINGS` 接受，deferred 项收敛到 hybrid merge success test 缺口。 | `docs/review/T183_review.md` + Captain decision |
