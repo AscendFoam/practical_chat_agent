@@ -168,7 +168,11 @@
       "Bash(python -m py_compile src/practical_chat_agent/app/main.py src/practical_chat_agent/services/feedback.py src/practical_chat_agent/core/models.py)",
       "Bash(export PYTHONPATH='src')",
       "Bash(\"/c/ProgramData/anaconda3/envs/practical-chat-agent/python.exe\" -m pytest tests/test_relationship_review_cli.py -v)",
-      "Bash(\"/c/ProgramData/anaconda3/envs/practical-chat-agent/python.exe\" -m pytest tests/ -q)"
+      "Bash(\"/c/ProgramData/anaconda3/envs/practical-chat-agent/python.exe\" -m pytest tests/ -q)",
+      "Bash(\"/c/ProgramData/anaconda3/envs/practical-chat-agent/python.exe\" -m py_compile src/practical_chat_agent/core/models.py src/practical_chat_agent/services/chat_context.py)",
+      "Bash(\"/c/ProgramData/anaconda3/envs/practical-chat-agent/python.exe\" -m pytest tests/test_relationship_context.py -q)",
+      "Bash(\"/c/ProgramData/anaconda3/envs/practical-chat-agent/python.exe\" -m pytest tests/test_relationship_context.py tests/test_chat_context_decomposition.py tests/test_relationship_review_cli.py -q)",
+      "Bash(git diff *)"
     ]
   }
 }

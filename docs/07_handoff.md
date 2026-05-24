@@ -1,5 +1,23 @@
 # Handoff
 
+## Captain Current State Override 2026-05-24 (T195 Review Decision)
+
+- T195 review decision: `PASS_WITH_WARNINGS`.
+- T195 warning disposition:
+  - Accepted: W01 worker milestone-review/handoff mechanism claim was factually wrong and is corrected here, W04 `docs/for_human/T195_review_explanation.md` allowed-files overrun is treated as low-risk convention noise.
+  - Deferred: W02 relationship dimension-change values present in `ChatContext` but unused by `ReplyPlanner` / `ReplyPlanPolicyEngine`, W03 relationship guidance reaching summary/retrieval-note surfaces is informational only and does not create semantic consumption.
+  - Rejected: none.
+- T195 is complete as the evaluation-only milestone task for M8.
+- M8 completion status: All six M8 tasks (T190 schema, T191 signal extraction, T192 delta generation, T193 delta review, T194 compact context, T195 eval) are complete. M8 delivered the relationship-state pipeline and its evaluation, but not semantic planner consumption of relationship deltas.
+- Relationship context impact summary: The approved relationship context does NOT currently affect reply behavior. No code path consumes `ChatContext.relationship_context.deltas` for planner or policy decisions. Relationship guidance reaching summary or retrieval notes is informational only.
+- Current Unique Task: T200 MemoryRetriever interface.
+- Current task package: `docs/tasks/M9_memory_retrieval_layer/T200_memory_retriever_interface.md`.
+- T200 must stay contract-first and local-only:
+  - no vector DB or external adapter
+  - no Mem0/Zep spike inside T200
+  - no raw transcript retrieval
+  - no auto-write memory behavior
+
 ## Captain Current State Override 2026-05-24 (T193 Review Decision)
 
 - T193 review decision: `PASS_WITH_WARNINGS`.
@@ -87,7 +105,7 @@
   - `RelationshipDeltaReviewService` in `services/feedback.py` with `review_delta()` method.
 - Service design:
   - Accepts a `RelationshipDeltaCandidate`, decision string, reviewer identity, and optional note.
-  - Returns a *new* delta via `model_copy(deep=True)` — the original delta is not mutated.
+  - Returns a *new* delta via `model_copy(deep=True)` 閳?the original delta is not mutated.
   - Validates decisions: `approve`, `reject`, `freeze`, `archive`. Case-insensitive, whitespace-tolerant.
   - Reuses existing `DistilledArtifactReviewDecision` / `DistilledArtifactReviewMetadata` patterns from T120/T163.
   - Appends a review decision to `review_metadata.history`, updates `status`, `review_state`, `reviewed_by_human`, `last_decision`, reviewer fields, and `updated_at`.
@@ -112,6 +130,69 @@
   - No send/platform integration.
   - No dimension semantics rewrite or partial-approval model.
   - No `models.py` change was needed; T190 schemas were sufficient.
+
+## T194 Worker Completion Record
+
+- Files changed:
+  - `src/practical_chat_agent/core/models.py`
+  - `src/practical_chat_agent/services/chat_context.py`
+  - `tests/test_relationship_context.py` (new)
+  - `docs/data_contracts/relationship_state_contract.md`
+  - `docs/07_handoff.md`
+- Models added:
+  - `ApprovedRelationshipDeltaBrief` 閳?compact summary of one approved delta (dimension changes, summary, evidence refs; no signal refs or review metadata).
+  - `ApprovedRelationshipContext` 閳?container with status, source path, contact_id, deltas, and notes.
+  - `ChatContext.relationship_context` 閳?additive field, independent from `approved_store_context`, `approved_patch_context`, and `derived_brief_context`.
+- Assembler logic added:
+  - `__init__` parameter: `approved_relationship_delta_path` (optional `Path` to a directory of delta JSON files).
+  - `_load_approved_relationship_context()` 閳?reads delta JSON files, validates each as `RelationshipDeltaCandidate`, filters for runtime-ready only (approved + human-reviewed + matching contact_id), builds compact briefs.
+  - `_try_load_runtime_ready_delta()` 閳?per-file try-parse and filter helper.
+  - `_build_relationship_context_notes()` 閳?adds relationship delta hints to `memory_retrieval_notes`.
+  - Relationship context info included in `_build_summary()` when loaded.
+- Context design:
+  - Only `status="approved"` AND `reviewed_by_human=True` AND `last_decision="approved"` deltas enter context.
+  - Candidate, rejected, frozen, archived, not-human-reviewed, and wrong-contact deltas are excluded.
+  - `signal_refs`, `review_metadata.history`, reviewer identities, and review timestamps are stripped from briefs.
+  - `delta_summary` capped at 200 characters; `evidence_refs` limited to 6.
+  - No `RelationshipState` mutation, no send-behavior change, no raw signal/review leakage.
+- Verification:
+  - Compile passed for models.py and chat_context.py.
+  - T194 test suite: 31 tests covering load success, dimension preservation, multi-dimension deltas, fallback behavior (not_configured, path_missing, no_runtime_ready, contact mismatch, not-human-reviewed), no raw content leakage, coexistence with existing context paths, retrieval notes, summary inclusion, determinism, and no disk writes.
+  - Full existing test suite: 541 tests passed (31 new + 510 existing), no regressions.
+- Explicit non-actions:
+  - No raw signal history or review metadata in context.
+  - No `RelationshipState` mutation or auto-update.
+  - No send-behavior change or outbound integration.
+  - No delta review semantics reopened.
+  - No dimension semantics rewrite.
+  - No ContactSkill, MemoryFact, or approved store modification.
+
+## T195 Worker Completion Record
+
+- Files changed:
+  - `docs/review/T195_milestone_review.md` (new)
+  - `docs/for_human/T195_review_explanation.md` (new)
+  - `docs/07_handoff.md`
+- Evaluation method:
+  - Traced end-to-end data flow from `ApprovedRelationshipContext` (T194) through `ChatContextAssembler` 閳?`ReplyPlanPolicyEngine` 閳?`ReplyPlanner` 閳?`ReplyPlan`.
+  - Analyzed all code paths where relationship context content can affect reply behavior.
+- Captain correction:
+  - Reviewer verification showed the originally claimed keyword-match mechanism was incorrect. The authoritative findings below reflect the corrected code-path analysis.
+- Key findings:
+  - **No current behavioral impact**: Approved relationship context does not currently change reply behavior in the implementation under review.
+  - **Dimension-level nuance is absent**: even though dimension changes are present in context, no current code path maps them to planner or policy behavior.
+  - **Claimed note-keyword trigger is not real**: relationship-context notes are English, policy sensitive-keyword checks are Chinese substring matches, and the policy engine only inspects `memory_retrieval_notes[:3]`; the claimed trigger path does not fire.
+  - **No semantic consumer**: `ApprovedRelationshipDeltaBrief.dimension_changes`, `delta_summary`, and `evidence_refs` are present in `ChatContext.relationship_context`, but no planner or policy code path reads them for decision-making.
+  - **Summary is informational only**: `ChatContext.summary` includes relationship guidance text, but `ReplyPlanSourceContext.chat_context_summary` is not read by any decision point.
+- Verdict: `PASS_WITH_WARNINGS`:
+  - W01: Worker milestone-review/handoff mechanism claim was incorrect and required captain correction.
+  - W02: Dimension-change values present in ChatContext but unused by reply planner/policy.
+  - W03: Summary/retrieval-note relationship guidance is observational, not behavioral.
+- Explicit non-actions:
+  - No code changes. Verified: no files under `src/` or `tests/` were modified.
+  - No private artifacts committed.
+  - No state application or context mutation.
+  - No new runtime semantics or context wiring.
 
 ## Captain Current State Override 2026-05-24 (T191 Review Decision)
 
@@ -149,9 +230,9 @@
   - `RelationshipSignalExtractor` in `services/feedback.py` with `extract_from_feedback()` method
 - Signal extraction design:
   - Only boundary-labeled feedback with known high-confidence patterns produces signals.
-  - `boundary_violation` → boundary_risk increase (0.7 strength).
-  - `too_intimate` → boundary_risk increase (0.5) + intimacy_level decrease (0.4).
-  - `too_eager` → initiative_allowance decrease (0.5).
+  - `boundary_violation` 閳?boundary_risk increase (0.7 strength).
+  - `too_intimate` 閳?boundary_risk increase (0.5) + intimacy_level decrease (0.4).
+  - `too_eager` 閳?initiative_allowance decrease (0.5).
   - All other actions (accept, reject, edit), boundary labels without rules, and unlabeled boundary feedback produce zero signals.
   - Each signal carries `evidence_refs` pointing to the source `feedback_id`.
   - No raw text (boundary_note, user_note, edited_text, draft_text) is stored in any signal field.
@@ -402,9 +483,9 @@
 - M5 remains deterministic, review-only, and non-mutating.
 - T163 may record human review decisions on `PreferencePatchCandidate` proposals, but it may not auto-approve, auto-apply, inject approved patches into runtime context, mutate ContactSkill/Memory, or add outbound behavior.
 
-更新日期：2026-05-17
+閺囧瓨鏌婇弮銉︽埂閿?026-05-17
 
-更新日期：2026-05-16
+閺囧瓨鏌婇弮銉︽埂閿?026-05-16
 
 ## Captain Current State Override 2026-05-18
 
@@ -427,161 +508,73 @@
 - Current task package: `docs/tasks/M4_feedback_loop/T140_feedback_schema_cli.md`.
 - M4/T140 may proceed only under review-only constraints: no auto-send, no realtime platform integration, no LLM drafting expansion, no automatic ContactSkill/Memory mutation, and no relationship-aware maturity claim.
 - T150 must add committed regression tests covering ReplyPlanner structure, boundary sensitivity, thin context, false positives, subtle false negatives, privacy leakage, contact alignment, and ranking.
-- Roadmap update: `docs/reference/gpt的后续设计思路(更新版).md` is accepted as directionally aligned, but milestone/task ordering has been revised. M4 is feedback capture/validation/summary only; M4.5 is regression hardening; feedback-to-patch, ContactSkill-compatible decomposition, LLM planner, RelationshipState, MemoryRetriever, BehaviorPlanner, Feishu, and WeChat are delayed behind gates.
+- Roadmap update: `docs/reference/gpt閻ㄥ嫬鎮楃紒顓☆啎鐠佲剝鈧繆鐭?閺囧瓨鏌婇悧?.md` is accepted as directionally aligned, but milestone/task ordering has been revised. M4 is feedback capture/validation/summary only; M4.5 is regression hardening; feedback-to-patch, ContactSkill-compatible decomposition, LLM planner, RelationshipState, MemoryRetriever, BehaviorPlanner, Feishu, and WeChat are delayed behind gates.
 
-## 1. 当前状态
+## 1. 瑜版挸澧犻悩鑸碘偓?
+妞ゅ湱娲扮捄顖滃殠瀹告彃鍨忛幑顫偓?
+閺冄嗙熅缁惧尅绱?
+- T00閿涙瓙eChatBot/iLink SDK 鐎瑰顥婇崪灞肩癌缂佸鐖滈梼鑸殿唽閹恒垺绁撮敍瀹篹view `PASS`閵?- T01閿涙氨娅ヨぐ?session 妤犲矁鐦夐敍瀹篹view `BLOCK`閵?- 閻劍鍩涘鎻掑枀鐎规矮绗夋穱?T01閿涘奔绗夐崘宥嗗腹鏉╂稑浜曟穱?SDK 閻ц缍嶉妴浣瑰閹诲繑鍨ㄩ懕濠傘亯鐠佹澘缍嶇拠璇插絿鐠侯垳鍤庨妴?
+閺傛媽鐭剧痪鍖＄窗
 
-项目路线已切换。
+- 閻劍鍩涘鏌モ偓姘崇箖 WeFlow 瀹搞儱鍙跨€电厧鍤懕濠傘亯鐠佹澘缍嶉妴?- 缁変礁鐦戦弫鐗堝祦娴ｅ秳绨?`private/chat_history/`閿涘苯褰?`.gitignore` 娣囨繃濮㈤妴?- 娑撳绔撮梼鑸殿唽閻╁瓨甯撮崑姘ｂ偓婊冾嚠鐠囨繆顔囪ぐ鏇⑩攳閸斻劎娈戦梹鎸庢埂閸忓磭閮撮幇鐔虹叀 chat agent閳ユ縿鈧?- 瑜版挸澧犻惄顔界垼閺勵垳顬囩痪鑳崁妫?MVP閿涙SONL -> normalized events -> chunks -> memory facts -> ContactSkill -> review -> relationship-aware reply planner閵?- T100 worker 瀹歌弓楠囬崙?schema profile閵嗕苟ormalized event contract 閸滃苯鎮庨幋鎰姎閺?fixture閿涘苯鑻熼柅姘崇箖 reviewer `PASS`閵?- Captain 瀹告彃鐨?T100/T101/T102/T103/T110/T111/T112/T113/T114/T120/T121/T122/T123/T130/T131/T132 閺嶅洩顔囩€瑰本鍨氶敍瀛廰te M1 = `Conditional`閿涘瓔urrent Unique Task 閹恒劏绻橀崚?T133閵?- T101 worker 瀹歌弓楠囬崙娲缁変浇鍔氶弫蹇氼潐閸掓瑣鈧够ource_ref 鐟欏嫬鍨崪宀兯夐崗鍛啊 `source_ref/raw_ref` 妫板嫯顫嶈ぐ銏♀偓浣烘畱閸氬牊鍨?fixture閿涘苯鑻熼柅姘崇箖 reviewer `PASS`閵?- T102 worker 瀹歌弓楠囬崙鐑樻付鐏?normalize CLI閿涘苯鑻熺€瑰本鍨?dry-run 娑?limit 鐏忓繑鐗遍張顒勭崣鐠囦緤绱漴eviewer 閸掋倕鐣?`PASS`閵?- T103 milestone review 瀹稿弶甯撮崣?Gate M0 = `Conditional`閿涘苯鍘戠拋姝岀箻閸?M1閿涙笨110 conversation chunker v0閵嗕箑111 distillation schemas 閸?T112 summary/fact extraction 閸у洤鍑￠柅姘崇箖 reviewer `PASS`閿涘113 ContactSkill builder 瀹告煡鈧俺绻?reviewer `PASS_WITH_WARNINGS`閿涘114 绾喛顓?Gate M1 = `Conditional`閵?- T120 file store models 瀹告煡鈧俺绻?reviewer `PASS_WITH_WARNINGS`閿涘苯鍘戠拋姝岀箻閸?T121閵?- T121 evidence validator 瀹告煡鈧俺绻?reviewer `PASS_WITH_WARNINGS`閿涘苯鍘戠拋姝岀箻閸?T122閵?- T122 skill review CLI 瀹告煡鈧俺绻?reviewer `PASS_WITH_WARNINGS`閿涘苯鍘戠拋姝岀箻閸?T123閵?- T123 context integration 瀹告煡鈧俺绻?reviewer `PASS_WITH_WARNINGS`閿涘130 ReplyPlan schema 瀹告煡鈧俺绻?reviewer `PASS_WITH_WARNINGS`閿涘131 ReplyPlanner 瀹告煡鈧俺绻?reviewer `PASS_WITH_WARNINGS`閿涘132 Reply Policy 瀹告煡鈧俺绻?reviewer `PASS_WITH_WARNINGS`閿涘苯鍘戠拋姝岀箻閸?T133閵?
+## 2. 瑜版挸澧犻崬顖欑娴犺濮?
+T133: 閻劌宸婚崣?holdout 閸︾儤娅欑拠鍕強閸ョ偛顦查懛顏嗗姧鎼达箑鎷版潏鍦櫕闁潧鐣ч妴?
+娴犺濮熼崠鍜冪窗`docs/tasks/M3_relationship_reply_planner/T133_holdout_eval.md`
 
-旧路线：
-
-- T00：WeChatBot/iLink SDK 安装和二维码阶段探测，review `PASS`。
-- T01：登录/session 验证，review `BLOCK`。
-- 用户已决定不修 T01，不再推进微信 SDK 登录、扫描或聊天记录读取路线。
-
-新路线：
-
-- 用户已通过 WeFlow 工具导出聊天记录。
-- 私密数据位于 `private/chat_history/`，受 `.gitignore` 保护。
-- 下一阶段直接做“对话记录驱动的长期关系感知 chat agent”。
-- 当前目标是离线蒸馏 MVP：JSONL -> normalized events -> chunks -> memory facts -> ContactSkill -> review -> relationship-aware reply planner。
-- T100 worker 已产出 schema profile、normalized event contract 和合成脱敏 fixture，并通过 reviewer `PASS`。
-- Captain 已将 T100/T101/T102/T103/T110/T111/T112/T113/T114/T120/T121/T122/T123/T130/T131/T132 标记完成，Gate M1 = `Conditional`，Current Unique Task 推进到 T133。
-- T101 worker 已产出隐私脱敏规则、source_ref 规则和补充了 `source_ref/raw_ref` 预览形态的合成 fixture，并通过 reviewer `PASS`。
-- T102 worker 已产出最小 normalize CLI，并完成 dry-run 与 limit 小样本验证，reviewer 判定 `PASS`。
-- T103 milestone review 已接受 Gate M0 = `Conditional`，允许进入 M1；T110 conversation chunker v0、T111 distillation schemas 和 T112 summary/fact extraction 均已通过 reviewer `PASS`，T113 ContactSkill builder 已通过 reviewer `PASS_WITH_WARNINGS`，T114 确认 Gate M1 = `Conditional`。
-- T120 file store models 已通过 reviewer `PASS_WITH_WARNINGS`，允许进入 T121。
-- T121 evidence validator 已通过 reviewer `PASS_WITH_WARNINGS`，允许进入 T122。
-- T122 skill review CLI 已通过 reviewer `PASS_WITH_WARNINGS`，允许进入 T123。
-- T123 context integration 已通过 reviewer `PASS_WITH_WARNINGS`，T130 ReplyPlan schema 已通过 reviewer `PASS_WITH_WARNINGS`，T131 ReplyPlanner 已通过 reviewer `PASS_WITH_WARNINGS`，T132 Reply Policy 已通过 reviewer `PASS_WITH_WARNINGS`，允许进入 T133。
-
-## 2. 当前唯一任务
-
-T133: 用历史 holdout 场景评估回复自然度和边界遵守。
-
-任务包：`docs/tasks/M3_relationship_reply_planner/T133_holdout_eval.md`
-
-状态：T132 已通过 `PASS_WITH_WARNINGS`，ReplyPlanner 已具备 review-only contract wiring 和 policy/boundary 风险层。T133 只做匿名 holdout eval 与 Gate M3 判断；不修改 planner 代码，不提交 holdout 原文，不自动发送、不接数据库、不引入向量数据库、不回读或泄露原始聊天记录。
-
-## 3. T100 完成记录
+閻樿埖鈧緤绱癟132 瀹告煡鈧俺绻?`PASS_WITH_WARNINGS`閿涘eplyPlanner 瀹告彃鍙挎径?review-only contract wiring 閸?policy/boundary 妞嬪酣娅撶仦鍌樷偓淇?33 閸欘亜浠涢崠鍨倳 holdout eval 娑?Gate M3 閸掋倖鏌囬敍娑楃瑝娣囶喗鏁?planner 娴狅絿鐖滈敍灞肩瑝閹绘劒姘?holdout 閸樼喐鏋冮敍灞肩瑝閼奉亜濮╅崣鎴︹偓浣碘偓浣风瑝閹恒儲鏆熼幑顔肩氨閵嗕椒绗夊鏇炲弳閸氭垿鍣洪弫鐗堝祦鎼存挶鈧椒绗夐崶鐐额嚢閹存牗纭犻棁鎻掑斧婵浜版径鈺勵唶瑜版洏鈧?
+## 3. T100 鐎瑰本鍨氱拋鏉跨秿
 
 - `docs/data_contracts/weflow_schema_profile.md`
 - `docs/data_contracts/normalized_event_contract.md`
 - `examples/payloads/weflow_redacted_sample.jsonl`
 
-worker 侧当前已确认的高信号结论：
-
-- 4 个 WeFlow JSONL 文件共 38,289 行，全部可解析，无坏行。
-- 顶层行类型稳定分为 `header`、`member`、`message` 三类。
-- 真正需要进入 normalized event 的是 `_type=message` 行，共 38,253 条。
-- `timestamp` 稳定为 Unix epoch seconds。
-- `type` 是消息类型主候选字段，其中 `0`、`7`、`25`、`80` 占绝大多数。
-- `replyToMessageId` 可作为引用链路候选；`chatRecords` 可作为转发聊天记录候选。
-- 脱敏/合成样例已生成，不包含真实原文、真实联系人姓名或真实文件名。
-
-Reviewer 结论：
-
-- `docs/review/T100_review.md` verdict 为 `PASS`。
-- N01 accepted：Q100/Q104 关闭依据更新为 “T100 worker draft + review PASS”。
-- N02 deferred：type=80/chatRecords fixture 覆盖留给 T102/T150。
-- N03 deferred：event_id 的 SHA-1/SHA-256 取舍留给 T102。
-
-## 4. T101 完成记录
+worker 娓氀冪秼閸撳秴鍑＄涵顔款吇閻ㄥ嫰鐝穱鈥冲娇缂佹捁顔戦敍?
+- 4 娑?WeFlow JSONL 閺傚洣娆㈤崗?38,289 鐞涘矉绱濋崗銊╁劥閸欘垵袙閺嬫劧绱濋弮鐘叉綎鐞涘被鈧?- 妞よ泛鐪扮悰宀€琚崹瀣旂€规艾鍨庢稉?`header`閵嗕梗member`閵嗕梗message` 娑撳琚妴?- 閻喐顒滈棁鈧憰浣界箻閸?normalized event 閻ㄥ嫭妲?`_type=message` 鐞涘矉绱濋崗?38,253 閺壜扳偓?- `timestamp` 缁嬪啿鐣炬稉?Unix epoch seconds閵?- `type` 閺勵垱绉烽幁顖滆閸ㄥ瀵岄崐娆撯偓澶婄摟濞堢绱濋崗鏈佃厬 `0`閵嗕梗7`閵嗕梗25`閵嗕梗80` 閸楃姷绮锋径褍顦块弫鑸偓?- `replyToMessageId` 閸欘垯缍旀稉鍝勭穿閻劑鎽肩捄顖氣偓娆撯偓澶涚幢`chatRecords` 閸欘垯缍旀稉楦挎祮閸欐垼浜版径鈺勵唶瑜版洖鈧瑩鈧鈧?- 閼磋鲸鏅?閸氬牊鍨氶弽铚傜伐瀹歌尙鏁撻幋鎰剁礉娑撳秴瀵橀崥顐ゆ埂鐎圭偛甯弬鍥モ偓浣烘埂鐎圭偠浠堢化璁虫眽婵挸鎮曢幋鏍埂鐎圭偞鏋冩禒璺烘倳閵?
+Reviewer 缂佹捁顔戦敍?
+- `docs/review/T100_review.md` verdict 娑?`PASS`閵?- N01 accepted閿涙瓐100/Q104 閸忔娊妫存笟婵囧祦閺囧瓨鏌婃稉?閳ユ翻100 worker draft + review PASS閳ユ縿鈧?- N02 deferred閿涙ype=80/chatRecords fixture 鐟曞棛娲婇悾娆戠舶 T102/T150閵?- N03 deferred閿涙瓱vent_id 閻?SHA-1/SHA-256 閸欐牞鍨楅悾娆戠舶 T102閵?
+## 4. T101 鐎瑰本鍨氱拋鏉跨秿
 
 - `docs/data_contracts/privacy_redaction_rules.md`
 - `docs/data_contracts/source_ref_rules.md`
-- `examples/payloads/weflow_redacted_sample.jsonl` 已加入 `eventIdPreview`、`sourceRefPreview`、`rawRefPreview`
+- `examples/payloads/weflow_redacted_sample.jsonl` 瀹告彃濮為崗?`eventIdPreview`閵嗕梗sourceRefPreview`閵嗕梗rawRefPreview`
 
-Reviewer 结论：
-
-- `docs/review/T101_review.md` verdict 为 `PASS`。
-- N01 deferred：type=80/chatRecords fixture 覆盖继续留给 T102/T150。
-- N02 accepted：fixture preview hex 值可作为注释占位，不要求返修。
-- N03 deferred：结构化替换 token 与实际脱敏需求的对齐交给 T102 实现时校验。
-
-T102 必须遵守：
-
-- `docs/data_contracts/privacy_redaction_rules.md` 的 Field Handling Matrix。
-- `docs/data_contracts/source_ref_rules.md` 的 Allowed Public Shape。
-- normalize 输出只能进入 `private/distilled/`。
-- stdout 和可提交目录不得出现真实聊天原文、真实文件名、真实联系人姓名或真实平台 ID。
-
-## 5. T102 完成记录
+Reviewer 缂佹捁顔戦敍?
+- `docs/review/T101_review.md` verdict 娑?`PASS`閵?- N01 deferred閿涙ype=80/chatRecords fixture 鐟曞棛娲婄紒褏鐢婚悾娆戠舶 T102/T150閵?- N02 accepted閿涙瓲ixture preview hex 閸婄厧褰叉担婊€璐熷▔銊╁櫞閸楃姳缍呴敍灞肩瑝鐟曚焦鐪版潻鏂炬叏閵?- N03 deferred閿涙氨绮ㄩ弸鍕閺囨寧宕?token 娑撳骸鐤勯梽鍛板姎閺佸繘娓跺Ч鍌滄畱鐎靛綊缍堟禍銈囩舶 T102 鐎圭偟骞囬弮鑸电墡妤犲被鈧?
+T102 韫囧懘銆忛柆闈涚暓閿?
+- `docs/data_contracts/privacy_redaction_rules.md` 閻?Field Handling Matrix閵?- `docs/data_contracts/source_ref_rules.md` 閻?Allowed Public Shape閵?- normalize 鏉堟挸鍤崣顏囧厴鏉╂稑鍙?`private/distilled/`閵?- stdout 閸滃苯褰查幓鎰唉閻╊喖缍嶆稉宥呯繁閸戣櫣骞囬惇鐔风杽閼卞﹤銇夐崢鐔告瀮閵嗕胶婀＄€圭偞鏋冩禒璺烘倳閵嗕胶婀＄€圭偠浠堢化璁虫眽婵挸鎮曢幋鏍埂鐎圭偛閽╅崣?ID閵?
+## 5. T102 鐎瑰本鍨氱拋鏉跨秿
 
 - `src/practical_chat_agent/services/chatlog_ingestion.py`
 - `src/practical_chat_agent/app/main.py`
 
-Reviewer 结论：
+Reviewer 缂佹捁顔戦敍?
+- `docs/review/T102_review.md` verdict 娑?`PASS`閵?- N01 deferred閿涙碍妫ら弫?timezone 闂堟瑩绮梽宥囬獓 warning 閻ｆ瑧绮?T103/T150 閸掋倖鏌囬弰顖氭儊闂団偓鐟曚浇藟閵?- N02/N03 deferred閿涙艾寮诲▎陇顕伴崣鏍ф嫲閸忋劑鍣洪崘鍛摠缂傛挸鐡ㄩ悾娆戠舶 T110/T150 婢跺嫮鎮婇妴?- N04 accepted閿涙氨閮寸紒鐔哥Х閹垰鍙ч柨顔跨槤绾剛绱惍浣风稊娑?MVP 閸忔粌绨抽崣顖涘复閸欐ぜ鈧?- N05 deferred閿涙氨绮ㄩ弸鍕 PII token 閺囨寧宕查幒銊ㄧ箿閸?T112+ 閽傛悂顩撮梼鑸殿唽閵?- N06 deferred閿涙艾宕熼弬鍥︽ sender_role 缁嬪啿浠撮幀褏鏆€缂?T114/T150 妤犲矁鐦夐妴?
+瀹告煡鐛欑拠渚婄窗
 
-- `docs/review/T102_review.md` verdict 为 `PASS`。
-- N01 deferred：无效 timezone 静默降级 warning 留给 T103/T150 判断是否需要补。
-- N02/N03 deferred：双次读取和全量内存缓存留给 T110/T150 处理。
-- N04 accepted：系统消息关键词硬编码作为 MVP 兜底可接受。
-- N05 deferred：结构化 PII token 替换推迟到 T112+ 蒸馏阶段。
-- N06 deferred：单文件 sender_role 稳健性留给 T114/T150 验证。
-
-已验证：
-
-- `chatlog-normalize` 支持 `--input`、`--output`、`--limit`、`--dry-run`、`--timezone-name`。
-- 输入限制在 `private/chat_history/**`，输出限制在 `private/distilled/**`。
-- stdout/report 不包含真实原文、真实文件名、真实联系人姓名或真实平台 ID。
-- normalized event 字段与 T100/T101 合约对齐。
-
-## 6. T103 完成记录
+- `chatlog-normalize` 閺€顖涘瘮 `--input`閵嗕梗--output`閵嗕梗--limit`閵嗕梗--dry-run`閵嗕梗--timezone-name`閵?- 鏉堟挸鍙嗛梽鎰煑閸?`private/chat_history/**`閿涘矁绶崙娲閸掕泛婀?`private/distilled/**`閵?- stdout/report 娑撳秴瀵橀崥顐ゆ埂鐎圭偛甯弬鍥モ偓浣烘埂鐎圭偞鏋冩禒璺烘倳閵嗕胶婀＄€圭偠浠堢化璁虫眽婵挸鎮曢幋鏍埂鐎圭偛閽╅崣?ID閵?- normalized event 鐎涙顔屾稉?T100/T101 閸氬牏瀹崇€靛綊缍堥妴?
+## 6. T103 鐎瑰本鍨氱拋鏉跨秿
 
 - `docs/review/T103_milestone_review.md`
 - `docs/review/T103_review.md`
 
-Reviewer 结论：
+Reviewer 缂佹捁顔戦敍?
+- Gate M0 = `Conditional` accepted閵?- M0 娴滄梹娼涵顒佲偓褑顩﹀Ч鍌氬弿闁劍寮х搾鐐解偓?- 閸忎浇顔忔潻娑樺弳 M1閿涘奔绗呮稉鈧崬顖欑娴犺濮熸稉?T110閵?
+M1 韫囧懘銆忛幍鎸庡复閻ㄥ嫭娼禒璁圭窗
 
-- Gate M0 = `Conditional` accepted。
-- M0 五条硬性要求全部满足。
-- 允许进入 M1，下一唯一任务为 T110。
+- T110/T150 缂佈呯敾鐟曞棛娲?`type=80` / `chatRecords` 閻ㄥ嫪绻氱€瑰牆顦╅悶鍡曠瑢濞村鐦妴?- T110/T114/T150 娣囨繄鏆€楠炲爼鐛欑拠?`sender_role`閵嗕辜imezone fallback閵嗕焦鈧嗗厴/閸愬懎鐡ㄩ惄绋垮彠娑撳秶鈥樼€规碍鈧佲偓?- T112+ 娴犵粯鍓?LLM-facing 閽傛悂顩村銉╊€冪紒褏鐢婚柆闈涚暓 T101 闂呮劗顫嗘潏鍦櫕閿涘奔绗夐幎濠勵潌閺?normalize 閺傚洦婀伴幍鈺傛殠閸掓澘褰查幓鎰唉娴溠呭⒖閵?
+## 7. T110 鐎瑰本鍨氱拋鏉跨秿
 
-M1 必须承接的条件：
-
-- T110/T150 继续覆盖 `type=80` / `chatRecords` 的保守处理与测试。
-- T110/T114/T150 保留并验证 `sender_role`、timezone fallback、性能/内存相关不确定性。
-- T112+ 任意 LLM-facing 蒸馏步骤继续遵守 T101 隐私边界，不把私有 normalize 文本扩散到可提交产物。
-
-## 7. T110 完成记录
-
-- 代码改动：
-  - `src/practical_chat_agent/services/conversation_chunking.py`
+- 娴狅絿鐖滈弨鐟板З閿?  - `src/practical_chat_agent/services/conversation_chunking.py`
   - `src/practical_chat_agent/app/main.py`
-- 已实现内容：
-  - 新增 `ConversationChunkingService`，消费 `private/distilled/**/normalized_events.jsonl`。
-  - 新增 `chatlog-chunk` CLI，默认把 `chunks.jsonl` 和更新后的 `run_report.json` 写回同一个 `private/distilled/<run_id>/` 目录。
-  - chunk v0 仅使用保守边界：`conversation/contact` 变化、时间间隔过大、单 chunk 消息数上限、输入结束。
-  - 每个 chunk 保留 `chunk_id`、`contact_id`、`conversation_id`、`event_ids`、`time_range`、`message_count`、`chunking_reason`。
-  - chunk 级产物继续传递 T102 的不确定性信号：`source_message_type_codes` / `source_message_type_counts`、`message_type_counts`、`interaction_flag_counts`、`risk_flag_counts`、`events_with_interaction_flags`、`events_with_risk_flags`。
-  - 未引入 LLM、embedding、ContactSkill、数据库或实时平台接入；chunk 输出不写聊天原文。
-- 已完成验证：
-  - `& 'C:\ProgramData\anaconda3\envs\practical-chat-agent\python.exe' -m compileall src/practical_chat_agent/services/conversation_chunking.py src/practical_chat_agent/app/main.py`
+- 瀹告彃鐤勯悳鏉垮敶鐎圭櫢绱?  - 閺傛澘顤?`ConversationChunkingService`閿涘本绉风拹?`private/distilled/**/normalized_events.jsonl`閵?  - 閺傛澘顤?`chatlog-chunk` CLI閿涘矂绮拋銈嗗Ω `chunks.jsonl` 閸滃本娲块弬鏉挎倵閻?`run_report.json` 閸愭瑥娲栭崥灞肩娑?`private/distilled/<run_id>/` 閻╊喖缍嶉妴?  - chunk v0 娴犲懍濞囬悽銊ょ箽鐎瑰牐绔熼悾宀嬬窗`conversation/contact` 閸欐ê瀵查妴浣规闂傛挳妫块梾鏃囩箖婢堆佲偓浣稿礋 chunk 濞戝牊浼呴弫棰佺瑐闂勬劑鈧浇绶崗銉х波閺夌喆鈧?  - 濮ｅ繋閲?chunk 娣囨繄鏆€ `chunk_id`閵嗕梗contact_id`閵嗕梗conversation_id`閵嗕梗event_ids`閵嗕梗time_range`閵嗕梗message_count`閵嗕梗chunking_reason`閵?  - chunk 缁狙傞獓閻椻晝鎴风紒顓濈炊闁?T102 閻ㄥ嫪绗夌涵顔肩暰閹備繆閸欏嚖绱癭source_message_type_codes` / `source_message_type_counts`閵嗕梗message_type_counts`閵嗕梗interaction_flag_counts`閵嗕梗risk_flag_counts`閵嗕梗events_with_interaction_flags`閵嗕梗events_with_risk_flags`閵?  - 閺堫亜绱╅崗?LLM閵嗕躬mbedding閵嗕竼ontactSkill閵嗕焦鏆熼幑顔肩氨閹存牕鐤勯弮璺洪挬閸欑増甯撮崗銉幢chunk 鏉堟挸鍤稉宥呭晸閼卞﹤銇夐崢鐔告瀮閵?- 瀹告彃鐣幋鎰扮崣鐠囦緤绱?  - `& 'C:\ProgramData\anaconda3\envs\practical-chat-agent\python.exe' -m compileall src/practical_chat_agent/services/conversation_chunking.py src/practical_chat_agent/app/main.py`
   - `$env:PYTHONPATH='src'; & 'C:\ProgramData\anaconda3\envs\practical-chat-agent\python.exe' -m practical_chat_agent.app.main chatlog-chunk --input private/distilled/t102_smoke --limit 12`
-  - 结果：成功写出 `private/distilled/t102_smoke/chunks.jsonl`，并把 chunking 报告写入 `private/distilled/t102_smoke/run_report.json`。
-  - 该小样本共消费 12 条 normalized events，生成 1 个 chunk；`chunking_reason=manual`，`boundary_flags=["end_of_input"]`，且保留了 `type=7` / `type=80` 对应的 mixed/system 风险与交互统计。
-- Reviewer 结论：
-  - `docs/review/T110_review.md` verdict 为 `PASS`。
-  - 确认 T110 只实现 conversation chunker v0，未越界引入 LLM、embedding、ContactSkill、数据库或实时平台。
-  - 确认 chunk 输出不写聊天原文，stdout/report 未发现真实聊天内容泄露。
-  - 确认 T102 的 `source_message_type_code`、`risk_flags`、`interaction_flags`、`message_type`、`sender_role` 等不确定性信号已被保留或汇总传递。
-- Non-blocking 处理：
-  - N01 accepted：`chunking_reason="manual"` 对结构边界表达偏粗，但当前 `boundary_flags` 已保留细节；后续 T112/T150 使用时不要只依赖 reason。
-  - N02 accepted/deferred：non-monotonic timestamp warning 当前只进入 report，不阻塞；若后续样本出现排序问题，由 T150 增加诊断覆盖。
-  - N03 accepted/deferred：`run_report.json` 的 chunking 报告形态足够 MVP 使用；T114/T150 可按实际抽查需求扩展。
-  - N04 deferred：自动化测试仍留给 T150。
-  - N05 accepted：`topic_hint` 是 optional，T110 不生成 topic hint 合理，后续由 T112+ 摘要/语义阶段补足。
+  - 缂佹挻鐏夐敍姘灇閸旂喎鍟撻崙?`private/distilled/t102_smoke/chunks.jsonl`閿涘苯鑻熼幎?chunking 閹躲儱鎲￠崘娆忓弳 `private/distilled/t102_smoke/run_report.json`閵?  - 鐠囥儱鐨弽閿嬫拱閸忚鲸绉风拹?12 閺?normalized events閿涘瞼鏁撻幋?1 娑?chunk閿涙矖chunking_reason=manual`閿涘畭boundary_flags=["end_of_input"]`閿涘奔绗栨穱婵堟殌娴?`type=7` / `type=80` 鐎电懓绨查惃?mixed/system 妞嬪酣娅撴稉搴濇唉娴滄帞绮虹拋掳鈧?- Reviewer 缂佹捁顔戦敍?  - `docs/review/T110_review.md` verdict 娑?`PASS`閵?  - 绾喛顓?T110 閸欘亜鐤勯悳?conversation chunker v0閿涘本婀搾濠勬櫕瀵洖鍙?LLM閵嗕躬mbedding閵嗕竼ontactSkill閵嗕焦鏆熼幑顔肩氨閹存牕鐤勯弮璺洪挬閸欒埇鈧?  - 绾喛顓?chunk 鏉堟挸鍤稉宥呭晸閼卞﹤銇夐崢鐔告瀮閿涘tdout/report 閺堫亜褰傞悳鎵埂鐎圭偠浜版径鈺佸敶鐎硅纭犻棁灞傗偓?  - 绾喛顓?T102 閻?`source_message_type_code`閵嗕梗risk_flags`閵嗕梗interaction_flags`閵嗕梗message_type`閵嗕梗sender_role` 缁涘绗夌涵顔肩暰閹備繆閸欏嘲鍑＄悮顐＄箽閻ｆ瑦鍨ㄥЧ鍥ㄢ偓璁崇炊闁帇鈧?- Non-blocking 婢跺嫮鎮婇敍?  - N01 accepted閿涙瓪chunking_reason="manual"` 鐎靛湱绮ㄩ弸鍕珶閻ｅ矁銆冩潏鎯т焊缁绱濇担鍡楃秼閸?`boundary_flags` 瀹歌弓绻氶悾娆戠矎閼哄偊绱遍崥搴ｇ敾 T112/T150 娴ｈ法鏁ら弮鏈电瑝鐟曚礁褰ф笟婵婄 reason閵?  - N02 accepted/deferred閿涙on-monotonic timestamp warning 瑜版挸澧犻崣顏囩箻閸?report閿涘奔绗夐梼璇差敚閿涙稖瀚㈤崥搴ｇ敾閺嶉攱婀伴崙铏瑰箛閹烘帒绨梻顕€顣介敍宀€鏁?T150 婢х偛濮炵拠濠冩焽鐟曞棛娲婇妴?  - N03 accepted/deferred閿涙瓪run_report.json` 閻?chunking 閹躲儱鎲¤ぐ銏♀偓浣藉喕婢?MVP 娴ｈ法鏁ら敍姹?14/T150 閸欘垱瀵滅€圭偤妾幎鑺ョ叀闂団偓濮瑰倹澧跨仦鏇樷偓?  - N04 deferred閿涙俺鍤滈崝銊ュ濞村鐦禒宥囨殌缂?T150閵?  - N05 accepted閿涙瓪topic_hint` 閺?optional閿涘110 娑撳秶鏁撻幋?topic hint 閸氬牏鎮婇敍灞芥倵缂侇厾鏁?T112+ 閹芥顩?鐠囶厺绠熼梼鑸殿唽鐞涖儴鍐婚妴?
+## 8. T111 鐎瑰本鍨氱拋鏉跨秿
 
-## 8. T111 完成记录
-
-- 代码 / 文档改动：
-  - `src/practical_chat_agent/core/models.py`
+- 娴狅絿鐖?/ 閺傚洦銆傞弨鐟板З閿?  - `src/practical_chat_agent/core/models.py`
   - `docs/data_contracts/distillation_output_contract.md`
   - `docs/07_handoff.md`
-- 已实现内容：
-  - 在 `core.models` 中新增可复用 schema：
-    - `DistillationClaim`
+- 瀹告彃鐤勯悳鏉垮敶鐎圭櫢绱?  - 閸?`core.models` 娑擃厽鏌婃晶鐐插讲婢跺秶鏁?schema閿?    - `DistillationClaim`
     - `ChunkSummaryObservation`
     - `ChunkSummary`
     - `MemoryFactCandidate`
@@ -594,129 +587,57 @@ M1 必须承接的条件：
     - `ContactSkillReplyStrategy`
     - `ContactSkillUsageBoundary`
     - `ContactSkillCandidate`
-  - 所有 fact / claim / skill 相关结构均支持 `evidence_refs`、`confidence`、`sensitivity`、`status`。
-  - `ContactSkillCandidate` 明确加入 `usage_boundary`，默认禁止 `persona_clone`、`impersonation`、`autonomous_contact_simulation`。
-  - 新增 `docs/data_contracts/distillation_output_contract.md`，固定 T112/T113 所需 JSON contract、状态约定、敏感度约定和反 impersonation 边界。
-  - 未调用 LLM、未生成真实蒸馏结果、未写数据库 migration。
-- 已完成验证：
-  - `& 'C:\ProgramData\anaconda3\envs\practical-chat-agent\python.exe' -m compileall src/practical_chat_agent/core/models.py`
-  - 结果：模型文件编译通过。
-- Reviewer 结论：
-  - `docs/review/T111_review.md` verdict 为 `PASS`。
-  - 确认 T111 完整定义 `ChunkSummary`、`MemoryFactCandidate`、`ContactSkillCandidate` 及辅助结构。
-  - 确认所有 fact/claim/skill 结构强制或支持 `evidence_refs`、`confidence`、`sensitivity`、`status`。
-  - 确认 `ContactSkillUsageBoundary` 默认禁止 `persona_clone`、`impersonation`、`autonomous_contact_simulation`。
-  - 确认无 LLM 调用、无数据库 migration、无 `private/` 泄露。
-- Non-blocking 处理：
-  - N01 accepted：`ContactSkillRelationshipState` / `ContactSkillCommunicationStyle` 的部分字段保留自由字符串，MVP 阶段可接受；后续可按实际 LLM 输出收紧。
-  - N02 accepted/deferred：`redaction_policy` 当前使用 `dict[str, Any]` 可接受；T120/T150 可视 store/review 需要改为结构化 model。
-  - N03 deferred：`DistillationMemoryType` 与现有 `MemoryType` enum 的映射交给 T120。
-  - N04 deferred：`created_at` / `updated_at` 由 T120 store 或产物写入层补充。
-  - N05 deferred：Pydantic 约束自动化测试交给 T150。
+  - 閹碘偓閺?fact / claim / skill 閻╃鍙х紒鎾寸€崸鍥ㄦ暜閹?`evidence_refs`閵嗕梗confidence`閵嗕梗sensitivity`閵嗕梗status`閵?  - `ContactSkillCandidate` 閺勫海鈥橀崝鐘插弳 `usage_boundary`閿涘矂绮拋銈囶洣濮?`persona_clone`閵嗕梗impersonation`閵嗕梗autonomous_contact_simulation`閵?  - 閺傛澘顤?`docs/data_contracts/distillation_output_contract.md`閿涘苯娴愮€?T112/T113 閹碘偓闂団偓 JSON contract閵嗕胶濮搁幀浣哄鐎规哎鈧焦鏅遍幇鐔峰缁撅箑鐣鹃崪灞藉冀 impersonation 鏉堝湱鏅妴?  - 閺堫亣鐨熼悽?LLM閵嗕焦婀悽鐔稿灇閻喎鐤勯拏鎼侇洿缂佹挻鐏夐妴浣规弓閸愭瑦鏆熼幑顔肩氨 migration閵?- 瀹告彃鐣幋鎰扮崣鐠囦緤绱?  - `& 'C:\ProgramData\anaconda3\envs\practical-chat-agent\python.exe' -m compileall src/practical_chat_agent/core/models.py`
+  - 缂佹挻鐏夐敍姘侀崹瀣瀮娴犲墎绱拠鎴︹偓姘崇箖閵?- Reviewer 缂佹捁顔戦敍?  - `docs/review/T111_review.md` verdict 娑?`PASS`閵?  - 绾喛顓?T111 鐎瑰本鏆ｇ€规矮绠?`ChunkSummary`閵嗕梗MemoryFactCandidate`閵嗕梗ContactSkillCandidate` 閸欏﹨绶熼崝鈺冪波閺嬪嫨鈧?  - 绾喛顓婚幍鈧張?fact/claim/skill 缂佹挻鐎鍝勫煑閹存牗鏁幐?`evidence_refs`閵嗕梗confidence`閵嗕梗sensitivity`閵嗕梗status`閵?  - 绾喛顓?`ContactSkillUsageBoundary` 姒涙顓荤粋浣诡剾 `persona_clone`閵嗕梗impersonation`閵嗕梗autonomous_contact_simulation`閵?  - 绾喛顓婚弮?LLM 鐠嬪啰鏁ら妴浣规￥閺佺増宓佹惔?migration閵嗕焦妫?`private/` 濞夊嫰婀堕妴?- Non-blocking 婢跺嫮鎮婇敍?  - N01 accepted閿涙瓪ContactSkillRelationshipState` / `ContactSkillCommunicationStyle` 閻ㄥ嫰鍎撮崚鍡楃摟濞堝吀绻氶悾娆掑殰閻㈠崬鐡х粭锔胯閿涘VP 闂冭埖顔岄崣顖涘复閸欐绱遍崥搴ｇ敾閸欘垱瀵滅€圭偤妾?LLM 鏉堟挸鍤弨鍓佹彛閵?  - N02 accepted/deferred閿涙瓪redaction_policy` 瑜版挸澧犳担璺ㄦ暏 `dict[str, Any]` 閸欘垱甯撮崣妤嬬幢T120/T150 閸欘垵顫?store/review 闂団偓鐟曚焦鏁兼稉铏圭波閺嬪嫬瀵?model閵?  - N03 deferred閿涙瓪DistillationMemoryType` 娑撳海骞囬張?`MemoryType` enum 閻ㄥ嫭妲х亸鍕唉缂?T120閵?  - N04 deferred閿涙瓪created_at` / `updated_at` 閻?T120 store 閹存牔楠囬悧鈺佸晸閸忋儱鐪扮悰銉ュ帠閵?  - N05 deferred閿涙瓍ydantic 缁撅附娼懛顏勫З閸栨牗绁寸拠鏇氭唉缂?T150閵?
+## 9. T112 鐎瑰本鍨氱拋鏉跨秿
 
-## 9. T112 完成记录
-
-- 代码 / 文档改动：
-  - `src/practical_chat_agent/services/chatlog_distillation.py`
+- 娴狅絿鐖?/ 閺傚洦銆傞弨鐟板З閿?  - `src/practical_chat_agent/services/chatlog_distillation.py`
   - `src/practical_chat_agent/services/contact_skill.py`
   - `src/practical_chat_agent/app/main.py`
   - `docs/07_handoff.md`
   - `docs/08_risks_and_open_questions.md`
-- 已实现内容：
-  - 新增 `ChatlogDistillationService`，消费 `private/distilled/**/chunks.jsonl` 与同目录 `normalized_events.jsonl`。
-  - 新增 `chatlog-distill` CLI，支持 `--input`、`--output`、`--limit`、`--sample`、`--dry-run`。
-  - LLM 请求复用 OpenAI-compatible `/chat/completions` 调用风格。
-  - distillation 输出先做 provider 兼容归一化，再强制校验为 T111 `ChunkSummary` / `MemoryFactCandidate` schema。
-  - evidence refs 必须落在对应 chunk 的 `chunk_id + event_ids` 范围内；越界 refs 会导致 chunk 被拒绝，不写入 accepted 输出。
-  - 产物只写入 `private/distilled/<run_id>/chunk_summaries.jsonl`、`memory_facts.jsonl` 和合并后的 `run_report.json`；不保存 LLM prompt 或 raw response。
-  - `contact_skill.py` 当前仅含轻量辅助函数，为 T113 聚合 refs 预留，不包含 ContactSkill builder、review exporter 或 store 逻辑。
-- 已完成验证：
-  - `& 'C:\ProgramData\anaconda3\envs\practical-chat-agent\python.exe' -m compileall src/practical_chat_agent/services/chatlog_distillation.py src/practical_chat_agent/services/contact_skill.py src/practical_chat_agent/app/main.py`
+- 瀹告彃鐤勯悳鏉垮敶鐎圭櫢绱?  - 閺傛澘顤?`ChatlogDistillationService`閿涘本绉风拹?`private/distilled/**/chunks.jsonl` 娑撳骸鎮撻惄顔肩秿 `normalized_events.jsonl`閵?  - 閺傛澘顤?`chatlog-distill` CLI閿涘本鏁幐?`--input`閵嗕梗--output`閵嗕梗--limit`閵嗕梗--sample`閵嗕梗--dry-run`閵?  - LLM 鐠囬攱鐪版径宥囨暏 OpenAI-compatible `/chat/completions` 鐠嬪啰鏁ゆ搴㈢壐閵?  - distillation 鏉堟挸鍤崗鍫濅粵 provider 閸忕厧顔愯ぐ鎺嶇閸栨牭绱濋崘宥呭繁閸掕埖鐗庢灞艰礋 T111 `ChunkSummary` / `MemoryFactCandidate` schema閵?  - evidence refs 韫囧懘銆忛拃钘夋躬鐎电懓绨?chunk 閻?`chunk_id + event_ids` 閼煎啫娲块崘鍜冪幢鐡掑﹦鏅?refs 娴兼艾顕遍懛?chunk 鐞氼偅瀚嗙紒婵撶礉娑撳秴鍟撻崗?accepted 鏉堟挸鍤妴?  - 娴溠呭⒖閸欘亜鍟撻崗?`private/distilled/<run_id>/chunk_summaries.jsonl`閵嗕梗memory_facts.jsonl` 閸滃苯鎮庨獮璺烘倵閻?`run_report.json`閿涙稐绗夋穱婵嗙摠 LLM prompt 閹?raw response閵?  - `contact_skill.py` 瑜版挸澧犳禒鍛儓鏉炲鍣烘潏鍛И閸戣姤鏆熼敍灞艰礋 T113 閼辨艾鎮?refs 妫板嫮鏆€閿涘奔绗夐崠鍛儓 ContactSkill builder閵嗕购eview exporter 閹?store 闁槒绶妴?- 瀹告彃鐣幋鎰扮崣鐠囦緤绱?  - `& 'C:\ProgramData\anaconda3\envs\practical-chat-agent\python.exe' -m compileall src/practical_chat_agent/services/chatlog_distillation.py src/practical_chat_agent/services/contact_skill.py src/practical_chat_agent/app/main.py`
   - `$env:PYTHONPATH='src'; & 'C:\ProgramData\anaconda3\envs\practical-chat-agent\python.exe' -m practical_chat_agent.app.main chatlog-distill --input private/distilled/t102_smoke --limit 1`
-  - 首次因沙箱网络限制返回 `remote_request_failed`，worker 没有用 mock 冒充成功；提权复跑后 provider 可达。
-  - 加入 provider 输出兼容归一化后，小样本成功写出 `chunk_summaries.jsonl`、`memory_facts.jsonl`、`run_report.json`。
-  - 当前小样本结果：1 个 selected chunk，1 个 successful chunk，写出 1 条 chunk summary、7 条 memory facts，`distillation.failure_reasons` 为空。
-  - reviewer 确认人工抽查 3+ 条 fact 的 evidence_refs，均能回指当前 chunk 事件。
-- Reviewer 结论：
-  - `docs/review/T112_review.md` verdict 为 `PASS`。
-  - 确认 LLM 输出经过 provider 兼容归一化、T111 schema 校验和 evidence refs 范围校验后才写入。
-  - 确认 prompt/raw response 不写入文件，stdout/report 只含统计和状态码。
-  - 确认产物只写入 `private/distilled/`，没有真实聊天原文进入 docs/examples/tests/stdout。
-  - 确认未越界做 ContactSkill builder、store、数据库 migration、实时平台接入或自动发送。
-- Non-blocking 处理：
-  - N01 deferred：`chunk_id` fallback 是合法粗粒度 evidence，但会降低证据精度；T114 全量/更大样本抽查时关注仅有 chunk_id 的比例。
-  - N02 deferred：provider shape drift 已由 R024 记录；T114/T150 继续验证。
-  - N03 accepted/deferred：sensitivity 关键词兜底作为 MVP 可接受；T150 可补充测试或后续收紧。
-  - N04 accepted/deferred：memory_type fallback 作为 MVP 可接受；T114/T150 观察误分类。
-  - N05 accepted：`contact_skill.py` 轻量辅助不越界，T113 可扩展或重写。
-  - N06 deferred：schema 校验、evidence refs、PII 脱敏、provider 归一化的自动化测试留给 T150。
-  - N07 accepted/deferred：prompt 层 PII token 替换已部分满足 T102 N05；T150 privacy leakage smoke test 继续覆盖。
+  - 妫ｆ牗顐奸崶鐘崇煓缁犺京缍夌紒婊堟閸掓儼绻戦崶?`remote_request_failed`閿涘瘍orker 濞屸剝婀侀悽?mock 閸愭帒鍘栭幋鎰閿涙稒褰侀弶鍐槻鐠烘垵鎮?provider 閸欘垵鎻妴?  - 閸旂姴鍙?provider 鏉堟挸鍤崗鐓庮啇瑜版帊绔撮崠鏍ф倵閿涘苯鐨弽閿嬫拱閹存劕濮涢崘娆忓毉 `chunk_summaries.jsonl`閵嗕梗memory_facts.jsonl`閵嗕梗run_report.json`閵?  - 瑜版挸澧犵亸蹇旂壉閺堫剛绮ㄩ弸婊愮窗1 娑?selected chunk閿? 娑?successful chunk閿涘苯鍟撻崙?1 閺?chunk summary閵? 閺?memory facts閿涘畭distillation.failure_reasons` 娑撹櫣鈹栭妴?  - reviewer 绾喛顓绘禍鍝勪紣閹惰姤鐓?3+ 閺?fact 閻?evidence_refs閿涘苯娼庨懗钘夋礀閹稿洤缍嬮崜?chunk 娴滃娆㈤妴?- Reviewer 缂佹捁顔戦敍?  - `docs/review/T112_review.md` verdict 娑?`PASS`閵?  - 绾喛顓?LLM 鏉堟挸鍤紒蹇氱箖 provider 閸忕厧顔愯ぐ鎺嶇閸栨牓鈧箑111 schema 閺嶏繝鐛欓崪?evidence refs 閼煎啫娲块弽锟犵崣閸氬孩澧犻崘娆忓弳閵?  - 绾喛顓?prompt/raw response 娑撳秴鍟撻崗銉︽瀮娴犺绱漵tdout/report 閸欘亜鎯堢紒鐔活吀閸滃瞼濮搁幀浣虹垳閵?  - 绾喛顓绘禍褏澧块崣顏勫晸閸?`private/distilled/`閿涘本鐥呴張澶屾埂鐎圭偠浜版径鈺佸斧閺傚洩绻橀崗?docs/examples/tests/stdout閵?  - 绾喛顓婚張顏囩Ш閻ｅ苯浠?ContactSkill builder閵嗕够tore閵嗕焦鏆熼幑顔肩氨 migration閵嗕礁鐤勯弮璺洪挬閸欑増甯撮崗銉﹀灗閼奉亜濮╅崣鎴︹偓浣碘偓?- Non-blocking 婢跺嫮鎮婇敍?  - N01 deferred閿涙瓪chunk_id` fallback 閺勵垰鎮庡▔鏇犵煐缁帒瀹?evidence閿涘奔绲炬导姘舵娴ｅ氦鐦夐幑顔剧翱鎼达讣绱盩114 閸忋劑鍣?閺囨潙銇囬弽閿嬫拱閹惰姤鐓￠弮璺哄彠濞夈劋绮庨張?chunk_id 閻ㄥ嫭鐦笟瀣ㄢ偓?  - N02 deferred閿涙rovider shape drift 瀹歌尙鏁?R024 鐠佹澘缍嶉敍姹?14/T150 缂佈呯敾妤犲矁鐦夐妴?  - N03 accepted/deferred閿涙ensitivity 閸忔娊鏁拠宥呭幑鎼存洑缍旀稉?MVP 閸欘垱甯撮崣妤嬬幢T150 閸欘垵藟閸忓懏绁寸拠鏇熷灗閸氬海鐢婚弨鍓佹彛閵?  - N04 accepted/deferred閿涙emory_type fallback 娴ｆ粈璐?MVP 閸欘垱甯撮崣妤嬬幢T114/T150 鐟欏倸鐧傜拠顖氬瀻缁眹鈧?  - N05 accepted閿涙瓪contact_skill.py` 鏉炲鍣烘潏鍛И娑撳秷绉洪悾宀嬬礉T113 閸欘垱澧跨仦鏇熷灗闁插秴鍟撻妴?  - N06 deferred閿涙chema 閺嶏繝鐛欓妴涔獀idence refs閵嗕赋II 閼磋鲸鏅遍妴涔竢ovider 瑜版帊绔撮崠鏍畱閼奉亜濮╅崠鏍ㄧゴ鐠囨洜鏆€缂?T150閵?  - N07 accepted/deferred閿涙rompt 鐏?PII token 閺囨寧宕插鏌ュ劥閸掑棙寮х搾?T102 N05閿涙笨150 privacy leakage smoke test 缂佈呯敾鐟曞棛娲婇妴?
+## 10. T113 鐎瑰本鍨氱拋鏉跨秿
 
-## 10. T113 完成记录
-
-- 代码 / 文档改动：
-  - `src/practical_chat_agent/services/contact_skill.py`
+- 娴狅絿鐖?/ 閺傚洦銆傞弨鐟板З閿?  - `src/practical_chat_agent/services/contact_skill.py`
   - `src/practical_chat_agent/exporters/contact_skill_markdown.py`
   - `src/practical_chat_agent/app/main.py`
   - `docs/07_handoff.md`
-- 已实现内容：
-  - `ContactSkillBuilderService` 消费 T112 的 `chunk_summaries.jsonl` 和 `memory_facts.jsonl`，通过 Pydantic `model_validate` 读取上游产物。
-  - 生成 `ContactSkillCandidate`，并强制 `status="candidate"` 与非空 `evidence_refs`。
-  - 输出 `private/distilled/<run_id>/contact_skill.candidate.json` 与 `contact_skill.review.md`。
-  - Markdown review exporter 展示 relationship state、communication style、topics、important events、stable preferences、emotional patterns、reply strategy、usage boundary、evidence refs 与 anti-impersonation reminder。
-  - 新增 `chatlog-build-contact-skill` CLI，支持 `--input`、`--output`、`--contact-id`、`--dry-run`。
-  - 输出限制在 `private/distilled/`；无自动 approve、无 DB migration、无 realtime 平台、无自动发送。
-- 已完成验证：
-  - `& 'C:\ProgramData\anaconda3\envs\practical-chat-agent\python.exe' -m compileall src/practical_chat_agent/services/contact_skill.py src/practical_chat_agent/exporters/contact_skill_markdown.py src/practical_chat_agent/app/main.py`
+- 瀹告彃鐤勯悳鏉垮敶鐎圭櫢绱?  - `ContactSkillBuilderService` 濞戝牐鍨?T112 閻?`chunk_summaries.jsonl` 閸?`memory_facts.jsonl`閿涘矂鈧俺绻?Pydantic `model_validate` 鐠囪褰囨稉濠冪埗娴溠呭⒖閵?  - 閻㈢喐鍨?`ContactSkillCandidate`閿涘苯鑻熷鍝勫煑 `status="candidate"` 娑撳酣娼粚?`evidence_refs`閵?  - 鏉堟挸鍤?`private/distilled/<run_id>/contact_skill.candidate.json` 娑?`contact_skill.review.md`閵?  - Markdown review exporter 鐏炴洜銇?relationship state閵嗕恭ommunication style閵嗕辜opics閵嗕巩mportant events閵嗕够table preferences閵嗕躬motional patterns閵嗕购eply strategy閵嗕菇sage boundary閵嗕躬vidence refs 娑?anti-impersonation reminder閵?  - 閺傛澘顤?`chatlog-build-contact-skill` CLI閿涘本鏁幐?`--input`閵嗕梗--output`閵嗕梗--contact-id`閵嗕梗--dry-run`閵?  - 鏉堟挸鍤梽鎰煑閸?`private/distilled/`閿涙稒妫ら懛顏勫З approve閵嗕焦妫?DB migration閵嗕焦妫?realtime 楠炲啿褰撮妴浣规￥閼奉亜濮╅崣鎴︹偓浣碘偓?- 瀹告彃鐣幋鎰扮崣鐠囦緤绱?  - `& 'C:\ProgramData\anaconda3\envs\practical-chat-agent\python.exe' -m compileall src/practical_chat_agent/services/contact_skill.py src/practical_chat_agent/exporters/contact_skill_markdown.py src/practical_chat_agent/app/main.py`
   - `$env:PYTHONPATH='src'; & 'C:\ProgramData\anaconda3\envs\practical-chat-agent\python.exe' -m practical_chat_agent.app.main chatlog-build-contact-skill --input private/distilled/t102_smoke`
-  - 样本确认生成 `contact_skill.candidate.json` 与 `contact_skill.review.md`，candidate 状态仍为 `candidate`，review artifact 可读并带 evidence refs / usage boundary。
-- Reviewer 结论：
-  - `docs/review/T113_review.md` verdict 为 `PASS_WITH_WARNINGS`。
-  - 确认未越界自动 approve、保存 raw chat text、生成“contact speaking”内容、写 DB migration、接 realtime platform 或 auto-send。
-  - 确认 evidence chain、candidate 状态、anti-impersonation guardrails 和 review artifact 均满足 T113 任务目标。
-- Warning 处理：
-  - N01 accepted：`_build_report` 重复调用是低影响重复工作，不要求返修。
-  - N02 deferred：启发式 tokens/topic/relationship 推断偏当前小样本，T114 需用更大或不同样本暴露泛化缺口，T120+ 可考虑 LLM-assisted inference。
-  - N03 deferred：confidence / closeness / trust 公式化且非 evidence-weighted，T114 需人工检查是否显得过度精确，T120+ 重新设计。
-  - N04 accepted：`exporters/` 缺少 `__init__.py` 当前不影响 Python 3 namespace package 导入。
-  - N05 accepted：未使用 helper 无当前风险，可在 T114+ 移除或使用。
+  - 閺嶉攱婀扮涵顔款吇閻㈢喐鍨?`contact_skill.candidate.json` 娑?`contact_skill.review.md`閿涘畱andidate 閻樿埖鈧椒绮涙稉?`candidate`閿涘eview artifact 閸欘垵顕伴獮璺虹敨 evidence refs / usage boundary閵?- Reviewer 缂佹捁顔戦敍?  - `docs/review/T113_review.md` verdict 娑?`PASS_WITH_WARNINGS`閵?  - 绾喛顓婚張顏囩Ш閻ｅ矁鍤滈崝?approve閵嗕椒绻氱€?raw chat text閵嗕胶鏁撻幋鎰ㄢ偓娓僶ntact speaking閳ユ繂鍞寸€瑰箍鈧礁鍟?DB migration閵嗕焦甯?realtime platform 閹?auto-send閵?  - 绾喛顓?evidence chain閵嗕恭andidate 閻樿埖鈧降鈧工nti-impersonation guardrails 閸?review artifact 閸у洦寮х搾?T113 娴犺濮熼惄顔界垼閵?- Warning 婢跺嫮鎮婇敍?  - N01 accepted閿涙瓪_build_report` 闁插秴顦茬拫鍐暏閺勵垯缍嗚ぐ鍗炴惙闁插秴顦插銉ょ稊閿涘奔绗夌憰浣圭湴鏉╂柧鎱ㄩ妴?  - N02 deferred閿涙艾鎯庨崣鎴濈础 tokens/topic/relationship 閹恒劍鏌囬崑蹇撶秼閸撳秴鐨弽閿嬫拱閿涘114 闂団偓閻劍娲挎径褎鍨ㄦ稉宥呮倱閺嶉攱婀伴弳鎾苟濞夋稑瀵茬紓鍝勫經閿涘120+ 閸欘垵鈧啳妾?LLM-assisted inference閵?  - N03 deferred閿涙瓭onfidence / closeness / trust 閸忣剙绱￠崠鏍︾瑬闂?evidence-weighted閿涘114 闂団偓娴滃搫浼愬Λ鈧弻銉︽Ц閸氾附妯夊妤勭箖鎼达妇绨跨涵顕嗙礉T120+ 闁插秵鏌婄拋鎹愵吀閵?  - N04 accepted閿涙瓪exporters/` 缂傚搫鐨?`__init__.py` 瑜版挸澧犳稉宥呭閸?Python 3 namespace package 鐎电厧鍙嗛妴?  - N05 accepted閿涙碍婀担璺ㄦ暏 helper 閺冪姴缍嬮崜宥夘棑闂勨晪绱濋崣顖氭躬 T114+ 缁夊娅庨幋鏍﹀▏閻劊鈧?
+## 11. T114 / M1 鐎瑰本鍨氱拋鏉跨秿
 
-## 11. T114 / M1 完成记录
-
-- 文档改动：
-  - `docs/review/T114_milestone_review.md`
+- 閺傚洦銆傞弨鐟板З閿?  - `docs/review/T114_milestone_review.md`
   - `docs/review/T114_review.md`
   - `docs/review/M1_review.md`
   - `docs/07_handoff.md`
   - `docs/08_risks_and_open_questions.md`
 - Worker milestone sample:
   - sample run directory: `private/distilled/t102_smoke`
-  - artifact chain present: `normalized_events.jsonl`、`chunks.jsonl`、`chunk_summaries.jsonl`、`memory_facts.jsonl`、`contact_skill.candidate.json`、`contact_skill.review.md`、`run_report.json`
+  - artifact chain present: `normalized_events.jsonl`閵嗕梗chunks.jsonl`閵嗕梗chunk_summaries.jsonl`閵嗕梗memory_facts.jsonl`閵嗕梗contact_skill.candidate.json`閵嗕梗contact_skill.review.md`閵嗕梗run_report.json`
   - sample summary: 12 normalized events, 1 chunk, 1 chunk summary, 7 memory facts, candidate ContactSkill.
   - worker audited 7/7 memory facts, exceeding the required 5 facts.
 - Reviewer conclusion:
-  - `docs/review/T114_review.md` verdict 为 `PASS_WITH_WARNINGS`。
-  - Gate M1 verdict = `Conditional` confirmed.
+  - `docs/review/T114_review.md` verdict 娑?`PASS_WITH_WARNINGS`閵?  - Gate M1 verdict = `Conditional` confirmed.
   - Reviewer independently checked all 7 memory facts against normalized events.
   - All Gate M1 hard requirements passed.
 - Captain milestone review:
-  - `docs/review/M1_review.md` verdict = `Conditional`。
-  - M2 may proceed only with candidate-only / human-review-first semantics.
+  - `docs/review/M1_review.md` verdict = `Conditional`閵?  - M2 may proceed only with candidate-only / human-review-first semantics.
 - Warning / condition handling:
-  - T114 N01/N02 accepted：minor semantic elevation/paraphrase in candidate-only facts, handled by human review and R030.
-  - T114 N03 accepted：sample too small for generalization, represented by Gate M1 `Conditional`.
-  - T114 N04 accepted：no report inconsistency found; no action.
+  - T114 N01/N02 accepted閿涙inor semantic elevation/paraphrase in candidate-only facts, handled by human review and R030.
+  - T114 N03 accepted閿涙ample too small for generalization, represented by Gate M1 `Conditional`.
+  - T114 N04 accepted閿涙o report inconsistency found; no action.
 - R028/R029/R030 remain active into M2.
 
-## 12. T120 完成记录
+## 12. T120 鐎瑰本鍨氱拋鏉跨秿
 
-- 代码 / 文档改动：
-  - `src/practical_chat_agent/core/models.py`
+- 娴狅絿鐖?/ 閺傚洦銆傞弨鐟板З閿?  - `src/practical_chat_agent/core/models.py`
   - `src/practical_chat_agent/services/contact_skill.py`
   - `docs/07_handoff.md`
-- 已实现内容：
-  - 在 `core.models` 中新增 T120 file-store 相关模型：
-    - `ContactSkillRedactionPolicy`
+- 瀹告彃鐤勯悳鏉垮敶鐎圭櫢绱?  - 閸?`core.models` 娑擃厽鏌婃晶?T120 file-store 閻╃鍙уΟ鈥崇€烽敍?    - `ContactSkillRedactionPolicy`
     - `DistilledArtifactReviewDecision`
     - `DistilledArtifactReviewMetadata`
     - `DistilledArtifactSourceMetadata`
@@ -724,117 +645,58 @@ M1 必须承接的条件：
     - `MemoryFactStoreFile`
     - `ContactSkillStoreRecord`
     - `ContactSkillStoreFile`
-  - 为 `MemoryFactCandidate` 增加显式映射 helper：
-    - `to_runtime_memory_type()`
+  - 娑?`MemoryFactCandidate` 婢х偛濮為弰鎯х础閺勭姴鐨?helper閿?    - `to_runtime_memory_type()`
     - `to_memory_fact(...)`
-    - 仅提供后续 T123/T121 可复用映射，不在本轮做 runtime 注入。
-  - 将 `ContactSkillCandidate.redaction_policy` 从宽松 `dict[str, Any]` 收紧为结构化 `ContactSkillRedactionPolicy`。
-  - 在 `contact_skill.py` 中新增 `ContactSkillFileStoreService`，支持：
-    - 从 legacy `memory_facts.jsonl` 包装并加载 `MemoryFactStoreFile`
-    - 从 legacy `contact_skill.candidate.json` 包装并加载 `ContactSkillStoreFile`
-    - 保存 `memory_fact_store.json` / `contact_skill_store.json`
-    - 保留 `status`、`evidence_refs`、`source_run_id`、source artifact path、source chunk/memory/event ids、review metadata
-  - `review_metadata.is_runtime_ready(...)` / record-level `is_runtime_ready()` 只在 `status="approved"` 且 `reviewed_by_human=True` 时返回 true，保持 candidate-only / human-review-first 语义。
-  - 未新增 CLI、未改数据库、未引入向量库、未做 runtime prompt 注入、未自动 approve。
-- 已完成验证：
-  - `& 'C:\ProgramData\anaconda3\envs\practical-chat-agent\python.exe' -m compileall src/practical_chat_agent/core/models.py src/practical_chat_agent/services/contact_skill.py`
-  - 使用合成脱敏样例运行最小 load/save 闭环验证（未读取真实聊天原文）：
-    - 生成 legacy fixture 于 `private/distilled/t120_store_smoke/legacy/`
-    - 用 `ContactSkillFileStoreService` 加载 legacy `memory_facts.jsonl` / `contact_skill.candidate.json`
-    - 写出 store 文件到 `private/distilled/t120_store_smoke/store/memory_fact_store.json`
-    - 写出 store 文件到 `private/distilled/t120_store_smoke/store/contact_skill_store.json`
-    - 再次回读并断言：
-      - memory statuses = `candidate`, `approved`
+    - 娴犲懏褰佹笟娑樻倵缂?T123/T121 閸欘垰顦查悽銊︽Ё鐏忓嫸绱濇稉宥呮躬閺堫剝鐤嗛崑?runtime 濞夈劌鍙嗛妴?  - 鐏?`ContactSkillCandidate.redaction_policy` 娴犲骸顔旈弶?`dict[str, Any]` 閺€鍓佹彛娑撹櫣绮ㄩ弸鍕 `ContactSkillRedactionPolicy`閵?  - 閸?`contact_skill.py` 娑擃厽鏌婃晶?`ContactSkillFileStoreService`閿涘本鏁幐渚婄窗
+    - 娴?legacy `memory_facts.jsonl` 閸栧懓顥婇獮璺哄鏉?`MemoryFactStoreFile`
+    - 娴?legacy `contact_skill.candidate.json` 閸栧懓顥婇獮璺哄鏉?`ContactSkillStoreFile`
+    - 娣囨繂鐡?`memory_fact_store.json` / `contact_skill_store.json`
+    - 娣囨繄鏆€ `status`閵嗕梗evidence_refs`閵嗕梗source_run_id`閵嗕够ource artifact path閵嗕够ource chunk/memory/event ids閵嗕购eview metadata
+  - `review_metadata.is_runtime_ready(...)` / record-level `is_runtime_ready()` 閸欘亜婀?`status="approved"` 娑?`reviewed_by_human=True` 閺冩儼绻戦崶?true閿涘奔绻氶幐?candidate-only / human-review-first 鐠囶厺绠熼妴?  - 閺堫亝鏌婃晶?CLI閵嗕焦婀弨瑙勬殶閹诡喖绨遍妴浣规弓瀵洖鍙嗛崥鎴﹀櫤鎼存挶鈧焦婀崑?runtime prompt 濞夈劌鍙嗛妴浣规弓閼奉亜濮?approve閵?- 瀹告彃鐣幋鎰扮崣鐠囦緤绱?  - `& 'C:\ProgramData\anaconda3\envs\practical-chat-agent\python.exe' -m compileall src/practical_chat_agent/core/models.py src/practical_chat_agent/services/contact_skill.py`
+  - 娴ｈ法鏁ら崥鍫熷灇閼磋鲸鏅遍弽铚傜伐鏉╂劘顢戦張鈧亸?load/save 闂傤厾骞嗘宀冪槈閿涘牊婀拠璇插絿閻喎鐤勯懕濠傘亯閸樼喐鏋冮敍澶涚窗
+    - 閻㈢喐鍨?legacy fixture 娴?`private/distilled/t120_store_smoke/legacy/`
+    - 閻?`ContactSkillFileStoreService` 閸旂姾娴?legacy `memory_facts.jsonl` / `contact_skill.candidate.json`
+    - 閸愭瑥鍤?store 閺傚洣娆㈤崚?`private/distilled/t120_store_smoke/store/memory_fact_store.json`
+    - 閸愭瑥鍤?store 閺傚洣娆㈤崚?`private/distilled/t120_store_smoke/store/contact_skill_store.json`
+    - 閸愬秵顐奸崶鐐额嚢楠炶埖鏌囩懛鈧敍?      - memory statuses = `candidate`, `approved`
       - skill statuses = `approved`
-      - `evidence_refs` 未丢失
-      - `source_memory_ids` / source event ids / source chunk ids 保留
-      - approved record 的 `review_metadata.reviewed_by_human`、`last_decision`、history 保留
-      - `is_runtime_ready()` 仅对 synthetic approved records 返回 true
-- Reviewer 结论：
-  - `docs/review/T120_review.md` verdict 为 `PASS_WITH_WARNINGS`。
-  - 确认 T120 只实现 file store models 和 service，不做 CLI、DB migration、vector DB、runtime prompt injection 或 auto-approve。
-  - 确认 `is_runtime_ready()` 需要 `status="approved"`、`reviewed_by_human=True`、`last_decision="approved"` 三重条件，保持 candidate-only / human-review-first。
-  - 确认 legacy T112/T113 artifacts 可包装为 store records，且 evidence refs、source ids、review metadata 可 load/save round-trip 保留。
-- Warning 处理：
-  - N01 accepted：`updated_at` no-op normalization 低影响，不要求返修；T122 更新 review 状态时再明确 timestamp 语义。
-  - N02 accepted：`ContactSkillBuilderService` 与 `ContactSkillFileStoreService` 的 path/helper duplication 对 MVP 可接受，暂不抽共享基类。
-  - N03 accepted：single-record store shape 兼容入口便利迁移，Pydantic downstream validation 足够兜底。
-  - N04 accepted：`DistillationMemoryType` 到 runtime `MemoryType` 的粗粒度映射符合 MVP granularity。
-  - N05 deferred：自动化测试留给 T150，新增 R031 跟踪 store model validation、legacy wrapping、load/save round-trip、runtime-ready gate 和 path confinement 测试。
-- 当前注意点：
-  - 真实 approve / reject / freeze CLI 仍留给 T122。
-  - evidence existence/support 校验由 T121 承接，missing refs 必须阻止 approval。
+      - `evidence_refs` 閺堫亙娑径?      - `source_memory_ids` / source event ids / source chunk ids 娣囨繄鏆€
+      - approved record 閻?`review_metadata.reviewed_by_human`閵嗕梗last_decision`閵嗕弓istory 娣囨繄鏆€
+      - `is_runtime_ready()` 娴犲懎顕?synthetic approved records 鏉╂柨娲?true
+- Reviewer 缂佹捁顔戦敍?  - `docs/review/T120_review.md` verdict 娑?`PASS_WITH_WARNINGS`閵?  - 绾喛顓?T120 閸欘亜鐤勯悳?file store models 閸?service閿涘奔绗夐崑?CLI閵嗕笍B migration閵嗕箍ector DB閵嗕购untime prompt injection 閹?auto-approve閵?  - 绾喛顓?`is_runtime_ready()` 闂団偓鐟?`status="approved"`閵嗕梗reviewed_by_human=True`閵嗕梗last_decision="approved"` 娑撳鍣搁弶鈥叉閿涘奔绻氶幐?candidate-only / human-review-first閵?  - 绾喛顓?legacy T112/T113 artifacts 閸欘垰瀵樼憗鍛礋 store records閿涘奔绗?evidence refs閵嗕够ource ids閵嗕购eview metadata 閸?load/save round-trip 娣囨繄鏆€閵?- Warning 婢跺嫮鎮婇敍?  - N01 accepted閿涙瓪updated_at` no-op normalization 娴ｅ骸濂栭崫宥忕礉娑撳秷顩﹀Ч鍌濈箲娣囶噯绱盩122 閺囧瓨鏌?review 閻樿埖鈧焦妞傞崘宥嗘绾?timestamp 鐠囶厺绠熼妴?  - N02 accepted閿涙瓪ContactSkillBuilderService` 娑?`ContactSkillFileStoreService` 閻?path/helper duplication 鐎?MVP 閸欘垱甯撮崣妤嬬礉閺嗗倷绗夐幎钘夊彙娴滎偄鐔€缁眹鈧?  - N03 accepted閿涙ingle-record store shape 閸忕厧顔愰崗銉ュ經娓氬灝鍩勬潻浣盒╅敍瀛瓂dantic downstream validation 鐡掑啿顧勯崗婊冪俺閵?  - N04 accepted閿涙瓪DistillationMemoryType` 閸?runtime `MemoryType` 閻ㄥ嫮鐭栫划鎺戝閺勭姴鐨犵粭锕€鎮?MVP granularity閵?  - N05 deferred閿涙俺鍤滈崝銊ュ濞村鐦悾娆戠舶 T150閿涘本鏌婃晶?R031 鐠虹喕閲?store model validation閵嗕勾egacy wrapping閵嗕勾oad/save round-trip閵嗕购untime-ready gate 閸?path confinement 濞村鐦妴?- 瑜版挸澧犲▔銊﹀壈閻愮櫢绱?  - 閻喎鐤?approve / reject / freeze CLI 娴犲秶鏆€缂?T122閵?  - evidence existence/support 閺嶏繝鐛欓悽?T121 閹垫寧甯撮敍瀹甶ssing refs 韫囧懘銆忛梼缁橆剾 approval閵?
+## 13. T121 鐎瑰本鍨氱拋鏉跨秿
 
-## 13. T121 完成记录
-
-- 代码 / 文档改动：
-  - `src/practical_chat_agent/services/evidence_validation.py`
+- 娴狅絿鐖?/ 閺傚洦銆傞弨鐟板З閿?  - `src/practical_chat_agent/services/evidence_validation.py`
   - `src/practical_chat_agent/app/main.py`
   - `docs/07_handoff.md`
-- 已实现内容：
-  - 新增 `EvidenceValidationService`，通过 T120 `ContactSkillFileStoreService` 加载 memory/contact-skill store records。
-  - 从 same-run artifacts 建立 evidence id index：
-    - `normalized_events.jsonl`
+- 瀹告彃鐤勯悳鏉垮敶鐎圭櫢绱?  - 閺傛澘顤?`EvidenceValidationService`閿涘矂鈧俺绻?T120 `ContactSkillFileStoreService` 閸旂姾娴?memory/contact-skill store records閵?  - 娴?same-run artifacts 瀵よ櫣鐝?evidence id index閿?    - `normalized_events.jsonl`
     - `chunks.jsonl`
     - `chunk_summaries.jsonl`
     - `memory_facts.jsonl`
     - `contact_skill.candidate.json`
-    - T120 store records 自身
-  - 递归扫描 serialized model payload 中所有 nested `evidence_refs`。
-  - 输出每个 record 的 checked refs、missing refs、nested ref locations、provenance snapshot、review metadata snapshot、approval/runtime block reasons。
-  - 状态规则：
-    - `candidate` 默认 blocked from approval/runtime。
-    - `approved` 若存在 missing refs，则 blocked from approval/runtime。
-    - `rejected` / `frozen` / `archived` 不可 runtime-ready。
-    - `approved` 且 refs OK 但未 human-reviewed，只能 approval-ready，不能 runtime-ready。
-  - 新增 `chatlog-validate-evidence` CLI，支持 `--input`、`--output`、`--dry-run`。
-  - Validator 只报告，不写回 store metadata，不自动 approve，不做 runtime integration。
-- 已完成验证：
-  - Compile passed：
-    - `& 'C:\ProgramData\anaconda3\envs\practical-chat-agent\python.exe' -m compileall src\practical_chat_agent\services\evidence_validation.py src\practical_chat_agent\app\main.py`
-  - Good case：`private/distilled/t102_smoke` dry-run。
-    - `evidence_validation_status = passed`
+    - T120 store records 閼奉亣闊?  - 闁帒缍婇幍顐ｅ伎 serialized model payload 娑擃厽澧嶉張?nested `evidence_refs`閵?  - 鏉堟挸鍤В蹇庨嚋 record 閻?checked refs閵嗕沟issing refs閵嗕苟ested ref locations閵嗕垢rovenance snapshot閵嗕购eview metadata snapshot閵嗕工pproval/runtime block reasons閵?  - 閻樿埖鈧浇顫夐崚娆欑窗
+    - `candidate` 姒涙顓?blocked from approval/runtime閵?    - `approved` 閼汇儱鐡ㄩ崷?missing refs閿涘苯鍨?blocked from approval/runtime閵?    - `rejected` / `frozen` / `archived` 娑撳秴褰?runtime-ready閵?    - `approved` 娑?refs OK 娴ｅ棙婀?human-reviewed閿涘苯褰ч懗?approval-ready閿涘奔绗夐懗?runtime-ready閵?  - 閺傛澘顤?`chatlog-validate-evidence` CLI閿涘本鏁幐?`--input`閵嗕梗--output`閵嗕梗--dry-run`閵?  - Validator 閸欘亝濮ら崨濠忕礉娑撳秴鍟撻崶?store metadata閿涘奔绗夐懛顏勫З approve閿涘奔绗夐崑?runtime integration閵?- 瀹告彃鐣幋鎰扮崣鐠囦緤绱?  - Compile passed閿?    - `& 'C:\ProgramData\anaconda3\envs\practical-chat-agent\python.exe' -m compileall src\practical_chat_agent\services\evidence_validation.py src\practical_chat_agent\app\main.py`
+  - Good case閿涙瓪private/distilled/t102_smoke` dry-run閵?    - `evidence_validation_status = passed`
     - `validated_record_count = 8`
     - `records_with_missing_refs = 0`
     - `missing_ref_count = 0`
     - `approval_blocked_records = 8`
     - `runtime_blocked_records = 8`
-    - 解释：refs 全部存在，records 因仍为 candidate 被正确阻止。
-  - Bad case：`private/distilled/t121_missing_ref_fixture/` synthetic fixture。
-    - `evidence_validation_status = failed`
+    - 鐟欙綁鍣撮敍姝砮fs 閸忋劑鍎寸€涙ê婀敍瀹篹cords 閸ョ姳绮涙稉?candidate 鐞氼偅顒滅涵顕€妯嗗顫偓?  - Bad case閿涙瓪private/distilled/t121_missing_ref_fixture/` synthetic fixture閵?    - `evidence_validation_status = failed`
     - `validated_record_count = 3`
     - `records_with_missing_refs = 1`
     - `missing_ref_count = 1`
-    - approved memory record 因 missing `evt_demo_2` 同时 blocked from approval/runtime。
-  - Store-only case：`private/distilled/t120_store_smoke/store` dry-run。
-    - `evidence_validation_status = failed`
+    - approved memory record 閸?missing `evt_demo_2` 閸氬本妞?blocked from approval/runtime閵?  - Store-only case閿涙瓪private/distilled/t120_store_smoke/store` dry-run閵?    - `evidence_validation_status = failed`
     - `records_with_missing_refs = 3`
     - `missing_ref_count = 5`
-    - 解释：store-only fixture without same-run evidence artifacts 被正确判定 evidence-incomplete。
-- Reviewer 结论：
-  - `docs/review/T121_review.md` verdict 为 `PASS_WITH_WARNINGS`。
-  - 确认 T121 只实现 read-only evidence validator 与 CLI，不做 auto-approve、approve/reject/freeze CLI、DB migration、vector DB、runtime prompt injection、LLM call 或 `private/chat_history` 读取。
-  - 确认 stdout/report 限制在 counts、safe relative paths 和 private `private/distilled/` report，未发现私密内容进入 docs/examples/tests/stdout。
-- Warning 处理：
-  - N01 accepted：当前 `ContactSkillCandidate` 没有 stable skill artifact id，`_extract_contact_skill_ids` 对现有 schema 为空；fallback 到 `contact_id` 不影响正确性。
-  - N02 accepted/deferred：JSON/JSONL helper 已是第三份重复，MVP 可接受；T150 或后续 refactor 可统一 file IO 并回收 BOM handling。
-  - N03 accepted：全 payload 递归找 `evidence_refs` 是 O(total dict nodes)，当前数据量无性能风险。
-  - N04 accepted：validator read-only、不写回 `review_metadata.evidence_validation_status` 是正确设计；T122 决定是否根据 report 写入 review metadata。
-  - N05 deferred：自动化测试留给 T150，新增 R032 跟踪 evidence index、nested refs、status rules、missing refs blocking、human review gate interaction 和 path confinement 测试。
-- 当前注意点：
-  - T122 approve 必须读取或要求通过 T121 evidence validation report。
-  - T122 不得在 missing refs、未 human review 或 rejected/frozen/archived 状态下绕过 gate。
+    - 鐟欙綁鍣撮敍姝磘ore-only fixture without same-run evidence artifacts 鐞氼偅顒滅涵顔煎灲鐎?evidence-incomplete閵?- Reviewer 缂佹捁顔戦敍?  - `docs/review/T121_review.md` verdict 娑?`PASS_WITH_WARNINGS`閵?  - 绾喛顓?T121 閸欘亜鐤勯悳?read-only evidence validator 娑?CLI閿涘奔绗夐崑?auto-approve閵嗕工pprove/reject/freeze CLI閵嗕笍B migration閵嗕箍ector DB閵嗕购untime prompt injection閵嗕俯LM call 閹?`private/chat_history` 鐠囪褰囬妴?  - 绾喛顓?stdout/report 闂勬劕鍩楅崷?counts閵嗕够afe relative paths 閸?private `private/distilled/` report閿涘本婀崣鎴犲箛缁変礁鐦戦崘鍛啇鏉╂稑鍙?docs/examples/tests/stdout閵?- Warning 婢跺嫮鎮婇敍?  - N01 accepted閿涙艾缍嬮崜?`ContactSkillCandidate` 濞屸剝婀?stable skill artifact id閿涘畭_extract_contact_skill_ids` 鐎靛湱骞囬張?schema 娑撹櫣鈹栭敍娌燼llback 閸?`contact_id` 娑撳秴濂栭崫宥嗩劀绾喗鈧佲偓?  - N02 accepted/deferred閿涙SON/JSONL helper 瀹稿弶妲哥粭顑跨瑏娴犱粙鍣告径宥忕礉MVP 閸欘垱甯撮崣妤嬬幢T150 閹存牕鎮楃紒?refactor 閸欘垳绮烘稉鈧?file IO 楠炶泛娲栭弨?BOM handling閵?  - N03 accepted閿涙艾鍙?payload 闁帒缍婇幍?`evidence_refs` 閺?O(total dict nodes)閿涘苯缍嬮崜宥嗘殶閹诡噣鍣洪弮鐘斥偓褑鍏樻搴ㄦ珦閵?  - N04 accepted閿涙alidator read-only閵嗕椒绗夐崘娆忔礀 `review_metadata.evidence_validation_status` 閺勵垱顒滅涵顔款啎鐠佲槄绱盩122 閸愬啿鐣鹃弰顖氭儊閺嶈宓?report 閸愭瑥鍙?review metadata閵?  - N05 deferred閿涙俺鍤滈崝銊ュ濞村鐦悾娆戠舶 T150閿涘本鏌婃晶?R032 鐠虹喕閲?evidence index閵嗕苟ested refs閵嗕够tatus rules閵嗕沟issing refs blocking閵嗕弓uman review gate interaction 閸?path confinement 濞村鐦妴?- 瑜版挸澧犲▔銊﹀壈閻愮櫢绱?  - T122 approve 韫囧懘銆忕拠璇插絿閹存牞顩﹀Ч鍌炩偓姘崇箖 T121 evidence validation report閵?  - T122 娑撳秴绶遍崷?missing refs閵嗕焦婀?human review 閹?rejected/frozen/archived 閻樿埖鈧椒绗呯紒鏇＄箖 gate閵?
+## 14. T122 鐎瑰本鍨氱拋鏉跨秿
 
-## 14. T122 完成记录
-
-- 代码 / 文档改动：
-  - `src/practical_chat_agent/services/contact_skill.py`
+- 娴狅絿鐖?/ 閺傚洦銆傞弨鐟板З閿?  - `src/practical_chat_agent/services/contact_skill.py`
   - `src/practical_chat_agent/exporters/contact_skill_markdown.py`
   - `src/practical_chat_agent/app/main.py`
   - `docs/07_handoff.md`
-- 已实现内容：
-  - 新增 `ContactSkillStoreReviewService`，支持 list/apply decision/export review artifact。
-  - 新增 `chatlog-review-store` CLI with actions:
+- 瀹告彃鐤勯悳鏉垮敶鐎圭櫢绱?  - 閺傛澘顤?`ContactSkillStoreReviewService`閿涘本鏁幐?list/apply decision/export review artifact閵?  - 閺傛澘顤?`chatlog-review-store` CLI with actions:
   - `list`
   - `approve`
   - `reject`
@@ -867,8 +729,7 @@ M1 必须承接的条件：
     - `private/distilled/t122_reject_fixture`
     - `private/distilled/t122_freeze_fixture`
 
-- 已完成验证：
-  - compile:
+- 瀹告彃鐣幋鎰扮崣鐠囦緤绱?  - compile:
     - `& 'C:\ProgramData\anaconda3\envs\practical-chat-agent\python.exe' -m compileall src\practical_chat_agent\app\main.py src\practical_chat_agent\services\contact_skill.py src\practical_chat_agent\exporters\contact_skill_markdown.py`
     - result: passed
   - safe list:
@@ -900,30 +761,13 @@ M1 必须承接的条件：
     - result: wrote `private/distilled/t122_pass_fixture/review_exports/store_review_export.md`
     - checked exported markdown contains safe review metadata only, not raw chat transcript output
 
-- Reviewer 结论：
-  - `docs/review/T122_review.md` verdict 为 `PASS_WITH_WARNINGS`。
-  - 确认 T122 只实现 private file-store review CLI，不做 auto-approve、runtime integration、DB migration、vector DB、LLM、auto-send 或 `private/chat_history` 读取。
-  - 确认 approve gate 完整：需要 T121 validation report、report `passed`、target record present、0 missing refs、checked refs > 0，并阻止 rejected/frozen/archived re-approval。
-  - 确认 review metadata history、safe export、path confinement、stable record_id 和 no private data stdout 均满足任务包。
-- Warning 处理：
-  - N01 accepted：`del current_status` 是低影响接口/风格问题，不影响 correctness。
-  - N02 accepted：递归更新所有合法 `status` 字段符合当前 schema；若未来 schema 出现不同语义的 status 字段再重审。
-  - N03 accepted：`store_runtime_ready` 提前计算只是轻微 style note。
-  - N04 accepted/deferred：review service 访问 file store private helpers 对 MVP 可接受；未来可抽 public file/path utility。
-  - N05 accepted：mutable `_StoreWorkspace` 当前局部可控。
-  - N06 deferred：自动化测试留给 T150，新增 R033 跟踪 approval gate、reject/freeze/archive、review history、recursive status update、export path confinement、stable record_id 和 no-auto-approve 测试。
-- 当前注意点：
-  - T123 必须只读取 approved + runtime-ready records。
-  - T123 不得注入 candidate/rejected/frozen/archived，不得加载完整 skill 或全部 memory 到 prompt。
-  - T122 intentionally does not implement reopen; rejected/frozen/archived records remain non-approvable in this scope.
+- Reviewer 缂佹捁顔戦敍?  - `docs/review/T122_review.md` verdict 娑?`PASS_WITH_WARNINGS`閵?  - 绾喛顓?T122 閸欘亜鐤勯悳?private file-store review CLI閿涘奔绗夐崑?auto-approve閵嗕购untime integration閵嗕笍B migration閵嗕箍ector DB閵嗕俯LM閵嗕工uto-send 閹?`private/chat_history` 鐠囪褰囬妴?  - 绾喛顓?approve gate 鐎瑰本鏆ｉ敍姘舵付鐟?T121 validation report閵嗕购eport `passed`閵嗕辜arget record present閵? missing refs閵嗕恭hecked refs > 0閿涘苯鑻熼梼缁橆剾 rejected/frozen/archived re-approval閵?  - 绾喛顓?review metadata history閵嗕够afe export閵嗕垢ath confinement閵嗕够table record_id 閸?no private data stdout 閸у洦寮х搾鍏呮崲閸斺€冲瘶閵?- Warning 婢跺嫮鎮婇敍?  - N01 accepted閿涙瓪del current_status` 閺勵垯缍嗚ぐ鍗炴惙閹恒儱褰?妞嬪孩鐗搁梻顕€顣介敍灞肩瑝瑜板崬鎼?correctness閵?  - N02 accepted閿涙岸鈧帒缍婇弴瀛樻煀閹碘偓閺堝鎮庡▔?`status` 鐎涙顔岀粭锕€鎮庤ぐ鎾冲 schema閿涙稖瀚㈤張顏呮降 schema 閸戣櫣骞囨稉宥呮倱鐠囶厺绠熼惃?status 鐎涙顔岄崘宥夊櫢鐎孤扳偓?  - N03 accepted閿涙瓪store_runtime_ready` 閹绘劕澧犵拋锛勭暬閸欘亝妲告潪璇蹭簳 style note閵?  - N04 accepted/deferred閿涙eview service 鐠佸潡妫?file store private helpers 鐎?MVP 閸欘垱甯撮崣妤嬬幢閺堫亝娼甸崣顖涘▕ public file/path utility閵?  - N05 accepted閿涙utable `_StoreWorkspace` 瑜版挸澧犵仦鈧柈銊ュ讲閹貉佲偓?  - N06 deferred閿涙俺鍤滈崝銊ュ濞村鐦悾娆戠舶 T150閿涘本鏌婃晶?R033 鐠虹喕閲?approval gate閵嗕购eject/freeze/archive閵嗕购eview history閵嗕购ecursive status update閵嗕躬xport path confinement閵嗕够table record_id 閸?no-auto-approve 濞村鐦妴?- 瑜版挸澧犲▔銊﹀壈閻愮櫢绱?  - T123 韫囧懘銆忛崣顏囶嚢閸?approved + runtime-ready records閵?  - T123 娑撳秴绶卞▔銊ュ弳 candidate/rejected/frozen/archived閿涘奔绗夊妤€濮炴潪钘夌暚閺?skill 閹存牕鍙忛柈?memory 閸?prompt閵?  - T122 intentionally does not implement reopen; rejected/frozen/archived records remain non-approvable in this scope.
 
-## 15. Worker 启动提示
+## 15. Worker 閸氼垰濮╅幓鎰仛
 
 ```text
-你是 Codex worker。
-
-请先阅读：
-- README.md
+娴ｇ姵妲?Codex worker閵?
+鐠囧嘲鍘涢梼鍛邦嚢閿?- README.md
 - AGENTS.md
 - docs/02_experiment_plan.md
 - docs/06_eval_protocol.md
@@ -936,27 +780,15 @@ M1 必须承接的条件：
 - docs/data_contracts/reply_plan_contract.md
 - docs/tasks/M3_relationship_reply_planner/T133_holdout_eval.md
 
-本轮只完成：
-- docs/tasks/M3_relationship_reply_planner/T133_holdout_eval.md
+閺堫剝鐤嗛崣顏勭暚閹存劧绱?- docs/tasks/M3_relationship_reply_planner/T133_holdout_eval.md
 
-规则：
-1. 只改 Allowed files。
-2. 只做匿名 holdout eval 和 Gate M3 判断，不修改 planner 代码。
-3. 评估 T130-T132 输出的自然度、边界遵守、证据使用、risk flags 可解释性和隐私安全。
-4. 可以读取 private/distilled 下的私有评估输出，但不得把 holdout 原文、真实联系人名、真实平台 ID 或可识别内容写入 docs。
-5. 不自动发送，不接数据库，不引入向量数据库，不读取 `private/chat_history/`。
-6. 不修复代码缺陷；若发现 blocking code issue，只在 review 中记录并给出 Gate M3 `Block` 或 `Conditional` 理由。
-7. 输出 `docs/review/T133_milestone_review.md`，并更新 `docs/07_handoff.md`。
-8. 最后报告：评估样本形态、匿名指标、Gate M3 verdict、剩余风险。
-```
+鐟欏嫬鍨敍?1. 閸欘亝鏁?Allowed files閵?2. 閸欘亜浠涢崠鍨倳 holdout eval 閸?Gate M3 閸掋倖鏌囬敍灞肩瑝娣囶喗鏁?planner 娴狅絿鐖滈妴?3. 鐠囧嫪鍙?T130-T132 鏉堟挸鍤惃鍕殰閻掕泛瀹抽妴浣界珶閻ｅ矂浼掔€瑰牄鈧浇鐦夐幑顔诲▏閻劊鈧购isk flags 閸欘垵袙闁插﹥鈧冩嫲闂呮劗顫嗙€瑰鍙忛妴?4. 閸欘垯浜掔拠璇插絿 private/distilled 娑撳娈戠粔浣规箒鐠囧嫪鍙婃潏鎾冲毉閿涘奔绲炬稉宥呯繁閹?holdout 閸樼喐鏋冮妴浣烘埂鐎圭偠浠堢化璁虫眽閸氬秲鈧胶婀＄€圭偛閽╅崣?ID 閹存牕褰茬拠鍡楀焼閸愬懎顔愰崘娆忓弳 docs閵?5. 娑撳秷鍤滈崝銊ュ絺闁緤绱濇稉宥嗗复閺佺増宓佹惔鎿勭礉娑撳秴绱╅崗銉ユ倻闁插繑鏆熼幑顔肩氨閿涘奔绗夌拠璇插絿 `private/chat_history/`閵?6. 娑撳秳鎱ㄦ径宥勫敩閻胶宸遍梽鍑ょ幢閼汇儱褰傞悳?blocking code issue閿涘苯褰ч崷?review 娑擃叀顔囪ぐ鏇炶嫙缂佹瑥鍤?Gate M3 `Block` 閹?`Conditional` 閻炲棛鏁遍妴?7. 鏉堟挸鍤?`docs/review/T133_milestone_review.md`閿涘苯鑻熼弴瀛樻煀 `docs/07_handoff.md`閵?8. 閺堚偓閸氬孩濮ら崨濠忕窗鐠囧嫪鍙婇弽閿嬫拱瑜般垺鈧降鈧礁灏堕崥宥嗗瘹閺嶅洢鈧笩ate M3 verdict閵嗕礁澧挎担娆擃棑闂勨斂鈧?```
 
-## 16. Reviewer 启动提示
+## 16. Reviewer 閸氼垰濮╅幓鎰仛
 
 ```text
-你是 Claude Code reviewer。
-
-请先阅读：
-- docs/02_experiment_plan.md
+娴ｇ姵妲?Claude Code reviewer閵?
+鐠囧嘲鍘涢梼鍛邦嚢閿?- docs/02_experiment_plan.md
 - docs/04_task_board.md
 - docs/07_handoff.md
 - docs/06_eval_protocol.md
@@ -967,55 +799,18 @@ M1 必须承接的条件：
 - docs/data_contracts/reply_plan_contract.md
 - docs/tasks/M3_relationship_reply_planner/T133_holdout_eval.md
 
-只读审查本次 diff，不要修改文件。
+閸欘亣顕扮€光剝鐓￠張顒侇偧 diff閿涘奔绗夌憰浣锋叏閺€瑙勬瀮娴犺翰鈧?
+闁插秶鍋ｅΛ鈧弻銉窗
+1. T133 閺勵垰鎯侀崣顏勪粵 read-only / docs-only 閻?holdout eval閿涘奔绗夋穱顔芥暭 planner 娴狅絿鐖滈妴?2. 閺勵垰鎯侀崶鐐电摕 Gate M3 閸忔娊鏁梻顕€顣介敍姘冲殰閻掕泛瀹抽妴浣界珶閻ｅ矂浼掔€瑰牄鈧浇鐦夐幑顔诲▏閻劊鈧购isk flags 閸欘垵袙闁插﹥鈧佲偓渚€娈ｇ粔浣哥暔閸忋劊鈧?3. 閺勵垰鎯佸▽鈩冩箒 holdout 閸樼喐鏋冮妴浣烘埂鐎圭偠浠堢化璁虫眽閸氬秲鈧胶婀＄€圭偛閽╅崣?ID 閹存牕褰茬拠鍡楀焼 private content 鏉╂稑鍙?docs/examples/tests/stdout閵?4. 閺勵垰鎯佹俊鍌氱杽鐠佹澘缍?T131/T132 deterministic templates閵嗕共eyword false positives 閸滃瞼宸辩亸?committed tests 閻ㄥ嫰妾洪崚韬测偓?5. Gate M3 verdict 閺勵垰鎯佹稉?`Allow` / `Conditional` / `Block`閿涘苯鑻熺紒娆忓毉閸欘垱澧界悰灞炬蒋娴犺翰鈧?6. 閼?verdict 閸忎浇顔忔潻娑樺弳娑撳绔撮梼鑸殿唽閿涘本妲搁崥锔芥绾喚顩﹀銏ｅ殰閸斻劌褰傞柅浣告嫲鐎圭偞妞傞獮鍐插酱閹恒儱鍙嗙紒褏鐢荤搾濠勬櫕閵?
+鏉堟挸鍤?Verdict: PASS / PASS_WITH_WARNINGS / BLOCK閿涘苯鑻熺€光剝鐓?`docs/review/T133_milestone_review.md`閵?```
 
-重点检查：
-1. T133 是否只做 read-only / docs-only 的 holdout eval，不修改 planner 代码。
-2. 是否回答 Gate M3 关键问题：自然度、边界遵守、证据使用、risk flags 可解释性、隐私安全。
-3. 是否没有 holdout 原文、真实联系人名、真实平台 ID 或可识别 private content 进入 docs/examples/tests/stdout。
-4. 是否如实记录 T131/T132 deterministic templates、keyword false positives 和缺少 committed tests 的限制。
-5. Gate M3 verdict 是否为 `Allow` / `Conditional` / `Block`，并给出可执行条件。
-6. 若 verdict 允许进入下一阶段，是否明确禁止自动发送和实时平台接入继续越界。
+## 17. 娑撳绔村銉┿€庢惔?
+1. 閸欘垱褰佹禍銈呯秼閸?T132 worker/reviewer 娴狅絿鐖滄稉?Captain 閺€璺哄經閺傚洦銆傞崣妯绘纯閵?2. 娑撳绔存潪?worker 閸欘亝澧界悰?T133閿涘奔绗夌憰浣藉殰妫?M4閵?3. 閼?T133 review `BLOCK`閿涘瘍orker 閸欘亙鎱?blocking issue 閹存牞藟閸?blocking evaluation evidence閿涘苯鑻熼張鈧径姘冲殰閸斻劌顦茬€光€茬濞喡扳偓?4. 閼?T133 review `PASS` 閹?`PASS_WITH_WARNINGS`閿涘瓔aptain 閸愬秵娲块弬鐗堜笉閻炲棙鏋冨锝呰嫙閸愬啿鐣?Gate M3 閺勵垰鎯侀崗浣筋啅鏉╂稑鍙?M4閵?5. M3 娴犲秳绻氶幐?review-only閿涙稐绗夌憰浣哥杽閻滄媽鍤滈崝銊ュ絺闁焦鍨ㄧ€圭偞妞傞獮鍐插酱閹恒儱鍙嗛妴?
+## 18. 閸樺棗褰舵い鍝勭碍
 
-输出 Verdict: PASS / PASS_WITH_WARNINGS / BLOCK，并审查 `docs/review/T133_milestone_review.md`。
-```
-
-## 17. 下一步顺序
-
-1. 可提交当前 T132 worker/reviewer 代码与 Captain 收口文档变更。
-2. 下一轮 worker 只执行 T133，不要自领 M4。
-3. 若 T133 review `BLOCK`，worker 只修 blocking issue 或补充 blocking evaluation evidence，并最多自动复审一次。
-4. 若 T133 review `PASS` 或 `PASS_WITH_WARNINGS`，Captain 再更新治理文档并决定 Gate M3 是否允许进入 M4。
-5. M3 仍保持 review-only；不要实现自动发送或实时平台接入。
-
-## 18. 历史顺序
-
-1. T100 review `PASS`，已完成 schema profile 与 normalized event contract。
-2. T101 review `PASS`，已完成 privacy/source_ref rules。
-3. T102 review `PASS`，已完成 `chatlog-normalize` 最小 CLI。
-4. T103 Gate M0 = `Conditional` accepted，允许进入 M1。
-5. T110 review `PASS`，已完成 `chatlog-chunk` conversation chunker v0。
-6. T111 review `PASS`，已完成 distillation output schemas 和 JSON contract。
-7. T112 review `PASS`，已完成小样本 summary/fact extraction 与 evidence refs 校验管线。
-8. T113 review `PASS_WITH_WARNINGS`，已完成 ContactSkill candidate builder 和 Markdown review exporter。
-9. T114 review `PASS_WITH_WARNINGS`，Gate M1 = `Conditional`，M2 可条件启动。
-10. T120 review `PASS_WITH_WARNINGS`，已完成 file store models 与 human-review-first gate。
-11. T121 review `PASS_WITH_WARNINGS`，已完成 evidence validator 与 missing-ref/status gate。
-12. T122 review `PASS_WITH_WARNINGS`，已完成 skill review CLI 与 approval gate。
-13. T123 review `PASS_WITH_WARNINGS`，已完成 approved-store compact `ChatContext` integration。
-14. T130 review `PASS_WITH_WARNINGS`，已完成 ReplyPlan schema 与 prompt contract。
-15. T131 review `PASS_WITH_WARNINGS`，已完成 review-only ReplyPlanner 与 `chat-reply-plan` CLI；T132 进入 policy/boundary validation。
-16. T132 review `PASS_WITH_WARNINGS`，已完成 ReplyPlanner policy/boundary 风险层；T133 进入匿名 holdout eval。
-
-## 19. 注意事项
-
-- `.gitignore` 中已有 `private/`，保留这个安全措施。
-- 不要还原用户手动迁移 docs 目录结构的操作。
-- 不要读取或输出 `.env`。
-- 不要把 `private/chat_history` 的真实文件名或聊天内容写入 docs。
-- 当前阶段不做微调、不做自动发送、不做微信扫描。
-- M2 可以推进，但必须带着 Gate M1 Conditional 条件继续验证，不要把 M1 写成无条件完成。
-
+1. T100 review `PASS`閿涘苯鍑＄€瑰本鍨?schema profile 娑?normalized event contract閵?2. T101 review `PASS`閿涘苯鍑＄€瑰本鍨?privacy/source_ref rules閵?3. T102 review `PASS`閿涘苯鍑＄€瑰本鍨?`chatlog-normalize` 閺堚偓鐏?CLI閵?4. T103 Gate M0 = `Conditional` accepted閿涘苯鍘戠拋姝岀箻閸?M1閵?5. T110 review `PASS`閿涘苯鍑＄€瑰本鍨?`chatlog-chunk` conversation chunker v0閵?6. T111 review `PASS`閿涘苯鍑＄€瑰本鍨?distillation output schemas 閸?JSON contract閵?7. T112 review `PASS`閿涘苯鍑＄€瑰本鍨氱亸蹇旂壉閺?summary/fact extraction 娑?evidence refs 閺嶏繝鐛欑粻锛勫殠閵?8. T113 review `PASS_WITH_WARNINGS`閿涘苯鍑＄€瑰本鍨?ContactSkill candidate builder 閸?Markdown review exporter閵?9. T114 review `PASS_WITH_WARNINGS`閿涘瓘ate M1 = `Conditional`閿涘2 閸欘垱娼禒璺烘儙閸斻劊鈧?10. T120 review `PASS_WITH_WARNINGS`閿涘苯鍑＄€瑰本鍨?file store models 娑?human-review-first gate閵?11. T121 review `PASS_WITH_WARNINGS`閿涘苯鍑＄€瑰本鍨?evidence validator 娑?missing-ref/status gate閵?12. T122 review `PASS_WITH_WARNINGS`閿涘苯鍑＄€瑰本鍨?skill review CLI 娑?approval gate閵?13. T123 review `PASS_WITH_WARNINGS`閿涘苯鍑＄€瑰本鍨?approved-store compact `ChatContext` integration閵?14. T130 review `PASS_WITH_WARNINGS`閿涘苯鍑＄€瑰本鍨?ReplyPlan schema 娑?prompt contract閵?15. T131 review `PASS_WITH_WARNINGS`閿涘苯鍑＄€瑰本鍨?review-only ReplyPlanner 娑?`chat-reply-plan` CLI閿涙笨132 鏉╂稑鍙?policy/boundary validation閵?16. T132 review `PASS_WITH_WARNINGS`閿涘苯鍑＄€瑰本鍨?ReplyPlanner policy/boundary 妞嬪酣娅撶仦鍌︾幢T133 鏉╂稑鍙嗛崠鍨倳 holdout eval閵?
+## 19. 濞夈劍鍓版禍瀣€?
+- `.gitignore` 娑擃厼鍑￠張?`private/`閿涘奔绻氶悾娆掔箹娑擃亜鐣ㄩ崗銊﹀妇閺傚鈧?- 娑撳秷顩︽潻妯哄斧閻劍鍩涢幍瀣З鏉╀胶些 docs 閻╊喖缍嶇紒鎾寸€惃鍕惙娴ｆ嚎鈧?- 娑撳秷顩︾拠璇插絿閹存牞绶崙?`.env`閵?- 娑撳秷顩﹂幎?`private/chat_history` 閻ㄥ嫮婀＄€圭偞鏋冩禒璺烘倳閹存牞浜版径鈺佸敶鐎圭懓鍟撻崗?docs閵?- 瑜版挸澧犻梼鑸殿唽娑撳秴浠涘顔跨殶閵嗕椒绗夐崑姘冲殰閸斻劌褰傞柅浣碘偓浣风瑝閸嬫艾浜曟穱鈩冨閹诲繈鈧?- M2 閸欘垯浜掗幒銊ㄧ箻閿涘奔绲捐箛鍛淬€忕敮锔炬絻 Gate M1 Conditional 閺夆€叉缂佈呯敾妤犲矁鐦夐敍灞肩瑝鐟曚焦濡?M1 閸愭瑦鍨氶弮鐘虫蒋娴犺泛鐣幋鎰┾偓?
 ## 20. T123 Completion Record
 
 - Files changed:
@@ -1234,7 +1029,7 @@ M1 必须承接的条件：
     - candidate confidence is reduced conservatively
   - Over-proactivity is now candidate-specific:
     - optional follow-up or next-step language is only escalated into `over_proactive` when the context is thin or boundary-sensitive
-    - clearly no-pressure wording such as “先不往前推 / 不用现在展开” is exempted from false-positive `over_proactive` flags
+    - clearly no-pressure wording such as 閳ユ粌鍘涙稉宥呯窔閸撳秵甯?/ 娑撳秶鏁ら悳鏉挎躬鐏炴洖绱戦垾?is exempted from false-positive `over_proactive` flags
   - Impersonation risk is now explicitly detectable at the candidate-text level, even though the current T131/T132 templates do not intentionally generate such text.
   - T131 checks remain intact:
     - `contact_id` alignment still enforced
@@ -1250,7 +1045,7 @@ M1 必须承接的条件：
       - no raw input text echoed
       - no accidental `boundary_sensitive` / `over_proactive` over-blocking
     - boundary / avoid-topic context:
-      - approved contact-skill carried explicit “give space / do not push” style reminders
+      - approved contact-skill carried explicit 閳ユ笀ive space / do not push閳?style reminders
       - 3 candidates emitted
       - at least one candidate carried `boundary_sensitive`
       - at least one candidate carried `over_proactive`
@@ -1373,7 +1168,7 @@ M1 必须承接的条件：
 ## 33. Roadmap Alignment Decision
 
 - Reference reviewed:
-  - `docs/reference/gpt的后续设计思路(更新版).md`
+  - `docs/reference/gpt閻ㄥ嫬鎮楃紒顓☆啎鐠佲剝鈧繆鐭?閺囧瓨鏌婇悧?.md`
 - Captain judgment:
   - The document matches the project direction: review-first, ContactSkill compatibility, delayed platform integration, delayed external memory, and no automatic sending.
   - The task board needed modification because old T141/T142 moved too quickly into proposal/versioning, while M3 is still conditional and T140 has not produced validated feedback yet.
@@ -1758,10 +1553,10 @@ M1 必须承接的条件：
   - `TestBuildProfileFalseNegative`: boundary_sensitive=False, conservative_mode=False (documented limitation)
   - `TestBuildProfileOverProactivity`: avoid_follow_up=True, boundary_sensitive=True, conservative_mode=True, thin_context=False
 - Direct `ReplyPlanPolicyEngine.assess_candidate()` coverage:
-  - `TestAssessCandidateActionPush`: action push cues ("call", "meet", "打电话", "schedule") always trigger over_proactive
+  - `TestAssessCandidateActionPush`: action push cues ("call", "meet", "閹垫挾鏁哥拠?, "schedule") always trigger over_proactive
   - `TestAssessCandidateOverProactiveConservativeMode`: optional_follow_up always triggers in conservative mode; paced_next_step with proactive cues triggers; conservative_acknowledgment without cues stays clean
-  - `TestAssessCandidateNoPressureExemption`: "no rush" and Chinese "先不往前推" exempt from over_proactive; action push overrides no-pressure
-  - `TestAssessCandidateImpersonationRisk`: "he would say", "she would say", "对方会" all detected; clean text produces no impersonation_risk
+  - `TestAssessCandidateNoPressureExemption`: "no rush" and Chinese "閸忓牅绗夊鈧崜宥嗗腹" exempt from over_proactive; action push overrides no-pressure
+  - `TestAssessCandidateImpersonationRisk`: "he would say", "she would say", "鐎佃鏌熸导? all detected; clean text produces no impersonation_risk
   - `TestAssessCandidateConfidencePenalty`: thin_context 0.10, boundary_sensitive 0.06, combined 0.16, impersonation 0.15, clean 0.0
 - `notes_on_candidate_differences` coverage:
   - Baseline: 3 default notes about each candidate
@@ -2012,47 +1807,27 @@ M1 必须承接的条件：
 
 ## 57. T161 Implementation Record
 
-- 代码 / 文档改动：
-  - `src/practical_chat_agent/services/feedback.py`
+- 娴狅絿鐖?/ 閺傚洦銆傞弨鐟板З閿?  - `src/practical_chat_agent/services/feedback.py`
   - `src/practical_chat_agent/app/main.py`
   - `docs/data_contracts/preference_patch_contract.md`
   - `docs/07_handoff.md`
   - `docs/08_risks_and_open_questions.md`
-- 已实现内容：
-  - 新增 `FeedbackClusterService`，消费 T140 `ReplyFeedbackLog` 并输出确定性、隐私安全的聚合聚类。
-  - 新增 `chat-feedback-cluster` CLI，支持 `--feedback-log`、`--output`、`--validation-report`。
-  - 聚类标签从反馈 action 类型确定性推导：
-    - `accept` → `good_tone`
-    - `reject` → `not_like_me`
-    - `boundary` → `boundary_violation`（若 `boundary_label` 归一化后匹配已知标签则使用该标签）
-    - `edit` → 当前无安全确定性标签，标记为 unlabeled
-  - 聚类键为 `(contact_id, cluster_label)`，按排序顺序输出。
-  - `cluster_id` 由 `sha256(contact_id:label)[:16]` 生成，确保相同分组键始终产生相同 ID。
-  - 每个 cluster 输出包含：`cluster_id`、`contact_id`、`cluster_label`、`supporting_feedback_ids`、`record_count`、`counts_by_action`、`counts_by_approach_label`、`counts_by_priority_rank`、`time_range`、`reason_tag_summary`。
-  - `--validation-report` 可选参数支持仅聚类 T141 验证通过的记录。
-  - stdout 仅输出聚合统计和 ID，不输出原始反馈文本、编辑文本、用户备注或边界备注。
-  - 未生成 `PreferencePatchCandidate`、未修改 ContactSkill/Memory/store records、未调用 LLM、未自动 approve 或 apply。
-- 聚类输出 shape：
-  - Schema: `feedback_cluster_v1`
+- 瀹告彃鐤勯悳鏉垮敶鐎圭櫢绱?  - 閺傛澘顤?`FeedbackClusterService`閿涘本绉风拹?T140 `ReplyFeedbackLog` 楠炴儼绶崙铏光€樼€规碍鈧佲偓渚€娈ｇ粔浣哥暔閸忋劎娈戦懕姘値閼辨氨琚妴?  - 閺傛澘顤?`chat-feedback-cluster` CLI閿涘本鏁幐?`--feedback-log`閵嗕梗--output`閵嗕梗--validation-report`閵?  - 閼辨氨琚弽鍥╊劮娴犲骸寮芥＃?action 缁鐎风涵顔肩暰閹勫腹鐎电》绱?    - `accept` 閳?`good_tone`
+    - `reject` 閳?`not_like_me`
+    - `boundary` 閳?`boundary_violation`閿涘牐瀚?`boundary_label` 瑜版帊绔撮崠鏍ф倵閸栧綊鍘ゅ鑼叀閺嶅洨顒烽崚娆庡▏閻劏顕氶弽鍥╊劮閿?    - `edit` 閳?瑜版挸澧犻弮鐘茬暔閸忋劎鈥樼€规碍鈧勭垼缁涙拝绱濋弽鍥唶娑?unlabeled
+  - 閼辨氨琚柨顔昏礋 `(contact_id, cluster_label)`閿涘本瀵滈幒鎺戠碍妞ゅ搫绨潏鎾冲毉閵?  - `cluster_id` 閻?`sha256(contact_id:label)[:16]` 閻㈢喐鍨氶敍宀€鈥樻穱婵堟祲閸氬苯鍨庣紒鍕暛婵绮撴禍褏鏁撻惄绋挎倱 ID閵?  - 濮ｅ繋閲?cluster 鏉堟挸鍤崠鍛儓閿涙瓪cluster_id`閵嗕梗contact_id`閵嗕梗cluster_label`閵嗕梗supporting_feedback_ids`閵嗕梗record_count`閵嗕梗counts_by_action`閵嗕梗counts_by_approach_label`閵嗕梗counts_by_priority_rank`閵嗕梗time_range`閵嗕梗reason_tag_summary`閵?  - `--validation-report` 閸欘垶鈧寮弫鐗堟暜閹镐椒绮庨懕姘辫 T141 妤犲矁鐦夐柅姘崇箖閻ㄥ嫯顔囪ぐ鏇樷偓?  - stdout 娴犲懓绶崙楦夸粵閸氬牏绮虹拋鈥虫嫲 ID閿涘奔绗夋潏鎾冲毉閸樼喎顫愰崣宥夘洯閺傚洦婀伴妴浣虹椽鏉堟垶鏋冮張顑锯偓浣烘暏閹村嘲顦▔銊﹀灗鏉堝湱鏅径鍥ㄦ暈閵?  - 閺堫亞鏁撻幋?`PreferencePatchCandidate`閵嗕焦婀穱顔芥暭 ContactSkill/Memory/store records閵嗕焦婀拫鍐暏 LLM閵嗕焦婀懛顏勫З approve 閹?apply閵?- 閼辨氨琚潏鎾冲毉 shape閿?  - Schema: `feedback_cluster_v1`
   - CLI: `chat-feedback-cluster --feedback-log <path> --output <path> [--validation-report <path>]`
-- 合成验证示例（将在 verification 阶段产出）：
-  - 输入：10 条合成反馈记录（contact_test_001: 3 reject + 2 accept + 2 boundary + 1 edit, contact_test_002: 2 reject）
-  - 输出：4 个 cluster（boundary_violation/2, good_tone/2, not_like_me/3 for contact_test_001, not_like_me/2 for contact_test_002）
-  - 1 条 unlabeled（edit 记录），1 条 unclustered
-  - Cluster ID 稳定性验证通过：相同输入两次运行产生相同的 cluster_id 集合
-  - 隐私安全验证通过：输出 JSON 不含 edited_text/user_note/boundary_note/draft_text
-  - 不同 contact_id 的相同 label 产生不同的 cluster_id
-  - 176 已有测试全部通过，零回归
-  - CLI `chat-feedback-cluster --feedback-log <path>` 正常运行
-- Cluster ID 与 T160 的关系：
-  - `cluster_id` 为 `cluster_<sha256_hex_16>` 格式的字符串，与 `PreferencePatchCandidate.supporting_cluster_ids: list[str]` 兼容
-  - T162 可通过 `supporting_cluster_ids` 引用 T161 输出的 cluster
-- T162-T164 必须保留的约束：
-  - `edit` action 记录当前未被聚类（无安全确定性标签），T162 不可假设 edit 记录已被聚类覆盖
-  - cluster label 集合当前为 3 个确定性标签（`good_tone`、`not_like_me`、`boundary_violation`），加上 boundary_label 归一化匹配的已知标签
-  - `cluster_id` 依赖分组键内容，不可用随机 ID 替代
-  - 输出不含任何原始文本，T162 也不得从 cluster 输出反查原始反馈内容
-
+- 閸氬牊鍨氭宀冪槈缁€杞扮伐閿涘牆鐨㈤崷?verification 闂冭埖顔屾禍褍鍤敍澶涚窗
+  - 鏉堟挸鍙嗛敍?0 閺夆€虫値閹存劕寮芥＃鍫ｎ唶瑜版洩绱檆ontact_test_001: 3 reject + 2 accept + 2 boundary + 1 edit, contact_test_002: 2 reject閿?  - 鏉堟挸鍤敍? 娑?cluster閿涘潌oundary_violation/2, good_tone/2, not_like_me/3 for contact_test_001, not_like_me/2 for contact_test_002閿?  - 1 閺?unlabeled閿涘潒dit 鐠佹澘缍嶉敍澶涚礉1 閺?unclustered
+  - Cluster ID 缁嬪啿鐣鹃幀褔鐛欑拠渚€鈧俺绻冮敍姘辨祲閸氬矁绶崗銉よ⒈濞喡ょ箥鐞涘奔楠囬悽鐔烘祲閸氬瞼娈?cluster_id 闂嗗棗鎮?  - 闂呮劗顫嗙€瑰鍙忔宀冪槈闁俺绻冮敍姘崇翻閸?JSON 娑撳秴鎯?edited_text/user_note/boundary_note/draft_text
+  - 娑撳秴鎮?contact_id 閻ㄥ嫮娴夐崥?label 娴溠呮晸娑撳秴鎮撻惃?cluster_id
+  - 176 瀹稿弶婀佸ù瀣槸閸忋劑鍎撮柅姘崇箖閿涘矂娴傞崶鐐茬秺
+  - CLI `chat-feedback-cluster --feedback-log <path>` 濮濓絽鐖舵潻鎰攽
+- Cluster ID 娑?T160 閻ㄥ嫬鍙х化浼欑窗
+  - `cluster_id` 娑?`cluster_<sha256_hex_16>` 閺嶇厧绱￠惃鍕摟缁楋缚瑕嗛敍灞肩瑢 `PreferencePatchCandidate.supporting_cluster_ids: list[str]` 閸忕厧顔?  - T162 閸欘垶鈧俺绻?`supporting_cluster_ids` 瀵洜鏁?T161 鏉堟挸鍤惃?cluster
+- T162-T164 韫囧懘銆忔穱婵堟殌閻ㄥ嫮瀹抽弶鐕傜窗
+  - `edit` action 鐠佹澘缍嶈ぐ鎾冲閺堫亣顫﹂懕姘辫閿涘牊妫ょ€瑰鍙忕涵顔肩暰閹勭垼缁涙拝绱氶敍瀛?62 娑撳秴褰查崑鍥啎 edit 鐠佹澘缍嶅鑼额潶閼辨氨琚憰鍡欐磰
+  - cluster label 闂嗗棗鎮庤ぐ鎾冲娑?3 娑擃亞鈥樼€规碍鈧勭垼缁涙拝绱檂good_tone`閵嗕梗not_like_me`閵嗕梗boundary_violation`閿涘绱濋崝鐘辩瑐 boundary_label 瑜版帊绔撮崠鏍у爱闁板秶娈戝鑼叀閺嶅洨顒?  - `cluster_id` 娓氭繆绂嗛崚鍡欑矋闁款喖鍞寸€圭櫢绱濇稉宥呭讲閻劑娈㈤張?ID 閺囧じ鍞?  - 鏉堟挸鍤稉宥呮儓娴犺缍嶉崢鐔奉潗閺傚洦婀伴敍瀛?62 娑旂喍绗夊妞剧矤 cluster 鏉堟挸鍤崣宥嗙叀閸樼喎顫愰崣宥夘洯閸愬懎顔?
 ## 58. T161 Review Decision
 
 - Review file:
@@ -2095,49 +1870,24 @@ M1 必须承接的条件：
 
 ## 60. T162 Implementation Record
 
-- 代码 / 文档改动：
-  - `src/practical_chat_agent/services/feedback.py`
+- 娴狅絿鐖?/ 閺傚洦銆傞弨鐟板З閿?  - `src/practical_chat_agent/services/feedback.py`
   - `src/practical_chat_agent/app/main.py`
   - `docs/data_contracts/preference_patch_contract.md`
   - `docs/07_handoff.md`
   - `docs/08_risks_and_open_questions.md`
-- 已实现内容：
-  - 新增 `PatchProposalService`，消费 T161 cluster report 并输出确定性、candidate-only `PreferencePatchCandidate` 提案。
-  - 新增 `chat-feedback-propose-patch` CLI，支持 `--cluster-report`（必需）和 `--output`（可选）。
-  - 确定性标签映射：
-    - `too_long` → `length_preference` / sensitivity=low
-    - `too_formal` → `tone_preference` / sensitivity=low
-    - `too_cold` → `tone_preference` / sensitivity=low
-    - `too_eager` → `proactivity_preference` / sensitivity=medium
-    - `too_intimate` → `boundary_preference` / sensitivity=high
-    - `boundary_violation` → `boundary_preference` / sensitivity=high
-  - 跳过规则：
-    - `insufficient_support`: record_count < 2 或 supporting_feedback_ids 为空
-    - `unlabeled_cluster`: cluster_label 缺失
-    - `no_safe_mapping`: cluster_label 不在确定性映射表中（包括 `good_tone`、`not_like_me`、未知标签）
-  - `good_tone` 和 `not_like_me` 被跳过而非猜测，因为其聚合信号不足以生成安全的 `behavior_instruction`。
-  - 置信度公式：`min(0.3 + 0.15 * (record_count - 1), 0.9)`，与证据强度单调递增，不超过 0.9。
-  - 所有生成的 patch 状态为 `candidate`，`review_metadata.reviewed_by_human` 为 `False`，`is_runtime_ready()` 返回 `False`。
-  - `positive_examples` 和 `negative_examples` 始终为空列表（proposal 阶段不生成）。
-  - `affected_candidate_types` 从 cluster 的 `counts_by_approach_label` 派生。
-  - 未修改 ContactSkill/Memory/store records、未调用 LLM、未自动 approve 或 apply、未注入 runtime context。
-- Proposal 输出 shape：
-  - Schema: `patch_proposal_v1`
+- 瀹告彃鐤勯悳鏉垮敶鐎圭櫢绱?  - 閺傛澘顤?`PatchProposalService`閿涘本绉风拹?T161 cluster report 楠炴儼绶崙铏光€樼€规碍鈧佲偓涔ndidate-only `PreferencePatchCandidate` 閹绘劖顢嶉妴?  - 閺傛澘顤?`chat-feedback-propose-patch` CLI閿涘本鏁幐?`--cluster-report`閿涘牆绻€闂団偓閿涘鎷?`--output`閿涘牆褰查柅澶涚礆閵?  - 绾喖鐣鹃幀褎鐖ｇ粵鐐Ё鐏忓嫸绱?    - `too_long` 閳?`length_preference` / sensitivity=low
+    - `too_formal` 閳?`tone_preference` / sensitivity=low
+    - `too_cold` 閳?`tone_preference` / sensitivity=low
+    - `too_eager` 閳?`proactivity_preference` / sensitivity=medium
+    - `too_intimate` 閳?`boundary_preference` / sensitivity=high
+    - `boundary_violation` 閳?`boundary_preference` / sensitivity=high
+  - 鐠哄疇绻冪憴鍕灟閿?    - `insufficient_support`: record_count < 2 閹?supporting_feedback_ids 娑撹櫣鈹?    - `unlabeled_cluster`: cluster_label 缂傚搫銇?    - `no_safe_mapping`: cluster_label 娑撳秴婀涵顔肩暰閹勬Ё鐏忓嫯銆冩稉顓ㄧ礄閸栧懏瀚?`good_tone`閵嗕梗not_like_me`閵嗕焦婀惌銉︾垼缁涙拝绱?  - `good_tone` 閸?`not_like_me` 鐞氼偉鐑︽潻鍥偓宀勬姜閻氭粍绁撮敍灞芥礈娑撳搫鍙鹃懕姘値娣団€冲娇娑撳秷鍐绘禒銉ф晸閹存劕鐣ㄩ崗銊ф畱 `behavior_instruction`閵?  - 缂冾喕淇婃惔锕€鍙曞蹇ョ窗`min(0.3 + 0.15 * (record_count - 1), 0.9)`閿涘奔绗岀拠浣瑰祦瀵搫瀹抽崡鏇＄殶闁帒顤冮敍灞肩瑝鐡掑懓绻?0.9閵?  - 閹碘偓閺堝鏁撻幋鎰畱 patch 閻樿埖鈧椒璐?`candidate`閿涘畭review_metadata.reviewed_by_human` 娑?`False`閿涘畭is_runtime_ready()` 鏉╂柨娲?`False`閵?  - `positive_examples` 閸?`negative_examples` 婵绮撴稉铏光敄閸掓銆冮敍鍧oposal 闂冭埖顔屾稉宥囨晸閹存劧绱氶妴?  - `affected_candidate_types` 娴?cluster 閻?`counts_by_approach_label` 濞插墽鏁撻妴?  - 閺堫亙鎱ㄩ弨?ContactSkill/Memory/store records閵嗕焦婀拫鍐暏 LLM閵嗕焦婀懛顏勫З approve 閹?apply閵嗕焦婀▔銊ュ弳 runtime context閵?- Proposal 鏉堟挸鍤?shape閿?  - Schema: `patch_proposal_v1`
   - CLI: `chat-feedback-propose-patch --cluster-report <path> --output <path>`
-- 合成验证示例：
-  - 输入：含 4 个 cluster 的合成 cluster report（too_long/3、good_tone/2、not_like_me/2、boundary_violation/1）
-  - 输出：1 个 candidate（too_long/3 → length_preference, confidence=0.6）
-  - 跳过：3 个 cluster（good_tone → no_safe_mapping, not_like_me → no_safe_mapping, boundary_violation/1 → insufficient_support）
-  - 每个 candidate 的 `supporting_feedback_ids` 非空
-  - `positive_examples` / `negative_examples` 为空列表
-  - 重复运行产生相同的 candidate（除时间戳外）
-  - 隐私安全：输出不含原始反馈文本、编辑文本、用户备注或边界备注
-- T163-T164 必须保留的约束：
-  - 提案状态始终为 `candidate`，T163 review CLI 才能将其改为 `approved`
-  - `is_runtime_ready()` 依赖 `status == "approved"` 且 `review_metadata.reviewed_by_human == True` 且 `review_metadata.last_decision == "approved"`
-  - `positive_examples` / `negative_examples` 在 proposal 阶段为空，T163 review 或后续任务可补充安全摘要
-  - `patch_id` 使用 `new_id("patch")` 生成（非确定性），但其他所有字段由 cluster 输入确定性决定
-  - T164 只可消费 `status == "approved"` 且 `is_runtime_ready() == True` 的 patch
+- 閸氬牊鍨氭宀冪槈缁€杞扮伐閿?  - 鏉堟挸鍙嗛敍姘儓 4 娑?cluster 閻ㄥ嫬鎮庨幋?cluster report閿涘澅oo_long/3閵嗕宫ood_tone/2閵嗕苟ot_like_me/2閵嗕攻oundary_violation/1閿?  - 鏉堟挸鍤敍? 娑?candidate閿涘澅oo_long/3 閳?length_preference, confidence=0.6閿?  - 鐠哄疇绻冮敍? 娑?cluster閿涘潛ood_tone 閳?no_safe_mapping, not_like_me 閳?no_safe_mapping, boundary_violation/1 閳?insufficient_support閿?  - 濮ｅ繋閲?candidate 閻?`supporting_feedback_ids` 闂堢偟鈹?  - `positive_examples` / `negative_examples` 娑撹櫣鈹栭崚妤勩€?  - 闁插秴顦叉潻鎰攽娴溠呮晸閻╃鎮撻惃?candidate閿涘牓娅庨弮鍫曟？閹村啿顦婚敍?  - 闂呮劗顫嗙€瑰鍙忛敍姘崇翻閸戣桨绗夐崥顐㈠斧婵寮芥＃鍫熸瀮閺堫兙鈧胶绱潏鎴炴瀮閺堫兙鈧胶鏁ら幋宄邦槵濞夈劍鍨ㄦ潏鍦櫕婢跺洦鏁?- T163-T164 韫囧懘銆忔穱婵堟殌閻ㄥ嫮瀹抽弶鐕傜窗
+  - 閹绘劖顢嶉悩鑸碘偓浣割潗缂佸牅璐?`candidate`閿涘163 review CLI 閹靛秷鍏樼亸鍡楀従閺€閫涜礋 `approved`
+  - `is_runtime_ready()` 娓氭繆绂?`status == "approved"` 娑?`review_metadata.reviewed_by_human == True` 娑?`review_metadata.last_decision == "approved"`
+  - `positive_examples` / `negative_examples` 閸?proposal 闂冭埖顔屾稉铏光敄閿涘163 review 閹存牕鎮楃紒顓濇崲閸斺€冲讲鐞涖儱鍘栫€瑰鍙忛幗妯款洣
+  - `patch_id` 娴ｈ法鏁?`new_id("patch")` 閻㈢喐鍨氶敍鍫ユ姜绾喖鐣鹃幀褝绱氶敍灞肩稻閸忔湹绮幍鈧張澶婄摟濞堢數鏁?cluster 鏉堟挸鍙嗙涵顔肩暰閹冨枀鐎?  - T164 閸欘亜褰插☉鍫ｅ瀭 `status == "approved"` 娑?`is_runtime_ready() == True` 閻?patch
 ## 61. T162 Review Decision
 
 - Review file:
@@ -2180,43 +1930,29 @@ M1 必须承接的条件：
 
 ## 63. T163 Implementation Record
 
-- 代码 / 文档改动：
-  - `src/practical_chat_agent/services/feedback.py`
+- 娴狅絿鐖?/ 閺傚洦銆傞弨鐟板З閿?  - `src/practical_chat_agent/services/feedback.py`
   - `src/practical_chat_agent/app/main.py`
   - `docs/data_contracts/preference_patch_contract.md`
   - `docs/07_handoff.md`
   - `docs/08_risks_and_open_questions.md`
-- 已实现内容：
-  - 新增 `PatchReviewService`，对 T162 提案报告中的 `PreferencePatchCandidate` 执行显式人工 review 决策。
-  - 新增 `chat-feedback-review-patch` CLI，支持 `--input`（必需）、`--patch-id`（必需）、`--decision`（必需，approve/reject/freeze/archive）、`--reviewer`（必需）、`--note`（可选）、`--output`（可选）。
-  - Review CLI 名称：`chat-feedback-review-patch`
-  - 决策类型与状态映射：
-    - `approve` → `approved`（`is_runtime_ready()` 返回 `True`）
-    - `reject` → `rejected`（`is_runtime_ready()` 返回 `False`）
-    - `freeze` → `frozen`（`is_runtime_ready()` 返回 `False`）
-    - `archive` → `archived`（`is_runtime_ready()` 返回 `False`）
-  - 每次决策追加 `DistilledArtifactReviewDecision` 到 `review_metadata.history`，历史不覆盖。
-  - `review_metadata.reviewed_by_human`、`last_decision`、`last_reviewed_at`、`last_reviewer_id` 随最新决策更新。
-  - Evidence 字段（`supporting_feedback_ids`、`supporting_cluster_ids`、`claim`、`behavior_instruction`、`confidence`、`sensitivity`）在 review 过程中不被修改。
-  - 未修改 ContactSkill/Memory/store records、未调用 LLM、未自动 approve 或 apply、未注入 runtime context。
-- 合成验证示例：
-  - 输入：含 4 个 candidate patch 的合成 T162 提案报告
-  - Test 1: approve → status=approved, is_runtime_ready=True, history_count=1, evidence preserved
-  - Test 2: reject → status=rejected, is_runtime_ready=False, evidence preserved
-  - Test 3: freeze → status=frozen, is_runtime_ready=False
-  - Test 4: archive → status=archived, is_runtime_ready=False
-  - Test 5: re-approve after reject → history_count=2, is_runtime_ready=True, last_reviewer_id updated
-  - Test 6: invalid decision → FeedbackError with expected message
-  - Test 7: missing patch_id → FeedbackError with list of available ids
-  - Test 8: privacy safety → no raw text, no extra fields in written-back file
-  - Test 9: output to separate file → input unchanged
+- 瀹告彃鐤勯悳鏉垮敶鐎圭櫢绱?  - 閺傛澘顤?`PatchReviewService`閿涘苯顕?T162 閹绘劖顢嶉幎銉ユ啞娑擃厾娈?`PreferencePatchCandidate` 閹笛嗩攽閺勬儳绱℃禍鍝勪紣 review 閸愬磭鐡ラ妴?  - 閺傛澘顤?`chat-feedback-review-patch` CLI閿涘本鏁幐?`--input`閿涘牆绻€闂団偓閿涘鈧梗--patch-id`閿涘牆绻€闂団偓閿涘鈧梗--decision`閿涘牆绻€闂団偓閿涘畮pprove/reject/freeze/archive閿涘鈧梗--reviewer`閿涘牆绻€闂団偓閿涘鈧梗--note`閿涘牆褰查柅澶涚礆閵嗕梗--output`閿涘牆褰查柅澶涚礆閵?  - Review CLI 閸氬秶袨閿涙瓪chat-feedback-review-patch`
+  - 閸愬磭鐡ョ猾璇茬€锋稉搴ｅЦ閹焦妲х亸鍕剁窗
+    - `approve` 閳?`approved`閿涘潉is_runtime_ready()` 鏉╂柨娲?`True`閿?    - `reject` 閳?`rejected`閿涘潉is_runtime_ready()` 鏉╂柨娲?`False`閿?    - `freeze` 閳?`frozen`閿涘潉is_runtime_ready()` 鏉╂柨娲?`False`閿?    - `archive` 閳?`archived`閿涘潉is_runtime_ready()` 鏉╂柨娲?`False`閿?  - 濮ｅ繑顐奸崘宕囩摜鏉╄棄濮?`DistilledArtifactReviewDecision` 閸?`review_metadata.history`閿涘苯宸婚崣韫瑝鐟曞棛娲婇妴?  - `review_metadata.reviewed_by_human`閵嗕梗last_decision`閵嗕梗last_reviewed_at`閵嗕梗last_reviewer_id` 闂呭繑娓堕弬鏉垮枀缁涙牗娲块弬鑸偓?  - Evidence 鐎涙顔岄敍鍧剆upporting_feedback_ids`閵嗕梗supporting_cluster_ids`閵嗕梗claim`閵嗕梗behavior_instruction`閵嗕梗confidence`閵嗕梗sensitivity`閿涘婀?review 鏉╁洨鈻兼稉顓濈瑝鐞氼偂鎱ㄩ弨骞库偓?  - 閺堫亙鎱ㄩ弨?ContactSkill/Memory/store records閵嗕焦婀拫鍐暏 LLM閵嗕焦婀懛顏勫З approve 閹?apply閵嗕焦婀▔銊ュ弳 runtime context閵?- 閸氬牊鍨氭宀冪槈缁€杞扮伐閿?  - 鏉堟挸鍙嗛敍姘儓 4 娑?candidate patch 閻ㄥ嫬鎮庨幋?T162 閹绘劖顢嶉幎銉ユ啞
+  - Test 1: approve 閳?status=approved, is_runtime_ready=True, history_count=1, evidence preserved
+  - Test 2: reject 閳?status=rejected, is_runtime_ready=False, evidence preserved
+  - Test 3: freeze 閳?status=frozen, is_runtime_ready=False
+  - Test 4: archive 閳?status=archived, is_runtime_ready=False
+  - Test 5: re-approve after reject 閳?history_count=2, is_runtime_ready=True, last_reviewer_id updated
+  - Test 6: invalid decision 閳?FeedbackError with expected message
+  - Test 7: missing patch_id 閳?FeedbackError with list of available ids
+  - Test 8: privacy safety 閳?no raw text, no extra fields in written-back file
+  - Test 9: output to separate file 閳?input unchanged
   - Test 10: separate output preserves original input
   - 176 existing tests pass with zero regressions
-- T164 必须保留的约束：
-  - T164 只可消费 `status == "approved"` 且 `is_runtime_ready() == True` 的 patch
-  - review history 已写入提案报告 JSON，T164 不可清除或覆盖 history
-  - review metadata 使用 `DistilledArtifactReviewMetadata` 与 T122 审查模式一致
-  - stdout 和输出不含原始反馈文本、编辑文本、用户备注或边界备注
+- T164 韫囧懘銆忔穱婵堟殌閻ㄥ嫮瀹抽弶鐕傜窗
+  - T164 閸欘亜褰插☉鍫ｅ瀭 `status == "approved"` 娑?`is_runtime_ready() == True` 閻?patch
+  - review history 瀹告彃鍟撻崗銉﹀絹濡楀牊濮ら崨?JSON閿涘164 娑撳秴褰插〒鍛存珟閹存牞顩惄?history
+  - review metadata 娴ｈ法鏁?`DistilledArtifactReviewMetadata` 娑?T122 鐎光剝鐓″Ο鈥崇础娑撯偓閼?  - stdout 閸滃矁绶崙杞扮瑝閸氼偄甯慨瀣冀妫ｅ牊鏋冮張顑锯偓浣虹椽鏉堟垶鏋冮張顑锯偓浣烘暏閹村嘲顦▔銊﹀灗鏉堝湱鏅径鍥ㄦ暈
 ## 64. T163 Review Decision
 
 - Review file:
@@ -2508,8 +2244,8 @@ M1 必须承接的条件：
   - Non-runtime-ready records produce a result with `runtime_ready=False` and all three briefs set to `None`.
   - Candidate, rejected, frozen, and archived records are excluded.
 - How each brief is built:
-  - **PartnerPersonaBrief**: `contact_id` from skill, `relationship_type` from skill, `relationship_state_summary` formatted as `"{current_status}, closeness={closeness:.2f}, trust={trust_level:.2f}, freq={interaction_frequency}, initiative={initiative_balance}"`, `communication_style_snapshot` projected with `"unknown"` → `None` conversion, `preferred_topics` as topic strings, `emotional_pattern_labels` as pattern strings, `evidence_refs` as union of relationship_state + communication_style + preferred_topics + emotional_patterns refs, `source_skill_record_id` from record.
-  - **CommunicationPolicyBrief**: reply strategy fields (default, cold, topic_opener, sensitive) projected from `ContactSkillReplyStrategy`, user-side preferences (user_goal, preferred_reply_style) projected from `ContactSkillUserSidePreferences`, `stable_preference_hints` as pattern strings from `ContactSkillPattern`, `approved_patch_hints` passed through from optional parameter (empty by default — T174 wires the T164 patch loading), `evidence_refs` only from `stable_preferences` entries (faithfully thin — no synthetic evidence for reply strategy or user-side preferences).
+  - **PartnerPersonaBrief**: `contact_id` from skill, `relationship_type` from skill, `relationship_state_summary` formatted as `"{current_status}, closeness={closeness:.2f}, trust={trust_level:.2f}, freq={interaction_frequency}, initiative={initiative_balance}"`, `communication_style_snapshot` projected with `"unknown"` 閳?`None` conversion, `preferred_topics` as topic strings, `emotional_pattern_labels` as pattern strings, `evidence_refs` as union of relationship_state + communication_style + preferred_topics + emotional_patterns refs, `source_skill_record_id` from record.
+  - **CommunicationPolicyBrief**: reply strategy fields (default, cold, topic_opener, sensitive) projected from `ContactSkillReplyStrategy`, user-side preferences (user_goal, preferred_reply_style) projected from `ContactSkillUserSidePreferences`, `stable_preference_hints` as pattern strings from `ContactSkillPattern`, `approved_patch_hints` passed through from optional parameter (empty by default 閳?T174 wires the T164 patch loading), `evidence_refs` only from `stable_preferences` entries (faithfully thin 閳?no synthetic evidence for reply strategy or user-side preferences).
   - **BoundaryProfileBrief**: `avoid_topics` as topic strings, `boundary_rules` from `user_side_preferences.boundaries`, `disallowed_uses` and `usage_notes` from `usage_boundary`, `important_event_summaries` formatted as `"{event} ({date})"` when date exists or `"{event}"` when absent, `sensitivity_summary` computed as `max(avoid_topics sensitivities + important_events sensitivities + parent aggregate sensitivity)` with parent floor, `evidence_refs` as union of avoid_topics + important_events refs.
 - Deterministic guarantees:
   - Same `ContactSkillStoreRecord` input always produces the same briefs.
@@ -2574,7 +2310,7 @@ M1 必须承接的条件：
 - Projection output preservation:
   - `relationship_state_summary`, `important_event_summaries`, and `sensitivity_summary` are preserved as projection-owned outputs. The assembler does not reformat or reinterpret them.
   - Thin `CommunicationPolicyBrief.evidence_refs` (from `stable_preferences` only) is preserved without backfilling.
-  - `"unknown"` → `None` communication-style conversion is preserved from projection.
+  - `"unknown"` 閳?`None` communication-style conversion is preserved from projection.
 - Verification:
   - `python -m py_compile src/practical_chat_agent/core/models.py src/practical_chat_agent/services/chat_context.py`: passed.
   - `pytest tests/test_chat_context_decomposition.py -q`: 39 passed.
@@ -2658,7 +2394,7 @@ M1 必须承接的条件：
   - Deterministic post-generation validation of LLM output.
   - Structured refusal handling.
 - What remains intentionally forbidden after T180:
-  - Hybrid `ReplyPlanner` (merging deterministic + LLM candidates) — deferred to T183.
+  - Hybrid `ReplyPlanner` (merging deterministic + LLM candidates) 閳?deferred to T183.
   - Auto-approval or auto-injection of LLM candidates into any runtime path.
   - Changes to the existing deterministic `ReplyPlanner` or `ReplyPlanPolicyEngine`.
   - Storing or caching LLM outputs beyond the generator's output file.
@@ -2712,7 +2448,7 @@ M1 必须承接的条件：
   - Invalid candidates are excluded silently per the T180 contract.
   - Ranks are re-assigned to a contiguous 1..N sequence after filtering.
   - Privacy leakage check: exact substring match of input context text against draft_text (minimum 8 chars).
-  - Impersonation detection: first-person contact voice ("I would say", "he would say"), Chinese impersonation pattern ("对方会"), "作为/以...身份/角色" patterns.
+  - Impersonation detection: first-person contact voice ("I would say", "he would say"), Chinese impersonation pattern ("鐎佃鏌熸导?), "娴ｆ粈璐?娴?..闊偂鍞?鐟欐帟澹? patterns.
 - Verification:
   - `python -m py_compile src/practical_chat_agent/core/models.py src/practical_chat_agent/services/llm_reply_generator.py src/practical_chat_agent/services/reply_planner.py src/practical_chat_agent/app/main.py`: passed.
   - `pytest tests/test_llm_reply_generator.py -q`: 26 passed.
@@ -2850,15 +2586,15 @@ M1 必须承接的条件：
   - `docs/07_handoff.md` (this entry)
 - Shared validator module (`reply_candidate_validator.py`):
   - Module-level functions for deterministic validation, no class wrapper:
-    - `check_text_non_empty()` — candidate draft must be non-empty
-    - `check_supporting_refs()` — at least one supporting context ref
-    - `check_boundary_reminders()` — at least one boundary reminder
-    - `check_ref_types()` — all ref types in `VALID_REF_TYPES` frozenset
-    - `has_privacy_leak()` — two-tier check: full normalized substring (min 8 chars, existing) plus 4+ consecutive word sequence match (new, catches partial fragments)
-    - `has_impersonation()` — regex patterns from T181, now reusable
-    - `normalize_ranks()` — renumber priority_rank to 1..N (in-place)
-    - `check_ranks_contiguous()` — validate rank contiguity (non-mutating)
-    - `check_input_size()` — character-count proxy for token budget
+    - `check_text_non_empty()` 閳?candidate draft must be non-empty
+    - `check_supporting_refs()` 閳?at least one supporting context ref
+    - `check_boundary_reminders()` 閳?at least one boundary reminder
+    - `check_ref_types()` 閳?all ref types in `VALID_REF_TYPES` frozenset
+    - `has_privacy_leak()` 閳?two-tier check: full normalized substring (min 8 chars, existing) plus 4+ consecutive word sequence match (new, catches partial fragments)
+    - `has_impersonation()` 閳?regex patterns from T181, now reusable
+    - `normalize_ranks()` 閳?renumber priority_rank to 1..N (in-place)
+    - `check_ranks_contiguous()` 閳?validate rank contiguity (non-mutating)
+    - `check_input_size()` 閳?character-count proxy for token budget
   - Constants `VALID_REF_TYPES` (frozenset, 6 types), `MAX_INPUT_CHARS` (20,000), and `_IMPERSONATION_PATTERNS` are module-level and importable for inspection.
 - LLMReplyPlanValidator now delegates to shared functions:
   - `_candidate_is_valid()` calls shared `check_text_non_empty`, `check_supporting_refs`, `check_boundary_reminders`, `check_ref_types`, `has_privacy_leak`, `has_impersonation`.
@@ -2873,10 +2609,10 @@ M1 必须承接的条件：
   - `_validate_plan()` now uses shared `check_ranks_contiguous()` instead of inline rank logic.
   - Uniqueness and contiguity are checked together with a single error message.
 - Regression tests closing T181 deferred gaps:
-  - **M01** (7 tests): `_build_llm_input` output-shape expectations — minimal context, skill brief, memory facts, derived briefs, approved patches, empty contact id, event/memory counts.
-  - **M02** (10 tests): `_parse_provider_response` error paths — missing choices, empty choices, non-list choices, non-dict choice, missing message, non-dict message, empty content, invalid JSON, non-object JSON, valid response.
-  - **M03** (2 tests): Generator-to-validator end-to-end synthetic pipeline — mock provider → parse → build candidates → construct plan → validate; second test validates privacy leak filtering in the pipeline.
-  - **M04** (2 tests): CLI stdout privacy regression — dry-run and generate modes both assert `draft_text` and private text not in stdout.
+  - **M01** (7 tests): `_build_llm_input` output-shape expectations 閳?minimal context, skill brief, memory facts, derived briefs, approved patches, empty contact id, event/memory counts.
+  - **M02** (10 tests): `_parse_provider_response` error paths 閳?missing choices, empty choices, non-list choices, non-dict choice, missing message, non-dict message, empty content, invalid JSON, non-object JSON, valid response.
+  - **M03** (2 tests): Generator-to-validator end-to-end synthetic pipeline 閳?mock provider 閳?parse 閳?build candidates 閳?construct plan 閳?validate; second test validates privacy leak filtering in the pipeline.
+  - **M04** (2 tests): CLI stdout privacy regression 閳?dry-run and generate modes both assert `draft_text` and private text not in stdout.
 - Shared validator test coverage (46 tests):
   - text non-empty (3), supporting refs (2), boundary reminders (2), ref types (5), privacy leak (8), impersonation (9), normalize ranks (5), check ranks contiguous (6), input size (4).
 - LLMReplyPlanValidator now delegates 6 of 7 checks to the shared module, keeping only `generator_type` filtering as LLM-specific.
@@ -2909,14 +2645,14 @@ M1 必须承接的条件：
   - `generate()` also accepts `force_template` (bool) to skip LLM even in hybrid mode.
   - When `hybrid_mode=True` and `llm_generator` is available:
     1. Template candidates are built as baseline (always).
-    2. `_generate_llm_candidates()` calls `llm_generator.generate()` — catches all exceptions, never raises.
+    2. `_generate_llm_candidates()` calls `llm_generator.generate()` 閳?catches all exceptions, never raises.
     3. LLM candidates go through `_build_llm_candidate()` which applies `policy_engine.assess_candidate()` (same policy assessment as template candidates).
     4. `_merge_candidates()` merges deterministically: keep template candidate 1 as safety baseline, replace 2+ with up to 2 LLM candidates, pad to exactly 3 from remaining template candidates, renumber ranks to 1..3.
     5. If LLM generator is unavailable, refuses, or raises, hybrid mode falls back to clean template-only output (never crashes, never produces hybrid partial output).
     6. `_build_candidate_difference_notes()` updated to add LLM-specific notes when hybrid candidates are present.
   - The `force_template` parameter gives callers explicit control to bypass LLM even when hybrid mode is configured.
 - T182 N01 INPUT_TOO_LARGE fix:
-  - `check_input_size()` signature changed from `(serialized_json: str, ...)` to `(size: int, ...)` — callers pass integer character count.
+  - `check_input_size()` signature changed from `(serialized_json: str, ...)` to `(size: int, ...)` 閳?callers pass integer character count.
   - Call site in `LLMReplyGeneratorService.generate()` passes `estimated_size` (int) instead of `str(estimated_size)`.
   - Test values changed from string length checks to direct integer comparisons.
 - CLI wiring:
@@ -2943,15 +2679,15 @@ M1 必须承接的条件：
   - Successfully executed with Deepseek (api.deepseek.com, model deepseek-chat).
   - Command: `chat-reply-plan --hybrid` with synthetic ChatContext.
   - Result: 3 candidates produced (1 template baseline + 2 LLM-generated).
-    - Template candidate 1 (conservative_acknowledgment, 中文, confidence 0.78).
-    - LLM candidate 2 (enthusiastic follow-up, 英文, confidence 0.90).
-    - LLM candidate 3 (casual support, 英文, confidence 0.85).
+    - Template candidate 1 (conservative_acknowledgment, 娑擃厽鏋? confidence 0.78).
+    - LLM candidate 2 (enthusiastic follow-up, 閼昏鲸鏋? confidence 0.90).
+    - LLM candidate 3 (casual support, 閼昏鲸鏋? confidence 0.85).
   - Merge rule verified: template[0] kept as safety baseline, LLM[0:2] replaced ranks 2 and 3.
   - Policy assessment applied: boundary_reminders carried through to LLM candidates.
   - Output written to `private/distilled/t183_smoke/hybrid_plan.json`.
-  - Notable observation: LLM returned English drafts while template uses Chinese — the prompt does not specify language preference.
+  - Notable observation: LLM returned English drafts while template uses Chinese 閳?the prompt does not specify language preference.
 - Remaining risks:
-  - LLM candidate quality is not evaluated in T183 — T184 holdout eval remains the quality gate.
+  - LLM candidate quality is not evaluated in T183 閳?T184 holdout eval remains the quality gate.
   - Merge rule (keep template[0], replace 2+) is deterministic but not validated against real LLM output diversity.
   - If LLM returns only 1 valid candidate, the merge pads with template candidates, which may produce a mixed-style output.
 
@@ -2964,14 +2700,14 @@ Evaluate template vs hybrid planner behavior on 6 anonymized holdout scenarios a
 ### Eval Artifacts
 
 All private outputs under `private/distilled/t184_holdout_eval/`:
-- `contexts/*.context.json` — 6 synthetic anonymized ChatContext inputs
-- `plans_template/*.plan.json` — 6 template-mode ReplyPlan outputs
-- `plans_hybrid/*.plan.json` — 6 hybrid-mode ReplyPlan outputs
-- `eval_analysis.json` — structured comparison
+- `contexts/*.context.json` 閳?6 synthetic anonymized ChatContext inputs
+- `plans_template/*.plan.json` 閳?6 template-mode ReplyPlan outputs
+- `plans_hybrid/*.plan.json` 閳?6 hybrid-mode ReplyPlan outputs
+- `eval_analysis.json` 閳?structured comparison
 
 ### Eval Coverage
 
-6 scenarios × 2 modes = 12 ReplyPlans evaluated:
+6 scenarios 鑴?2 modes = 12 ReplyPlans evaluated:
 
 | Scenario | Type | Template diversity | Hybrid diversity | Baseline preserved |
 |----------|------|-------------------|-----------------|--------------------|
@@ -2990,7 +2726,7 @@ All private outputs under `private/distilled/t184_holdout_eval/`:
 - **Mixed language**: Template candidates are Chinese; LLM candidates default to English. This creates a jarring UX when reviewing hybrid output.
 - **LLM confidence inflation**: LLM candidates range 0.79-0.95 vs template 0.45-0.78. Not calibrated to actual quality variance.
 - **Approach_label inconsistency**: Hybrid labels mix snake_case, title case, and sentence fragments.
-- **Privacy safety**: 5/5 for both modes — no leaks.
+- **Privacy safety**: 5/5 for both modes 閳?no leaks.
 - **Merge stability**: 6/6 scenarios preserve template[0] as rank 1 baseline with contiguous ranks.
 
 ### Live Provider
@@ -3002,15 +2738,15 @@ All 6 hybrid scenarios used Deepseek (api.deepseek.com, deepseek-chat) via `chat
 **Conditional**
 
 Conditions carried forward:
-1. Language consistency — LLM should generate in the same language as template (Chinese), or mixed-language output must be accepted as a design trade-off.
-2. Safety constraint enforcement — LLM draft text must respect thin_context and boundary_sensitive flags at the text level, not just at the policy-flag level.
-3. Approach_label normalization — hybrid labels should follow the same convention as template labels.
-4. Merge success path regression coverage — add a committed synthetic valid-candidate merge test.
+1. Language consistency 閳?LLM should generate in the same language as template (Chinese), or mixed-language output must be accepted as a design trade-off.
+2. Safety constraint enforcement 閳?LLM draft text must respect thin_context and boundary_sensitive flags at the text level, not just at the policy-flag level.
+3. Approach_label normalization 閳?hybrid labels should follow the same convention as template labels.
+4. Merge success path regression coverage 閳?add a committed synthetic valid-candidate merge test.
 
 ### Remaining Risks
 
-1. Mixed-language output is a real UX concern — English LLM candidates alongside Chinese template candidates.
-2. LLM safety constraint bypass — draft text can contradict assigned risk flags.
+1. Mixed-language output is a real UX concern 閳?English LLM candidates alongside Chinese template candidates.
+2. LLM safety constraint bypass 閳?draft text can contradict assigned risk flags.
 3. LLM confidence is consistently high and uncalibrated, which may mislead human reviewers.
 4. No committed regression test for hybrid valid-candidate merge path (carried from T183).
 5. Approach_label naming inconsistency may affect downstream consumers (e.g., feedback clustering).
@@ -3030,7 +2766,7 @@ No changes to `reply_planner.py` or `app/main.py` were needed; all fixes are pro
 
 ### Changes
 
-1. **System prompt language enforcement**: Added rule 6 requiring all `draft_text` to be written in Chinese (中文). This aligns LLM output language with template output language, resolving the T184 mixed-language UX concern.
+1. **System prompt language enforcement**: Added rule 6 requiring all `draft_text` to be written in Chinese (娑擃厽鏋?. This aligns LLM output language with template output language, resolving the T184 mixed-language UX concern.
 
 2. **Safety constraint enforcement**: Added rule 4 with explicit guidance for thin_context and boundary_sensitive scenarios. Also added automatic `safety_context` detection in `_build_llm_input()`: when `approved_store_context.status` is `not_configured` or `no_runtime_ready_records`, a `thin_context` flag is included; when `derived_brief_context.boundary.sensitivity_summary` contains `sensitive` or `high`, a `boundary_sensitive` flag is included. The system prompt instructs the LLM to obey these flags.
 
@@ -3040,11 +2776,11 @@ No changes to `reply_planner.py` or `app/main.py` were needed; all fixes are pro
 
 ### Verification
 
-- `python -m py_compile src/practical_chat_agent/services/llm_reply_generator.py src/practical_chat_agent/services/reply_planner.py src/practical_chat_agent/app/main.py` — pass
-- `pytest tests/test_hybrid_reply_planner.py -q` — 21 passed (3 new)
-- `pytest tests/test_llm_reply_generator.py -q` — 47 passed
-- `pytest tests/test_reply_candidate_validator.py -q` — 46 passed
-- `pytest tests/ -q` — 441 passed (438 existing + 3 new), zero regressions
+- `python -m py_compile src/practical_chat_agent/services/llm_reply_generator.py src/practical_chat_agent/services/reply_planner.py src/practical_chat_agent/app/main.py` 閳?pass
+- `pytest tests/test_hybrid_reply_planner.py -q` 閳?21 passed (3 new)
+- `pytest tests/test_llm_reply_generator.py -q` 閳?47 passed
+- `pytest tests/test_reply_candidate_validator.py -q` 閳?46 passed
+- `pytest tests/ -q` 閳?441 passed (438 existing + 3 new), zero regressions
 
 ### Remaining Risks
 
@@ -3052,4 +2788,4 @@ No changes to `reply_planner.py` or `app/main.py` were needed; all fixes are pro
 2. **Safety context detection is heuristic**: The current detection uses `approved_store_context.status` and `boundary.sensitivity_summary` to infer thin/sensitive conditions. A more accurate approach would use the `ReplyPlanPolicyEngine` directly, which is outside the generator's scope.
 3. **LLM confidence still uncalibrated**: This task did not address LLM confidence calibration; the uncalibrated 0.79-0.95 range noted in T184 remains.
 4. **Label normalization may truncate some LLM labels**: Long or unusually formatted labels are collapsed to snake_case, which preserves consistency but may lose information.
-5. **Template-only behavior unchanged**: Verified — all 438 existing tests pass without modification.
+5. **Template-only behavior unchanged**: Verified 閳?all 438 existing tests pass without modification.

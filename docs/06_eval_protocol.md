@@ -1,5 +1,25 @@
 # Eval Protocol
 
+## Captain Update 2026-05-24 (T195 Review)
+
+T195 has now been accepted with `PASS_WITH_WARNINGS`.
+
+Current evaluation sequence is now:
+
+- T200: can the repo define a `MemoryRetriever` abstraction and `MemoryHit` contract that preserve approved-only, review-safe retrieval boundaries without adding external memory systems?
+
+T195 changes the evaluation baseline in one important way: the project no longer needs to ask whether approved relationship context exists or whether the current planner uses it meaningfully. That result is now explicit: the context exists, but the planner does not semantically consume it. M9 starts from that clarified baseline.
+
+## Captain Update 2026-05-24 (T194 Review)
+
+T194 has now been accepted with `PASS_WITH_WARNINGS`.
+
+Current evaluation sequence is now:
+
+- T195: can the repo evaluate whether the same inbound scenario produces appropriately different `ReplyPlan` behavior under different approved RelationshipState conditions, without code changes or private artifact commits?
+
+T194 changes the evaluation baseline in one important way: M8 no longer needs to prove whether compact approved relationship guidance can be surfaced in runtime context at all. That layer now exists. The final evaluation target is behavior difference under controlled context, not context wiring.
+
 ## Captain Update 2026-05-24 (T193 Review)
 
 T193 has now been accepted with `PASS_WITH_WARNINGS`.

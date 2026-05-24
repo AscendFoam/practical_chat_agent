@@ -1,5 +1,28 @@
 # Feasibility Report
 
+## Captain Update 2026-05-24 (T195 Review)
+
+T195 confirms that M8 is feasible within its intended scope, but it also sharpens the remaining gap.
+
+The feasibility question has changed again:
+
+- no longer blocked on whether the repo can model, review, expose, and evaluate approved relationship-state guidance safely
+- now explicitly aware that the current planner does not consume that guidance semantically, so M8 closes as infrastructure/evaluation rather than behavior completion
+- now focused on whether T200 can define a retriever abstraction cleanly, without external memory systems or hidden runtime coupling
+
+So the project is ready to commit the T195 slice and advance to T200, while keeping relationship-aware planner behavior as later scoped work rather than smuggling it into M9.
+
+## Captain Update 2026-05-24 (T194 Review)
+
+T194 confirms that compact, approval-gated relationship context can be exposed to `ChatContext` in the current repository shape.
+
+The feasibility gap has changed again:
+
+- no longer blocked on whether approved relationship guidance can be injected into runtime context without raw signal or review-history leakage
+- now focused on whether T195 can evaluate planner behavior under different approved relationship states without modifying code or treating the context path as a state-application mechanism
+
+So the project is ready to commit the T194 slice and advance to T195, while keeping the final M8 step evaluation-only.
+
 ## Captain Update 2026-05-24 (T193 Review)
 
 T193 confirms that explicit human review over relationship deltas is feasible in the current repository shape.

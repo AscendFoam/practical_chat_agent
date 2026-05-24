@@ -1,5 +1,37 @@
 # Risks And Open Questions
 
+## Captain Update 2026-05-24 (T195 Review Decision)
+
+Authoritative current risk state after the Captain review of T195:
+
+- R040 remains active as a compact-context and privacy boundary rule: M9 and later work must continue to use approved metadata / review-safe artifacts only and must not reopen raw-transcript ingestion.
+- R041 remains active: relationship-state work remains review-only guidance and must not turn into hidden state mutation.
+- R071 remains active: LLM confidence calibration is still unresolved, but it is orthogonal to T195 and does not block M8 closure.
+- R084 remains active and deferred: T193 approvals still do not run an evidence pre-validation gate, so later work must not over-read approval as evidence freshness.
+- R086 through R090 remain active as deferred T194 hardening debt.
+- R091 is active and deferred: approved relationship context exists in `ChatContext`, but no planner or policy code path consumes relationship delta semantics, so reply behavior is unchanged.
+- R092 is active and deferred: relationship guidance that surfaces through summary/retrieval notes is informational only and must not be mistaken for semantic runtime consumption.
+
+Closed question Q188: T195 is accepted with `PASS_WITH_WARNINGS`, so the project may proceed to T200 and close M8 as an infrastructure/evaluation milestone without claiming relationship-aware planner behavior is already implemented.
+
+## Captain Update 2026-05-24 (T194 Review Decision)
+
+Authoritative current risk state after the Captain review of T194:
+
+- R040 remains active as a compact-context and privacy boundary rule: T195 must continue to use approved metadata / anonymized-safe artifacts only and must not reopen raw-transcript ingestion.
+- R041 remains active: relationship-state work must stay review-only and must not turn compact context into hidden state mutation.
+- R071 remains active: LLM confidence calibration is still unresolved, but it is orthogonal to T194 and does not block M8 context acceptance.
+- R083 remains active and deferred: T193 still has no committed CLI-level integration tests.
+- R084 remains active and deferred: T193 approvals do not run an evidence pre-validation gate, so T194/T195 must not treat approval as evidence freshness.
+- R085 remains active and deferred: the empty-string review-note path is untested and could regress silently.
+- R086 is active and deferred: T194 summary truncation is not directly tested.
+- R087 is active and deferred: T194 path-is-directory branch is not directly tested.
+- R088 is active and deferred: T194 empty `delta_rationale` input is not directly tested.
+- R089 is active and deferred: T194 uses a directory-of-JSON-files relationship context path rather than a store-file abstraction, which is acceptable for scope but may become awkward if delta volume grows.
+- R090 is active and deferred: T194 has no AppContainer wiring, so runtime configuration remains programmatic only.
+
+Closed question Q187: T194 is accepted with `PASS_WITH_WARNINGS`, so the project may proceed to T195 rather than reopening the compact-context task.
+
 ## Captain Update 2026-05-24 (T193 Review Decision)
 
 Authoritative current risk state after the Captain review of T193:
@@ -524,6 +556,13 @@ Closed question Q124: the updated GPT roadmap is directionally aligned, but M4/M
 | R083 | T193 has no committed CLI-level integration tests | Typer wiring, file I/O, JSON error handling, and safe-path output could regress even though the service layer is covered | Add committed CLI regression tests before or during later M8 hardening if the command becomes a relied-on operational path |
 | R084 | T193 approvals do not run an evidence pre-validation gate | Later tasks could over-assume that an approved delta also has fresh, resolvable evidence refs | T194/T195 and any future state-application task should treat approval as human review only, not as evidence validation |
 | R085 | T193 has no explicit empty-string note regression test | The note-normalization edge path could change silently without direct coverage | Add a narrow test when CLI/service hardening is revisited |
+| R086 | T194 summary truncation is not directly tested | Very long multi-dimension summaries could change formatting without regression signal | Add a narrow truncation test if context verbosity grows |
+| R087 | T194 path-is-directory branch is not directly tested | File-vs-directory misconfiguration could regress silently | Add a branch test if runtime configuration for relationship context becomes relied upon |
+| R088 | T194 empty `delta_rationale` input is not directly tested | An empty rationale could change summary behavior without direct coverage | Add a narrow test when context hardening is revisited |
+| R089 | T194 reads a directory of relationship delta JSON files rather than a store-file abstraction | The current design is fine for scope but may become awkward if delta volume or lifecycle complexity grows | Revisit abstraction only if later milestones need a richer relationship-delta store model |
+| R090 | T194 lacks AppContainer wiring | Relationship context is only configurable programmatically, not via central app configuration | Add wiring later if runtime configuration becomes a real operational need |
+| R091 | Approved relationship context is present in `ChatContext` but not consumed by `ReplyPlanner` or `ReplyPlanPolicyEngine` | M8 can be over-read as relationship-aware reply behavior even though approved deltas currently have zero behavioral effect | Keep documented as a functional gap; only a later scoped planner/policy task may claim to close it |
+| R092 | Relationship guidance reaching summary and retrieval-note surfaces is informational only | Future readers may mistake visible context text for active runtime semantics and overstate current capability | Do not treat summary or retrieval notes as semantic consumption; add explicit planner integration only in a later scoped task |
 
 ## Open Questions
 
@@ -539,6 +578,7 @@ Closed question Q124: the updated GPT roadmap is directionally aligned, but M4/M
 | Q184 | T191 是否可以作为已完成任务接受并推进到 T192？可以；以 `PASS_WITH_WARNINGS` 接受，deferred 项转入 M8 风险台账并由 T192/T193+ 承接。 | `docs/review/T191_review.md` + Captain decision |
 | Q185 | T192 是否可以作为已完成任务接受并推进到 T193？可以；以 `PASS_WITH_WARNINGS` 接受，deferred 项转入 M8 风险台账并由 T193+ 承接。 | `docs/review/T192_review.md` + Captain decision |
 | Q186 | T193 是否可以作为已完成任务接受并推进到 T194？可以；以 `PASS_WITH_WARNINGS` 接受，deferred 项转入 M8 风险台账并由 T194+ 承接。 | `docs/review/T193_review.md` + Captain decision |
+| Q187 | T194 是否可以作为已完成任务接受并推进到 T195？可以；以 `PASS_WITH_WARNINGS` 接受，deferred 项转入 M8 风险台账并由 T195+ 承接。 | `docs/review/T194_review.md` + Captain decision |
 | Q180 | Gate M7 是否已经可以关闭并进入 M8？还不可以；它仍是 `Conditional`，必须先完成 T185 的窄范围对齐修复。 | `docs/review/T184_milestone_review.md` + Captain decision |
 | Q179 | T184 是否可以作为已完成任务接受并推进到 T185？可以；以 `PASS_WITH_WARNINGS` 接受，holdout 证据有效但 gate 仍 `Conditional`。 | `docs/review/T184_review.md` + Captain decision |
 | Q178 | T183 是否可以作为已完成任务接受并推进到 T184？可以；以 `PASS_WITH_WARNINGS` 接受，deferred 项收敛到 hybrid merge success test 缺口。 | `docs/review/T183_review.md` + Captain decision |

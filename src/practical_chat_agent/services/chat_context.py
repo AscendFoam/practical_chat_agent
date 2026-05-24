@@ -8,6 +8,8 @@ from practical_chat_agent.core.models import (
     ApprovedMemoryFactBrief,
     ApprovedPatchBrief,
     ApprovedPatchContext,
+    ApprovedRelationshipContext,
+    ApprovedRelationshipDeltaBrief,
     ApprovedStoreContext,
     AgentProfile,
     ChatContext,
@@ -20,6 +22,7 @@ from practical_chat_agent.core.models import (
     MemoryFactStoreFile,
     MemoryFactStoreRecord,
     MemoryProfileSnapshot,
+    RelationshipDeltaCandidate,
 )
 from practical_chat_agent.services.contact_skill import ContactSkillProjectionService
 from practical_chat_agent.services.feedback import ApprovedPatchContextService
@@ -36,12 +39,14 @@ class ChatContextAssembler:
         approved_store_path: Path | None = None,
         approved_memory_limit: int = 4,
         approved_patch_path: Path | None = None,
+        approved_relationship_delta_path: Path | None = None,
     ) -> None:
         self.recent_events_limit = max(int(recent_events_limit), 1)
         self.memory_hits_limit = max(int(memory_hits_limit), 1)
         self.approved_store_path = approved_store_path
         self.approved_memory_limit = max(int(approved_memory_limit), 1)
         self.approved_patch_path = approved_patch_path
+        self.approved_relationship_delta_path = approved_relationship_delta_path
         self._repo_root = Path.cwd().resolve()
         self._private_distilled_root = (self._repo_root / "private" / "distilled").resolve()
 
@@ -87,10 +92,14 @@ class ChatContextAssembler:
             skill_record=eligible_skill_record,
             approved_patch_briefs=approved_patch_briefs,
         )
+        relationship_context = self._load_approved_relationship_context(
+            contact_id=event.actor_id,
+        )
         combined_retrieval_notes = list(memory_retrieval_notes or [])
         combined_retrieval_notes.extend(self._build_approved_store_notes(approved_store_context))
         combined_retrieval_notes.extend(self._build_approved_patch_notes(approved_patch_context))
         combined_retrieval_notes.extend(self._build_derived_brief_notes(derived_brief_context))
+        combined_retrieval_notes.extend(self._build_relationship_context_notes(relationship_context))
         summary = self._build_summary(
             agent=agent,
             event=event,
@@ -100,6 +109,7 @@ class ChatContextAssembler:
             approved_store_context=approved_store_context,
             approved_patch_context=approved_patch_context,
             derived_brief_context=derived_brief_context,
+            relationship_context=relationship_context,
         )
         return ChatContext(
             agent_id=agent.agent_id,
@@ -122,6 +132,7 @@ class ChatContextAssembler:
             approved_store_context=approved_store_context,
             approved_patch_context=approved_patch_context,
             derived_brief_context=derived_brief_context,
+            relationship_context=relationship_context,
             summary=summary,
         )
 
@@ -136,6 +147,7 @@ class ChatContextAssembler:
         approved_store_context: ApprovedStoreContext,
         approved_patch_context: ApprovedPatchContext,
         derived_brief_context: DerivedBriefContext,
+        relationship_context: ApprovedRelationshipContext,
     ) -> str:
         user_name = event.actor_name or event.actor_id
         latest_text = (event.text or "").strip()
@@ -182,6 +194,17 @@ class ChatContextAssembler:
                 pieces.append(
                     f"Derived boundary sensitivity: {derived_brief_context.boundary.sensitivity_summary}.",
                 )
+        if relationship_context.status == "loaded" and relationship_context.deltas:
+            dim_changes = "; ".join(
+                dim
+                for delta in relationship_context.deltas[:2]
+                for dim in delta.dimension_changes[:3]
+            )
+            if len(dim_changes) > 200:
+                dim_changes = f"{dim_changes[:197].rstrip()}..."
+            pieces.append(
+                f"Approved relationship guidance: {dim_changes}.",
+            )
         return " ".join(piece for piece in pieces if piece)
 
     def _load_approved_store_context(self, *, contact_id: str) -> tuple[ApprovedStoreContext, ContactSkillStoreRecord | None]:
@@ -329,6 +352,111 @@ class ChatContextAssembler:
             notes.append(
                 f"derived_boundary_sensitivity={context.boundary.sensitivity_summary}",
             )
+        return notes
+
+    def _load_approved_relationship_context(
+        self,
+        *,
+        contact_id: str,
+    ) -> ApprovedRelationshipContext:
+        if self.approved_relationship_delta_path is None:
+            return ApprovedRelationshipContext(status="not_configured")
+        resolved = self._resolve_configured_store_path(self.approved_relationship_delta_path)
+        if resolved is None:
+            return ApprovedRelationshipContext(
+                status="store_path_missing",
+                source_path=self._safe_relative_path(self.approved_relationship_delta_path),
+                contact_id=contact_id,
+                notes=["Configured relationship delta path does not exist."],
+            )
+        if not resolved.is_dir():
+            return ApprovedRelationshipContext(
+                status="store_path_missing",
+                source_path=self._safe_relative_path(resolved),
+                contact_id=contact_id,
+                notes=["Relationship delta path must be a directory."],
+            )
+        delta_files = sorted(resolved.glob("*.json"))
+        if not delta_files:
+            return ApprovedRelationshipContext(
+                status="no_runtime_ready_records",
+                source_path=self._safe_relative_path(resolved),
+                contact_id=contact_id,
+                notes=["No delta JSON files found in relationship delta path."],
+            )
+        briefs: list[ApprovedRelationshipDeltaBrief] = []
+        for f in delta_files:
+            brief = self._try_load_runtime_ready_delta(f, contact_id=contact_id)
+            if brief is not None:
+                briefs.append(brief)
+        if not briefs:
+            return ApprovedRelationshipContext(
+                status="no_runtime_ready_records",
+                source_path=self._safe_relative_path(resolved),
+                contact_id=contact_id,
+                notes=["No runtime-ready relationship deltas found for this contact."],
+            )
+        return ApprovedRelationshipContext(
+            status="loaded",
+            source_path=self._safe_relative_path(resolved),
+            contact_id=contact_id,
+            deltas=briefs,
+        )
+
+    def _try_load_runtime_ready_delta(
+        self,
+        path: Path,
+        *,
+        contact_id: str,
+    ) -> ApprovedRelationshipDeltaBrief | None:
+        """Try to load a RelationshipDeltaCandidate from *path*.
+
+        Returns an ``ApprovedRelationshipDeltaBrief`` only when the delta is
+        runtime-ready (approved + human-reviewed) and targets *contact_id*.
+        Otherwise returns ``None``.
+        """
+        try:
+            raw = path.read_text(encoding="utf-8-sig")
+            delta = RelationshipDeltaCandidate.model_validate_json(raw)
+        except Exception:
+            return None
+        if delta.contact_id != contact_id:
+            return None
+        if not delta.is_runtime_ready():
+            return None
+        dim_changes = [
+            self._format_dimension_change(d)
+            for d in delta.dimension_changes
+        ]
+        summary = self._compact_text(delta.delta_rationale, max_length=200)
+        return ApprovedRelationshipDeltaBrief(
+            delta_id=delta.delta_id,
+            contact_id=delta.contact_id,
+            dimension_changes=dim_changes,
+            delta_summary=summary,
+            evidence_refs=self._limit_refs(delta.evidence_refs),
+        )
+
+    @staticmethod
+    def _format_dimension_change(dim) -> str:
+        return (
+            f"{dim.dimension_name}: {dim.current_value:.2f}->{dim.proposed_value:.2f}"
+            f" ({dim.direction})"
+        )
+
+    @staticmethod
+    def _build_relationship_context_notes(context: ApprovedRelationshipContext) -> list[str]:
+        if context.status != "loaded":
+            return list(context.notes)
+        notes = [
+            f"relationship_context source={context.source_path or 'private/distilled'}",
+            f"relationship_delta_count={len(context.deltas)}",
+        ]
+        for brief in context.deltas[:2]:
+            hint = "; ".join(brief.dimension_changes[:3])
+            if len(hint) > 160:
+                hint = f"{hint[:157].rstrip()}..."
+            notes.append(f"relationship_delta {brief.delta_id}: {hint}")
         return notes
 
     def _load_approved_patch_context(self, *, contact_id: str) -> ApprovedPatchContext:

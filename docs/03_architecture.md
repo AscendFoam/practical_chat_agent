@@ -1,5 +1,54 @@
 # Architecture
 
+## Captain Update 2026-05-24 (T195 Review)
+
+T195 closes M8 by clarifying the current architecture, not by adding new runtime behavior:
+
+```text
+approved relationship deltas
+  -> compact ApprovedRelationshipContext
+  -> ChatContext.relationship_context
+  -> review-visible summary / retrieval notes
+  -> no planner or policy consumer for delta semantics
+  -> no reply-behavior change today
+```
+
+The next architectural step is T200, which must stay contract-first:
+
+```text
+existing local memory sources
+  -> MemoryRetriever interface
+  -> MemoryHit contract
+  -> approved-only / review-safe retrieval boundary
+  -> no external adapter and no auto-write
+```
+
+This keeps M9 separate from the still-deferred question of explicit relationship-aware planner consumption.
+
+## Captain Update 2026-05-24 (T194 Review)
+
+T194 completes the runtime-context half of M8:
+
+```text
+approved relationship delta context
+  -> compact ChatContext guidance
+  -> approved/runtime-ready only
+  -> no raw signal or review-history leakage
+  -> no state mutation
+```
+
+The next architectural step is T195, which must stay evaluation-only:
+
+```text
+different approved relationship states
+  -> compare ReplyPlan behavior
+  -> no code changes
+  -> no state application
+  -> no private artifact commits
+```
+
+This keeps M8 additive and finishes the architecture with an evaluation gate rather than a new runtime mutation path.
+
 ## Captain Update 2026-05-24 (T193 Review)
 
 T193 adds the review layer on top of candidate deltas:

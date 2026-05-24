@@ -655,6 +655,35 @@ class DerivedBriefContext(BaseModel):
     notes: list[str] = Field(default_factory=list)
 
 
+class ApprovedRelationshipDeltaBrief(BaseModel):
+    """Compact summary of one approved relationship delta for ChatContext.
+
+    Carries only the reviewer-safe surface: dimension direction text,
+    a compact delta summary, and evidence refs.  No raw signal history,
+    no raw review history, and no raw private text.
+    """
+
+    delta_id: str = Field(..., min_length=1)
+    contact_id: str = Field(..., min_length=1)
+    dimension_changes: list[str] = Field(default_factory=list)
+    delta_summary: str = Field(default="", max_length=200)
+    evidence_refs: list[str] = Field(default_factory=list)
+
+
+class ApprovedRelationshipContext(BaseModel):
+    """Compact, approval-gated relationship-state guidance for ChatContext.
+
+    Only runtime-ready (approved + human-reviewed) RelationshipDeltaCandidates
+    are consumed.  Candidate, rejected, frozen, and archived deltas are excluded.
+    """
+
+    status: ApprovedStoreContextStatus = "not_configured"
+    source_path: str | None = None
+    contact_id: str | None = None
+    deltas: list[ApprovedRelationshipDeltaBrief] = Field(default_factory=list)
+    notes: list[str] = Field(default_factory=list)
+
+
 class ChatContextEvent(BaseModel):
     event_id: str
     actor_id: str
@@ -687,6 +716,7 @@ class ChatContext(BaseModel):
     approved_store_context: ApprovedStoreContext = Field(default_factory=ApprovedStoreContext)
     approved_patch_context: ApprovedPatchContext = Field(default_factory=ApprovedPatchContext)
     derived_brief_context: DerivedBriefContext = Field(default_factory=DerivedBriefContext)
+    relationship_context: ApprovedRelationshipContext = Field(default_factory=ApprovedRelationshipContext)
     summary: str | None = None
 
 

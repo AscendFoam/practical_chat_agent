@@ -1,5 +1,25 @@
 # Raw Idea
 
+## Captain Update 2026-05-24 (T195 Review)
+
+T195 has now passed review with `PASS_WITH_WARNINGS`, and M8 is closed as an infrastructure/evaluation milestone:
+
+- the repo now has a full review-first relationship-state path from schema -> signal -> delta -> review -> compact context -> evaluation
+- the evaluation also proves a hard limitation: approved relationship context is currently behaviorally inert, because the reply planner does not semantically consume relationship deltas
+- the next safe step is T200 `MemoryRetriever Interface`, not a claim that relationship-aware planner behavior is already implemented
+
+The Current Unique Task therefore moves to T200 `MemoryRetriever Interface`.
+
+## Captain Update 2026-05-24 (T194 Review)
+
+T194 has now passed review with `PASS_WITH_WARNINGS`, so the compact relationship-context step is accepted:
+
+- the repo now has a compact, approval-gated relationship-state guidance path into `ChatContext`
+- the project still does not permit raw signal history injection, state mutation, or send-behavior change from T194
+- the next safe step is T195 `Relationship-Aware Reply Eval`, not state application or runtime relationship mutation
+
+The Current Unique Task therefore moves to T195 `Relationship-Aware Reply Eval`.
+
 ## Captain Update 2026-05-24 (T193 Review)
 
 T193 has now passed review with `PASS_WITH_WARNINGS`, so the relationship-delta review step is accepted:

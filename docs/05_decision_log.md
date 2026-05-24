@@ -1,5 +1,58 @@
 # Decision Log
 
+## D053: T195 PASS_WITH_WARNINGS, close M8 as infrastructure/eval milestone, advance to T200
+
+- Date: 2026-05-24
+- Status: Accepted
+- Context: `docs/review/T195_review.md` gives `PASS_WITH_WARNINGS` for the relationship-aware reply evaluation task. No blocking issues were found. The review confirms the task stayed evaluation-only, but it also shows that the worker's claimed keyword-match mechanism was factually wrong and that the current planner does not semantically consume relationship deltas.
+- Decision: T195 is complete. M8 is closed as a relationship-state infrastructure/evaluation milestone, and the project may continue to T200 `MemoryRetriever Interface`.
+- Warning handling:
+  - Accepted:
+    - W01 the worker's milestone-review/handoff mechanism claim was incorrect, but this is a documentation-accuracy issue and is corrected in the captain governance sync rather than requiring a repair pass.
+    - W04 `docs/for_human/T195_review_explanation.md` allowed-files overrun is treated as low-risk convention noise.
+  - Deferred:
+    - W02 relationship dimension-change values are present in `ChatContext` but unused by `ReplyPlanner` / `ReplyPlanPolicyEngine`.
+    - W03 relationship guidance reaching `ChatContext.summary` and retrieval notes is informational only and does not create semantic planner consumption.
+  - Rejected: none.
+- Conditions carried forward:
+  - T200 must stay contract-first and local-only. No vector DB, no Mem0/Zep adapter, no auto-write, and no raw transcript retrieval are authorized.
+  - M8 closure does not imply relationship-aware planner behavior already exists. Any future planner/policy consumption of relationship deltas requires its own scoped task.
+  - T200 should not entangle retriever abstraction work with deferred planner-behavior gaps from T195.
+- Impact:
+  - `docs/04_task_board.md` moves the Current Unique Task from T195 to T200 and marks T195 complete.
+  - `docs/07_handoff.md` records the corrected T195 judgment and the next worker task boundary.
+  - `docs/08_risks_and_open_questions.md` records the deferred "context present but behaviorally inert" risks from the T195 review.
+  - `docs/tasks/M9_memory_retrieval_layer/T200_memory_retriever_interface.md` is rewritten into a stricter worker task package.
+
+## D052: T194 PASS_WITH_WARNINGS, accept compact-context task, advance to T195
+
+- Date: 2026-05-24
+- Status: Accepted
+- Context: `docs/review/T194_review.md` gives `PASS_WITH_WARNINGS` for the compact relationship-context task. No blocking issues were found, and the review confirms the task stayed context-only, approval-gated, and within the intended M8 boundary.
+- Decision: T194 is complete. The project may continue to T195 `Relationship-Aware Reply Eval`.
+- Warning handling:
+  - Accepted:
+    - N01 relationship context reads individual delta JSON files rather than a store-file abstraction, which is acceptable for the current scope.
+    - N02 `.claude/settings.json` modification is treated as workspace-artifact noise rather than a T194 scope defect.
+    - S01 diagnostic notes entering retrieval notes are a project-wide convention.
+    - S02 `ApprovedStoreContextStatus` reuse is acceptable cross-domain coupling for this compact context layer.
+    - S03 lack of AppContainer wiring is outside current scope.
+  - Deferred:
+    - M01 summary truncation edge case is not directly tested.
+    - M02 path-is-directory branch is not directly tested.
+    - M03 empty `delta_rationale` input is not directly tested.
+  - Rejected: none.
+- Conditions carried forward:
+  - T195 must stay evaluation-only. No code changes, no private artifacts committed, and no state application are authorized.
+  - T195 should compare `ReplyPlan` behavior under different approved relationship contexts and capture evidence only.
+  - T195 should treat relationship context as compact guidance, not as an automatic state mutation channel.
+  - M8 remains open as an evaluation milestone, but no additional implementation task is authorized by T194 alone.
+- Impact:
+  - `docs/04_task_board.md` moves the Current Unique Task from T194 to T195 and marks T194 complete.
+  - `docs/07_handoff.md` records the T194 review decision and what T195 may assume next.
+  - `docs/08_risks_and_open_questions.md` records the deferred context-loading and coverage risks from the T194 review.
+  - `docs/tasks/M8_relationship_state/T195_relationship_aware_eval.md` is rewritten into a stricter worker task package.
+
 ## D051: T193 PASS_WITH_WARNINGS, accept relationship review task, advance to T194
 
 - Date: 2026-05-24

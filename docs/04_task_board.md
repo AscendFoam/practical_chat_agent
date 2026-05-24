@@ -4,6 +4,35 @@ Updated: 2026-05-24
 
 ## Captain Current State Override
 
+- T195 review decision: `PASS_WITH_WARNINGS`.
+- T195 is complete as the evaluation-only closing task for M8.
+- T195 warning disposition:
+  - Accepted: W01 worker milestone-review/handoff mechanism claim was factually wrong and is corrected in the captain governance sync, W04 `docs/for_human/T195_review_explanation.md` allowed-files overrun is treated as established low-risk convention noise.
+  - Deferred: W02 relationship dimension-change values are present in `ChatContext` but unused by `ReplyPlanner` / `ReplyPlanPolicyEngine`, W03 relationship guidance reaching summary/retrieval-note surfaces is informational only and does not create semantic consumption.
+  - Rejected: none.
+- M8 completion status: M8 is complete as a relationship-state infrastructure/evaluation milestone. It does not yet provide dimension-aware reply behavior; approved relationship context is currently behaviorally inert.
+- Current Unique Task: T200 MemoryRetriever interface.
+- Current task package: `docs/tasks/M9_memory_retrieval_layer/T200_memory_retriever_interface.md`.
+- T200 must stay contract-first and local-only: no vector DB, no Mem0/Zep adapter, no auto-write, and no raw transcript retrieval.
+- M9 execution constraints now carried forward:
+  - T200 should define retriever boundaries before any adapter work.
+  - T200 should preserve approved-only, review-safe retrieval surfaces.
+  - T200 must not use T195 as justification to claim relationship-aware planner behavior already exists.
+
+- T194 review decision: `PASS_WITH_WARNINGS`.
+- T194 is complete as the compact relationship-context task for M8.
+- T194 warning disposition:
+  - Accepted: N01 relationship context reads individual delta JSON files rather than a store-file abstraction, N02 `.claude/settings.json` workspace-artifact overrun, S01 diagnostic notes flowing into retrieval notes are a project-wide convention, S02 `ApprovedStoreContextStatus` reuse is cross-domain coupling but acceptable here, S03 no AppContainer wiring is outside current scope.
+  - Deferred: M01 summary truncation edge case not directly tested, M02 path-is-directory branch not tested, M03 empty `delta_rationale` input not directly tested.
+  - Rejected: none.
+- Current Unique Task: T195 Relationship-aware reply eval.
+- Current task package: `docs/tasks/M8_relationship_state/T195_relationship_aware_eval.md`.
+- T195 must stay evaluation-only: no code changes, no private artifacts committed, and no state application or context mutation.
+- M8 execution constraints now carried forward:
+  - T195 should compare reply behavior under different approved relationship contexts and record evidence only.
+  - T195 must not invent new runtime semantics or reopen earlier review layers.
+  - T195 is the milestone-level evaluation and does not authorize new implementation work by itself.
+
 - T193 review decision: `PASS_WITH_WARNINGS`.
 - T193 is complete as the explicit relationship-delta review task for M8.
 - T193 warning disposition:
@@ -228,11 +257,11 @@ Updated: 2026-05-24
 
 ## Current Unique Task
 
-T185: Hybrid Planner Language and Safety Alignment.
+T200: MemoryRetriever Interface.
 
-Task package: `docs/tasks/M7_llm_reply_planner/T185_hybrid_planner_language_and_safety_alignment.md`
+Task package: `docs/tasks/M9_memory_retrieval_layer/T200_memory_retriever_interface.md`
 
-Why now: T184 has landed the holdout evidence with `PASS_WITH_WARNINGS`, but Gate M7 remains `Conditional`. The next smallest safe step is a narrow alignment pass that fixes the open language/safety/merge gaps before any claim of M7 closure.
+Why now: T195 has landed with `PASS_WITH_WARNINGS` and closes M8 as an infrastructure/evaluation milestone. The evaluation result is now explicit: approved relationship context exists, but the current planner does not consume it semantically. The next smallest safe step is therefore M9 contract work, starting with a retriever abstraction, rather than reopening planner behavior without a scoped task.
 
 ## Board Rules
 
@@ -343,8 +372,8 @@ Goal: model multi-axis relationship state with human-reviewed deltas rather than
 - [x] T191: relationship signal extractor. Review `PASS_WITH_WARNINGS`.
 - [x] T192: RelationshipDeltaCandidate. Review `PASS_WITH_WARNINGS`.
 - [x] T193: relationship review CLI. Review `PASS_WITH_WARNINGS`.
-- [ ] T194: RelationshipState compact context.
-- [ ] T195: relationship-aware reply eval.
+- [x] T194: RelationshipState compact context. Review `PASS_WITH_WARNINGS`.
+- [x] T195: relationship-aware reply eval. Review `PASS_WITH_WARNINGS`.
 
 ## Milestone 9: Memory Retrieval Layer
 
@@ -386,9 +415,9 @@ Goal: keep WeChat as a thin final adapter behind the send gate.
 
 ## Historical Current Unique Task
 
-T193: relationship review CLI.
+T195: Relationship-aware reply eval.
 
-It is now complete and accepted with `PASS_WITH_WARNINGS`. The next worker task is T194, because the review layer is in place and the next safe M8 step is compact approved relationship-state context.
+It is now complete and accepted with `PASS_WITH_WARNINGS`. The next worker task is T200, because M8 is closed and M9 starts with contract-first retrieval abstraction work.
 
 ## Next Captain Output Required
 
