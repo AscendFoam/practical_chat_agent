@@ -1,5 +1,137 @@
 # Handoff
 
+## Captain Current State Override 2026-05-24 (T201 Review Decision)
+
+- T201 review decision: `PASS`.
+- T201 warning disposition:
+  - Accepted: N01 `.claude/settings.json` workspace-artifact overrun is established convention noise, N02 `docs/worker_summary/T201_worker_summary.md` is established worker-summary convention noise, N03 per-call store-file reads without caching are acceptable for current offline-first single-user workflow, M01 `limit=0` test is a harmless boundary guard, M02 concurrent-read tests are outside current single-user offline scope.
+  - Deferred: none.
+  - Rejected: none.
+- T201 is complete as the local approved-store retriever task for M9.
+- Current Unique Task: T202 Retrieval Eval Set.
+- Current task package: `docs/tasks/M9_memory_retrieval_layer/T202_retrieval_eval_set.md`.
+- T202 must stay evaluation-only and synthetic:
+  - use only synthetic/redacted committed data
+  - exercise retrievers through `MemoryRetriever.retrieve()` and `MemoryRetrieverResult`
+  - cover relevant hits, exclusions, query behavior, ordering, and boundary behavior
+  - avoid private chat content, raw transcript reads, vector DB, Mem0/Zep, embedding/provider calls, ChatContext wiring, planner/policy changes, send behavior, and external services
+- Captain verification:
+  - `python -m py_compile src/practical_chat_agent/core/models.py src/practical_chat_agent/services/memory_retrieval.py src/practical_chat_agent/services/chat_context.py` passed.
+  - Initial pytest target runs failed in setup because the default Windows temp directory was not accessible in this sandbox.
+  - After setting `TEMP`/`TMP` to a workspace temp directory, `pytest tests/test_local_approved_store_retriever.py -q` passed: 63 tests.
+  - After setting `TEMP`/`TMP` to a workspace temp directory, `pytest tests/test_memory_retriever_contract.py tests/test_local_approved_store_retriever.py -q` passed: 103 tests.
+  - After setting `TEMP`/`TMP` to a workspace temp directory, `pytest tests/ -q` passed: 644 tests, with only `.pytest_cache` permission warnings.
+- No T201 repair pass is needed because no blocking issue or deferred warning exists.
+
+## T201 Worker Completion Record
+
+- T201 is the local approved-store retriever task for M9.
+- Worker must not mark T201 as complete in `docs/04_task_board.md`; only the Captain may do so after review.
+- Files changed:
+  - `src/practical_chat_agent/services/memory_retrieval.py`
+  - `tests/test_local_approved_store_retriever.py` (new)
+  - `docs/data_contracts/memory_retriever_contract.md`
+  - `docs/07_handoff.md`
+- Class added:
+  - `LocalApprovedStoreRetriever` in `services/memory_retrieval.py`
+- Retriever design:
+  - Implements the T200 `MemoryRetriever` protocol (runtime `isinstance` check passes).
+  - Reads from a `MemoryFactStoreFile` (or directory containing one) on each `retrieve()` call. No caching, no external calls.
+  - Filters to only approved/runtime-ready records: `is_runtime_ready() == True`, `subject_id == contact_id`, `evidence_validation_status == "passed"`.
+  - Candidate, rejected, frozen, archived, not-human-reviewed, and wrong-contact records never appear in hits.
+  - `MemoryHit.score` derived from `MemoryFactCandidate.importance`.
+  - `MemoryHit.source` is always `"approved_store"`.
+  - `MemoryHit.memory_type` mapped via `to_runtime_memory_type()`.
+  - Query matching: simple case-insensitive substring on claim text.
+  - Sorting: importance desc, confidence desc, memory_id asc (deterministic).
+  - Limit enforced after sorting.
+  - `not_configured` status when store file not found; `error` when unparseable.
+- Relationship to existing code:
+  - `models.py` is unchanged; no new models or types were added.
+  - `chat_context.py` is unchanged; no ChatContext wiring.
+  - No ReplyPlanner, policy-engine, send-gate, or outbound behavior changes.
+  - Reuses `MemoryFactCandidate.to_runtime_memory_type()` for type mapping.
+- Verification:
+  - Compile passed for models.py, memory_retrieval.py, chat_context.py.
+  - T201 test suite: 63 tests covering protocol conformance, approved record retrieval, excluded records (candidate/rejected/frozen/archived/not-reviewed/failed-validation/wrong-contact), query filtering, limit enforcement, source provenance, score derivation, memory-type mapping, evidence-ref preservation, deterministic ordering, store path resolution, edge cases (not found, invalid, empty), notes, contract boundary assertions, JSON round-trip, candidate count.
+  - Full existing test suite: 644 tests passed (63 new + 581 existing), no regressions.
+- Explicit non-actions:
+  - No vector DB, Mem0/Zep adapter, or external memory dependency introduced.
+  - No auto-write or runtime mutation of memories or store files.
+  - No raw chat transcript retrieval path introduced.
+  - No ReplyPlanner, policy-engine, send-gate, or outbound behavior changes.
+  - No ChatContextAssembler modifications.
+  - No provider calls, embedding calls, or external services added.
+  - No models.py changes.
+  - No chat_context.py changes.
+
+## Captain Current State Override 2026-05-24 (T200 Review Decision)
+
+- T200 review decision: `PASS`.
+- T200 warning disposition:
+  - Accepted: N01 `.claude/settings.json` workspace-artifact overrun is established convention noise, N02 `docs/worker_summary/T200_worker_summary.md` is established worker-summary convention noise, N03 free-form `MemoryHit.source` is acceptable because convention values are documented and future adapter extensibility is intentional, M01 guarded assertions in two adapter tests are minor test-strength observations covered by a direct hit-producing setup test.
+  - Deferred: none.
+  - Rejected: none.
+- T200 is complete as the contract-first MemoryRetriever opening task for M9.
+- Current Unique Task: T201 Local Approved-Store Retriever.
+- Current task package: `docs/tasks/M9_memory_retrieval_layer/T201_local_approved_store_retriever.md`.
+- T201 must implement the T200 protocol locally and approved-only:
+  - return `MemoryHit` items with `source="approved_store"`
+  - consume only approved/runtime-ready local store records
+  - preserve evidence refs
+  - exclude candidate/rejected/frozen/archived/not-human-reviewed records
+  - avoid vector DB, Mem0/Zep, embedding/provider calls, raw transcript reads, auto-write, planner/policy changes, and outbound behavior
+- Captain verification:
+  - `python -m py_compile src/practical_chat_agent/core/models.py src/practical_chat_agent/services/memory_retrieval.py src/practical_chat_agent/services/chat_context.py` passed.
+  - `pytest tests/test_memory_retriever_contract.py -q` passed: 40 tests.
+  - `pytest tests/ -q` passed after setting `TEMP`/`TMP` to a workspace temp directory: 581 tests, with only `.pytest_cache` permission warnings. The first full-suite attempt failed in fixture setup because the default Windows temp directory was not accessible in this sandbox.
+- No T200 repair pass is needed because no blocking issue or deferred warning exists.
+
+## Captain Current State Override 2026-05-24 (T200 Worker Completion)
+
+- T200 is the MemoryRetriever interface task for M9.
+- Worker must not mark T200 as complete in `docs/04_task_board.md`; only the Captain may do so after review.
+- T200 has since been accepted by reviewer and Captain with `PASS`; Current Unique Task is now T201.
+
+## T200 Worker Completion Record
+
+- Files changed:
+  - `src/practical_chat_agent/core/models.py`
+  - `src/practical_chat_agent/services/memory_retrieval.py`
+  - `tests/test_memory_retriever_contract.py` (new)
+  - `docs/data_contracts/memory_retriever_contract.md` (new)
+  - `docs/07_handoff.md`
+- Model/type names added:
+  - `MemoryRetrieverStatus` (Literal: "success", "not_configured", "error")
+  - `MemoryHit` (Pydantic BaseModel)
+  - `MemoryRetrieverResult` (Pydantic BaseModel)
+- Protocol/adapter added:
+  - `MemoryRetriever` (typing.Protocol, runtime_checkable) in `services/memory_retrieval.py`
+  - `convert_retrieval_result()` converter function in `services/memory_retrieval.py`
+  - `LocalMemoryRetriever` adapter class in `services/memory_retrieval.py`
+- Contract design:
+  - `MemoryHit` is a thin, review-safe retrieval result with `hit_id`, `memory_id`, `fact`, `memory_type`, `score`, `evidence_refs`, and `source`. It deliberately carries no raw transcript content, no embedding vectors, and no write/mutation capability.
+  - `MemoryRetrieverResult` is the protocol-level envelope with `status`, `contact_id`, `hits`, `candidate_count`, and `notes`.
+  - `MemoryRetriever` protocol defines `retrieve(*, contact_id, query=None, limit=8) -> MemoryRetrieverResult`. Implementations must return only approved, review-safe content, never read raw transcripts, and never auto-write or mutate memory.
+  - `LocalMemoryRetriever` wraps `MemoryRetrievalService` and implements the protocol via `with_context()` + `retrieve()`.
+  - `convert_retrieval_result()` converts service-level `MemoryRetrievalResult` to the protocol-level `MemoryRetrieverResult` contract.
+- Relationship to existing code:
+  - `MemoryHit` is additive; `ChatContext.memory_hits` (list[MemoryFact]) is unchanged.
+  - `MemoryRetrieverResult` parallels but does not replace `MemoryRetrievalResult`.
+  - `ChatContextAssembler` is not modified.
+  - No ChatContext fields, ReplyPlanner behavior, policy engine, or outbound paths are changed.
+- Verification:
+  - Compile passed for models.py, memory_retrieval.py, chat_context.py.
+  - T200 test suite: 40 tests covering MemoryHit validation, MemoryRetrieverResult validation, protocol conformance (isinstance), LocalMemoryRetriever with/without context, conversion fidelity, limit, source provenance, score derivation, evidence ref preservation, note carry-through, context isolation, JSON round-trip, contract boundary assertions.
+  - Full existing test suite: 560 tests passed (40 new + 520 existing), no regressions.
+- Explicit non-actions:
+  - No vector DB, Mem0/Zep adapter, or external memory dependency introduced.
+  - No auto-write or runtime mutation of memories.
+  - No raw chat transcript retrieval path introduced.
+  - No ReplyPlanner or policy-engine behavior changes.
+  - No ChatContextAssembler modifications.
+  - No provider calls, embedding calls, or external services added.
+
 ## Captain Current State Override 2026-05-24 (T195 Review Decision)
 
 - T195 review decision: `PASS_WITH_WARNINGS`.

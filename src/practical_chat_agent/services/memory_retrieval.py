@@ -4,6 +4,8 @@ import json
 import re
 from collections import defaultdict
 from collections.abc import Iterable
+from pathlib import Path
+from typing import Protocol, runtime_checkable
 from urllib.error import HTTPError, URLError
 from urllib.parse import urljoin
 from urllib.request import Request, urlopen
@@ -13,9 +15,13 @@ from practical_chat_agent.core.models import (
     AgentProfile,
     InboundEvent,
     MemoryFact,
+    MemoryFactStoreFile,
+    MemoryFactStoreRecord,
+    MemoryHit,
     MemoryProfileFacet,
     MemoryProfileSnapshot,
     MemoryRetrievalResult,
+    MemoryRetrieverResult,
 )
 from practical_chat_agent.services.memory_utils import clean_memory_fact_text, memory_fact_similarity_key
 
@@ -1381,3 +1387,278 @@ class MemoryRetrievalService:
         if len(cleaned) <= limit:
             return cleaned
         return f"{cleaned[: max(limit - 3, 1)].rstrip()}..."
+
+
+# ---------------------------------------------------------------------------
+# MemoryRetriever protocol and local adapter
+# ---------------------------------------------------------------------------
+
+
+@runtime_checkable
+class MemoryRetriever(Protocol):
+    """Abstract retriever interface for review-safe memory hits.
+
+    Implementations must:
+
+    - Return only approved, review-safe content in MemoryHit items.
+    - Never read raw chat transcripts.
+    - Never auto-write or mutate memory.
+    - Preserve evidence_refs for traceability.
+    """
+
+    def retrieve(
+        self,
+        *,
+        contact_id: str,
+        query: str | None = None,
+        limit: int = 8,
+    ) -> MemoryRetrieverResult: ...
+
+
+def convert_retrieval_result(
+    result: MemoryRetrievalResult,
+    *,
+    contact_id: str,
+    limit: int = 8,
+) -> MemoryRetrieverResult:
+    """Convert a service-level MemoryRetrievalResult to the retriever contract.
+
+    Maps each MemoryFact in result.selected_hits to a MemoryHit carrying
+    salience as the retrieval score and "local_memory_retrieval" as the source.
+    """
+    hits = [
+        MemoryHit(
+            memory_id=m.memory_id,
+            fact=m.fact,
+            memory_type=m.memory_type,
+            score=m.salience,
+            evidence_refs=m.evidence_refs,
+            source="local_memory_retrieval",
+        )
+        for m in result.selected_hits[:limit]
+    ]
+    return MemoryRetrieverResult(
+        status="success",
+        contact_id=contact_id,
+        hits=hits,
+        candidate_count=result.candidate_count,
+        notes=list(result.retrieval_notes),
+    )
+
+
+class LocalMemoryRetriever:
+    """Adapts MemoryRetrievalService to the MemoryRetriever protocol.
+
+    Wraps a MemoryRetrievalService instance and provides context (agent,
+    event, candidate memories) needed for local retrieval.  The retrieve()
+    method converts the service's MemoryRetrievalResult into the
+    MemoryRetrieverResult contract using MemoryHit items.
+    """
+
+    def __init__(
+        self,
+        service: MemoryRetrievalService,
+        *,
+        agent: AgentProfile | None = None,
+        event: InboundEvent | None = None,
+        candidates: list[MemoryFact] | None = None,
+    ) -> None:
+        self._service = service
+        self._agent = agent
+        self._event = event
+        self._candidates = list(candidates) if candidates else []
+
+    def with_context(
+        self,
+        *,
+        agent: AgentProfile,
+        event: InboundEvent,
+        candidates: list[MemoryFact],
+    ) -> LocalMemoryRetriever:
+        """Return a new retriever with updated retrieval context."""
+        return LocalMemoryRetriever(
+            self._service,
+            agent=agent,
+            event=event,
+            candidates=candidates,
+        )
+
+    def retrieve(
+        self,
+        *,
+        contact_id: str,
+        query: str | None = None,
+        limit: int = 8,
+    ) -> MemoryRetrieverResult:
+        if self._agent is None or self._event is None:
+            return MemoryRetrieverResult(
+                status="not_configured",
+                contact_id=contact_id,
+                notes=[
+                    "LocalMemoryRetriever requires agent and event context "
+                    "before retrieval.  Call with_context() first."
+                ],
+            )
+        result = self._service.retrieve(
+            agent=self._agent,
+            event=self._event,
+            candidate_memories=self._candidates,
+        )
+        return convert_retrieval_result(
+            result,
+            contact_id=contact_id,
+            limit=limit,
+        )
+
+
+# ---------------------------------------------------------------------------
+# Local Approved-Store Retriever (T201)
+# ---------------------------------------------------------------------------
+
+
+class LocalApprovedStoreRetriever:
+    """MemoryRetriever over approved, runtime-ready memory store records.
+
+    Reads from a ``MemoryFactStoreFile`` (or directory containing one), filters
+    to only approved / runtime-ready records matching the requested contact_id,
+    and returns ``MemoryHit`` items with ``source="approved_store"``.
+
+    Scoring uses the record's ``importance`` field.
+    Query matching is simple case-insensitive substring on claim text.
+    """
+
+    def __init__(self, store_path: Path) -> None:
+        self._store_path = store_path
+
+    def retrieve(
+        self,
+        *,
+        contact_id: str,
+        query: str | None = None,
+        limit: int = 8,
+    ) -> MemoryRetrieverResult:
+        store_file = self._resolve_store_file()
+        if store_file is None:
+            return MemoryRetrieverResult(
+                status="not_configured",
+                contact_id=contact_id,
+                notes=["Memory fact store file not found."],
+            )
+
+        store = self._load_store(store_file)
+        if store is None:
+            return MemoryRetrieverResult(
+                status="error",
+                contact_id=contact_id,
+                notes=["Memory fact store file could not be parsed."],
+            )
+
+        eligible = self._filter_eligible(store.records, contact_id=contact_id)
+
+        if query and query.strip():
+            eligible = self._apply_query_filter(eligible, query=query)
+
+        sorted_records = self._sort_records(eligible)
+        limited = sorted_records[:limit]
+
+        hits = [
+            MemoryHit(
+                memory_id=record.memory_fact.memory_id,
+                fact=record.memory_fact.claim,
+                memory_type=record.memory_fact.to_runtime_memory_type(),
+                score=record.memory_fact.importance,
+                evidence_refs=list(record.memory_fact.evidence_refs),
+                source="approved_store",
+            )
+            for record in limited
+        ]
+
+        notes = [
+            f"loaded {len(store.records)} total records",
+            f"filtered to {len(eligible)} eligible for contact={contact_id}",
+            f"returning {len(hits)} hits (limit={limit})",
+        ]
+        if query and query.strip():
+            notes.append(f"query filter: '{query.strip()}'")
+
+        return MemoryRetrieverResult(
+            status="success",
+            contact_id=contact_id,
+            hits=hits,
+            candidate_count=len(eligible),
+            notes=notes,
+        )
+
+    def _resolve_store_file(self) -> Path | None:
+        path = self._store_path
+        if path.is_file():
+            return path
+        if path.is_dir():
+            candidate = path / "memory_fact_store.json"
+            return candidate if candidate.is_file() else None
+        return None
+
+    @staticmethod
+    def _load_store(path: Path) -> MemoryFactStoreFile | None:
+        try:
+            raw = path.read_text(encoding="utf-8-sig")
+        except OSError:
+            return None
+        try:
+            payload = json.loads(raw)
+        except json.JSONDecodeError:
+            return None
+        if not isinstance(payload, dict):
+            return None
+        try:
+            return MemoryFactStoreFile.model_validate(payload)
+        except Exception:
+            return None
+
+    @staticmethod
+    def _is_eligible(record: MemoryFactStoreRecord, *, contact_id: str) -> bool:
+        if record.memory_fact.subject_id != contact_id:
+            return False
+        if not record.is_runtime_ready():
+            return False
+        if record.review_metadata.evidence_validation_status != "passed":
+            return False
+        return True
+
+    @staticmethod
+    def _filter_eligible(
+        records: list[MemoryFactStoreRecord],
+        *,
+        contact_id: str,
+    ) -> list[MemoryFactStoreRecord]:
+        return [
+            r
+            for r in records
+            if LocalApprovedStoreRetriever._is_eligible(r, contact_id=contact_id)
+        ]
+
+    @staticmethod
+    def _apply_query_filter(
+        records: list[MemoryFactStoreRecord],
+        *,
+        query: str,
+    ) -> list[MemoryFactStoreRecord]:
+        query_lower = query.strip().casefold()
+        if not query_lower:
+            return records
+        return [
+            record
+            for record in records
+            if query_lower in record.memory_fact.claim.casefold()
+        ]
+
+    @staticmethod
+    def _sort_records(records: list[MemoryFactStoreRecord]) -> list[MemoryFactStoreRecord]:
+        return sorted(
+            records,
+            key=lambda r: (
+                -r.memory_fact.importance,
+                -r.memory_fact.confidence,
+                r.memory_fact.memory_id,
+            ),
+        )

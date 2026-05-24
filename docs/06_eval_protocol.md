@@ -1,5 +1,25 @@
 # Eval Protocol
 
+## Captain Update 2026-05-24 (T201 Review)
+
+T201 has now been accepted with `PASS`.
+
+Current evaluation sequence is now:
+
+- T202: can the repo create a committed synthetic retrieval eval set that exercises relevant hits, exclusions, query behavior, ordering, and protocol-level output through `MemoryRetriever.retrieve()` without private chat content, external services, raw transcript access, or runtime planner/context wiring?
+
+T201 changes the evaluation baseline in one important way: M9 no longer needs to prove whether local approved-store retrieval can implement the contract. The next evaluation target is retrieval-quality and boundary reproducibility from committed synthetic cases.
+
+## Captain Update 2026-05-24 (T200 Review)
+
+T200 has now been accepted with `PASS`.
+
+Current evaluation sequence is now:
+
+- T201: can the repo implement the `MemoryRetriever` protocol over approved local store records, returning `MemoryHit(source="approved_store")` results while excluding non-runtime-ready records, preserving evidence refs, and avoiding raw transcript access, vector DBs, external adapters, mutation, or planner behavior changes?
+
+T200 changes the evaluation baseline in one important way: M9 no longer needs to prove whether a retriever abstraction can be stated cleanly. The next evaluation target is local approved-store implementation discipline, not interface design.
+
 ## Captain Update 2026-05-24 (T195 Review)
 
 T195 has now been accepted with `PASS_WITH_WARNINGS`.

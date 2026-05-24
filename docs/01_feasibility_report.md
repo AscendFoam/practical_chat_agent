@@ -1,5 +1,29 @@
 # Feasibility Report
 
+## Captain Update 2026-05-24 (T201 Review)
+
+T201 confirms that local approved-store retrieval is feasible in the current repository shape.
+
+The feasibility question has changed again:
+
+- no longer blocked on whether the T200 retriever contract can be implemented over approved local store records
+- now focused on whether T202 can create a committed synthetic eval set that measures retrieval relevance and boundary behavior through the unified `MemoryRetrieverResult` shape
+- still explicitly not ready for external memory adapter work until local retrieval behavior has a reusable eval baseline
+
+So the project is ready to commit the T201 slice and advance to T202, while keeping M9 local, deterministic, approved-only, and review-safe.
+
+## Captain Update 2026-05-24 (T200 Review)
+
+T200 confirms that a retrieval abstraction is feasible in the current repository shape.
+
+The feasibility question has changed again:
+
+- no longer blocked on whether the repo can define a clean `MemoryRetriever` / `MemoryHit` contract above existing local retrieval logic
+- now focused on whether T201 can implement that contract over approved local store records without broadening into raw transcript search, external memory systems, auto-write, or planner behavior changes
+- still explicitly aware that relationship-aware planner behavior remains a separate deferred gap, not something M9 retrieval should smuggle in
+
+So the project is ready to commit the T200 slice and advance to T201, while keeping M9 local, deterministic, approved-only, and review-safe.
+
 ## Captain Update 2026-05-24 (T195 Review)
 
 T195 confirms that M8 is feasible within its intended scope, but it also sharpens the remaining gap.

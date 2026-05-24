@@ -4,6 +4,34 @@ Updated: 2026-05-24
 
 ## Captain Current State Override
 
+- T201 review decision: `PASS`.
+- T201 is complete as the local approved-store retriever task for M9.
+- T201 warning disposition:
+  - Accepted: N01 `.claude/settings.json` workspace-artifact overrun is established convention noise, N02 `docs/worker_summary/T201_worker_summary.md` worker-summary overrun is established convention noise, N03 per-call store-file reads without caching are acceptable for current offline-first single-user workflow, M01 `limit=0` test is a harmless boundary guard, M02 concurrent-read tests are outside current single-user offline scope.
+  - Deferred: none.
+  - Rejected: none.
+- Current Unique Task: T202 Retrieval Eval Set.
+- Current task package: `docs/tasks/M9_memory_retrieval_layer/T202_retrieval_eval_set.md`.
+- T202 must stay evaluation-only and synthetic: no private chat content, no vector DB, no Mem0/Zep, no embedding/provider calls, no raw transcript reads, no ChatContext wiring, no planner/policy/send behavior changes, and no external services.
+- M9 execution constraints now carried forward:
+  - T202 should exercise retrievers through `MemoryRetriever.retrieve()` and `MemoryRetrieverResult`.
+  - T202 should cover relevant hits, exclusions, query behavior, deterministic ordering, and boundary behavior.
+  - T202 should create reusable synthetic cases before any optional external adapter work.
+
+- T200 review decision: `PASS`.
+- T200 is complete as the contract-first MemoryRetriever opening task for M9.
+- T200 warning disposition:
+  - Accepted: N01 `.claude/settings.json` workspace-artifact overrun is established convention noise, N02 `docs/worker_summary/T200_worker_summary.md` worker-summary overrun is established convention noise, N03 free-form `MemoryHit.source` is acceptable because convention values are documented and future adapter extensibility is intentional, M01 guarded adapter-test assertions are minor test-strength observations covered by a direct hit-producing setup test.
+  - Deferred: none.
+  - Rejected: none.
+- Current Unique Task: T201 Local Approved-Store Retriever.
+- Current task package: `docs/tasks/M9_memory_retrieval_layer/T201_local_approved_store_retriever.md`.
+- T201 must implement the T200 protocol over approved local store records only: no vector DB, no Mem0/Zep adapter, no embedding/provider calls, no raw transcript reads, no auto-write or store mutation, and no planner/policy/send behavior changes.
+- M9 execution constraints now carried forward:
+  - T201 should return `MemoryHit` items with `source="approved_store"`.
+  - T201 should filter to approved/runtime-ready records and exclude candidate/rejected/frozen/archived/not-human-reviewed records.
+  - T201 should preserve evidence refs and use simple deterministic query/limit behavior suitable for later T202 evaluation.
+
 - T195 review decision: `PASS_WITH_WARNINGS`.
 - T195 is complete as the evaluation-only closing task for M8.
 - T195 warning disposition:
@@ -257,11 +285,11 @@ Updated: 2026-05-24
 
 ## Current Unique Task
 
-T200: MemoryRetriever Interface.
+T202: Retrieval Eval Set.
 
-Task package: `docs/tasks/M9_memory_retrieval_layer/T200_memory_retriever_interface.md`
+Task package: `docs/tasks/M9_memory_retrieval_layer/T202_retrieval_eval_set.md`
 
-Why now: T195 has landed with `PASS_WITH_WARNINGS` and closes M8 as an infrastructure/evaluation milestone. The evaluation result is now explicit: approved relationship context exists, but the current planner does not consume it semantically. The next smallest safe step is therefore M9 contract work, starting with a retriever abstraction, rather than reopening planner behavior without a scoped task.
+Why now: T201 has landed with `PASS` and proves the T200 retriever contract against approved local store records. The next smallest safe step is a synthetic retrieval eval set that can measure relevance and boundary behavior before any optional external memory adapter spike.
 
 ## Board Rules
 
@@ -379,8 +407,8 @@ Goal: model multi-axis relationship state with human-reviewed deltas rather than
 
 Goal: define a retriever abstraction before evaluating external memory adapters.
 
-- [ ] T200: MemoryRetriever interface.
-- [ ] T201: local approved-store retriever.
+- [x] T200: MemoryRetriever interface.
+- [x] T201: local approved-store retriever.
 - [ ] T202: retrieval eval set.
 - [ ] T203: optional Mem0 adapter spike.
 
@@ -415,9 +443,9 @@ Goal: keep WeChat as a thin final adapter behind the send gate.
 
 ## Historical Current Unique Task
 
-T195: Relationship-aware reply eval.
+T201: Local Approved-Store Retriever.
 
-It is now complete and accepted with `PASS_WITH_WARNINGS`. The next worker task is T200, because M8 is closed and M9 starts with contract-first retrieval abstraction work.
+It is now complete and accepted with `PASS`. The next worker task is T202, because M9 now has both the retriever contract and a local approved-store implementation, and needs a synthetic eval baseline before retrieval quality claims or external adapter work.
 
 ## Next Captain Output Required
 

@@ -1,5 +1,31 @@
 # Risks And Open Questions
 
+## Captain Update 2026-05-24 (T201 Review Decision)
+
+Authoritative current risk state after the Captain review of T201:
+
+- R040 remains active as a compact-context and privacy boundary rule: M9 and later work must continue to use approved metadata / review-safe artifacts only and must not reopen raw-transcript ingestion.
+- R041 remains active: approved memories, approved patches, derived briefs, and relationship-state artifacts remain review-only guidance unless a later task explicitly authorizes mutation.
+- R071 remains active: LLM confidence calibration is still unresolved, but it is orthogonal to T201 and does not block M9 local retrieval work.
+- R091 remains active and deferred: approved relationship context exists in `ChatContext`, but no planner or policy code path consumes relationship delta semantics.
+- R092 remains active and deferred: relationship guidance that surfaces through summary/retrieval notes is informational only and must not be mistaken for semantic runtime consumption.
+- T201 opened no new deferred risks. Its non-blocking review observations are accepted as convention noise or acceptable current-scope operational trade-offs.
+
+Closed question Q190: T201 is accepted with `PASS`, so the project may proceed to T202 and create a synthetic retrieval eval set against the `MemoryRetriever` contract.
+
+## Captain Update 2026-05-24 (T200 Review Decision)
+
+Authoritative current risk state after the Captain review of T200:
+
+- R040 remains active as a compact-context and privacy boundary rule: M9 and later work must continue to use approved metadata / review-safe artifacts only and must not reopen raw-transcript ingestion.
+- R041 remains active: approved memories, approved patches, derived briefs, and relationship-state artifacts remain review-only guidance unless a later task explicitly authorizes mutation.
+- R071 remains active: LLM confidence calibration is still unresolved, but it is orthogonal to T200 and does not block M9 retrieval-contract work.
+- R091 remains active and deferred: approved relationship context exists in `ChatContext`, but no planner or policy code path consumes relationship delta semantics.
+- R092 remains active and deferred: relationship guidance that surfaces through summary/retrieval notes is informational only and must not be mistaken for semantic runtime consumption.
+- T200 opened no new deferred risks. Its non-blocking review observations are accepted as convention noise or intentional contract flexibility.
+
+Closed question Q189: T200 is accepted with `PASS`, so the project may proceed to T201 and implement a local approved-store retriever against the new `MemoryRetriever` contract.
+
 ## Captain Update 2026-05-24 (T195 Review Decision)
 
 Authoritative current risk state after the Captain review of T195:
@@ -574,6 +600,8 @@ Closed question Q124: the updated GPT roadmap is directionally aligned, but M4/M
 
 | ID | 结论 | 关闭依据 |
 | --- | --- | --- |
+| Q190 | T201 是否可以作为已完成任务接受并推进到 T202？可以；以 `PASS` 接受，所有 review observations 均为 accepted，无 deferred 风险或 repair pass。 | `docs/review/T201_review.md` + Captain decision |
+| Q189 | T200 是否可以作为已完成任务接受并推进到 T201？可以；以 `PASS` 接受，所有 review observations 均为 accepted，无 deferred 风险或 repair pass。 | `docs/review/T200_review.md` + Captain decision |
 | Q183 | T190 是否可以作为已完成任务接受并推进到 T191？可以；以 `PASS_WITH_WARNINGS` 接受，deferred 项转入 M8 风险台账并由 T191/T192+ 承接。 | `docs/review/T190_review.md` + Captain decision |
 | Q184 | T191 是否可以作为已完成任务接受并推进到 T192？可以；以 `PASS_WITH_WARNINGS` 接受，deferred 项转入 M8 风险台账并由 T192/T193+ 承接。 | `docs/review/T191_review.md` + Captain decision |
 | Q185 | T192 是否可以作为已完成任务接受并推进到 T193？可以；以 `PASS_WITH_WARNINGS` 接受，deferred 项转入 M8 风险台账并由 T193+ 承接。 | `docs/review/T192_review.md` + Captain decision |

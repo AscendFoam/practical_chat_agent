@@ -172,7 +172,23 @@
       "Bash(\"/c/ProgramData/anaconda3/envs/practical-chat-agent/python.exe\" -m py_compile src/practical_chat_agent/core/models.py src/practical_chat_agent/services/chat_context.py)",
       "Bash(\"/c/ProgramData/anaconda3/envs/practical-chat-agent/python.exe\" -m pytest tests/test_relationship_context.py -q)",
       "Bash(\"/c/ProgramData/anaconda3/envs/practical-chat-agent/python.exe\" -m pytest tests/test_relationship_context.py tests/test_chat_context_decomposition.py tests/test_relationship_review_cli.py -q)",
-      "Bash(git diff *)"
+      "Bash(git diff *)",
+      "Bash('C:\\\\ProgramData\\\\anaconda3\\\\envs\\\\practical-chat-agent\\\\python.exe' -m py_compile src/practical_chat_agent/core/models.py src/practical_chat_agent/services/memory_retrieval.py src/practical_chat_agent/services/chat_context.py)",
+      "Bash('C:\\\\ProgramData\\\\anaconda3\\\\envs\\\\practical-chat-agent\\\\python.exe' -m pytest tests/test_memory_retriever_contract.py -q)",
+      "Bash('C:\\\\ProgramData\\\\anaconda3\\\\envs\\\\practical-chat-agent\\\\python.exe' -m pytest tests/ -q --ignore=tests/test_chatlog_ingestion.py --ignore=tests/test_conversation_chunking.py --ignore=tests/test_chatlog_distillation.py --ignore=tests/test_contact_skill_builder.py --ignore=tests/test_distillation_schemas.py --ignore=tests/test_evidence_validator.py --ignore=tests/test_llm_candidate.py --ignore=tests/test_llm_candidate_validator.py --ignore=tests/test_hybrid_reply_planner.py --ignore=tests/test_planner_holdout.py --ignore=tests/test_hybrid_alignment.py)",
+      "Bash(\"/c/ProgramData/anaconda3/envs/practical-chat-agent/python.exe\" -m py_compile src/practical_chat_agent/core/models.py src/practical_chat_agent/services/memory_retrieval.py src/practical_chat_agent/services/chat_context.py)",
+      "Bash(\"/c/ProgramData/anaconda3/envs/practical-chat-agent/python.exe\" -m pytest tests/test_memory_retriever_contract.py -q)",
+      "Bash(\"/c/ProgramData/anaconda3/envs/practical-chat-agent/python.exe\" -m pytest tests/ -q --ignore=tests/test_chatlog_ingestion.py --ignore=tests/test_conversation_chunking.py --ignore=tests/test_chatlog_distillation.py --ignore=tests/test_contact_skill_builder.py --ignore=tests/test_distillation_schemas.py --ignore=tests/test_evidence_validator.py --ignore=tests/test_llm_candidate.py --ignore=tests/test_llm_candidate_validator.py --ignore=tests/test_hybrid_reply_planner.py --ignore=tests/test_planner_holdout.py --ignore=tests/test_hybrid_alignment.py)",
+      "Bash(C:/ProgramData/anaconda3/envs/practical-chat-agent/python.exe -m py_compile src/practical_chat_agent/services/memory_retrieval.py)",
+      "Bash(PYTHONPATH=src C:/ProgramData/anaconda3/envs/practical-chat-agent/python.exe -m pytest tests/test_local_approved_store_retriever.py -q)",
+      "Bash(C:/ProgramData/anaconda3/envs/practical-chat-agent/python.exe -m py_compile src/practical_chat_agent/core/models.py src/practical_chat_agent/services/memory_retrieval.py src/practical_chat_agent/services/chat_context.py)",
+      "Bash(PYTHONPATH=src C:/ProgramData/anaconda3/envs/practical-chat-agent/python.exe -m pytest tests/test_memory_retriever_contract.py tests/test_local_approved_store_retriever.py -q)",
+      "Bash(PYTHONPATH=src C:/ProgramData/anaconda3/envs/practical-chat-agent/python.exe -m pytest tests/ -q)",
+      "Bash(python -m py_compile src/practical_chat_agent/services/memory_retrieval.py)",
+      "Bash(python -m pytest tests/test_local_approved_store_retriever.py -q)",
+      "Bash(pip install *)",
+      "Bash(python -m pytest tests/test_memory_retriever_contract.py tests/test_local_approved_store_retriever.py -q)",
+      "Bash(python -m pytest tests/ -q --ignore=tests/test_memory_retriever_contract.py --ignore=tests/test_local_approved_store_retriever.py)"
     ]
   }
 }

@@ -1,5 +1,54 @@
 # Decision Log
 
+## D055: T201 PASS, accept local approved-store retriever, advance to T202
+
+- Date: 2026-05-24
+- Status: Accepted
+- Context: `docs/review/T201_review.md` gives `PASS` for the local approved-store retriever task. No blocking issues were found. The review confirms `LocalApprovedStoreRetriever` is additive, implements the T200 protocol, filters conservatively to approved/runtime-ready/evidence-passed records, preserves evidence refs, and does not introduce raw transcript access, external dependencies, mutation, or planner/send behavior changes.
+- Decision: T201 is complete. The project may continue to T202 `Retrieval Eval Set`.
+- Warning handling:
+  - Accepted:
+    - N01 `.claude/settings.json` allowed-files overrun is treated as established workspace-artifact convention noise.
+    - N02 `docs/worker_summary/T201_worker_summary.md` allowed-files overrun is treated as established worker-summary convention noise.
+    - N03 per-call store-file reads without caching are acceptable for the current offline-first, single-user workflow.
+    - M01 `limit=0` coverage is accepted as a harmless boundary guard.
+    - M02 lack of explicit concurrent-read tests is accepted as outside current single-user offline scope.
+  - Deferred: none.
+  - Rejected: none.
+- Conditions carried forward:
+  - T202 must build synthetic retrieval eval cases through the `MemoryRetriever` protocol and `MemoryRetrieverResult` shape.
+  - T202 must use only committed synthetic/redacted fixtures and must not use private chat content.
+  - T202 must remain eval-only: no vector DB, Mem0/Zep, embedding/provider calls, raw transcript reads, ChatContext wiring, planner/policy/send behavior changes, or external services.
+- Impact:
+  - `docs/04_task_board.md` moves the Current Unique Task from T201 to T202 and marks T201 complete.
+  - `docs/07_handoff.md` records the T201 review decision and T202 task boundary.
+  - `docs/08_risks_and_open_questions.md` records that no new T201 deferred risks are opened.
+  - `docs/tasks/M9_memory_retrieval_layer/T202_retrieval_eval_set.md` is expanded into a complete worker task package.
+
+## D054: T200 PASS, accept MemoryRetriever contract, advance to T201
+
+- Date: 2026-05-24
+- Status: Accepted
+- Context: `docs/review/T200_review.md` gives `PASS` for the MemoryRetriever interface task. No blocking issues were found. The review confirms the implementation is contract-first, additive, local-only, and does not introduce raw transcript access, external memory dependencies, auto-write behavior, or planner changes.
+- Decision: T200 is complete. The project may continue to T201 `Local Approved-Store Retriever`.
+- Warning handling:
+  - Accepted:
+    - N01 `.claude/settings.json` allowed-files overrun is treated as established workspace-artifact convention noise.
+    - N02 `docs/worker_summary/T200_worker_summary.md` allowed-files overrun is treated as established worker-summary convention noise.
+    - N03 `MemoryHit.source` remains a free-form string with documented convention values; this is acceptable for contract-first adapter extensibility.
+    - M01 two adapter tests use guarded assertions, but the same setup is already covered by a direct hit-producing test, so this is accepted as a minor test-strength observation rather than deferred risk.
+  - Deferred: none.
+  - Rejected: none.
+- Conditions carried forward:
+  - T201 must implement the T200 protocol against approved local store records only.
+  - T201 must return `MemoryHit` items with `source="approved_store"` and preserve evidence refs.
+  - T201 must not introduce vector DB, Mem0/Zep, embedding/provider calls, raw transcript reads, auto-write behavior, or planner/policy/send behavior changes.
+- Impact:
+  - `docs/04_task_board.md` moves the Current Unique Task from T200 to T201 and marks T200 complete.
+  - `docs/07_handoff.md` records the T200 review decision and T201 task boundary.
+  - `docs/08_risks_and_open_questions.md` records that no new T200 deferred risks are opened.
+  - `docs/tasks/M9_memory_retrieval_layer/T201_local_approved_store_retriever.md` is expanded into a complete worker task package.
+
 ## D053: T195 PASS_WITH_WARNINGS, close M8 as infrastructure/eval milestone, advance to T200
 
 - Date: 2026-05-24

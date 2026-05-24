@@ -1,5 +1,26 @@
 # Raw Idea
 
+## Captain Update 2026-05-24 (T201 Review)
+
+T201 has now passed review with `PASS`, so M9 has a local approved-store retriever implementation:
+
+- the repo now has `LocalApprovedStoreRetriever` satisfying the T200 `MemoryRetriever` protocol
+- retrieval stays local, approved-only, runtime-ready-only, evidence-preserving, and deterministic
+- candidate/rejected/frozen/archived/not-reviewed/failed-validation/wrong-contact records are excluded
+- the next safe step is T202 `Retrieval Eval Set`, not an external adapter spike
+
+The Current Unique Task therefore moves to T202 `Retrieval Eval Set`.
+
+## Captain Update 2026-05-24 (T200 Review)
+
+T200 has now passed review with `PASS`, so M9 has its contract layer:
+
+- the repo now has a `MemoryRetriever` protocol, `MemoryHit` model, `MemoryRetrieverResult` envelope, and a local adapter over existing retrieval logic
+- the contract remains approved-only and review-safe: no vector DB, no external adapter, no auto-write, no raw transcript retrieval, and no planner behavior change
+- the next safe step is T201 `Local Approved-Store Retriever`, which should implement the contract against approved local store records before any retrieval eval or external adapter spike
+
+The Current Unique Task therefore moves to T201 `Local Approved-Store Retriever`.
+
 ## Captain Update 2026-05-24 (T195 Review)
 
 T195 has now passed review with `PASS_WITH_WARNINGS`, and M8 is closed as an infrastructure/evaluation milestone:

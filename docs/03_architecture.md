@@ -1,5 +1,54 @@
 # Architecture
 
+## Captain Update 2026-05-24 (T201 Review)
+
+T201 completes the local implementation layer of M9:
+
+```text
+approved local memory store
+  -> LocalApprovedStoreRetriever
+  -> MemoryRetrieverResult
+  -> MemoryHit(source="approved_store")
+  -> no ChatContext or planner behavior change yet
+```
+
+The next architectural step is T202, which must stay evaluation-only:
+
+```text
+synthetic approved-store cases
+  -> MemoryRetriever protocol calls
+  -> expected MemoryHit ids / exclusions / ordering
+  -> reusable eval baseline for local and future retrievers
+  -> no external adapter, no raw transcript, no runtime wiring
+```
+
+This keeps M9 evidence-driven: local behavior gets a committed eval baseline before optional external memory adapter work is considered.
+
+## Captain Update 2026-05-24 (T200 Review)
+
+T200 completes the contract-first opening of M9:
+
+```text
+existing local retrieval logic
+  -> MemoryRetriever protocol
+  -> MemoryHit contract
+  -> MemoryRetrieverResult envelope
+  -> LocalMemoryRetriever adapter
+  -> no ChatContext or planner behavior change yet
+```
+
+The next architectural step is T201, which must stay local and approved-store-only:
+
+```text
+approved local memory store records
+  -> LocalApprovedStoreRetriever
+  -> MemoryHit(source="approved_store")
+  -> deterministic query / limit behavior
+  -> no raw transcript, no vector DB, no external adapter, no mutation
+```
+
+This keeps M9 on the safe path: prove the contract locally before evaluating retrieval quality or considering optional external adapter spikes.
+
 ## Captain Update 2026-05-24 (T195 Review)
 
 T195 closes M8 by clarifying the current architecture, not by adding new runtime behavior:

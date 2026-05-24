@@ -872,6 +872,41 @@ class MemoryRetrievalResult(BaseModel):
     retrieval_notes: list[str] = Field(default_factory=list)
 
 
+MemoryRetrieverStatus = Literal["success", "not_configured", "error"]
+
+
+class MemoryHit(BaseModel):
+    """Review-safe retrieval result from a MemoryRetriever.
+
+    Carries only the reviewer-safe surface: a memory fact, its type,
+    a retrieval relevance score, evidence refs, and source provenance.
+    No raw transcript content, no private metadata, no embedding vectors.
+    """
+
+    hit_id: str = Field(default_factory=lambda: new_id("mhit"))
+    memory_id: str = Field(..., min_length=1)
+    fact: str = Field(..., min_length=1)
+    memory_type: MemoryType = MemoryType.FACT
+    score: float = Field(default=0.0, ge=0.0, le=1.0)
+    evidence_refs: list[str] = Field(default_factory=list)
+    source: str = Field(..., min_length=1)
+
+
+class MemoryRetrieverResult(BaseModel):
+    """Contract-level result from a MemoryRetriever.retrieve() call.
+
+    Contains selected MemoryHit items and retrieval metadata.
+    This is the protocol-level counterpart to MemoryRetrievalResult
+    (which is the service-level result from MemoryRetrievalService).
+    """
+
+    status: MemoryRetrieverStatus = "success"
+    contact_id: str | None = None
+    hits: list[MemoryHit] = Field(default_factory=list)
+    candidate_count: int = 0
+    notes: list[str] = Field(default_factory=list)
+
+
 class ActionPlan(BaseModel):
     action_id: str = Field(default_factory=lambda: new_id("act"))
     kind: ActionKind
