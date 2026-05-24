@@ -1,5 +1,29 @@
 # Architecture
 
+## Captain Update 2026-05-24 (T193 Review)
+
+T193 adds the review layer on top of candidate deltas:
+
+```text
+RelationshipDeltaCandidate
+  -> RelationshipDeltaReviewService
+  -> approve / reject / freeze / archive
+  -> review metadata + runtime-ready gate
+  -> still no RelationshipState mutation
+```
+
+The next architectural step is T194, which must stay context-only:
+
+```text
+approved relationship state and/or approved review artifacts
+  -> compact ChatContext summary
+  -> no raw signal history
+  -> no state mutation
+  -> no send behavior change
+```
+
+This keeps M8 additive and preserves the line between review, context, and future application semantics.
+
 ## Captain Update 2026-05-24 (T192 Review)
 
 T192 completes the second executable layer in M8:

@@ -1,5 +1,23 @@
 # Risks And Open Questions
 
+## Captain Update 2026-05-24 (T193 Review Decision)
+
+Authoritative current risk state after the Captain review of T193:
+
+- R040 remains active as a compact-context and privacy boundary rule: T194 and later M8 work must continue to use approved metadata / anonymized-safe artifacts only and must not reopen raw-transcript ingestion.
+- R041 remains active: relationship-state work must stay review-only and must not turn approved deltas into hidden state mutation without an explicit later task.
+- R071 remains active: LLM confidence calibration is still unresolved, but it is orthogonal to T193 and does not block M8 review acceptance.
+- R078 remains active and deferred: T192 still lacks an explicit unknown-dimension safe-skip regression test.
+- R079 remains active and deferred: T192 still lacks a mixed known+unknown/stable direction regression test.
+- R080 remains active and deferred: T192 still lacks the state-evidence-only deduplication edge-case test.
+- R081 remains active and deferred: T192 aggregation/calibration remains heuristic and uncalibrated.
+- R082 is now narrowed but still active: T193 chose an all-or-nothing review model, but later tasks must preserve that choice explicitly unless they deliberately redesign it.
+- R083 is active and deferred: T193 has no committed CLI-level integration tests, so Typer wiring, file I/O, and safe-path output remain regression-prone.
+- R084 is active and deferred: T193 approvals do not run an evidence pre-validation gate, so later context/application tasks must not assume approved deltas automatically have fresh, resolvable evidence.
+- R085 is active and deferred: the empty-string review-note path is untested and could regress silently.
+
+Closed question Q186: T193 is accepted with `PASS_WITH_WARNINGS`, so the project may proceed to T194 rather than reopening the relationship review task.
+
 ## Captain Update 2026-05-24 (T192 Review Decision)
 
 Authoritative current risk state after the Captain review of T192:
@@ -503,6 +521,9 @@ Closed question Q124: the updated GPT roadmap is directionally aligned, but M4/M
 | R080 | No committed test covers the state-evidence-only deduplication edge case for T192 | A future change could allow empty `evidence_refs` to emerge after deduplication, violating the delta contract | Add a defensive test and, if needed, guard logic before relying on broader signal sources |
 | R081 | T192 uses heuristic `_MAGNITUDE_SCALE` / `_MIN_STRENGTH` defaults and max-strength aggregation | Delta magnitudes may be reviewable and conservative, but they are not empirically calibrated and may underuse corroborating signals | Keep candidate-only and human-reviewed for now; revisit calibration/aggregation only if later milestones need denser signal use |
 | R082 | T193 has an open design question around dimension-level partial approval | If a delta changes multiple dimensions, review semantics could become ambiguous unless the CLI enforces all-or-nothing or explicitly supports partial approval | T193 should document and implement one review model explicitly rather than leaving this implicit |
+| R083 | T193 has no committed CLI-level integration tests | Typer wiring, file I/O, JSON error handling, and safe-path output could regress even though the service layer is covered | Add committed CLI regression tests before or during later M8 hardening if the command becomes a relied-on operational path |
+| R084 | T193 approvals do not run an evidence pre-validation gate | Later tasks could over-assume that an approved delta also has fresh, resolvable evidence refs | T194/T195 and any future state-application task should treat approval as human review only, not as evidence validation |
+| R085 | T193 has no explicit empty-string note regression test | The note-normalization edge path could change silently without direct coverage | Add a narrow test when CLI/service hardening is revisited |
 
 ## Open Questions
 
@@ -517,6 +538,7 @@ Closed question Q124: the updated GPT roadmap is directionally aligned, but M4/M
 | Q183 | T190 是否可以作为已完成任务接受并推进到 T191？可以；以 `PASS_WITH_WARNINGS` 接受，deferred 项转入 M8 风险台账并由 T191/T192+ 承接。 | `docs/review/T190_review.md` + Captain decision |
 | Q184 | T191 是否可以作为已完成任务接受并推进到 T192？可以；以 `PASS_WITH_WARNINGS` 接受，deferred 项转入 M8 风险台账并由 T192/T193+ 承接。 | `docs/review/T191_review.md` + Captain decision |
 | Q185 | T192 是否可以作为已完成任务接受并推进到 T193？可以；以 `PASS_WITH_WARNINGS` 接受，deferred 项转入 M8 风险台账并由 T193+ 承接。 | `docs/review/T192_review.md` + Captain decision |
+| Q186 | T193 是否可以作为已完成任务接受并推进到 T194？可以；以 `PASS_WITH_WARNINGS` 接受，deferred 项转入 M8 风险台账并由 T194+ 承接。 | `docs/review/T193_review.md` + Captain decision |
 | Q180 | Gate M7 是否已经可以关闭并进入 M8？还不可以；它仍是 `Conditional`，必须先完成 T185 的窄范围对齐修复。 | `docs/review/T184_milestone_review.md` + Captain decision |
 | Q179 | T184 是否可以作为已完成任务接受并推进到 T185？可以；以 `PASS_WITH_WARNINGS` 接受，holdout 证据有效但 gate 仍 `Conditional`。 | `docs/review/T184_review.md` + Captain decision |
 | Q178 | T183 是否可以作为已完成任务接受并推进到 T184？可以；以 `PASS_WITH_WARNINGS` 接受，deferred 项收敛到 hybrid merge success test 缺口。 | `docs/review/T183_review.md` + Captain decision |

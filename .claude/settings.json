@@ -164,7 +164,11 @@
       "Bash(where python *)",
       "Bash(conda info *)",
       "Bash(PYTHONPATH=src /c/ProgramData/anaconda3/envs/practical-chat-agent/python.exe -m pytest tests/test_relationship_deltas.py -q)",
-      "Bash(PYTHONPATH=src /c/ProgramData/anaconda3/envs/practical-chat-agent/python.exe -m pytest tests/ -q --tb=short)"
+      "Bash(PYTHONPATH=src /c/ProgramData/anaconda3/envs/practical-chat-agent/python.exe -m pytest tests/ -q --tb=short)",
+      "Bash(python -m py_compile src/practical_chat_agent/app/main.py src/practical_chat_agent/services/feedback.py src/practical_chat_agent/core/models.py)",
+      "Bash(export PYTHONPATH='src')",
+      "Bash(\"/c/ProgramData/anaconda3/envs/practical-chat-agent/python.exe\" -m pytest tests/test_relationship_review_cli.py -v)",
+      "Bash(\"/c/ProgramData/anaconda3/envs/practical-chat-agent/python.exe\" -m pytest tests/ -q)"
     ]
   }
 }

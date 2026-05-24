@@ -1,5 +1,15 @@
 # Eval Protocol
 
+## Captain Update 2026-05-24 (T193 Review)
+
+T193 has now been accepted with `PASS_WITH_WARNINGS`.
+
+Current evaluation sequence is now:
+
+- T194: can the repo expose only compact, approved relationship-state guidance into `ChatContext` without leaking raw signal/delta history, mutating state, or changing send behavior?
+
+T193 changes the evaluation baseline in one important way: M8 no longer needs to prove whether relationship deltas can be explicitly reviewed by a human. That layer now exists. The next evaluation target is compact-context discipline, not review workflow wiring.
+
 ## Captain Update 2026-05-24 (T192 Review)
 
 T192 has now been accepted with `PASS_WITH_WARNINGS`.

@@ -1,5 +1,15 @@
 # Raw Idea
 
+## Captain Update 2026-05-24 (T193 Review)
+
+T193 has now passed review with `PASS_WITH_WARNINGS`, so the relationship-delta review step is accepted:
+
+- the repo now has an explicit human review layer over `RelationshipDeltaCandidate` artifacts
+- the project still does not permit approved deltas to auto-apply to `RelationshipState`
+- the next safe step is T194 `RelationshipState Compact Context`, not state mutation or outbound behavior
+
+The Current Unique Task therefore moves to T194 `RelationshipState Compact Context`.
+
 ## Captain Update 2026-05-24 (T192 Review)
 
 T192 has now passed review with `PASS_WITH_WARNINGS`, so the delta-generation step is accepted:

@@ -1,5 +1,25 @@
 # Handoff
 
+## Captain Current State Override 2026-05-24 (T193 Review Decision)
+
+- T193 review decision: `PASS_WITH_WARNINGS`.
+- T193 warning disposition:
+  - Accepted: N02 default input-file overwrite risk follows established review-CLI pattern, N04 `.claude/settings.json` workspace-artifact overrun.
+  - Deferred: N01 no committed CLI-level integration tests, N03 no evidence pre-validation gate before approval, M01 no Typer-command test coverage, M02 no explicit empty-string note test.
+  - Rejected: none.
+- T193 is complete as the explicit relationship-delta review task for M8.
+- Current Unique Task: T194 RelationshipState compact context.
+- Current task package: `docs/tasks/M8_relationship_state/T194_relationship_state_context.md`.
+- T194 must stay context-only and approval-gated:
+  - no raw signal history injection
+  - no RelationshipState auto-update
+  - no send-behavior change
+  - no reopening of delta review semantics
+- T193/T194 boundary:
+  - T193 records human review decisions on delta candidates.
+  - T194 exposes compact approved relationship-state guidance only.
+  - State application remains outside this task.
+
 ## Captain Current State Override 2026-05-24 (T192 Review Decision)
 
 - T192 review decision: `PASS_WITH_WARNINGS`.
@@ -53,6 +73,44 @@
 - Explicit non-actions:
   - No `RelationshipState` mutation, auto-approve, review CLI, or state application was added.
   - No LLM call, send/platform integration, scalar collapse, or raw-text dependency was added.
+  - No `models.py` change was needed; T190 schemas were sufficient.
+
+## T193 Worker Completion Record
+
+- Files changed:
+  - `src/practical_chat_agent/services/feedback.py`
+  - `src/practical_chat_agent/app/main.py`
+  - `tests/test_relationship_review_cli.py` (new)
+  - `docs/data_contracts/relationship_state_contract.md`
+  - `docs/07_handoff.md`
+- Service added:
+  - `RelationshipDeltaReviewService` in `services/feedback.py` with `review_delta()` method.
+- Service design:
+  - Accepts a `RelationshipDeltaCandidate`, decision string, reviewer identity, and optional note.
+  - Returns a *new* delta via `model_copy(deep=True)` — the original delta is not mutated.
+  - Validates decisions: `approve`, `reject`, `freeze`, `archive`. Case-insensitive, whitespace-tolerant.
+  - Reuses existing `DistilledArtifactReviewDecision` / `DistilledArtifactReviewMetadata` patterns from T120/T163.
+  - Appends a review decision to `review_metadata.history`, updates `status`, `review_state`, `reviewed_by_human`, `last_decision`, reviewer fields, and `updated_at`.
+  - Approved deltas with `reviewed_by_human=True` and `last_decision="approved"` report `is_runtime_ready() == True`.
+  - Evidence refs, signal refs, dimension changes, and delta rationale are preserved unchanged.
+  - All-or-nothing review: all dimensions in a delta are reviewed together.
+- CLI command added:
+  - `relationship-review-delta` with `--input`, `--output` (optional), `--decision`, `--reviewer`, `--note` (optional).
+  - Reads a delta JSON file, applies the review decision, writes the updated delta (defaults to overwriting input).
+  - Outputs a safe JSON summary: action, decision, delta_id, contact_id, status, is_runtime_ready, dimension count, evidence/signal ref counts, and review metadata.
+- Relationship to T192:
+  - T192 generates candidate deltas; T193 reviews them.
+  - The `relationship-review-delta` CLI consumes the delta JSON format produced by T192.
+  - No state application, no auto-approve.
+- Verification:
+  - Compile passed for main.py, feedback.py, models.py.
+  - T193 test suite: 22 tests covering approve/reject/freeze/archive, invalid decisions, case-insensitive handling, runtime-ready gating, evidence/signal/dimension preservation, deep-copy immutability, review metadata updates, history accumulation, multi-dimension all-or-nothing review.
+  - Full existing test suite: 510 tests passed (22 new + 488 existing), no regressions.
+- Explicit non-actions:
+  - No `RelationshipState` mutation or auto-apply.
+  - No unrelated memory/ContactSkill mutation.
+  - No send/platform integration.
+  - No dimension semantics rewrite or partial-approval model.
   - No `models.py` change was needed; T190 schemas were sufficient.
 
 ## Captain Current State Override 2026-05-24 (T191 Review Decision)

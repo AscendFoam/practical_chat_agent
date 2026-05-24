@@ -36,6 +36,7 @@ from practical_chat_agent.core.models import (
     MemoryProfileFacet,
     MemoryProfileRecord,
     MemoryProfileSnapshot,
+    RelationshipDeltaCandidate,
 )
 from practical_chat_agent.services.chatlog_ingestion import (
     ChatlogIngestionService,
@@ -68,6 +69,7 @@ from practical_chat_agent.services.feedback import (
     FeedbackValidationService,
     PatchProposalService,
     PatchReviewService,
+    RelationshipDeltaReviewService,
 )
 from practical_chat_agent.services.llm_reply_generator import LLMReplyGeneratorService
 from practical_chat_agent.services.reply_planner import ReplyPlanner, ReplyPlannerError
@@ -2502,6 +2504,95 @@ def chat_feedback_review_patch(
             "supporting_cluster_ids": result["patch"]["supporting_cluster_ids"],
             "is_runtime_ready": result["patch"]["is_runtime_ready"],
             "review_metadata": result["patch"]["review_metadata"],
+        },
+    }
+
+    typer.echo(json.dumps(safe_stdout, ensure_ascii=False, indent=2))
+
+
+@app.command("relationship-review-delta")
+def relationship_review_delta(
+    input_path: Path = typer.Option(
+        ...,
+        "--input",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        readable=True,
+        help="Input RelationshipDeltaCandidate JSON file.",
+    ),
+    output: Optional[Path] = typer.Option(
+        None,
+        "--output",
+        help="Optional output path for the reviewed delta JSON. Defaults to overwriting the input file.",
+    ),
+    decision: str = typer.Option(
+        ...,
+        "--decision",
+        help="Review decision: approve, reject, freeze, or archive.",
+    ),
+    reviewer: str = typer.Option(
+        ...,
+        "--reviewer",
+        help="Reviewer identity (name or id) for the human review decision.",
+    ),
+    note: Optional[str] = typer.Option(
+        None,
+        "--note",
+        help="Optional review note. Safe summaries only.",
+    ),
+) -> None:
+    """Apply an explicit human review decision to a RelationshipDeltaCandidate.
+
+    Reads a delta candidate JSON file, applies the decision, and writes the
+    updated delta.  Does not auto-apply to RelationshipState.
+    """
+
+    try:
+        raw = input_path.read_text(encoding="utf-8")
+        delta = RelationshipDeltaCandidate.model_validate_json(raw)
+    except OSError as exc:
+        raise typer.BadParameter(f"Unable to read input: {input_path}") from exc
+    except ValidationError as exc:
+        raise typer.BadParameter(f"Invalid RelationshipDeltaCandidate JSON: {exc}") from exc
+
+    service = RelationshipDeltaReviewService()
+    try:
+        reviewed = service.review_delta(
+            delta=delta,
+            decision=decision,
+            reviewer=reviewer,
+            note=note,
+        )
+    except FeedbackError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+
+    write_path = output or input_path
+    write_path.parent.mkdir(parents=True, exist_ok=True)
+    write_path.write_text(
+        json.dumps(reviewed.model_dump(mode="json"), ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+
+    safe_stdout = {
+        "action": "review",
+        "decision": decision.strip().lower(),
+        "input_path": _safe_cli_path(input_path),
+        "output_path": _safe_cli_path(write_path),
+        "delta_id": reviewed.delta_id,
+        "contact_id": reviewed.contact_id,
+        "source_state_id": reviewed.source_state_id,
+        "status": reviewed.status,
+        "is_runtime_ready": reviewed.is_runtime_ready(),
+        "dimension_change_count": len(reviewed.dimension_changes),
+        "evidence_ref_count": len(reviewed.evidence_refs),
+        "signal_ref_count": len(reviewed.signal_refs),
+        "review_metadata": {
+            "review_state": reviewed.review_metadata.review_state,
+            "reviewed_by_human": reviewed.review_metadata.reviewed_by_human,
+            "last_decision": reviewed.review_metadata.last_decision,
+            "last_reviewer_id": reviewed.review_metadata.last_reviewer_id,
+            "history_count": len(reviewed.review_metadata.history),
         },
     }
 

@@ -4,6 +4,20 @@ Updated: 2026-05-24
 
 ## Captain Current State Override
 
+- T193 review decision: `PASS_WITH_WARNINGS`.
+- T193 is complete as the explicit relationship-delta review task for M8.
+- T193 warning disposition:
+  - Accepted: N02 default input-file overwrite risk follows established review-CLI pattern, N04 `.claude/settings.json` workspace-artifact overrun.
+  - Deferred: N01 no committed CLI-level integration tests, N03 no evidence pre-validation gate before approval, M01 no Typer-command test coverage, M02 no explicit empty-string note test.
+  - Rejected: none.
+- Current Unique Task: T194 RelationshipState compact context.
+- Current task package: `docs/tasks/M8_relationship_state/T194_relationship_state_context.md`.
+- T194 must stay context-only and approval-gated: no raw signal history injection, no RelationshipState auto-update, no send-behavior change, and no reopening of delta review semantics.
+- M8 execution constraints now carried forward:
+  - T194 should expose only compact, approved relationship-state guidance to `ChatContext`.
+  - T194 should assume approved deltas may still require evidence caution; it must not silently treat review approval as a full validation substitute.
+  - T194 must keep relationship-state context additive and avoid leaking raw signal or review-history detail.
+
 - T192 review decision: `PASS_WITH_WARNINGS`.
 - T192 is complete as the conservative delta-generation task for M8.
 - T192 warning disposition:
@@ -328,7 +342,7 @@ Goal: model multi-axis relationship state with human-reviewed deltas rather than
 - [x] T190: RelationshipState schema. Review `PASS_WITH_WARNINGS`.
 - [x] T191: relationship signal extractor. Review `PASS_WITH_WARNINGS`.
 - [x] T192: RelationshipDeltaCandidate. Review `PASS_WITH_WARNINGS`.
-- [ ] T193: relationship review CLI.
+- [x] T193: relationship review CLI. Review `PASS_WITH_WARNINGS`.
 - [ ] T194: RelationshipState compact context.
 - [ ] T195: relationship-aware reply eval.
 
@@ -372,9 +386,9 @@ Goal: keep WeChat as a thin final adapter behind the send gate.
 
 ## Historical Current Unique Task
 
-T192: RelationshipDeltaCandidate.
+T193: relationship review CLI.
 
-It is now complete and accepted with `PASS_WITH_WARNINGS`. The next worker task is T193, because the delta layer is in place and the next safe M8 step is explicit human review over those deltas.
+It is now complete and accepted with `PASS_WITH_WARNINGS`. The next worker task is T194, because the review layer is in place and the next safe M8 step is compact approved relationship-state context.
 
 ## Next Captain Output Required
 

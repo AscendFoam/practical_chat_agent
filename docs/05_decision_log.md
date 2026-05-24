@@ -1,5 +1,32 @@
 # Decision Log
 
+## D051: T193 PASS_WITH_WARNINGS, accept relationship review task, advance to T194
+
+- Date: 2026-05-24
+- Status: Accepted
+- Context: `docs/review/T193_review.md` gives `PASS_WITH_WARNINGS` for the relationship review CLI task. No blocking issues were found, and the review confirms the task stayed review-only, auditable, and within the intended M8 boundary.
+- Decision: T193 is complete. The project may continue to T194 `RelationshipState Compact Context`.
+- Warning handling:
+  - Accepted:
+    - N02 default input-file overwrite risk follows the same accepted review-CLI pattern seen in earlier tasks.
+    - N04 `.claude/settings.json` modification is treated as workspace-artifact noise rather than a T193 scope defect.
+  - Deferred:
+    - N01 no committed CLI-level integration tests yet exercise the Typer command path.
+    - N03 no evidence pre-validation gate exists before approval, so later context/application tasks must not over-assume approval implies evidence freshness.
+    - M01 no committed Typer-command regression tests yet exist for valid/invalid CLI flows.
+    - M02 no explicit committed test yet covers the empty-string note path.
+  - Rejected: none.
+- Conditions carried forward:
+  - T194 must stay context-only. No RelationshipState mutation, no send/platform integration, and no raw signal-history injection are authorized.
+  - T194 should expose compact approved relationship-state guidance, not raw delta-review internals.
+  - T194/T195 should remember that T193 approval is a human decision layer, not a substitute for evidence-prevalidation.
+  - M8 remains open; T193 closes review wiring, not state application.
+- Impact:
+  - `docs/04_task_board.md` moves the Current Unique Task from T193 to T194 and marks T193 complete.
+  - `docs/07_handoff.md` records the T193 review decision and what T194 may assume next.
+  - `docs/08_risks_and_open_questions.md` records the deferred CLI/evidence-gate risks from the T193 review.
+  - `docs/tasks/M8_relationship_state/T194_relationship_state_context.md` is rewritten into a stricter worker task package.
+
 ## D050: T192 PASS_WITH_WARNINGS, accept delta-generation task, advance to T193
 
 - Date: 2026-05-24

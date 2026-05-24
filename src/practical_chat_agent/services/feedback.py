@@ -1418,3 +1418,99 @@ class RelationshipDeltaGenerator:
             magnitude=recomputed_magnitude,
             rationale=f"{len(signals)} signal(s) with max strength {max_strength:.2f}",
         )
+
+
+class RelationshipDeltaReviewService:
+    """Explicit human review for RelationshipDeltaCandidate proposals (T193).
+
+    Applies approve / reject / freeze / archive decisions to delta candidates
+    without auto-applying to RelationshipState.  Preserves evidence refs,
+    signal refs, and dimension changes through review.
+    """
+
+    VALID_DECISIONS: set[str] = {"approve", "reject", "freeze", "archive"}
+
+    _DECISION_TO_STATUS: dict[str, DistillationStatus] = {
+        "approve": "approved",
+        "reject": "rejected",
+        "freeze": "frozen",
+        "archive": "archived",
+    }
+
+    def review_delta(
+        self,
+        *,
+        delta: RelationshipDeltaCandidate,
+        decision: str,
+        reviewer: str,
+        note: str | None = None,
+    ) -> RelationshipDeltaCandidate:
+        """Apply a human review decision to a delta candidate.
+
+        Returns a *new* delta with updated status and review metadata.
+        The original delta is not mutated.
+
+        Parameters
+        ----------
+        delta : RelationshipDeltaCandidate
+            The delta candidate to review.
+        decision : str
+            One of: approve, reject, freeze, archive.
+        reviewer : str
+            Reviewer identity (name or id) for the human review decision.
+        note : str | None
+            Optional human review note.
+
+        Returns
+        -------
+        RelationshipDeltaCandidate
+            A new delta reflecting the review decision.
+        """
+        normalized = self._normalize_decision(decision)
+        reviewed = delta.model_copy(deep=True)
+        self._apply_decision(
+            delta=reviewed,
+            decision=normalized,
+            reviewer=reviewer,
+            note=note,
+        )
+        return reviewed
+
+    def _normalize_decision(self, decision: str) -> str:
+        normalized = decision.strip().lower()
+        if normalized not in self.VALID_DECISIONS:
+            raise FeedbackError(
+                f"Invalid decision '{decision}'. "
+                f"Must be one of: {', '.join(sorted(self.VALID_DECISIONS))}."
+            )
+        return normalized
+
+    def _apply_decision(
+        self,
+        delta: RelationshipDeltaCandidate,
+        decision: str,
+        reviewer: str,
+        note: str | None,
+    ) -> None:
+        now = datetime.now(timezone.utc)
+        status = self._DECISION_TO_STATUS[decision]
+
+        review_decision = DistilledArtifactReviewDecision(
+            status=status,
+            reviewer_id=reviewer,
+            reviewer_name=None,
+            reviewed_at=now,
+            notes=[note] if note else [],
+        )
+
+        delta.review_metadata.history.append(review_decision)
+        delta.review_metadata.review_state = "reviewed"
+        delta.review_metadata.reviewed_by_human = True
+        delta.review_metadata.last_decision = status
+        delta.review_metadata.last_reviewed_at = now
+        delta.review_metadata.last_reviewer_id = reviewer
+        if note:
+            delta.review_metadata.decision_notes.append(note)
+
+        delta.status = status
+        delta.updated_at = now
