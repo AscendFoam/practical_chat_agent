@@ -27,6 +27,7 @@ from practical_chat_agent.core.models import (
     ActionExecutionRecord,
     AgentProfile,
     ChatContext,
+    CandidateAction,
     InboundEvent,
     MeetingLivePreview,
     MeetingMinutesDraft,
@@ -70,6 +71,10 @@ from practical_chat_agent.services.feedback import (
     PatchProposalService,
     PatchReviewService,
     RelationshipDeltaReviewService,
+)
+from practical_chat_agent.services.behavior_planner import (
+    CandidateActionReviewError,
+    CandidateActionReviewService,
 )
 from practical_chat_agent.services.llm_reply_generator import LLMReplyGeneratorService
 from practical_chat_agent.services.reply_planner import ReplyPlanner, ReplyPlannerError
@@ -2587,6 +2592,87 @@ def relationship_review_delta(
         "dimension_change_count": len(reviewed.dimension_changes),
         "evidence_ref_count": len(reviewed.evidence_refs),
         "signal_ref_count": len(reviewed.signal_refs),
+        "review_metadata": {
+            "review_state": reviewed.review_metadata.review_state,
+            "reviewed_by_human": reviewed.review_metadata.reviewed_by_human,
+            "last_decision": reviewed.review_metadata.last_decision,
+            "last_reviewer_id": reviewed.review_metadata.last_reviewer_id,
+            "history_count": len(reviewed.review_metadata.history),
+        },
+    }
+
+    typer.echo(json.dumps(safe_stdout, ensure_ascii=False, indent=2))
+
+
+@app.command("chat-behavior-review-action")
+def chat_behavior_review_action(
+    input_path: Path = typer.Option(
+        ...,
+        "--input",
+        exists=True,
+        file_okay=True,
+        dir_okay=False,
+        readable=True,
+        help="Input CandidateAction JSON file.",
+    ),
+    output: Optional[Path] = typer.Option(
+        None,
+        "--output",
+        help="Optional output path for the reviewed candidate JSON. Defaults to overwriting the input file.",
+    ),
+    decision: str = typer.Option(
+        ...,
+        "--decision",
+        help="Review decision: approve, reject, freeze, or archive.",
+    ),
+    reviewer: str = typer.Option(
+        ...,
+        "--reviewer",
+        help="Reviewer identity (name or id) for the human review decision.",
+    ),
+    note: Optional[str] = typer.Option(
+        None,
+        "--note",
+        help="Optional review note. Safe summaries only.",
+    ),
+) -> None:
+    """Apply an explicit human review decision to a CandidateAction."""
+
+    try:
+        raw = input_path.read_text(encoding="utf-8")
+        candidate = CandidateAction.model_validate_json(raw)
+    except OSError as exc:
+        raise typer.BadParameter(f"Unable to read input: {input_path}") from exc
+    except ValidationError as exc:
+        raise typer.BadParameter(f"Invalid CandidateAction JSON: {exc}") from exc
+
+    service = CandidateActionReviewService()
+    try:
+        reviewed = service.review_candidate(
+            candidate=candidate,
+            decision=decision,
+            reviewer_id=reviewer,
+            note=note,
+        )
+    except CandidateActionReviewError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+
+    write_path = output or input_path
+    write_path.parent.mkdir(parents=True, exist_ok=True)
+    write_path.write_text(
+        json.dumps(reviewed.model_dump(mode="json"), ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+
+    safe_stdout = {
+        "action": "review",
+        "decision": decision.strip().lower(),
+        "input_path": _safe_cli_path(input_path),
+        "output_path": _safe_cli_path(write_path),
+        "action_id": reviewed.action_id,
+        "contact_id": reviewed.contact_id,
+        "action_type": reviewed.action_type,
+        "status": reviewed.status,
         "review_metadata": {
             "review_state": reviewed.review_metadata.review_state,
             "reviewed_by_human": reviewed.review_metadata.reviewed_by_human,

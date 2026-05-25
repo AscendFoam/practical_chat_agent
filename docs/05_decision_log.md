@@ -1,5 +1,61 @@
 # Decision Log
 
+## D061: T213 PASS, accept CandidateAction review CLI, advance to T214
+
+- Date: 2026-05-25
+- Status: Accepted
+- Context: `docs/review/T213_review.md` gives `PASS` for the CandidateAction review CLI task. No blocking issues were found. The review confirms T213 is additive, manual-review-only, non-executing, and introduces no message sending, scheduling, platform integration, LLM calls, external services, memory mutation, approved-store mutation, or raw transcript paths.
+- Decision: T213 is complete. The project may continue to T214 `Behavior Safety Eval`.
+- Review observation handling:
+  - Accepted:
+    - N01 Captain-authored T212 close-out changes in governance docs are established convention noise and are not T213 worker scope leaks.
+    - N02 CLI stdout includes safe `input_path` / `output_path` values through `_safe_cli_path()`; this follows prior project path-output convention and remains low risk for the offline single-user workflow.
+    - N03 `docs/for_human/T212_review_explanation.md` in the working tree is a prior reviewer/Captain artifact, not a T213 worker leak.
+    - N04 default in-place overwrite when `--output` is omitted follows existing review-CLI convention and is documented; low risk in the current offline workflow.
+    - N05 `_apply_decision` type suppression is cosmetic typing debt because all status values are validated through the closed decision-to-status mapping.
+    - M01 missing CLI-level `freeze` / `archive` / `reject` smoke tests are accepted as minor coverage-strength notes because service-level coverage covers all decisions and CLI approval coverage exists.
+    - M02 missing repeated-review history-count test is accepted as a minor coverage-strength note.
+    - M03 missing CLI-level reject/freeze/archive round-trip validation is accepted as a minor coverage-strength note because the approval path validates the CLI output shape and service-level tests cover the decisions.
+  - Deferred: none.
+  - Rejected: none.
+- Conditions carried forward:
+  - T214 is evaluation-only and must not modify implementation code.
+  - T214 must evaluate T210-T213 safety boundaries, especially that reviewed/approved candidates remain non-sendable and non-schedulable.
+  - T214 must not authorize outbound behavior, platform adapters, schedulers, background jobs, or automatic sending.
+- Impact:
+  - `docs/04_task_board.md` moves the Current Unique Task from T213 to T214 and marks T213 complete.
+  - `docs/07_handoff.md` records the T213 review decision and T214 task boundary.
+  - `docs/08_risks_and_open_questions.md` records that no new deferred T213 risks are opened.
+  - `docs/tasks/M10_behavior_planner/T214_behavior_safety_eval.md` is expanded into a complete worker task package.
+
+## D060: T212 PASS, accept proactive draft generator, advance to T213
+
+- Date: 2026-05-25
+- Status: Accepted
+- Context: `docs/review/T212_review.md` gives `PASS` for the proactive draft generator task. No blocking issues were found. The review confirms T212 is additive, deterministic, draft-only, non-executing, and introduces no message sending, scheduling, platform integration, LLM calls, memory mutation, CLI commands, runtime wiring, or raw transcript paths.
+- Decision: T212 is complete. The project may continue to T213 `CandidateAction Review CLI`.
+- Review observation handling:
+  - Accepted:
+    - N01 `docs/for_human/T212_review_explanation.md` and `docs/worker_summary/T212_worker_summary.md` allowed-files overrun is treated as established convention noise.
+    - N02 static draft text literals keyed by `BehaviorActionType` are acceptable for deterministic scope; forward-compatible `reply_follow_up_draft` and `topic_suggestion` draft entries are harmless even though T211 does not currently emit those action types.
+    - N03 unreachable `_draft_text_for` fallback with `pragma: no cover` is accepted as cosmetic defensive code.
+    - N04 `model_copy(update=...)` does not rerun validators, but is safe for current scope because the only update is optional `draft_text` on an already validated payload.
+    - N05 overwriting existing `draft_text` is acceptable for current initial-enrichment scope; callers should treat the generator as deterministic replacement.
+    - M01 missing mapping-with-existing-draft overwrite test is accepted as a minor coverage-strength note.
+    - M02 missing planner+generator pipeline coverage for `reply_follow_up_draft` / `topic_suggestion` is accepted because current T211 rules do not emit those types.
+    - M03 missing double-enrichment idempotence test is accepted as a minor coverage-strength note.
+  - Deferred: none.
+  - Rejected: none.
+- Conditions carried forward:
+  - T213 may add manual review state changes for `CandidateAction` records only.
+  - T213 must not treat approval as send/schedule/platform authorization.
+  - T213 must preserve all T210/T211/T212 invariants and must not mutate unrelated stores or private artifacts.
+- Impact:
+  - `docs/04_task_board.md` moves the Current Unique Task from T212 to T213 and marks T212 complete.
+  - `docs/07_handoff.md` records the T212 review decision and T213 task boundary.
+  - `docs/08_risks_and_open_questions.md` records that no new deferred T212 risks are opened.
+  - `docs/tasks/M10_behavior_planner/T213_candidate_action_review_cli.md` is expanded into a complete worker task package.
+
 ## D059: T211 PASS, accept deterministic rule engine, advance to T212
 
 - Date: 2026-05-25

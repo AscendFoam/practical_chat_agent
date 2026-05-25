@@ -1,5 +1,29 @@
 # Feasibility Report
 
+## Captain Update 2026-05-25 (T213 Review)
+
+T213 confirms that manual review of proactive behavior candidates is feasible without turning candidate approval into outbound authorization.
+
+The feasibility question has changed again:
+
+- no longer blocked on whether enriched `CandidateAction` records can be manually approved, rejected, frozen, or archived while preserving review metadata and non-mutation
+- now focused on whether T214 can evaluate the complete T210-T213 behavior-planner slice for boundary, frequency, quiet-hours, conflict, privacy, and no-execution safety
+- still explicitly not ready for automatic sending, reminders, platform adapters, outbound delivery, or runtime autonomy; those remain behind later OutboundSendGate milestones
+
+So the project is ready to commit the T213 slice and advance to T214, while keeping M10 review-only and non-executable.
+
+## Captain Update 2026-05-25 (T212 Review)
+
+T212 confirms that review-only proactive candidates can be enriched with deterministic draft text without crossing the outbound boundary.
+
+The feasibility question has changed again:
+
+- no longer blocked on whether candidate actions can carry short, conservative, review-safe draft text while preserving no-send/no-scheduler/no-platform invariants
+- now focused on whether T213 can add an explicit human review flow for candidate actions without treating approval as send authorization
+- still explicitly not ready for automatic sending, reminders, platform adapters, or outbound delivery; those remain behind later review and send-gate milestones
+
+So the project is ready to commit the T212 slice and advance to T213, while keeping proactive behavior review-first and non-executable.
+
 ## Captain Update 2026-05-25 (T211 Review)
 
 T211 confirms that deterministic proactive-action proposal is feasible in the current repository shape without crossing the autonomy boundary.

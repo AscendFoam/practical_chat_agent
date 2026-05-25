@@ -1,5 +1,29 @@
 # Raw Idea
 
+## Captain Update 2026-05-25 (T213 Review)
+
+T213 has now passed review with `PASS`, so M10 has an explicit manual review step for proactive behavior candidates:
+
+- the repo now has `CandidateActionReviewService`, which applies approve/reject/freeze/archive decisions to `CandidateAction` records without mutating the input object
+- the repo now has `chat-behavior-review-action`, a local CLI for reviewing one candidate JSON file and writing the reviewed artifact
+- review preserves all M10 execution boundaries: no auto-send, no platform execution, no scheduler, no platform target, no LLM call, no external service, and no approved-store/private-artifact mutation
+- reviewer observations are accepted as convention, current offline workflow trade-offs, cosmetic typing debt, or minor coverage-strength notes under a `PASS` verdict; no repair pass and no deferred review risk are opened
+- the next safe step is T214 `Behavior Safety Eval`, limited to evaluating the T210-T213 behavior pipeline and M10 safety boundaries without code changes or outbound authorization
+
+The Current Unique Task therefore moves to T214 `Behavior Safety Eval`.
+
+## Captain Update 2026-05-25 (T212 Review)
+
+T212 has now passed review with `PASS`, so M10 has deterministic draft-text enrichment for behavior candidates:
+
+- the repo now has `ProactiveDraftGenerator`, which adds short review-only `draft_text` to `CandidateAction` payloads
+- draft enrichment preserves T210/T211 invariants: no auto-send, no platform execution, no scheduler, no platform target, no mutation, and no raw transcript input
+- the implementation remains deterministic and conservative; it does not call an LLM, integrate a platform, add CLI/runtime wiring, or execute anything
+- reviewer observations are accepted as convention, design, or test-strength notes under a `PASS` verdict; no repair pass and no deferred review risk are opened
+- the next safe step is T213 `CandidateAction Review CLI`, limited to manual approve/reject/freeze/archive review of enriched candidates without sending, scheduling, or platform execution
+
+The Current Unique Task therefore moves to T213 `CandidateAction Review CLI`.
+
 ## Captain Update 2026-05-25 (T211 Review)
 
 T211 has now passed review with `PASS`, so M10 has its first deterministic behavior-planner execution layer while still staying non-executing:

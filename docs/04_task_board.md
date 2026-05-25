@@ -4,6 +4,38 @@ Updated: 2026-05-25
 
 ## Captain Current State Override
 
+- T213 review decision: `PASS`.
+- T213 is complete as the manual CandidateAction review CLI task for M10.
+- T213 review observation disposition:
+  - Accepted: N01 Captain-authored T212 close-out governance diffs are established convention noise, N02 safe `input_path` / `output_path` stdout follows prior offline CLI convention, N03 T212 reviewer explanation in the working tree is prior reviewer/Captain artifact noise, N04 default in-place overwrite follows existing review-CLI convention and is low risk for offline workflow, N05 `_apply_decision` type suppression is cosmetic typing debt, M01 missing CLI freeze/archive/reject smoke tests are minor, M02 missing repeated-review history-count test is minor, M03 missing CLI reject/freeze/archive round-trip tests are minor.
+  - Deferred: none.
+  - Rejected: none.
+- Current Unique Task: T214 Behavior Safety Eval.
+- Current task package: `docs/tasks/M10_behavior_planner/T214_behavior_safety_eval.md`.
+- T214 must stay evaluation-only and non-executing: inspect and report on the T210-T213 behavior-planner slice, but do not modify code/tests/schemas/CLIs/services, send messages, schedule actions, integrate platforms, call LLMs, mutate stores, read private chat history, or treat approval as outbound authorization.
+- M10 execution constraints now carried forward:
+  - T213 approvals make reviewed candidate artifacts visible for review workflows only; they do not authorize send, schedule, platform execution, or state mutation.
+  - `CandidateAction.status="approved"`, `review_state="reviewed"`, or `is_runtime_visible()` must not be interpreted as sendable or schedulable.
+  - T214 may recommend a Gate M10 status, but it must not start M11 implementation.
+  - Any future outbound/platform work remains behind later OutboundSendGate milestones.
+  - BehaviorPlanner work must consume only approved/review-safe context surfaces and must not reopen raw transcript ingestion.
+
+- T212 review decision: `PASS`.
+- T212 is complete as the deterministic draft-enrichment task for M10.
+- T212 review observation disposition:
+  - Accepted: N01 reviewer explanation allowed-files overrun is established convention noise, N02 static draft literals keyed by `BehaviorActionType` are acceptable for deterministic scope and forward-compatible `reply_follow_up_draft` / `topic_suggestion` entries are harmless, N03 unreachable fallback with `pragma: no cover` is cosmetic defensive code, N04 `model_copy(update=...)` without revalidation is acceptable because the only change is optional `draft_text` on an already validated payload, N05 overwriting existing `draft_text` is acceptable for initial-enrichment scope, M01 existing-draft overwrite mapping test gap is minor, M02 pipeline coverage for unsupported-but-available draft families is minor, M03 idempotence test gap is minor.
+  - Deferred: none.
+  - Rejected: none.
+- Current Unique Task: T213 CandidateAction Review CLI.
+- Current task package: `docs/tasks/M10_behavior_planner/T213_candidate_action_review_cli.md`.
+- T213 must stay manual-review-only and non-executing: approve/reject/freeze/archive enriched `CandidateAction` records, but do not send messages, schedule actions, integrate platforms, call LLMs, mutate stores, or treat approval as outbound authorization.
+- M10 execution constraints now carried forward:
+  - T212 enriches draft text only; it does not execute, send, or schedule.
+  - T213 may change review status and metadata, not outbound semantics.
+  - `CandidateAction.status="approved"` or `is_runtime_visible()` must not be interpreted as sendable or schedulable.
+  - Any future outbound/platform work remains behind later OutboundSendGate milestones.
+  - BehaviorPlanner work must consume only approved/review-safe context surfaces and must not reopen raw transcript ingestion.
+
 - T211 review decision: `PASS`.
 - T211 is complete as the deterministic rule-engine task for M10.
 - T211 review observation disposition:
@@ -345,11 +377,11 @@ Updated: 2026-05-25
 
 ## Current Unique Task
 
-T212: Proactive Draft Generator.
+T214: Behavior Safety Eval.
 
-Task package: `docs/tasks/M10_behavior_planner/T212_proactive_draft_generator.md`
+Task package: `docs/tasks/M10_behavior_planner/T214_behavior_safety_eval.md`
 
-Why now: T211 has landed with `PASS`, completing deterministic candidate-action proposal for M10. The next smallest safe step is deterministic draft-text enrichment for review-only candidate actions, still before any review CLI, outbound gate, platform adapter, scheduler, or automatic send behavior.
+Why now: T213 has landed with `PASS`, completing manual review for enriched `CandidateAction` records. The next smallest safe step is a milestone-level behavior safety evaluation of T210-T213 before any outbound gate, platform adapter, scheduler, runtime autonomy, or automatic send behavior.
 
 ## Board Rules
 
@@ -478,8 +510,8 @@ Goal: generate draft-only proactive action candidates without automatic sending.
 
 - [x] T210: behavior schema. Review `PASS`.
 - [x] T211: action-planner rule engine. Review `PASS`.
-- [ ] T212: proactive draft generator.
-- [ ] T213: CandidateAction review CLI.
+- [x] T212: proactive draft generator. Review `PASS`.
+- [x] T213: CandidateAction review CLI. Review `PASS`.
 - [ ] T214: behavior safety eval.
 
 ## Milestone 11: OutboundSendGate + Feishu Sandbox
@@ -502,6 +534,14 @@ Goal: keep WeChat as a thin final adapter behind the send gate.
 - [ ] T233: WeChat safety mode.
 
 ## Historical Current Unique Task
+
+T213: CandidateAction Review CLI.
+
+It is now complete and accepted with `PASS`. The next worker task is T214, because M10 needs a behavior safety evaluation over the T210-T213 review-only pipeline before any OutboundSendGate or platform work.
+
+T212: Proactive Draft Generator.
+
+It is now complete and accepted with `PASS`. The next worker task is T213, because M10 can now move from draft enrichment to manual review-state transitions while preserving the no-send/no-scheduler/no-platform boundary.
 
 T211: Action Planner Rule Engine.
 

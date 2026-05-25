@@ -1,5 +1,25 @@
 # Eval Protocol
 
+## Captain Update 2026-05-25 (T213 Review)
+
+T213 has now been accepted with `PASS`.
+
+Current evaluation sequence is now:
+
+- T214: can the repo evaluate the complete T210-T213 behavior-planner slice for boundary, frequency, conflict, quiet-hours, privacy, and no-execution safety while making no implementation changes and without authorizing send/scheduler/platform behavior?
+
+T213 changes the evaluation baseline in one important way: M10 no longer needs to prove whether manual review of enriched `CandidateAction` records can be represented safely. The next evaluation target is milestone-level behavior safety, not review CLI wiring.
+
+## Captain Update 2026-05-25 (T212 Review)
+
+T212 has now been accepted with `PASS`.
+
+Current evaluation sequence is now:
+
+- T213: can the repo add manual review actions for enriched `CandidateAction` records while preserving no-send/no-scheduler/no-platform/no-mutation invariants and avoiding runtime wiring, outbound requests, or platform execution?
+
+T212 changes the evaluation baseline in one important way: M10 no longer needs to prove whether deterministic draft enrichment can be done safely. The next evaluation target is manual review workflow discipline, not draft text generation.
+
 ## Captain Update 2026-05-25 (T211 Review)
 
 T211 has now been accepted with `PASS`.

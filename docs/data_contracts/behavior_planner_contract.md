@@ -233,3 +233,78 @@ evaluation.
 
 T211 does not authorize automatic sending, real scheduling, platform
 integration, runtime loops, store mutation, LLM calls, or outbound gate bypass.
+
+## T212 Draft Enrichment Scope
+
+T212 enriches an existing safe `CandidateAction` with review-only draft text.
+It does not change the candidate's action type, evidence refs, risk flags,
+policy, or execution boundaries.
+
+Accepted input shapes:
+
+- a validated `CandidateAction`
+- a stable candidate-action mapping that validates to `CandidateAction`
+
+Output shape:
+
+- the same `CandidateAction` with `payload.draft_text` populated
+- all no-send / no-scheduler / no-platform invariants preserved
+
+Draft safety constraints:
+
+- keep text short, conservative, and clearly review-only
+- do not echo raw transcript or private-text content
+- do not add transport, scheduling, or platform semantics
+- do not try to increase engagement or imitate a real person
+
+Recommended draft families:
+
+- `boundary_review_note`: boundary-sensitive review note
+- `memory_review_prompt`: memory or relationship review reminder
+- `relationship_check_in_draft`: low-pressure, non-committal check-in draft
+- `do_nothing`: explicit review-safe no-action note
+
+T212 remains the bridge between deterministic candidate proposal and the
+later review surface. T213 should consume these enriched candidates in a
+review CLI. T214 should evaluate the resulting behavior safety, not authorize
+execution.
+
+## T213 Review Scope
+
+T213 adds an explicit human review layer for `CandidateAction` records.
+It may change review status and review metadata, but it does not authorize
+outbound execution or platform delivery.
+
+Supported decisions:
+
+- `approve`
+- `reject`
+- `freeze`
+- `archive`
+
+Review metadata semantics:
+
+- `review_state` becomes `reviewed`
+- `reviewed_by_human` becomes `true`
+- `last_decision` mirrors the normalized decision status
+- `last_reviewed_at` records the review timestamp
+- `last_reviewer_id` stores the human reviewer id
+- `history` appends a `DistilledArtifactReviewDecision`
+- `decision_notes` appends the optional note when present
+
+Approved is not sendable:
+
+- `status="approved"` only means the candidate is visible to later
+  review-safe surfaces
+- it does not imply send authorization
+- it does not imply scheduler, platform, or runtime execution approval
+
+CLI safe-output expectations:
+
+- print action id, contact id, action type, status, and review metadata only
+- do not print full draft text or raw private content to stdout
+- default or recommended file outputs should stay under `private/`
+
+T213 precedes later OutboundSendGate milestones. Any later execution path must
+still respect review-only candidate semantics and human-approved outbound
+policy.

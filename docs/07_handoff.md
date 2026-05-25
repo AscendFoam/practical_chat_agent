@@ -1,5 +1,86 @@
 # Handoff
 
+## Captain Current State Override 2026-05-25 (T213 Review Decision)
+
+- T213 review decision: `PASS`.
+- T213 is complete as the manual CandidateAction review CLI task for M10.
+- T213 review observation disposition:
+  - Accepted: N01 Captain-authored T212 close-out governance diffs are established convention noise, N02 safe `input_path` / `output_path` stdout follows prior offline CLI convention, N03 T212 reviewer explanation in the working tree is prior reviewer/Captain artifact noise, N04 default in-place overwrite follows existing review-CLI convention and is low risk for offline workflow, N05 `_apply_decision` type suppression is cosmetic typing debt, M01 missing CLI freeze/archive/reject smoke tests are minor, M02 missing repeated-review history-count test is minor, M03 missing CLI reject/freeze/archive round-trip tests are minor.
+  - Deferred: none.
+  - Rejected: none.
+- Captain decision: no T213 repair pass is needed.
+- Current Unique Task: T214 Behavior Safety Eval.
+- Current task package: `docs/tasks/M10_behavior_planner/T214_behavior_safety_eval.md`.
+- T214 must remain evaluation-only and non-executing:
+  - may inspect T210-T213 implementation, task packages, reviews, worker summaries, docs, and tests
+  - may run local read-only commands/tests and create a committed milestone evaluation report
+  - must not modify implementation code, schemas, CLIs, services, tests, fixtures, runtime wiring, or private artifacts
+  - must not send messages, schedule actions, integrate platforms, call LLMs, mutate memory/ContactSkill/RelationshipState/approved stores/private artifacts, or treat candidate approval as outbound authorization
+  - must not read `private/chat_history/` or commit private content
+- Captain verification basis:
+  - Reviewer reported no blocking issues.
+  - Worker summary reports `python -m py_compile src/practical_chat_agent/core/models.py src/practical_chat_agent/services/behavior_planner.py src/practical_chat_agent/app/main.py` passed.
+  - Worker summary reports targeted behavior tests passed: 58 tests.
+  - Worker summary reports full-suite verification passed with workspace temp/cache: 780 tests.
+- No new deferred T213 risk is opened. Existing project-wide review-only/outbound-gate risks remain active.
+
+## Captain Current State Override 2026-05-25 (T212 Review Decision)
+
+- T212 review decision: `PASS`.
+- T212 is complete as the deterministic draft-enrichment task for M10.
+- T212 review observation disposition:
+  - Accepted: N01 reviewer explanation/worker summary allowed-files overrun is established convention noise, N02 static draft literals keyed by `BehaviorActionType` are acceptable for deterministic scope and forward-compatible `reply_follow_up_draft` / `topic_suggestion` entries are harmless, N03 unreachable fallback with `pragma: no cover` is cosmetic defensive code, N04 `model_copy(update=...)` without revalidation is acceptable because the only change is optional `draft_text` on an already validated payload, N05 overwriting existing `draft_text` is acceptable for initial-enrichment scope, M01 existing-draft overwrite mapping test gap is minor, M02 pipeline coverage for unsupported-but-available draft families is minor, M03 idempotence test gap is minor.
+  - Deferred: none.
+  - Rejected: none.
+- Captain decision: no T212 repair pass is needed.
+- Current Unique Task: T213 CandidateAction Review CLI.
+- Current task package: `docs/tasks/M10_behavior_planner/T213_candidate_action_review_cli.md`.
+- T213 must remain manual-review-only and non-executing:
+  - may review enriched `CandidateAction` records and set status/review metadata to approve/reject/freeze/archive
+  - must preserve T210/T211/T212 invariants: `human_review_required=True`, `auto_send_allowed=False`, `platform_execution_allowed=False`, `scheduler_allowed=False`, `platform_target=None`
+  - must not send messages, schedule actions, integrate platforms, call LLMs, mutate memory/ContactSkill/RelationshipState/approved stores/private artifacts, add runtime loops, or treat approval as outbound authorization
+  - must not read `private/chat_history/` or commit private content
+- Captain verification basis:
+  - Reviewer reported `python -m py_compile src/practical_chat_agent/core/models.py src/practical_chat_agent/services/behavior_planner.py` passed.
+  - Reviewer reported `pytest tests/test_behavior_schema.py tests/test_behavior_rule_planner.py -q` passed: 48 tests.
+  - Worker summary reports full-suite verification passed with workspace temp/cache: 770 tests.
+- No new deferred T212 risk is opened. Existing project-wide review-only/outbound-gate risks remain active.
+
+## T213 Worker Completion Record
+
+- T213 is the CandidateAction review CLI task for M10.
+- Worker must not mark T213 as complete in `docs/04_task_board.md`; only the Captain may do so after review.
+- Files changed:
+  - `src/practical_chat_agent/services/behavior_planner.py`
+  - `src/practical_chat_agent/app/main.py`
+  - `tests/test_behavior_rule_planner.py`
+  - `tests/test_behavior_review_cli.py`
+  - `docs/data_contracts/behavior_planner_contract.md`
+  - `docs/worker_summary/T213_worker_summary.md`
+  - `docs/07_handoff.md`
+- Review design:
+  - `CandidateActionReviewService.review_candidate()` accepts a validated `CandidateAction` or stable mapping.
+  - Supported decisions are `approve`, `reject`, `freeze`, and `archive`.
+  - Reviewer id is required.
+  - The service returns a new reviewed object and does not mutate the input.
+  - Review updates `status`, `review_metadata.review_state`, `reviewed_by_human`, `last_decision`, `last_reviewed_at`, `last_reviewer_id`, `history`, and optional `decision_notes`.
+  - Review preserves payload draft text, supporting refs, risk flags, policy, action type, and all no-send/no-platform/no-scheduler invariants.
+- CLI design:
+  - `chat-behavior-review-action` reads one `CandidateAction` JSON file, applies the review decision, and writes reviewed JSON.
+  - Stdout includes only safe metadata: ids, action type, status, review metadata counts, and paths.
+  - Stdout does not include full draft text.
+- Verification status:
+  - `python -m py_compile src/practical_chat_agent/core/models.py src/practical_chat_agent/services/behavior_planner.py src/practical_chat_agent/app/main.py` passed.
+  - `pytest tests/test_behavior_schema.py tests/test_behavior_rule_planner.py tests/test_behavior_review_cli.py -q -o cache_dir=artifacts\\t213_pytest_cache --basetemp=artifacts\\t213_pytest_basetemp` passed: 58 tests.
+  - `pytest tests -q -o cache_dir=artifacts\\t213_pytest_cache --basetemp=artifacts\\t213_pytest_basetemp` passed: 780 tests.
+- Explicit non-actions:
+  - No message sending.
+  - No real scheduler, timer, reminder, background job, automation, or recurring task.
+  - No platform adapter or outbound send-gate behavior.
+  - No LLM calls or external services.
+  - No memory, ContactSkill, RelationshipState, approved-store, private-artifact, or unrelated review metadata mutation.
+  - No task board update.
+
 ## Captain Current State Override 2026-05-25 (T211 Review Decision)
 
 - T211 review decision: `PASS`.
@@ -21,6 +102,37 @@
   - Reviewer reported `pytest tests/test_behavior_schema.py tests/test_behavior_rule_planner.py -q` passed: 40 tests.
   - Worker summary reports full-suite verification passed with workspace temp/cache: 762 tests.
 - No new deferred T211 risk is opened. Existing project-wide review-only/outbound-gate risks remain active.
+
+## T212 Worker Completion Record
+
+- T212 is the proactive draft generator task for M10.
+- Worker must not mark T212 as complete in `docs/04_task_board.md`; only the Captain may do so after review.
+- Files changed:
+  - `src/practical_chat_agent/services/behavior_planner.py`
+  - `tests/test_behavior_rule_planner.py`
+  - `docs/data_contracts/behavior_planner_contract.md`
+  - `docs/worker_summary/T212_worker_summary.md`
+  - `docs/07_handoff.md`
+- Draft-enrichment design:
+  - `ProactiveDraftGenerator.enrich()` accepts a validated `CandidateAction` or stable mapping that validates to one.
+  - The generator preserves `action_type`, `supporting_context_refs`, `risk_flags`, `policy`, `status`, and the no-send/no-platform/no-scheduler invariants.
+  - Draft text is deterministic per action type and stays short, review-only, and non-committal.
+  - Supported draft families:
+    - `boundary_review_note`
+    - `memory_review_prompt`
+    - `relationship_check_in_draft`
+    - `reply_follow_up_draft`
+    - `topic_suggestion`
+    - `do_nothing`
+- Verification status:
+  - `python -m py_compile src/practical_chat_agent/core/models.py src/practical_chat_agent/services/behavior_planner.py` passed.
+  - `pytest tests/test_behavior_schema.py tests/test_behavior_rule_planner.py -q -o cache_dir=artifacts\pytest_cache --basetemp=artifacts\t212_pytest_basetemp` passed: 48 tests.
+  - `pytest tests -q -o cache_dir=artifacts\pytest_cache --basetemp=artifacts\t212_pytest_basetemp` passed: 770 tests.
+- Explicit non-actions:
+  - No send/schedule/platform/runtime wiring.
+  - No LLM calls or external services.
+  - No memory, ContactSkill, or RelationshipState mutation.
+  - No task board update.
 
 ## Captain Current State Override 2026-05-25 (T210 Review Decision)
 

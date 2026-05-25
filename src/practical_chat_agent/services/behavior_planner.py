@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import hashlib
-from collections.abc import Iterable
+from datetime import datetime, timezone
+from collections.abc import Iterable, Mapping
 
 from practical_chat_agent.core.models import (
     AgentSelfState,
+    DistilledArtifactReviewDecision,
     BehaviorPolicy,
     BehaviorActionType,
     CandidateAction,
@@ -305,3 +307,128 @@ class BehaviorRulePlanner:
         ]
         digest = hashlib.sha1("|".join(pieces).encode("utf-8")).hexdigest()[:16]
         return f"candact_{digest}"
+
+
+_PROACTIVE_DRAFT_TEXTS: dict[BehaviorActionType, str] = {
+    "relationship_check_in_draft": (
+        "Review-only draft: consider a brief, low-pressure check-in; keep it "
+        "optional and non-committal."
+    ),
+    "reply_follow_up_draft": (
+        "Review-only draft: consider a concise, gentle follow-up that stays optional."
+    ),
+    "topic_suggestion": (
+        "Review only: suggest a simple topic the user could raise if it feels natural."
+    ),
+    "boundary_review_note": (
+        "Review only: check boundary-sensitive context before drafting any proactive wording."
+    ),
+    "memory_review_prompt": (
+        "Review only: verify recent memory or relationship signals before deciding whether to reply."
+    ),
+    "do_nothing": "Review only: no proactive action is recommended for now.",
+}
+
+
+class ProactiveDraftGenerator:
+    """Deterministically enrich review-only CandidateAction artifacts with draft text."""
+
+    def enrich(
+        self,
+        candidate: CandidateAction | Mapping[str, object],
+    ) -> CandidateAction:
+        action = candidate if isinstance(candidate, CandidateAction) else CandidateAction.model_validate(candidate)
+        draft_text = self._draft_text_for(action.action_type)
+        payload = action.payload.model_copy(update={"draft_text": draft_text})
+        return action.model_copy(update={"payload": payload})
+
+    @staticmethod
+    def _draft_text_for(action_type: BehaviorActionType) -> str:
+        try:
+            return _PROACTIVE_DRAFT_TEXTS[action_type]
+        except KeyError:  # pragma: no cover - guarded by schema validation
+            return "Review only: no proactive draft text is available."
+
+
+class CandidateActionReviewError(ValueError):
+    """Raised when a CandidateAction review decision cannot be applied."""
+
+
+class CandidateActionReviewService:
+    """Manual review service for draft-only CandidateAction records."""
+
+    VALID_DECISIONS = frozenset({"approve", "reject", "freeze", "archive"})
+    _DECISION_TO_STATUS: dict[str, str] = {
+        "approve": "approved",
+        "reject": "rejected",
+        "freeze": "frozen",
+        "archive": "archived",
+    }
+
+    def review_candidate(
+        self,
+        *,
+        candidate: CandidateAction | Mapping[str, object],
+        decision: str,
+        reviewer_id: str,
+        note: str | None = None,
+    ) -> CandidateAction:
+        action = candidate if isinstance(candidate, CandidateAction) else CandidateAction.model_validate(candidate)
+        normalized_decision = self._normalize_decision(decision)
+        normalized_reviewer_id = reviewer_id.strip()
+        if not normalized_reviewer_id:
+            raise CandidateActionReviewError("reviewer_id is required.")
+
+        reviewed = action.model_copy(deep=True)
+        self._apply_decision(
+            reviewed=reviewed,
+            decision=normalized_decision,
+            reviewer_id=normalized_reviewer_id,
+            note=note,
+        )
+        return reviewed
+
+    def _normalize_decision(self, decision: str) -> str:
+        normalized = decision.strip().lower()
+        if normalized not in self.VALID_DECISIONS:
+            raise CandidateActionReviewError(
+                f"Invalid decision '{decision}'. Must be one of: {', '.join(sorted(self.VALID_DECISIONS))}."
+            )
+        return normalized
+
+    def _apply_decision(
+        self,
+        *,
+        reviewed: CandidateAction,
+        decision: str,
+        reviewer_id: str,
+        note: str | None,
+    ) -> None:
+        now = datetime.now(timezone.utc)
+        status = self._DECISION_TO_STATUS[decision]
+        cleaned_note = note.strip() if note is not None else None
+        review_decision = DistilledArtifactReviewDecision(
+            status=status,  # type: ignore[arg-type]
+            reviewer_id=reviewer_id,
+            reviewer_name=None,
+            reviewed_at=now,
+            notes=[cleaned_note] if cleaned_note else [],
+        )
+
+        reviewed.review_metadata.history = [
+            *reviewed.review_metadata.history,
+            review_decision,
+        ]
+        reviewed.review_metadata.review_state = "reviewed"
+        reviewed.review_metadata.reviewed_by_human = True
+        reviewed.review_metadata.last_decision = status  # type: ignore[assignment]
+        reviewed.review_metadata.last_reviewed_at = now
+        reviewed.review_metadata.last_reviewer_id = reviewer_id
+        if cleaned_note:
+            reviewed.review_metadata.decision_notes = [
+                *reviewed.review_metadata.decision_notes,
+                cleaned_note,
+            ]
+
+        reviewed.status = status  # type: ignore[assignment]
+        reviewed.updated_at = now

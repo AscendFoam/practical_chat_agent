@@ -213,7 +213,8 @@
       "Bash(TEMP=.tmp/pytest TMP=.tmp/pytest pytest tests/test_behavior_schema.py -q -o cache_dir=.tmp/pytest_cache)",
       "Bash(TEMP=.tmp/pytest TMP=.tmp/pytest pytest tests/ -q -o cache_dir=.tmp/pytest_cache)",
       "Bash(python -m py_compile src/practical_chat_agent/services/behavior_planner.py)",
-      "Bash(TEMP=artifacts/pytest_tmp TMP=artifacts/pytest_tmp python -m pytest tests/test_behavior_schema.py tests/test_behavior_rule_planner.py -q -o cache_dir=artifacts/pytest_cache --tb=short)"
+      "Bash(TEMP=artifacts/pytest_tmp TMP=artifacts/pytest_tmp python -m pytest tests/test_behavior_schema.py tests/test_behavior_rule_planner.py -q -o cache_dir=artifacts/pytest_cache --tb=short)",
+      "Bash(python -m py_compile src/practical_chat_agent/core/models.py src/practical_chat_agent/services/behavior_planner.py)"
     ]
   }
 }

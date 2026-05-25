@@ -1,5 +1,53 @@
 # Architecture
 
+## Captain Update 2026-05-25 (T213 Review)
+
+T213 completes the manual review layer of M10:
+
+```text
+enriched CandidateAction
+  -> CandidateActionReviewService / chat-behavior-review-action
+  -> approve / reject / freeze / archive
+  -> reviewed CandidateAction JSON + review metadata/history
+  -> still no outbound request, platform target, scheduler, runtime loop, or send gate bypass
+```
+
+The next architectural step is T214, which must evaluate the whole M10 slice without adding behavior:
+
+```text
+T210 schemas + T211 rule planner + T212 draft generator + T213 review service/CLI
+  -> behavior safety eval
+  -> boundary/frequency/conflict/quiet-hours/privacy/no-execution findings
+  -> Gate M10 recommendation
+  -> no code changes and no authorization to send
+```
+
+This keeps the architecture honest: reviewed candidates may become visible review artifacts, but they are not executable outbound actions until a later send-gate milestone explicitly creates that boundary.
+
+## Captain Update 2026-05-25 (T212 Review)
+
+T212 completes the deterministic draft-enrichment layer of M10:
+
+```text
+CandidateAction from BehaviorRulePlanner
+  -> ProactiveDraftGenerator
+  -> CandidateActionPayload.draft_text
+  -> review-only enriched candidate
+  -> no sending, scheduling, platform execution, CLI wiring, LLM, or mutation
+```
+
+The next architectural step is T213, which must add manual review state transitions only:
+
+```text
+enriched CandidateAction
+  -> CandidateAction review service / CLI
+  -> approve / reject / freeze / archive
+  -> review metadata + status update
+  -> still no outbound request, platform target, scheduler, runtime loop, or send gate bypass
+```
+
+This keeps M10 moving from “draft candidate exists” to “human can review candidate” without accidentally turning approved candidates into executable outbound actions.
+
 ## Captain Update 2026-05-25 (T211 Review)
 
 T211 completes the deterministic rule-engine layer of M10:

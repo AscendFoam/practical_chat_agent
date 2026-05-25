@@ -9,12 +9,22 @@ from __future__ import annotations
 
 import inspect
 
+import pytest
+
 from practical_chat_agent.core.models import (
     AgentSelfState,
     BehaviorPolicy,
     CandidateAction,
+    CandidateActionPayload,
+    DistilledArtifactReviewMetadata,
+    ReplyPlanContextRef,
 )
-from practical_chat_agent.services.behavior_planner import BehaviorRulePlanner
+from practical_chat_agent.services.behavior_planner import (
+    BehaviorRulePlanner,
+    CandidateActionReviewError,
+    CandidateActionReviewService,
+    ProactiveDraftGenerator,
+)
 
 
 def _state(**overrides: object) -> AgentSelfState:
@@ -34,6 +44,39 @@ def _policy(**overrides: object) -> BehaviorPolicy:
     data: dict[str, object] = {}
     data.update(overrides)
     return BehaviorPolicy(**data)
+
+
+def _candidate_action(action_type: str, **overrides: object) -> CandidateAction:
+    data: dict[str, object] = {
+        "contact_id": "contact_synthetic",
+        "user_id": "user_synthetic",
+        "action_type": action_type,
+        "title": f"Synthetic {action_type}",
+        "rationale": "Synthetic review-safe rationale.",
+        "supporting_context_refs": [
+            ReplyPlanContextRef(
+                ref_type="policy_boundary",
+                ref_id=f"ref_{action_type}",
+                note="synthetic review-safe ref",
+            ),
+        ],
+        "payload": CandidateActionPayload(
+            safe_summary="Synthetic review-safe summary.",
+            metadata={"rule_id": action_type},
+        ),
+    }
+    data.update(overrides)
+    return CandidateAction(**data)
+
+
+def _review_metadata() -> DistilledArtifactReviewMetadata:
+    return DistilledArtifactReviewMetadata(
+        review_state="pending_human_review",
+        reviewed_by_human=False,
+        last_decision=None,
+        decision_notes=[],
+        history=[],
+    )
 
 
 class TestBehaviorRulePlannerFallback:
@@ -244,3 +287,233 @@ class TestBehaviorRulePlannerCandidateSafety:
 
         assert forbidden_parameter_names.isdisjoint(signature.parameters)
 
+
+class TestProactiveDraftGenerator:
+    def test_enriches_all_supported_candidate_types_with_draft_text(self) -> None:
+        generator = ProactiveDraftGenerator()
+        action_types = [
+            "relationship_check_in_draft",
+            "reply_follow_up_draft",
+            "topic_suggestion",
+            "boundary_review_note",
+            "memory_review_prompt",
+            "do_nothing",
+        ]
+
+        enriched = [generator.enrich(_candidate_action(action_type)) for action_type in action_types]
+
+        assert [action.action_type for action in enriched] == action_types
+        assert all(action.payload.draft_text for action in enriched)
+        assert all("review" in action.payload.draft_text.casefold() for action in enriched)
+
+    def test_enrich_is_deterministic_for_same_input(self) -> None:
+        generator = ProactiveDraftGenerator()
+        planner = BehaviorRulePlanner()
+        action = planner.plan(
+            self_state=_state(approved_context_refs=["skillstore_safe_001"]),
+        )[0]
+
+        enriched_one = generator.enrich(action)
+        enriched_two = generator.enrich(action.model_dump())
+
+        assert enriched_one.payload.draft_text == enriched_two.payload.draft_text
+        assert enriched_one.action_id == enriched_two.action_id
+        assert enriched_one.action_type == enriched_two.action_type
+        assert enriched_one.supporting_context_refs == enriched_two.supporting_context_refs
+
+    def test_enrich_preserves_candidate_invariants_and_payload_fields(self) -> None:
+        generator = ProactiveDraftGenerator()
+        planner = BehaviorRulePlanner()
+        action = planner.plan(self_state=_state())[0]
+
+        enriched = generator.enrich(action)
+
+        assert enriched.action_id == action.action_id
+        assert enriched.action_type == action.action_type
+        assert enriched.supporting_context_refs == action.supporting_context_refs
+        assert enriched.risk_flags == action.risk_flags
+        assert enriched.policy == action.policy
+        assert enriched.status == action.status
+        assert enriched.payload.safe_summary == action.payload.safe_summary
+        assert enriched.human_review_required is True
+        assert enriched.auto_send_allowed is False
+        assert enriched.platform_execution_allowed is False
+        assert enriched.scheduler_allowed is False
+        assert enriched.platform_target is None
+        assert enriched.payload.draft_text is not None
+        assert "send" not in enriched.payload.draft_text.casefold()
+        assert "schedule" not in enriched.payload.draft_text.casefold()
+        assert "platform" not in enriched.payload.draft_text.casefold()
+        assert not set(BehaviorPolicy().forbidden_payload_fields).intersection(enriched.payload.metadata)
+
+    def test_enrich_does_not_echo_private_or_raw_text_from_input(self) -> None:
+        generator = ProactiveDraftGenerator()
+        private_sentinel = "SECRET_RAW_PRIVATE_TEXT_DO_NOT_ECHO"
+        action = _candidate_action(
+            "relationship_check_in_draft",
+            payload=CandidateActionPayload(
+                safe_summary=f"Synthetic summary with {private_sentinel}.",
+                review_notes=[f"Reviewer note mentions {private_sentinel}."],
+                metadata={"rule_id": "relationship_check_in_draft"},
+            ),
+        )
+
+        enriched = generator.enrich(action)
+
+        assert enriched.payload.draft_text is not None
+        assert private_sentinel not in enriched.payload.draft_text
+        assert "raw" not in enriched.payload.draft_text.casefold()
+        assert "private" not in enriched.payload.draft_text.casefold()
+
+    def test_boundary_sensitive_candidates_stay_conservative(self) -> None:
+        generator = ProactiveDraftGenerator()
+        action = BehaviorRulePlanner().plan(
+            self_state=_state(
+                approved_context_refs=["skillstore_safe_001"],
+                risk_flags=["boundary_sensitive"],
+            ),
+        )[0]
+
+        enriched = generator.enrich(action)
+
+        assert enriched.action_type == "boundary_review_note"
+        assert "boundary-sensitive" in enriched.payload.draft_text.casefold()
+        assert "proactive wording" in enriched.payload.draft_text.casefold()
+
+    def test_do_nothing_candidate_remains_review_only(self) -> None:
+        generator = ProactiveDraftGenerator()
+        action = BehaviorRulePlanner().plan(self_state=_state())[0]
+
+        enriched = generator.enrich(action)
+
+        assert enriched.action_type == "do_nothing"
+        assert enriched.payload.draft_text == "Review only: no proactive action is recommended for now."
+        assert enriched.payload.safe_summary == "No proactive candidate: context is too thin."
+
+    def test_relationship_check_in_remains_low_pressure_and_non_committal(self) -> None:
+        generator = ProactiveDraftGenerator()
+        action = BehaviorRulePlanner().plan(
+            self_state=_state(approved_context_refs=["skillstore_safe_001"]),
+        )[0]
+
+        enriched = generator.enrich(action)
+
+        assert enriched.action_type == "relationship_check_in_draft"
+        assert "low-pressure" in enriched.payload.draft_text.casefold()
+        assert "optional" in enriched.payload.draft_text.casefold()
+        assert "non-committal" in enriched.payload.draft_text.casefold()
+
+    def test_enrich_accepts_stable_mapping_inputs_without_private_text_fields(self) -> None:
+        generator = ProactiveDraftGenerator()
+        action = BehaviorRulePlanner().plan(
+            self_state=_state(approved_context_refs=["skillstore_safe_001"]),
+        )[0]
+
+        enriched = generator.enrich(action.model_dump(mode="python"))
+
+        assert enriched.payload.draft_text is not None
+        assert not hasattr(enriched, "raw_transcript")
+        assert not hasattr(enriched.payload, "raw_transcript")
+
+
+class TestCandidateActionReviewService:
+    def test_approve_candidate_updates_review_metadata(self) -> None:
+        service = CandidateActionReviewService()
+        candidate = _candidate_action(
+            "relationship_check_in_draft",
+            status="candidate",
+            review_metadata=_review_metadata(),
+        )
+
+        reviewed = service.review_candidate(
+            candidate=candidate,
+            decision="approve",
+            reviewer_id="reviewer_001",
+            note="Looks fine.",
+        )
+
+        assert reviewed is not candidate
+        assert reviewed.status == "approved"
+        assert reviewed.review_metadata.review_state == "reviewed"
+        assert reviewed.review_metadata.reviewed_by_human is True
+        assert reviewed.review_metadata.last_decision == "approved"
+        assert reviewed.review_metadata.last_reviewer_id == "reviewer_001"
+        assert reviewed.review_metadata.history[-1].status == "approved"
+        assert "Looks fine." in reviewed.review_metadata.decision_notes
+
+    def test_reject_freeze_archive_are_supported(self) -> None:
+        service = CandidateActionReviewService()
+        candidate = _candidate_action(
+            "do_nothing",
+            status="candidate",
+            review_metadata=_review_metadata(),
+        )
+
+        rejected = service.review_candidate(candidate=candidate, decision="reject", reviewer_id="r1")
+        frozen = service.review_candidate(candidate=candidate, decision="freeze", reviewer_id="r2")
+        archived = service.review_candidate(candidate=candidate, decision="archive", reviewer_id="r3")
+
+        assert rejected.status == "rejected"
+        assert frozen.status == "frozen"
+        assert archived.status == "archived"
+
+    def test_invalid_decision_rejected(self) -> None:
+        service = CandidateActionReviewService()
+
+        with pytest.raises(CandidateActionReviewError):
+            service.review_candidate(
+                candidate=_candidate_action("do_nothing", review_metadata=_review_metadata()),
+                decision="send",
+                reviewer_id="reviewer_001",
+            )
+
+    def test_reviewer_id_required(self) -> None:
+        service = CandidateActionReviewService()
+
+        with pytest.raises(CandidateActionReviewError):
+            service.review_candidate(
+                candidate=_candidate_action("do_nothing", review_metadata=_review_metadata()),
+                decision="approve",
+                reviewer_id=" ",
+            )
+
+    def test_review_preserves_payload_and_invariants(self) -> None:
+        service = CandidateActionReviewService()
+        candidate = _candidate_action(
+            "relationship_check_in_draft",
+            status="candidate",
+            review_metadata=_review_metadata(),
+        )
+
+        reviewed = service.review_candidate(
+            candidate=candidate,
+            decision="approve",
+            reviewer_id="reviewer_001",
+        )
+
+        assert reviewed.payload.safe_summary == candidate.payload.safe_summary
+        assert reviewed.payload.draft_text == candidate.payload.draft_text
+        assert reviewed.supporting_context_refs == candidate.supporting_context_refs
+        assert reviewed.risk_flags == candidate.risk_flags
+        assert reviewed.policy == candidate.policy
+        assert reviewed.human_review_required is True
+        assert reviewed.auto_send_allowed is False
+        assert reviewed.platform_execution_allowed is False
+        assert reviewed.scheduler_allowed is False
+        assert reviewed.platform_target is None
+        assert candidate.status == "candidate"
+        assert candidate.review_metadata.review_state == "pending_human_review"
+
+    def test_review_accepts_mapping_input(self) -> None:
+        service = CandidateActionReviewService()
+        reviewed = service.review_candidate(
+            candidate=_candidate_action(
+                "relationship_check_in_draft",
+                review_metadata=_review_metadata(),
+            ).model_dump(mode="python"),
+            decision="approve",
+            reviewer_id="reviewer_001",
+        )
+
+        assert reviewed.status == "approved"
+        assert reviewed.review_metadata.last_reviewer_id == "reviewer_001"
