@@ -1,5 +1,17 @@
 # Raw Idea
 
+## Captain Update 2026-05-25 (T211 Review)
+
+T211 has now passed review with `PASS`, so M10 has its first deterministic behavior-planner execution layer while still staying non-executing:
+
+- the repo now has `BehaviorRulePlanner`, a local rule engine that proposes review-only `CandidateAction` records from `AgentSelfState`, `BehaviorPolicy`, and safe compact labels
+- the rule engine is conservative and deterministic: boundary review notes, memory review prompts, relationship check-in candidates, and `do_nothing` fallback are emitted in fixed rule order
+- no sending, scheduling, platform integration, LLM calls, memory mutation, CLI wiring, runtime loop, or raw transcript path was introduced
+- reviewer observations are accepted as convention, design, or test-strength notes under a `PASS` verdict; no repair pass and no deferred review risk are opened
+- the next safe step is T212 `Proactive Draft Generator`, limited to filling review-safe draft text on candidate actions without sending, scheduling, platform execution, LLM use, or approval bypass
+
+The Current Unique Task therefore moves to T212 `Proactive Draft Generator`.
+
 ## Captain Update 2026-05-25 (T210 Review)
 
 T210 has now passed review with `PASS`, so M10 has its draft-only behavior schema foundation:

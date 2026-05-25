@@ -4,6 +4,22 @@ Updated: 2026-05-25
 
 ## Captain Current State Override
 
+- T211 review decision: `PASS`.
+- T211 is complete as the deterministic rule-engine task for M10.
+- T211 review observation disposition:
+  - Accepted: N01 reviewer explanation allowed-files overrun is established convention noise and worker summary is allowed/conventional, N02 truncated SHA-1 deterministic ids are acceptable for current offline single-user workflow, N03 overlap between boundary-trigger and proactive-blocking flags is intentional conservative behavior, N04 `contact_id=None` fallback to `user_id` is acceptable for current non-contact-targeted candidates, N05 `casefold()` normalization is acceptable with documented safe label expectations, M01 label-only memory-review prompt test gap is minor, M02 per-blocking-flag coverage gap is minor, M03 contact fallback test gap is minor, M04 multi-boundary-flag single-note test gap is minor, M05 boundary-label-only trigger test gap is minor.
+  - Deferred: none.
+  - Rejected: none.
+- Current Unique Task: T212 Proactive Draft Generator.
+- Current task package: `docs/tasks/M10_behavior_planner/T212_proactive_draft_generator.md`.
+- T212 must stay deterministic, draft-only, local, and review-only: enrich `CandidateAction.payload.draft_text` for review-safe candidate actions, but do not send messages, schedule actions, integrate platforms, call LLMs, add CLI/runtime wiring, mutate stores, or bypass human review.
+- M10 execution constraints now carried forward:
+  - T211 emits candidate actions only; it does not approve, execute, schedule, or send.
+  - T212 may add draft text, not outbound requests or platform targets.
+  - `CandidateAction.status="approved"` or `is_runtime_visible()` must not be interpreted as sendable or schedulable.
+  - Any future outbound/platform work remains behind later OutboundSendGate milestones.
+  - BehaviorPlanner work must consume only approved/review-safe context surfaces and must not reopen raw transcript ingestion.
+
 - T210 review decision: `PASS`.
 - T210 is complete as the schema-only opening task for M10.
 - T210 review observation disposition:
@@ -329,11 +345,11 @@ Updated: 2026-05-25
 
 ## Current Unique Task
 
-T211: Action Planner Rule Engine.
+T212: Proactive Draft Generator.
 
-Task package: `docs/tasks/M10_behavior_planner/T211_action_planner_rule_engine.md`
+Task package: `docs/tasks/M10_behavior_planner/T212_proactive_draft_generator.md`
 
-Why now: T210 has landed with `PASS`, completing the non-executable behavior schema layer for M10. The next smallest safe step is deterministic rule-based `CandidateAction` proposal generation that preserves all draft-only/no-send/no-scheduler/no-platform invariants before any review CLI, draft text generator, outbound gate, or adapter work.
+Why now: T211 has landed with `PASS`, completing deterministic candidate-action proposal for M10. The next smallest safe step is deterministic draft-text enrichment for review-only candidate actions, still before any review CLI, outbound gate, platform adapter, scheduler, or automatic send behavior.
 
 ## Board Rules
 
@@ -461,7 +477,7 @@ Goal: define a retriever abstraction before evaluating external memory adapters.
 Goal: generate draft-only proactive action candidates without automatic sending.
 
 - [x] T210: behavior schema. Review `PASS`.
-- [ ] T211: action-planner rule engine.
+- [x] T211: action-planner rule engine. Review `PASS`.
 - [ ] T212: proactive draft generator.
 - [ ] T213: CandidateAction review CLI.
 - [ ] T214: behavior safety eval.
@@ -486,6 +502,10 @@ Goal: keep WeChat as a thin final adapter behind the send gate.
 - [ ] T233: WeChat safety mode.
 
 ## Historical Current Unique Task
+
+T211: Action Planner Rule Engine.
+
+It is now complete and accepted with `PASS`. The next worker task is T212, because M10 can now move from deterministic candidate proposal to deterministic draft-text enrichment while preserving the no-send/no-scheduler/no-platform boundary.
 
 T210: Behavior Schema.
 

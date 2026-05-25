@@ -1,5 +1,19 @@
 # Risks And Open Questions
 
+## Captain Update 2026-05-25 (T211 Review Decision)
+
+Authoritative current risk state after the Captain review of T211:
+
+- R040 remains active as a compact-context and privacy boundary rule: M10 and later work must continue to use approved metadata / review-safe artifacts only and must not reopen raw-transcript ingestion.
+- R041 remains active: approved memories, approved patches, derived briefs, relationship-state artifacts, and behavior candidates remain review-only guidance unless a later task explicitly authorizes mutation or execution.
+- R071 remains active: LLM confidence calibration is still unresolved, but it is orthogonal to T211 and does not block deterministic M10 draft enrichment work.
+- R091 remains active and deferred: approved relationship context exists in `ChatContext`, but no planner or policy code path consumes relationship delta semantics.
+- R092 remains active and deferred: relationship guidance that surfaces through summary/retrieval notes is informational only and must not be mistaken for semantic runtime consumption.
+- T211 opened no new deferred risks. Its non-blocking review observations are accepted as convention noise, intentional conservative design, or minor test-strength notes under a `PASS` verdict.
+- M10 remains non-executable: `BehaviorRulePlanner` output, `CandidateAction` approval, or runtime visibility must not be treated as authorization to send, schedule, execute, or mutate state.
+
+Closed question Q194: T211 is accepted with `PASS`, so the project may proceed to T212 as a deterministic, review-only draft-text enrichment task.
+
 ## Captain Update 2026-05-25 (T210 Review Decision)
 
 Authoritative current risk state after the Captain review of T210:
@@ -641,6 +655,7 @@ Closed question Q124: the updated GPT roadmap is directionally aligned, but M4/M
 
 | ID | 结论 | 关闭依据 |
 | --- | --- | --- |
+| Q194 | T211 can be accepted as complete and the project may proceed to T212. It is accepted with `PASS`; all review observations are accepted, with no deferred risks or repair pass. | `docs/review/T211_review.md` + Captain decision |
 | Q193 | T210 can be accepted as complete and the project may proceed to T211. It is accepted with `PASS`; all review observations are accepted, with no deferred risks or repair pass. | `docs/review/T210_review.md` + Captain decision |
 | Q192 | T203 can be accepted as complete and M9 can close at task level. It is accepted with `PASS`; all review observations are accepted, with no deferred risks or repair pass. The next task is T210. | `docs/review/T203_review.md` + Captain decision |
 | Q191 | T202 can be accepted as complete and the project may proceed to T203. It is accepted with `PASS`; all review observations are accepted, with no deferred risks or repair pass. | `docs/review/T202_review.md` + Captain decision |

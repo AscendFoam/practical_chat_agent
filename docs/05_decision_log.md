@@ -1,5 +1,35 @@
 # Decision Log
 
+## D059: T211 PASS, accept deterministic rule engine, advance to T212
+
+- Date: 2026-05-25
+- Status: Accepted
+- Context: `docs/review/T211_review.md` gives `PASS` for the action-planner rule engine task. No blocking issues were found. The review confirms T211 is additive, deterministic, local, candidate-only, non-executing, and introduces no message sending, scheduling, platform integration, LLM calls, memory mutation, CLI commands, runtime wiring, or raw transcript paths.
+- Decision: T211 is complete. The project may continue to T212 `Proactive Draft Generator`.
+- Review observation handling:
+  - Accepted:
+    - N01 `docs/for_human/T211_review_explanation.md` allowed-files overrun is treated as established reviewer-convention noise; `docs/worker_summary/T211_worker_summary.md` is allowed by the task package and is also part of the established worker-summary convention.
+    - N02 truncated SHA-1 deterministic action ids are accepted for the current offline single-user workflow because they follow existing project id patterns and collision risk is negligible at this scale.
+    - N03 overlap between boundary-trigger flags and proactive-blocking flags is accepted and intentional: boundary-sensitive context should produce a review note while blocking optimistic proactive check-ins.
+    - N04 `contact_id=None` fallback to `user_id` is accepted for current scope, with the documented meaning that the candidate is not targeted at a specific contact.
+    - N05 `casefold()` normalization is accepted; contract flag values remain expected to be normalized safe labels.
+    - M01 missing committed label-only `memory_review_prompt` test is accepted as a minor coverage-strength note.
+    - M02 missing per-flag proactive-blocking parametrized tests are accepted as minor coverage-strength notes.
+    - M03 missing committed `contact_id=None` fallback test is accepted as a minor coverage-strength note.
+    - M04 missing multi-boundary-flag single-candidate test is accepted as a minor coverage-strength note.
+    - M05 missing boundary-label-only trigger test is accepted as a minor coverage-strength note.
+  - Deferred: none.
+  - Rejected: none.
+- Conditions carried forward:
+  - T212 may generate review-safe draft text for candidate actions only.
+  - T212 must preserve all T210/T211 invariants: human review required, no auto-send, no platform execution, no scheduler, no platform target, no mutation, and no raw transcript inputs.
+  - T212 must not add CLI/runtime wiring, platform adapters, outbound gate behavior, or LLM calls unless a future task explicitly authorizes them.
+- Impact:
+  - `docs/04_task_board.md` moves the Current Unique Task from T211 to T212 and marks T211 complete.
+  - `docs/07_handoff.md` records the T211 review decision and T212 task boundary.
+  - `docs/08_risks_and_open_questions.md` records that no new deferred T211 risks are opened.
+  - `docs/tasks/M10_behavior_planner/T212_proactive_draft_generator.md` is expanded into a complete worker task package.
+
 ## D058: T210 PASS, accept behavior schema, advance to T211
 
 - Date: 2026-05-25

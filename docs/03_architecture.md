@@ -1,5 +1,30 @@
 # Architecture
 
+## Captain Update 2026-05-25 (T211 Review)
+
+T211 completes the deterministic rule-engine layer of M10:
+
+```text
+AgentSelfState + BehaviorPolicy + safe context labels
+  -> BehaviorRulePlanner
+  -> CandidateAction records
+  -> boundary_review_note / memory_review_prompt / relationship_check_in_draft / do_nothing
+  -> review-only artifacts
+  -> no sending, scheduling, platform execution, CLI wiring, LLM, or mutation
+```
+
+The next architectural step is T212, which must enrich candidate actions with review-safe draft text only:
+
+```text
+CandidateAction from BehaviorRulePlanner
+  -> deterministic ProactiveDraftGenerator / equivalent service
+  -> CandidateActionPayload.draft_text + review notes
+  -> still review-only and non-executable
+  -> no platform target, no scheduler, no send gate, no CLI/runtime wiring unless separately authorized
+```
+
+This keeps M10 progressing from “what might be worth reviewing” to “what text might the human review,” without turning candidate actions into outbound actions.
+
 ## Captain Update 2026-05-25 (T210 Review)
 
 T210 completes the schema-only opening of M10:

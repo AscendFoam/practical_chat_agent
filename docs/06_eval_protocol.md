@@ -1,5 +1,15 @@
 # Eval Protocol
 
+## Captain Update 2026-05-25 (T211 Review)
+
+T211 has now been accepted with `PASS`.
+
+Current evaluation sequence is now:
+
+- T212: can the repo deterministically enrich review-only `CandidateAction` records with short, safe draft text while preserving no-send/no-scheduler/no-platform/no-mutation invariants and avoiding raw transcript inputs, LLM calls, CLI/runtime wiring, or outbound semantics?
+
+T211 changes the evaluation baseline in one important way: M10 no longer needs to prove whether deterministic behavior rules can emit candidate actions safely. The next evaluation target is draft-text enrichment discipline, not rule firing.
+
 ## Captain Update 2026-05-25 (T210 Review)
 
 T210 has now been accepted with `PASS`.

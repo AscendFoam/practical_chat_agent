@@ -1,5 +1,17 @@
 # Feasibility Report
 
+## Captain Update 2026-05-25 (T211 Review)
+
+T211 confirms that deterministic proactive-action proposal is feasible in the current repository shape without crossing the autonomy boundary.
+
+The feasibility question has changed again:
+
+- no longer blocked on whether safe context signals can be turned into review-only `CandidateAction` records while preserving T210 no-send/no-scheduler/no-platform invariants
+- now focused on whether T212 can enrich those candidate actions with short review-safe draft text, deterministically and without platform execution, scheduling, LLM calls, or final-send semantics
+- still explicitly not ready for automatic sending, reminders, platform adapters, or outbound delivery; those remain behind later review and send-gate milestones
+
+So the project is ready to commit the T211 slice and advance to T212, while keeping proactive behavior candidate-only, local, and human-review-first.
+
 ## Captain Update 2026-05-25 (T210 Review)
 
 T210 confirms that proactive behavior can be represented safely in the current repository shape, but only as reviewable draft artifacts.

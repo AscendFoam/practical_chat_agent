@@ -1,5 +1,27 @@
 # Handoff
 
+## Captain Current State Override 2026-05-25 (T211 Review Decision)
+
+- T211 review decision: `PASS`.
+- T211 is complete as the deterministic rule-engine task for M10.
+- T211 review observation disposition:
+  - Accepted: N01 reviewer explanation allowed-files overrun is established convention noise and worker summary is allowed/conventional, N02 truncated SHA-1 deterministic ids are acceptable for the current offline single-user workflow, N03 overlap between boundary-trigger and proactive-blocking flags is intentional conservative behavior, N04 `contact_id=None` fallback to `user_id` is acceptable for non-contact-targeted candidates, N05 `casefold()` normalization is acceptable with documented safe label expectations, M01 label-only `memory_review_prompt` test gap is minor, M02 per-blocking-flag coverage gap is minor, M03 contact fallback test gap is minor, M04 multi-boundary-flag single-note test gap is minor, M05 boundary-label-only trigger test gap is minor.
+  - Deferred: none.
+  - Rejected: none.
+- Captain decision: no T211 repair pass is needed.
+- Current Unique Task: T212 Proactive Draft Generator.
+- Current task package: `docs/tasks/M10_behavior_planner/T212_proactive_draft_generator.md`.
+- T212 must remain deterministic, local, draft-only, and review-only:
+  - may enrich `CandidateActionPayload.draft_text` for existing safe `CandidateAction` records
+  - must preserve T210/T211 invariants: `human_review_required=True`, `auto_send_allowed=False`, `platform_execution_allowed=False`, `scheduler_allowed=False`, `platform_target=None`
+  - must not send messages, schedule actions, integrate platforms, call LLMs, mutate memory/ContactSkill/RelationshipState/approved stores/private artifacts, add CLI/runtime wiring, or bypass human review
+  - must not read `private/chat_history/` or commit private content
+- Captain verification basis:
+  - Reviewer reported `python -m py_compile src/practical_chat_agent/core/models.py src/practical_chat_agent/services/behavior_planner.py` passed.
+  - Reviewer reported `pytest tests/test_behavior_schema.py tests/test_behavior_rule_planner.py -q` passed: 40 tests.
+  - Worker summary reports full-suite verification passed with workspace temp/cache: 762 tests.
+- No new deferred T211 risk is opened. Existing project-wide review-only/outbound-gate risks remain active.
+
 ## Captain Current State Override 2026-05-25 (T210 Review Decision)
 
 - T210 review decision: `PASS`.
@@ -3139,3 +3161,94 @@ warnings observed in this sandbox.
 - Runtime visibility is intentionally separate from execution. Later tasks must
   not treat `approved` candidate actions as sendable or schedulable without an
   explicit OutboundSendGate task and review.
+
+## T211 Worker Completion Record
+
+### Goal
+
+Add a deterministic, local rule engine that proposes review-only
+`CandidateAction` artifacts from T210 behavior contracts without sending,
+scheduling, platform integration, LLM calls, runtime wiring, or state mutation.
+
+### Files Changed
+
+- `src/practical_chat_agent/services/behavior_planner.py`
+- `tests/test_behavior_rule_planner.py`
+- `docs/data_contracts/behavior_planner_contract.md`
+- `docs/worker_summary/T211_worker_summary.md`
+- `docs/07_handoff.md`
+
+### Service Added
+
+- `BehaviorRulePlanner` in `src/practical_chat_agent/services/behavior_planner.py`
+- Public method:
+  - `plan(self_state, policy=None, safe_context_labels=None) -> list[CandidateAction]`
+
+### Rule Behavior
+
+- Deterministic rule order:
+  1. `boundary_review_note`
+  2. `memory_review_prompt`
+  3. `relationship_check_in_draft`
+  4. `do_nothing` fallback
+- `boundary_review_note` fires for boundary-sensitive risk flags or safe labels.
+- `memory_review_prompt` fires for recent safe signal refs or memory/relationship
+  review labels.
+- `relationship_check_in_draft` requires at least one approved context ref and
+  no hard proactive-blocking risk flag.
+- `do_nothing` is the fallback for empty/thin/blocked context when policy allows
+  it.
+- If no rule is allowed and `do_nothing` is disallowed, the result is an empty
+  list.
+- Candidate ids are stable hashes over safe identifiers and supporting refs.
+- `BehaviorPolicy.allowed_action_types` is enforced before emission.
+- `BehaviorPolicy.max_candidates` is enforced after rule filtering.
+
+### Safety Boundaries
+
+Every emitted `CandidateAction` preserves T210 invariants:
+
+- `human_review_required=True`
+- `auto_send_allowed=False`
+- `platform_execution_allowed=False`
+- `scheduler_allowed=False`
+- `platform_target=None`
+- `status="candidate"`
+- at least one `supporting_context_ref`
+- no forbidden payload metadata keys
+
+The public planner API accepts compact safe labels only; it does not expose raw
+transcript, message text, chat history, or private-message parameters.
+
+### Explicit Non-Actions
+
+- No message sending.
+- No real scheduler, timer, reminder, background job, automation, or recurring task.
+- No Feishu, WeChat, browser, desktop, notification, email, webhook, or platform adapter.
+- No CLI commands, app-container wiring, runtime loops, or automatic execution hooks.
+- No LLM calls, provider APIs, embeddings, vector DBs, Mem0/Zep, or external services.
+- No final user-facing message draft generation; T212 owns that later layer.
+- No mutation of `MemoryFact`, `ContactSkill`, `RelationshipState`,
+  `PreferencePatchCandidate`, approved stores, private artifacts, or review metadata.
+- No private chat-history reads or committed private content.
+
+### Verification
+
+Commands were run with `TEMP` and `TMP` set to `artifacts/pytest_tmp`, pytest
+cache set to `artifacts/pytest_cache`, and full-suite `--basetemp` set to
+`artifacts/pytest_basetemp`. An earlier full-suite attempt using `.tmp/pytest`
+failed in fixture setup with Windows permission errors while enumerating the
+pytest temp root; the `artifacts/pytest_*` rerun passed.
+
+- `python -m py_compile src/practical_chat_agent/core/models.py src/practical_chat_agent/services/behavior_planner.py`: passed.
+- `pytest tests/test_behavior_schema.py tests/test_behavior_rule_planner.py -q -o cache_dir=artifacts\pytest_cache`: 40 passed.
+- `pytest tests/ -q --basetemp=artifacts\pytest_basetemp -o cache_dir=artifacts\pytest_cache`: 762 passed.
+
+### Remaining Risks
+
+- T211 uses fixed conservative rule ordering only; no ranking or quality scoring
+  exists yet.
+- `safe_context_labels` are caller-supplied compact labels. The API avoids raw
+  text parameters, but callers must still keep labels review-safe.
+- `relationship_check_in_draft` produces a review-safe action summary only, not
+  final user-facing wording. T212 remains responsible for draft generation.

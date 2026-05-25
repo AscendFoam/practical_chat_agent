@@ -156,3 +156,80 @@ contract does not authorize:
 - Feishu, WeChat, email, notification, browser, or desktop integration
 - memory, ContactSkill, relationship-state, or approved-store mutation
 - LLM calls, embeddings, vector DBs, or external provider use
+
+## T211 Rule Engine Scope
+
+T211 adds `BehaviorRulePlanner`, a deterministic local service that proposes
+zero or more `CandidateAction` records from:
+
+- `AgentSelfState`
+- optional `BehaviorPolicy`
+- optional `safe_context_labels`
+
+The public planner API does not accept raw transcript, chat history, private
+message, or message text parameters.
+
+## T211 Input Boundary
+
+Accepted inputs are review-safe and compact:
+
+- approved context refs from `AgentSelfState.approved_context_refs`
+- recent safe signal refs from `AgentSelfState.recent_signal_refs`
+- compact risk flags from `AgentSelfState.risk_flags`
+- short caller-provided safe labels such as `memory_review` or
+  `boundary_sensitive`
+
+The planner does not read `private/chat_history/`, store files, platform
+payloads, message transport fields, or raw conversation text.
+
+## T211 Rule Semantics
+
+Rules fire in this deterministic order:
+
+1. `boundary_review_note`: fires for boundary-sensitive risk flags or safe
+   labels.
+2. `memory_review_prompt`: fires when recent safe signal refs exist or safe
+   labels request memory/relationship review.
+3. `relationship_check_in_draft`: fires only when at least one approved context
+   ref exists and no hard proactive-blocking risk flag is present.
+4. `do_nothing`: fallback when no other candidate is emitted and the policy
+   allows it.
+
+Hard proactive-blocking risk flags include `thin_context`,
+`boundary_sensitive`, `boundary_risk`, `high_sensitivity`, `privacy_risk`, and
+`blocked_proactive`.
+
+`do_nothing` is the chosen fallback behavior for empty/thin context. If policy
+does not allow `do_nothing` and no other allowed rule emits, the planner returns
+an empty list.
+
+## T211 Output Ordering And Limits
+
+Ordering is rule-order deterministic. Candidate ids are stable hashes derived
+from agent id, user id, contact id, action type, and supporting ref ids.
+
+`BehaviorPolicy.allowed_action_types` is enforced before a candidate is
+emitted. `BehaviorPolicy.max_candidates` is applied after rule filtering while
+preserving order.
+
+Every emitted candidate:
+
+- validates as `CandidateAction`
+- has at least one `supporting_context_ref`
+- carries rule-specific rationale, risk flags, and review-safe
+  `payload.safe_summary`
+- keeps `human_review_required=true`
+- keeps `auto_send_allowed=false`
+- keeps `platform_execution_allowed=false`
+- keeps `scheduler_allowed=false`
+- keeps `platform_target=null`
+- contains no forbidden payload metadata keys
+
+## T211 Relationship To Later M10 Tasks
+
+T211 does not generate final user-facing message drafts. T212 owns draft
+generation. T213 owns CandidateAction review flow. T214 owns behavior safety
+evaluation.
+
+T211 does not authorize automatic sending, real scheduling, platform
+integration, runtime loops, store mutation, LLM calls, or outbound gate bypass.
