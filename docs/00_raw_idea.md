@@ -1,5 +1,21 @@
 # Raw Idea
 
+## Captain Update 2026-05-27 (T214 Review / M10 Review)
+
+T214 has now passed review with `PASS`, and the M10 milestone review gives `Gate M10 Allow`.
+
+M10 is complete only as review-only BehaviorPlanner infrastructure:
+
+- T210 defines draft-only behavior contracts
+- T211 proposes deterministic `CandidateAction` records from review-safe context
+- T212 enriches candidates with deterministic review-only draft text
+- T213 manually reviews candidate artifacts without execution
+- T214 evaluates the slice and confirms that no-send/no-platform/no-scheduler/no-mutation boundaries hold
+
+The next safe step is M11/T220 `OutboundMessageRequest Schema`. T220 must define a separate outbound request contract and must not reuse `CandidateAction` as an executable request.
+
+The Current Unique Task therefore moves to T220 `OutboundMessageRequest Schema`.
+
 ## Captain Update 2026-05-25 (T213 Review)
 
 T213 has now passed review with `PASS`, so M10 has an explicit manual review step for proactive behavior candidates:

@@ -1,5 +1,17 @@
 # Feasibility Report
 
+## Captain Update 2026-05-27 (T214 Review / M10 Review)
+
+T214 confirms that M10 is feasible and complete as a review-only behavior-planner milestone.
+
+The feasibility question has changed again:
+
+- no longer blocked on whether T210-T213 preserve non-execution invariants end to end
+- now focused on whether M11 can define an explicit outbound request contract and send gate without smuggling execution semantics into `CandidateAction`
+- still not ready for platform sending, Feishu/WeChat adapters, background scheduling, or automatic outbound behavior until later M11 tasks pass review
+
+So the project is ready to commit the T214/M10 review slice and advance to T220, with `CandidateAction` remaining review-only evidence rather than a send request.
+
 ## Captain Update 2026-05-25 (T213 Review)
 
 T213 confirms that manual review of proactive behavior candidates is feasible without turning candidate approval into outbound authorization.

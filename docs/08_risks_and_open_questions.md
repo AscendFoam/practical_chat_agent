@@ -1,5 +1,22 @@
 # Risks And Open Questions
 
+## Captain Update 2026-05-27 (T214 Review / M10 Review)
+
+Authoritative current risk state after the Captain review of T214 and M10:
+
+- R040 remains active as a compact-context and privacy boundary rule: M11 and later work must continue to use approved metadata / review-safe artifacts only and must not reopen raw-transcript ingestion.
+- R041 remains active: approved memories, approved patches, derived briefs, relationship-state artifacts, and behavior candidates remain review-only guidance unless a later task explicitly authorizes mutation or execution.
+- R071 remains active: LLM confidence calibration is still unresolved, but it is orthogonal to M10 review-only BehaviorPlanner completion.
+- R091 remains active and deferred: approved relationship context exists in `ChatContext`, but no planner or policy code path consumes relationship delta semantics.
+- R092 remains active and deferred: relationship guidance that surfaces through summary/retrieval notes is informational only and must not be mistaken for semantic runtime consumption.
+- R093 is active: future M11 code could accidentally interpret `CandidateAction.status="approved"`, `review_state="reviewed"`, or `is_runtime_visible()` as outbound authorization. T220/T221 must prevent this with a separate outbound request model and explicit send-gate decision.
+- R094 is active: CLI path metadata and default in-place overwrite remain accepted offline CLI conventions, but future operational workflows should avoid private names in paths and prefer explicit output paths.
+- R095 is active: M10 has not evaluated real platform delivery, notification UX, send audit UX, adapter failure recovery, or scheduler behavior. These belong to M11+ and must not be claimed as completed by M10.
+- T214 opened no deferred task-review risks. Its non-blocking observations are accepted as conservative design, harmless eval-scope context, current convention risk, cosmetic evidence detail, or minor traceability-strength notes under a `PASS` verdict.
+- M10 is complete with `Gate M10 Allow` only for review-only behavior-planner infrastructure.
+
+Closed question Q197: T214 is accepted with `PASS`, so M10 may close with `Gate M10 Allow` and the project may proceed to T220.
+
 ## Captain Update 2026-05-25 (T213 Review Decision)
 
 Authoritative current risk state after the Captain review of T213:

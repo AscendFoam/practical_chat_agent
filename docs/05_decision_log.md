@@ -1,5 +1,34 @@
 # Decision Log
 
+## D062: T214 PASS, accept Gate M10 Allow, advance to T220
+
+- Date: 2026-05-27
+- Status: Accepted
+- Context: `docs/review/T214_review.md` gives `PASS` for the behavior safety eval task, and `docs/review/T214_behavior_safety_eval.md` recommends `Gate M10 Allow`. No blocking issues were found. The review confirms T214 stayed within the allowed docs-only scope and did not modify code, tests, schemas, CLIs, services, config, task board, or private artifacts.
+- Decision: T214 is complete. M10 is complete with `Gate M10 Allow`. The project may continue to M11/T220 `OutboundMessageRequest Schema`.
+- Review observation handling:
+  - Accepted:
+    - N01 conflict-handling limitation is a conservative design choice: conflict-heavy inputs produce notes or `do_nothing`, not nuanced conflict-resolution drafts.
+    - N02 repeated-review history-count repair was not proposed because T214 is evaluation-only; the issue remains minor test-strength debt.
+    - N03 CLI path metadata remains an accepted project-wide offline CLI convention risk and is not repaired by an evaluation task.
+    - N04 supplementary reading of `README.md` and `docs/02_experiment_plan.md` in the eval scope is harmless context gathering.
+    - N05 temp/cache cleanup evidence is cosmetic; committed tests and reported command results are the trust anchor.
+    - M01 missing explicit boundary-sensitive draft-enrichment scenario is a traceability-strength note covered implicitly by existing tests and eval question 3.
+    - M02 policy-disallowed action-type scenario could trace the exact code path more explicitly, but the behavior is covered and non-blocking.
+  - Deferred: none from the T214 review decision.
+  - Rejected: none.
+- M10 milestone review:
+  - `docs/review/M10_review.md` records that current functionality is complete within review-only scope, can be run from a clean checkout with normal test dependencies, has committed tests and eval results, has no blocking pseudo-completion, and may enter M11.
+- Conditions carried forward:
+  - T220 must define `OutboundMessageRequest` separately from `CandidateAction`.
+  - T220/T221 must not infer send permission from `CandidateAction.status`, `review_state`, or `is_runtime_visible()`.
+  - No platform adapter, real sending, scheduler, background job, or automatic outbound behavior is authorized by M10.
+- Impact:
+  - `docs/04_task_board.md` moves the Current Unique Task from T214 to T220 and marks T214 complete.
+  - `docs/07_handoff.md` records the T214 review decision, M10 gate, and T220 task boundary.
+  - `docs/08_risks_and_open_questions.md` records M10 residual risks and closes Q197.
+  - `docs/tasks/M11_outbound_sendgate_feishu/T220_outbound_message_request_schema.md` is expanded into a complete worker task package.
+
 ## D061: T213 PASS, accept CandidateAction review CLI, advance to T214
 
 - Date: 2026-05-25

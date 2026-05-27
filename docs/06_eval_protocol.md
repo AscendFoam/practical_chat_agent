@@ -1,5 +1,15 @@
 # Eval Protocol
 
+## Captain Update 2026-05-27 (T214 Review / M10 Review)
+
+T214 has now been accepted with `PASS`, and M10 has `Gate M10 Allow`.
+
+Current evaluation sequence is now:
+
+- T220: can the repo define a separate outbound message request schema that treats reviewed `CandidateAction` artifacts as evidence only, requires explicit send-gate evaluation later, and introduces no platform adapter, sending, scheduler, background job, or automatic outbound behavior?
+
+T214 changes the evaluation baseline in one important way: M10 no longer needs to prove whether review-only proactive candidates can be modeled, generated, enriched, manually reviewed, and safety-evaluated. The next evaluation target is the outbound boundary itself, starting with a schema that cannot confuse review visibility with send authorization.
+
 ## Captain Update 2026-05-25 (T213 Review)
 
 T213 has now been accepted with `PASS`.

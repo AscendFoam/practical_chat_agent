@@ -1,5 +1,33 @@
 # Handoff
 
+## Captain Current State Override 2026-05-27 (T214 Review Decision / M10 Gate)
+
+- T214 review decision: `PASS`.
+- T214 is complete as the behavior safety evaluation task for M10.
+- M10 gate decision: `Gate M10 Allow`.
+- M10 review artifact: `docs/review/M10_review.md`.
+- T214 review observation disposition:
+  - Accepted: N01 conflict-handling limitation is conservative scope/design, N02 repeated-review history-count repair is minor test-strength debt outside eval-only scope, N03 CLI path metadata remains accepted offline convention risk, N04 supplementary eval reading of README/02 is harmless, N05 temp/cache cleanup evidence is cosmetic, M01 missing explicit boundary-sensitive draft-enrichment scenario is minor traceability debt, M02 policy-disallowed scenario could trace code more explicitly but is non-blocking.
+  - Deferred: none from the T214 review decision.
+  - Rejected: none.
+- Captain decision: no T214 repair pass is needed.
+- Current Unique Task: T220 OutboundMessageRequest Schema.
+- Current task package: `docs/tasks/M11_outbound_sendgate_feishu/T220_outbound_message_request_schema.md`.
+- T220 must remain schema-only and non-sending:
+  - may define a separate `OutboundMessageRequest` contract and tests
+  - may document how reviewed `CandidateAction` can be referenced as evidence only
+  - must not send messages, schedule actions, integrate platforms, call LLMs, mutate stores, add runtime loops, or treat `CandidateAction` approval as send authorization
+  - must not read `private/chat_history/` or commit private content
+- Captain verification basis:
+  - Reviewer reported no blocking issues.
+  - T214 eval reports required py_compile passed.
+  - T214 eval reports targeted behavior tests passed: 58 tests.
+  - T214 eval reports full-suite verification passed: 780 tests.
+- M10 residual risks carried forward:
+  - `CandidateAction.status="approved"`, `review_state="reviewed"`, and `is_runtime_visible()` must not be interpreted as send/schedule/platform/runtime authorization.
+  - CLI path metadata and default in-place overwrite remain accepted offline conventions, not outbound-ready operational UX.
+  - M10 does not cover platform delivery, notification UX, send audit UX, adapter failure recovery, or real scheduling.
+
 ## Captain Current State Override 2026-05-25 (T213 Review Decision)
 
 - T213 review decision: `PASS`.
@@ -80,6 +108,38 @@
   - No LLM calls or external services.
   - No memory, ContactSkill, RelationshipState, approved-store, private-artifact, or unrelated review metadata mutation.
   - No task board update.
+
+## T214 Worker Completion Record
+
+- T214 is the behavior safety evaluation task for M10.
+- Worker must not mark T214 as complete in `docs/04_task_board.md`; only the Captain may do so after review.
+- Files changed:
+  - `docs/review/T214_behavior_safety_eval.md`
+  - `docs/worker_summary/T214_worker_summary.md`
+  - `docs/07_handoff.md`
+- Evaluation verdict:
+  - Gate recommendation: `Gate M10 Allow`.
+  - T210-T213 is safe to accept as a review-only behavior-planner milestone.
+  - This does not authorize sending, scheduling, platform execution, runtime autonomy, outbound requests, LLM/provider calls, or state mutation.
+- Scope evaluated:
+  - T210-T213 task packages, reviews, worker summaries, behavior-planner contract, implementation code, CLI code, and behavior tests.
+  - No `private/chat_history/` content was read.
+- Verification status:
+  - `python -m py_compile src\practical_chat_agent\core\models.py src\practical_chat_agent\services\behavior_planner.py src\practical_chat_agent\app\main.py` passed.
+  - `pytest tests\test_behavior_schema.py tests\test_behavior_rule_planner.py tests\test_behavior_review_cli.py -q -o cache_dir=artifacts\t214_pytest_cache --basetemp=artifacts\t214_pytest_basetemp` passed: 58 tests.
+  - `pytest tests -q -o cache_dir=artifacts\t214_pytest_cache --basetemp=artifacts\t214_pytest_basetemp` passed: 780 tests.
+- Residual risks:
+  - CLI stdout includes safe path metadata under the existing offline convention.
+  - `chat-behavior-review-action` defaults to in-place overwrite when `--output` is omitted.
+  - Later M11 work must not treat `CandidateAction.status="approved"`, `review_state="reviewed"`, or `is_runtime_visible()` as send/schedule/platform/runtime authorization.
+  - Minor prior review test-strength gaps remain but do not block M10 review-only acceptance.
+- Explicit non-actions:
+  - No code, schema, service, CLI, test, fixture, config, or task-board change.
+  - No message sending.
+  - No scheduler, timer, reminder, background job, automation, or recurring task.
+  - No platform adapter, webhook, browser/desktop automation, email, Feishu, or WeChat integration.
+  - No LLM calls, embeddings, vector DB, Mem0/Zep, or external service.
+  - No memory, ContactSkill, RelationshipState, approved-store, or private-artifact mutation.
 
 ## Captain Current State Override 2026-05-25 (T211 Review Decision)
 

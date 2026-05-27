@@ -1,8 +1,27 @@
 # Task Board
 
-Updated: 2026-05-25
+Updated: 2026-05-27
 
 ## Captain Current State Override
+
+- T214 review decision: `PASS`.
+- T214 is complete as the behavior safety evaluation task for M10.
+- M10 gate decision: `Gate M10 Allow`.
+- M10 review artifact: `docs/review/M10_review.md`.
+- T214 review observation disposition:
+  - Accepted: N01 conflict-handling limitation is conservative scope/design, N02 repeated-review history-count repair is minor test-strength debt outside eval-only scope, N03 CLI path metadata remains accepted offline convention risk, N04 supplementary eval reading of README/02 is harmless, N05 temp/cache cleanup evidence is cosmetic, M01 missing explicit boundary-sensitive draft-enrichment scenario is minor traceability debt, M02 policy-disallowed scenario could trace code more explicitly but is non-blocking.
+  - Deferred: none from the T214 review decision.
+  - Rejected: none.
+- Current Unique Task: T220 OutboundMessageRequest Schema.
+- Current task package: `docs/tasks/M11_outbound_sendgate_feishu/T220_outbound_message_request_schema.md`.
+- T220 must stay schema-only and non-sending: define a separate outbound request contract for later send-gate evaluation, but do not send messages, schedule actions, integrate platforms, add runtime loops/CLI execution, call LLMs/external services, mutate stores/private artifacts, or treat `CandidateAction` approval/runtime visibility as outbound authorization.
+- M11 opening constraints now carried forward:
+  - M10 authorizes review-only behavior-planner artifacts only.
+  - `CandidateAction.status="approved"`, `review_state="reviewed"`, or `is_runtime_visible()` must not be interpreted as sendable, schedulable, platform-executable, or runtime authorization.
+  - T220 must keep `OutboundMessageRequest` separate from `CandidateAction`.
+  - T221 must implement an explicit send gate before any fake or real adapter work.
+  - Feishu/WeChat/platform adapters remain forbidden until their later reviewed tasks.
+  - M11 tests must stay synthetic and private-content-free.
 
 - T213 review decision: `PASS`.
 - T213 is complete as the manual CandidateAction review CLI task for M10.
@@ -377,11 +396,11 @@ Updated: 2026-05-25
 
 ## Current Unique Task
 
-T214: Behavior Safety Eval.
+T220: OutboundMessageRequest Schema.
 
-Task package: `docs/tasks/M10_behavior_planner/T214_behavior_safety_eval.md`
+Task package: `docs/tasks/M11_outbound_sendgate_feishu/T220_outbound_message_request_schema.md`
 
-Why now: T213 has landed with `PASS`, completing manual review for enriched `CandidateAction` records. The next smallest safe step is a milestone-level behavior safety evaluation of T210-T213 before any outbound gate, platform adapter, scheduler, runtime autonomy, or automatic send behavior.
+Why now: T214 has landed with `PASS` and M10 closes with `Gate M10 Allow`. The next smallest safe step is a schema-only outbound request contract that keeps reviewed `CandidateAction` artifacts as evidence only, before any send gate, fake adapter, Feishu adapter, scheduler, runtime autonomy, or automatic send behavior.
 
 ## Board Rules
 
@@ -512,7 +531,7 @@ Goal: generate draft-only proactive action candidates without automatic sending.
 - [x] T211: action-planner rule engine. Review `PASS`.
 - [x] T212: proactive draft generator. Review `PASS`.
 - [x] T213: CandidateAction review CLI. Review `PASS`.
-- [ ] T214: behavior safety eval.
+- [x] T214: behavior safety eval. Review `PASS`. Gate M10 `Allow`.
 
 ## Milestone 11: OutboundSendGate + Feishu Sandbox
 
@@ -534,6 +553,10 @@ Goal: keep WeChat as a thin final adapter behind the send gate.
 - [ ] T233: WeChat safety mode.
 
 ## Historical Current Unique Task
+
+T214: Behavior Safety Eval.
+
+It is now complete and accepted with `PASS`. M10 closes with `Gate M10 Allow`. The next worker task is T220, because M11 must begin with a separate outbound request schema before send-gate policy, fake adapters, Feishu adapters, or review-card UX.
 
 T213: CandidateAction Review CLI.
 

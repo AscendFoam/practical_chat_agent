@@ -1,5 +1,30 @@
 # Architecture
 
+## Captain Update 2026-05-27 (T214 Review / M10 Review)
+
+T214 closes M10 with `Gate M10 Allow`:
+
+```text
+AgentSelfState + BehaviorPolicy
+  -> BehaviorRulePlanner
+  -> CandidateAction
+  -> ProactiveDraftGenerator
+  -> CandidateActionReviewService / chat-behavior-review-action
+  -> reviewed CandidateAction artifact
+  -> still not a send request
+```
+
+The next architectural step is M11/T220:
+
+```text
+reviewed CandidateAction as evidence only
+  -> separate OutboundMessageRequest schema
+  -> later OutboundSendGate decision
+  -> later fake/platform adapters only after gate review
+```
+
+This separation is mandatory. `CandidateAction.status="approved"` and `is_runtime_visible()` must not become implicit send authorization.
+
 ## Captain Update 2026-05-25 (T213 Review)
 
 T213 completes the manual review layer of M10:
