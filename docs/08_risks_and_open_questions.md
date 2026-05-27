@@ -1,5 +1,22 @@
 # Risks And Open Questions
 
+## Captain Update 2026-05-27 (T220 Review Decision)
+
+Authoritative current risk state after the Captain review of T220:
+
+- R040 remains active as a compact-context and privacy boundary rule: M11 and later work must continue to use approved metadata / review-safe artifacts only and must not reopen raw-transcript ingestion.
+- R041 remains active: approved memories, approved patches, derived briefs, relationship-state artifacts, behavior candidates, and outbound requests remain review/gate artifacts unless a later task explicitly authorizes mutation or execution.
+- R071 remains active: LLM confidence calibration is still unresolved, but it is orthogonal to T220/T221 deterministic send-gate work.
+- R091 remains active and deferred: approved relationship context exists in `ChatContext`, but no planner or policy code path consumes relationship delta semantics.
+- R092 remains active and deferred: relationship guidance that surfaces through summary/retrieval notes is informational only and must not be mistaken for semantic runtime consumption.
+- R093 remains active but narrowed: T220 now separates `OutboundMessageRequest` from `CandidateAction`, but T221 and later tasks must still prevent `CandidateAction.status`, `review_state`, or `is_runtime_visible()` from becoming send authorization.
+- R094 remains active: CLI path metadata and default in-place overwrite remain accepted offline CLI conventions; M11 operational paths should prefer explicit outputs and avoid private names in paths.
+- R095 remains active: T220 has not evaluated real platform delivery, notification UX, send audit UX, adapter failure recovery, or scheduler behavior. These belong to later M11+ tasks and must not be claimed as completed by T220.
+- R096 is active: T221 could accidentally blur "gate allowed" with "delivered". Gate allowance must only update/audit the request state; fake and real adapters remain later tasks.
+- T220 opened no deferred task-review risks. Its non-blocking observations are accepted as cleanup, schema-only scope, documentation clarity, or minor coverage-strength notes under a `PASS` verdict.
+
+Closed question Q198: T220 is accepted with `PASS`, so the project may proceed to T221 `OutboundSendGate`.
+
 ## Captain Update 2026-05-27 (T214 Review / M10 Review)
 
 Authoritative current risk state after the Captain review of T214 and M10:
@@ -689,6 +706,10 @@ Closed question Q124: the updated GPT roadmap is directionally aligned, but M4/M
 | R090 | T194 lacks AppContainer wiring | Relationship context is only configurable programmatically, not via central app configuration | Add wiring later if runtime configuration becomes a real operational need |
 | R091 | Approved relationship context is present in `ChatContext` but not consumed by `ReplyPlanner` or `ReplyPlanPolicyEngine` | M8 can be over-read as relationship-aware reply behavior even though approved deltas currently have zero behavioral effect | Keep documented as a functional gap; only a later scoped planner/policy task may claim to close it |
 | R092 | Relationship guidance reaching summary and retrieval-note surfaces is informational only | Future readers may mistake visible context text for active runtime semantics and overstate current capability | Do not treat summary or retrieval notes as semantic consumption; add explicit planner integration only in a later scoped task |
+| R093 | Future M11 code could accidentally interpret `CandidateAction.status`, `review_state`, or `is_runtime_visible()` as outbound authorization | T220 separated `OutboundMessageRequest` from `CandidateAction`, but later gate/adapter code could still accidentally consume candidate review state as send permission | T221 and later tasks must require explicit `OutboundMessageRequest.human_approval` and `send_gate` state; `CandidateAction` remains evidence only |
+| R094 | Offline CLI path metadata and default in-place overwrite remain accepted conventions | Future operational workflows could expose private names in paths or increase overwrite risk if reused outside local offline review | Prefer explicit output paths and safe path metadata in future M11 operational tasks |
+| R095 | M10/T220 do not evaluate platform delivery, notification UX, send audit UX, adapter failure recovery, or scheduler behavior | The project could overstate readiness for real delivery after defining request/gate contracts | Keep adapter, scheduler, and delivery claims behind T222+ reviewed tasks and later milestone gates |
+| R096 | T221 could blur "gate allowed" with "message delivered" | A gate decision should be an audit/policy state only; treating it as delivery would bypass T222/T223/T224 review boundaries | T221 must not create adapters, send paths, schedulers, background jobs, or runtime delivery side effects |
 
 ## Open Questions
 
@@ -700,6 +721,8 @@ Closed question Q124: the updated GPT roadmap is directionally aligned, but M4/M
 
 | ID | 结论 | 关闭依据 |
 | --- | --- | --- |
+| Q198 | T220 can be accepted as complete and the project may proceed to T221. It is accepted with `PASS`; all review observations are accepted, with no deferred risks or repair pass. | `docs/review/T220_review.md` + Captain decision |
+| Q197 | T214 can be accepted as complete, M10 may close with `Gate M10 Allow`, and the project may proceed to T220. | `docs/review/T214_review.md`, `docs/review/M10_review.md` + Captain decision |
 | Q195 | T212 can be accepted as complete and the project may proceed to T213. It is accepted with `PASS`; all review observations are accepted, with no deferred risks or repair pass. | `docs/review/T212_review.md` + Captain decision |
 | Q194 | T211 can be accepted as complete and the project may proceed to T212. It is accepted with `PASS`; all review observations are accepted, with no deferred risks or repair pass. | `docs/review/T211_review.md` + Captain decision |
 | Q193 | T210 can be accepted as complete and the project may proceed to T211. It is accepted with `PASS`; all review observations are accepted, with no deferred risks or repair pass. | `docs/review/T210_review.md` + Captain decision |

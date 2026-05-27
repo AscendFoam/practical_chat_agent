@@ -1,5 +1,15 @@
 # Eval Protocol
 
+## Captain Update 2026-05-27 (T220 Review)
+
+T220 has now been accepted with `PASS`.
+
+Current evaluation sequence is now:
+
+- T221: can the repo implement a deterministic outbound send gate over `OutboundMessageRequest` that blocks by default, requires explicit outbound human approval, applies quiet-hours/frequency/duplicate/kill-switch/self-echo checks, records auditable allowed/blocked decisions, and still introduces no fake adapter, real platform adapter, scheduler, runtime loop, or message delivery?
+
+T220 changes the evaluation baseline in one important way: M11 no longer needs to prove whether an outbound request can be represented separately from `CandidateAction`. That boundary exists. The next evaluation target is gate-policy correctness and auditability, not platform execution.
+
 ## Captain Update 2026-05-27 (T214 Review / M10 Review)
 
 T214 has now been accepted with `PASS`, and M10 has `Gate M10 Allow`.

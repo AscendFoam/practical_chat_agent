@@ -1,5 +1,28 @@
 # Architecture
 
+## Captain Update 2026-05-27 (T220 Review)
+
+T220 adds the first M11 outbound boundary:
+
+```text
+reviewed CandidateAction as evidence only
+  -> OutboundMessageRequest
+  -> pending outbound human approval
+  -> send_gate.not_evaluated
+  -> not sendable
+```
+
+The next architectural step is T221:
+
+```text
+OutboundMessageRequest
+  -> OutboundSendGate deterministic policy
+  -> allowed / blocked gate snapshot with audit notes
+  -> still no adapter, scheduler, runtime loop, or platform delivery
+```
+
+T221 must preserve the same separation: gate approval is not delivery, and channel preference is still data only until later fake/platform adapter tasks.
+
 ## Captain Update 2026-05-27 (T214 Review / M10 Review)
 
 T214 closes M10 with `Gate M10 Allow`:

@@ -4,6 +4,23 @@ Updated: 2026-05-27
 
 ## Captain Current State Override
 
+- T220 review decision: `PASS`.
+- T220 is complete as the schema-only outbound request boundary for M11.
+- T220 review observation disposition:
+  - Accepted: N01 forbidden metadata frozenset-union style is harmless cleanup debt, N02 full forbidden-key superset documentation can be clearer, N03 no payload max length is acceptable schema-only scope, N04 candidate-action id existence is not store-validated in schema-only scope, N05 approval/gate validators are correct defensive Pydantic v2 usage, N06 allowed-file note is a non-issue, N07 t220 pytest basetemp contents are workspace temp noise, M01 standalone approval/gate validator tests are minor, M02 `is_sendable()` true-path test should be added with T221 gate population, M03 outbound-specific forbidden-key tests should be expanded, M04 timestamp round-trip coverage is minor, M05 all channel values coverage is minor.
+  - Deferred: none from the T220 review decision.
+  - Rejected: none.
+- Current Unique Task: T221 OutboundSendGate.
+- Current task package: `docs/tasks/M11_outbound_sendgate_feishu/T221_outbound_send_gate.md`.
+- T221 must stay gate-only and non-sending: implement deterministic policy/audit decisions over `OutboundMessageRequest`, but do not send messages, schedule actions, integrate fake/Feishu/WeChat/platform adapters, add CLI/runtime send paths, call LLMs/external services, mutate stores/private artifacts, or treat `CandidateAction` review as send authorization.
+- M11 execution constraints now carried forward:
+  - `CandidateAction.status="approved"`, `review_state="reviewed"`, and `is_runtime_visible()` remain evidence visibility only, not outbound authorization.
+  - `OutboundMessageRequest.human_approval` is separate from `CandidateAction.review_metadata`.
+  - `OutboundMessageRequest.channel_preference` is data only, not an adapter target.
+  - T221 may set `send_gate.gate_state` to `allowed` or `blocked`, but that is not delivery and must not create fake/real adapter behavior.
+  - T222 fake adapter, T223 Feishu adapter, T224 review card, and all WeChat adapter work remain forbidden until their own reviewed tasks.
+  - M11 tests must stay synthetic and private-content-free.
+
 - T214 review decision: `PASS`.
 - T214 is complete as the behavior safety evaluation task for M10.
 - M10 gate decision: `Gate M10 Allow`.
@@ -396,11 +413,11 @@ Updated: 2026-05-27
 
 ## Current Unique Task
 
-T220: OutboundMessageRequest Schema.
+T221: OutboundSendGate.
 
-Task package: `docs/tasks/M11_outbound_sendgate_feishu/T220_outbound_message_request_schema.md`
+Task package: `docs/tasks/M11_outbound_sendgate_feishu/T221_outbound_send_gate.md`
 
-Why now: T214 has landed with `PASS` and M10 closes with `Gate M10 Allow`. The next smallest safe step is a schema-only outbound request contract that keeps reviewed `CandidateAction` artifacts as evidence only, before any send gate, fake adapter, Feishu adapter, scheduler, runtime autonomy, or automatic send behavior.
+Why now: T220 has landed with `PASS`, so the repo now has a separate inert `OutboundMessageRequest` contract. The next smallest safe step is a deterministic send gate that evaluates that request and records explicit allowed/blocked audit state before any fake adapter, Feishu adapter, scheduler, runtime autonomy, or automatic send behavior.
 
 ## Board Rules
 
@@ -537,7 +554,7 @@ Goal: generate draft-only proactive action candidates without automatic sending.
 
 Goal: build a platform-independent send gate before any real adapter work.
 
-- [ ] T220: OutboundMessageRequest schema.
+- [x] T220: OutboundMessageRequest schema. Review `PASS`.
 - [ ] T221: OutboundSendGate.
 - [ ] T222: local fake adapter.
 - [ ] T223: Feishu adapter.
@@ -553,6 +570,10 @@ Goal: keep WeChat as a thin final adapter behind the send gate.
 - [ ] T233: WeChat safety mode.
 
 ## Historical Current Unique Task
+
+T220: OutboundMessageRequest Schema.
+
+It is now complete and accepted with `PASS`. The next worker task is T221, because M11 now needs a deterministic send-gate policy over the separate outbound request contract before any fake adapter, Feishu adapter, scheduler, runtime path, or automatic send behavior.
 
 T214: Behavior Safety Eval.
 

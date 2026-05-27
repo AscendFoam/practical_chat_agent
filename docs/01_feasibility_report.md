@@ -1,5 +1,17 @@
 # Feasibility Report
 
+## Captain Update 2026-05-27 (T220 Review)
+
+T220 confirms that an outbound request contract is feasible without turning review artifacts into executable actions.
+
+The feasibility question has changed again:
+
+- no longer blocked on whether M11 can define a separate outbound request shape
+- now focused on whether T221 can make a deterministic `OutboundSendGate` that blocks by default, requires explicit outbound human approval, applies quiet-hours/frequency/duplicate/kill-switch/self-echo rules, and records audit evidence
+- still not ready for fake adapters, Feishu/WeChat adapters, review cards, runtime loops, background scheduling, or automatic sending until later reviewed tasks
+
+So the project is ready to commit the T220 schema slice and advance to T221, with `CandidateAction` remaining evidence and `OutboundMessageRequest` remaining inert unless the send gate explicitly allows it.
+
 ## Captain Update 2026-05-27 (T214 Review / M10 Review)
 
 T214 confirms that M10 is feasible and complete as a review-only behavior-planner milestone.

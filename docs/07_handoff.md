@@ -1,5 +1,34 @@
 # Handoff
 
+## Captain Current State Override 2026-05-27 (T220 Review Decision)
+
+- T220 review decision: `PASS`.
+- T220 is complete as the schema-only outbound request boundary for M11.
+- T220 review observation disposition:
+  - Accepted: N01 forbidden metadata frozenset-union style is harmless cleanup debt, N02 full forbidden-key superset documentation can be clearer, N03 no payload max length is acceptable schema-only scope, N04 candidate-action id existence is not store-validated in schema-only scope, N05 approval/gate validators are correct defensive Pydantic v2 usage, N06 allowed-file note is a non-issue, N07 t220 pytest basetemp contents are workspace temp noise, M01 standalone approval/gate validator tests are minor, M02 `is_sendable()` true-path test should be added with T221 gate population, M03 outbound-specific forbidden-key tests should be expanded, M04 timestamp round-trip coverage is minor, M05 all channel values coverage is minor.
+  - Deferred: none from the T220 review decision.
+  - Rejected: none.
+- Captain decision: no T220 repair pass is needed.
+- Current Unique Task: T221 OutboundSendGate.
+- Current task package: `docs/tasks/M11_outbound_sendgate_feishu/T221_outbound_send_gate.md`.
+- T221 must remain gate-only and non-sending:
+  - may implement deterministic gate policy over `OutboundMessageRequest`
+  - may populate `OutboundRequestSendGate` with explicit allowed/blocked state and audit notes
+  - may add focused tests for approval/gate validator edge cases and `is_sendable()` true path
+  - must not send messages, schedule actions, integrate fake/Feishu/WeChat/platform adapters, add CLI/runtime send paths, call LLMs/external services, mutate stores/private artifacts, or treat `CandidateAction` review as send authorization
+  - must not read `private/chat_history/` or commit private content
+- Captain verification basis:
+  - Reviewer reported no blocking issues.
+  - Reviewer reported `python -m py_compile src/practical_chat_agent/core/models.py` passed.
+  - Reviewer reported targeted T220 schema tests passed: 11 tests.
+  - Reviewer reported combined behavior schema + outbound schema tests passed: 36 tests.
+  - Worker summary reports full-suite verification passed with workspace temp/cache: 791 tests.
+- M11 residual risks carried forward:
+  - `OutboundMessageRequest` is now a contract, not delivery infrastructure.
+  - `channel_preference` remains data-only and is not an adapter target.
+  - T221 must make allowed/blocked gate decisions auditable without implementing delivery.
+  - Fake adapter, Feishu adapter, WeChat adapter, review card UX, scheduler behavior, and platform failure recovery remain later tasks.
+
 ## Captain Current State Override 2026-05-27 (T214 Review Decision / M10 Gate)
 
 - T214 review decision: `PASS`.
@@ -3424,3 +3453,65 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   text parameters, but callers must still keep labels review-safe.
 - `relationship_check_in_draft` produces a review-safe action summary only, not
   final user-facing wording. T212 remains responsible for draft generation.
+
+## T220 Worker Completion Record
+
+- T220 is the OutboundMessageRequest schema task for M11.
+- Worker must not mark T220 as complete in `docs/04_task_board.md`; only the
+  Captain may do so after review.
+- Files changed:
+  - `src/practical_chat_agent/core/models.py`
+  - `tests/test_outbound_message_request_schema.py`
+  - `docs/data_contracts/outbound_send_gate_contract.md`
+  - `docs/worker_summary/T220_worker_summary.md`
+  - `docs/07_handoff.md`
+- Test-first evidence:
+  - `tests/test_outbound_message_request_schema.py` was written before the new
+    schema existed.
+  - The first targeted pytest run failed during import because
+    `OutboundMessagePayload` / `OutboundMessageRequest` were missing.
+  - The schema and validators were then added minimally until the targeted test
+    suite passed.
+- Schema behavior added:
+  - `OutboundMessagePayload` carries draft-only outbound text plus review-safe
+    metadata and rejects scheduler, adapter, credential, transport, and
+    raw/private-content keys.
+  - `OutboundRequestHumanApproval` stores explicit outbound-request review state
+    that is separate from `CandidateAction` review metadata.
+  - `OutboundRequestSendGate` stores explicit gate-evaluation state that
+    defaults to `not_evaluated`.
+  - `OutboundMessageRequest` separates outbound draft intent from M10 behavior
+    evidence through `source_type`, optional `source_candidate_action_id`, and
+    optional `source_context_refs`.
+  - `OutboundMessageRequest.is_sendable()` requires both explicit outbound human
+    approval and an explicit gate state of `allowed`.
+  - Reviewed or runtime-visible `CandidateAction` artifacts remain evidence
+    only; they are not implicit send authorization.
+- Verification status:
+  - Commands were run with `TEMP` and `TMP` set to
+    `artifacts\t220_pytest_tmp`, pytest cache set to
+    `artifacts\t220_pytest_cache`, and `--basetemp` set to
+    `artifacts\t220_pytest_basetemp` to keep pytest temp/cache inside the
+    workspace-local sandbox path.
+  - `python -m py_compile src/practical_chat_agent/core/models.py`: passed.
+  - `pytest tests/test_outbound_message_request_schema.py -q -o cache_dir=artifacts\t220_pytest_cache --basetemp=artifacts\t220_pytest_basetemp`: passed, 11 tests.
+  - `pytest tests/test_behavior_schema.py tests/test_outbound_message_request_schema.py -q -o cache_dir=artifacts\t220_pytest_cache --basetemp=artifacts\t220_pytest_basetemp`: passed, 36 tests.
+  - `pytest tests -q -o cache_dir=artifacts\t220_pytest_cache --basetemp=artifacts\t220_pytest_basetemp`: passed, 791 tests.
+- Explicit non-actions:
+  - No message sending.
+  - No scheduler, timer, reminder, background job, automation, or runtime loop.
+  - No fake adapter, Feishu adapter, WeChat adapter, review card, or platform integration.
+  - No CLI execution path or app-container wiring.
+  - No LLM/provider calls, web services, vector DB, Mem0/Zep, or external systems.
+  - No mutation of `CandidateAction`, memory records, ContactSkill,
+    `RelationshipState`, approved stores, or private artifacts.
+  - No `private/chat_history/` reads and no committed private content.
+  - No task-board update.
+- Remaining risks:
+  - T220 defines the contract boundary only; T221 still needs to implement gate
+    policy such as quiet hours, frequency limits, duplicate suppression, kill
+    switch behavior, and audit decisions.
+  - `source_context_refs` stay caller-supplied review-safe refs in T220; no
+    store-backed evidence validation is performed here.
+  - `channel_preference` is intentionally data-only and not a real adapter
+    target; later platform tasks must keep that separation explicit.

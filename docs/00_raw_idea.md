@@ -1,5 +1,17 @@
 # Raw Idea
 
+## Captain Update 2026-05-27 (T220 Review)
+
+T220 has now passed review with `PASS`, so M11 has its first outbound boundary without sending anything:
+
+- the repo now has a separate `OutboundMessageRequest` contract, plus `OutboundMessagePayload`, explicit outbound human approval state, and explicit send-gate state
+- reviewed `CandidateAction` artifacts are evidence only; `CandidateAction.status="approved"` and `is_runtime_visible()` still do not authorize sending
+- the new outbound request defaults to inert: pending human approval and `send_gate.gate_state="not_evaluated"`
+- reviewer observations are accepted as cleanup/test-strength notes under a `PASS` verdict; no repair pass and no deferred review risk are opened
+- the next safe step is T221 `OutboundSendGate`, limited to deterministic gate policy and audit decisions over T220 requests
+
+The Current Unique Task therefore moves to T221 `OutboundSendGate`.
+
 ## Captain Update 2026-05-27 (T214 Review / M10 Review)
 
 T214 has now passed review with `PASS`, and the M10 milestone review gives `Gate M10 Allow`.

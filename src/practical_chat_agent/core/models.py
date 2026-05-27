@@ -61,6 +61,10 @@ BehaviorActionType = Literal[
 ]
 BehaviorPolicyMode = Literal["draft_only_review_required"]
 CandidateActionMode = Literal["draft_only_review_required"]
+OutboundMessageChannel = Literal["unspecified", "feishu", "wechat"]
+OutboundRequestSourceType = Literal["candidate_action", "human_authored"]
+OutboundHumanApprovalState = Literal["pending_human_approval", "approved", "rejected"]
+OutboundSendGateState = Literal["not_evaluated", "allowed", "blocked"]
 
 
 class InboundEvent(BaseModel):
@@ -844,6 +848,25 @@ _CANDIDATE_ACTION_FORBIDDEN_PAYLOAD_FIELDS = frozenset(
         "api_key",
     },
 )
+_OUTBOUND_MESSAGE_FORBIDDEN_METADATA_FIELDS = frozenset(
+    set(_CANDIDATE_ACTION_FORBIDDEN_PAYLOAD_FIELDS).union(
+        {
+            "scheduler_id",
+            "schedule_id",
+            "timer_id",
+            "reminder_id",
+            "adapter_payload",
+            "adapter_config",
+            "platform_target",
+            "platform_token",
+            "bot_token",
+            "app_secret",
+            "delivery_connector_name",
+            "delivery_response",
+            "send_result",
+        },
+    ),
+)
 
 
 class BehaviorPolicy(BaseModel):
@@ -945,6 +968,119 @@ class CandidateAction(BaseModel):
 
     def is_runtime_visible(self) -> bool:
         return self.review_metadata.is_runtime_ready(status=self.status)
+
+
+class OutboundMessagePayload(BaseModel):
+    """Draft-only outbound payload for later send-gate evaluation.
+
+    `metadata` is deliberately restricted from scheduling, adapter, credential,
+    transport, and raw transcript keys so the request remains inert in T220.
+    """
+
+    draft_text: str = Field(..., min_length=1)
+    safe_summary: str | None = None
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+    @field_validator("metadata")
+    @classmethod
+    def reject_forbidden_metadata_keys(cls, value: dict[str, Any]) -> dict[str, Any]:
+        forbidden = _OUTBOUND_MESSAGE_FORBIDDEN_METADATA_FIELDS.intersection(value)
+        if forbidden:
+            keys = ", ".join(sorted(forbidden))
+            raise ValueError(f"OutboundMessagePayload metadata contains forbidden key(s): {keys}")
+        return value
+
+
+class OutboundRequestHumanApproval(BaseModel):
+    """Explicit human-review state for an outbound request.
+
+    This review is separate from any CandidateAction review status. A reviewed
+    behavior artifact may serve as evidence, but a send request still needs its
+    own approval metadata.
+    """
+
+    review_state: OutboundHumanApprovalState = "pending_human_approval"
+    approved_by_human: bool = False
+    reviewer_id: str | None = None
+    reviewed_at: datetime | None = None
+    review_notes: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_review_state(self) -> OutboundRequestHumanApproval:
+        has_reviewer = self.reviewer_id is not None and self.reviewer_id.strip() != ""
+        if self.review_state == "pending_human_approval":
+            if self.approved_by_human or has_reviewer or self.reviewed_at is not None:
+                raise ValueError("Pending outbound human approval must not carry completed review metadata.")
+            return self
+        if not has_reviewer or self.reviewed_at is None:
+            raise ValueError("Reviewed outbound requests must record reviewer_id and reviewed_at.")
+        if self.review_state == "approved" and not self.approved_by_human:
+            raise ValueError("Approved outbound requests must set approved_by_human=True.")
+        if self.review_state == "rejected" and self.approved_by_human:
+            raise ValueError("Rejected outbound requests must set approved_by_human=False.")
+        return self
+
+
+class OutboundRequestSendGate(BaseModel):
+    """Snapshot of later send-gate evaluation state.
+
+    T220 keeps the request non-sendable by default through `not_evaluated`.
+    T221 may later populate `allowed` or `blocked` with explicit audit data.
+    """
+
+    gate_state: OutboundSendGateState = "not_evaluated"
+    evaluator_id: str | None = None
+    evaluated_at: datetime | None = None
+    gate_notes: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_gate_state(self) -> OutboundRequestSendGate:
+        has_evaluator = self.evaluator_id is not None and self.evaluator_id.strip() != ""
+        if self.gate_state == "not_evaluated":
+            if has_evaluator or self.evaluated_at is not None:
+                raise ValueError("Unevaluated outbound send-gate state must not carry evaluator metadata.")
+            return self
+        if not has_evaluator or self.evaluated_at is None:
+            raise ValueError("Evaluated outbound send-gate state must record evaluator_id and evaluated_at.")
+        return self
+
+
+class OutboundMessageRequest(BaseModel):
+    """Schema-only outbound request boundary for later send-gate work.
+
+    The request is inert until it has its own explicit human approval and a
+    later send-gate decision. CandidateAction review status is evidence only.
+    """
+
+    schema_version: str = "outbound_message_request_v1"
+    request_id: str = Field(default_factory=lambda: new_id("outreq"))
+    contact_id: str = Field(..., min_length=1)
+    user_id: str = Field(..., min_length=1)
+    source_type: OutboundRequestSourceType
+    source_candidate_action_id: str | None = Field(default=None, min_length=1)
+    source_context_refs: list[ReplyPlanContextRef] = Field(default_factory=list)
+    payload: OutboundMessagePayload
+    channel_preference: OutboundMessageChannel = "unspecified"
+    risk_flags: list[str] = Field(default_factory=list)
+    human_approval: OutboundRequestHumanApproval = Field(default_factory=OutboundRequestHumanApproval)
+    send_gate: OutboundRequestSendGate = Field(default_factory=OutboundRequestSendGate)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
+
+    @model_validator(mode="after")
+    def validate_source_boundary(self) -> OutboundMessageRequest:
+        if self.source_type == "candidate_action" and not self.source_candidate_action_id:
+            raise ValueError("Candidate-action outbound requests must include source_candidate_action_id.")
+        if self.source_type == "human_authored" and self.source_candidate_action_id is not None:
+            raise ValueError("Human-authored outbound requests must not include source_candidate_action_id.")
+        return self
+
+    def is_sendable(self) -> bool:
+        return (
+            self.human_approval.review_state == "approved"
+            and self.human_approval.approved_by_human
+            and self.send_gate.gate_state == "allowed"
+        )
 
 
 class ChatSuggestion(BaseModel):

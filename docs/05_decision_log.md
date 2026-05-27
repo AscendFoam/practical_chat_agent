@@ -1,5 +1,37 @@
 # Decision Log
 
+## D063: T220 PASS, accept outbound request schema, advance to T221
+
+- Date: 2026-05-27
+- Status: Accepted
+- Context: `docs/review/T220_review.md` gives `PASS` for the `OutboundMessageRequest` schema task. No blocking issues were found. The review confirms T220 stayed schema-only and introduced no sending, scheduling, platform adapter, runtime loop, CLI send path, LLM call, store mutation, private chat-history read, or `CandidateAction` send-authorization shortcut.
+- Decision: T220 is complete. The project may continue to T221 `OutboundSendGate`.
+- Review observation handling:
+  - Accepted:
+    - N01 `_OUTBOUND_MESSAGE_FORBIDDEN_METADATA_FIELDS` could use a cleaner frozenset union expression, but the current runtime behavior is harmless.
+    - N02 the contract doc does not enumerate the entire outbound forbidden-key superset; the code remains authoritative and T221 may improve documentation if touching the contract.
+    - N03 `OutboundMessagePayload.draft_text` has no max length; this is acceptable for the schema-only boundary.
+    - N04 `source_candidate_action_id` is syntactically validated only; store-backed evidence existence remains outside T220.
+    - N05 cross-field validators on human approval and send gate state use correct Pydantic v2 patterns and enforce useful defensive invariants.
+    - N06 allowed-file compliance is satisfied; the mentioned docs are explicitly in T220's allowed list.
+    - N07 untracked `artifacts/t220_pytest_basetemp/` contents are workspace temp noise from verification, not a T220 scope issue.
+    - M01 standalone approval/gate validator edge tests are minor coverage-strength debt.
+    - M02 `OutboundMessageRequest.is_sendable()` true-path coverage is valuable to add in T221 when the gate begins populating allowed state.
+    - M03 outbound-specific forbidden metadata key coverage should be expanded when T221 hardens the boundary.
+    - M04 timestamp round-trip coverage is minor schema-test debt.
+    - M05 all-channel-preference coverage is minor schema-test debt.
+  - Deferred: none from the T220 review decision.
+  - Rejected: none.
+- Conditions carried forward:
+  - T221 must implement gate policy only: explicit outbound human approval requirement, quiet hours, frequency limits, duplicate suppression, kill switch, self-echo prevention, and audit notes.
+  - T221 must not implement fake/Feishu/WeChat adapters, review cards, CLI/runtime send paths, schedulers, background jobs, or automatic delivery.
+  - T221 must keep `CandidateAction` review status as evidence only and must not treat `OutboundMessageChannel` as a real adapter target.
+- Impact:
+  - `docs/04_task_board.md` moves the Current Unique Task from T220 to T221 and marks T220 complete.
+  - `docs/07_handoff.md` records the T220 review decision and T221 task boundary.
+  - `docs/08_risks_and_open_questions.md` records T221 carry-forward risks and closes Q198.
+  - `docs/tasks/M11_outbound_sendgate_feishu/T221_outbound_send_gate.md` is expanded into a complete worker task package.
+
 ## D062: T214 PASS, accept Gate M10 Allow, advance to T220
 
 - Date: 2026-05-27
