@@ -4,6 +4,25 @@ Updated: 2026-05-28
 
 ## Captain Current State Override
 
+- T223 review decision: `PASS`.
+- T223 is complete as the Feishu sandbox adapter task for M11.
+- T223 review observation disposition:
+  - Accepted: N01 duplicated candidate-shaped mapping detection is acceptable until shared utility extraction is worthwhile, N02 redundant `FeishuSandboxRecipient` runtime validation is harmless defensive code, N03 recipient-map normalization by reassignment is functionally correct, N04 Feishu payload shape is acceptable as sandbox approximation but must be revalidated before production delivery, N05 mutable result dataclasses are acceptable for current adapter scope, M01-M06 missing edge tests are useful hardening targets but non-blocking.
+  - Deferred: none from the T223 review decision.
+  - Rejected: none.
+- Current Unique Task: T224 Feishu Review Card.
+- Current task package: `docs/tasks/M11_outbound_sendgate_feishu/T224_feishu_review_card.md`.
+- T224 must stay local-review-card-only and non-executing: render deterministic Feishu review-card payloads and parse synthetic review-intent actions for `OutboundMessageRequest` review, but do not apply approval/edit/reject decisions, call adapters, send messages, register callbacks/webhooks, read secrets, write feedback logs, write memory, mutate stores, add CLI/runtime paths, create schedulers/background jobs, or integrate WeChat.
+- M11 execution constraints now carried forward:
+  - Gate `allowed` means policy eligibility only, not delivery.
+  - Fake `fake_delivered` means local synthetic simulation only, not platform acknowledgement.
+  - Feishu sandbox `feishu_dry_run_ready` / `feishu_sandbox_sent` means sandbox evidence only, not production delivery.
+  - Review-card actions must be inert review intents only; applying approvals or feedback remains a later explicit task.
+  - Recipient mapping must remain explicit and must not be smuggled through `OutboundMessagePayload.metadata`.
+  - `CandidateAction` review state remains evidence only and must not satisfy card, gate, adapter, or delivery authorization.
+  - Production Feishu delivery, Feishu callbacks, WeChat adapter work, and automatic sending remain forbidden until their own reviewed tasks.
+  - M11 tests must stay synthetic, dependency-light, network-free, credential-free, and private-content-free.
+
 - T222 review decision: `PASS`.
 - T222 is complete as the local fake outbound adapter task for M11.
 - T222 review observation disposition:
@@ -448,11 +467,11 @@ Updated: 2026-05-28
 
 ## Current Unique Task
 
-T223: Feishu Sandbox Adapter.
+T224: Feishu Review Card.
 
-Task package: `docs/tasks/M11_outbound_sendgate_feishu/T223_feishu_adapter.md`
+Task package: `docs/tasks/M11_outbound_sendgate_feishu/T224_feishu_review_card.md`
 
-Why now: T222 has landed with `PASS`, so the repo now has a local fake adapter proving that only already-sendable outbound requests can cross an adapter boundary without side effects. The next smallest safe step is a Feishu sandbox adapter that prepares platform-specific dry-run / fake-transport payloads behind the same gate, before any production delivery, review card UX, scheduler, runtime autonomy, or automatic send behavior.
+Why now: T223 has landed with `PASS`, so the repo now has a Feishu sandbox adapter that prepares platform-specific dry-run / fake-transport payloads behind explicit outbound approval, send-gate allow state, channel `feishu`, and explicit sandbox recipient mapping. The next smallest safe step is a local Feishu review-card renderer and synthetic review-intent parser, before any production delivery, callback server, approval application, feedback/memory write, scheduler, runtime autonomy, or automatic send behavior.
 
 ## Board Rules
 
@@ -592,7 +611,7 @@ Goal: build a platform-independent send gate before any real adapter work.
 - [x] T220: OutboundMessageRequest schema. Review `PASS`.
 - [x] T221: OutboundSendGate. Review `PASS`.
 - [x] T222: local fake adapter. Review `PASS`.
-- [ ] T223: Feishu sandbox adapter.
+- [x] T223: Feishu sandbox adapter. Review `PASS`.
 - [ ] T224: Feishu review card.
 
 ## Milestone 12: WeChat Adapter
@@ -605,6 +624,10 @@ Goal: keep WeChat as a thin final adapter behind the send gate.
 - [ ] T233: WeChat safety mode.
 
 ## Historical Current Unique Task
+
+T223: Feishu Sandbox Adapter.
+
+It is now complete and accepted with `PASS`. The next worker task is T224, because M11 now needs a local Feishu review-card renderer and synthetic review-intent parser over outbound request/gate/sandbox evidence before any production delivery, callback server, approval application, feedback or memory write, scheduler, runtime path, or automatic send behavior.
 
 T222: Local Fake Adapter.
 

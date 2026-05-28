@@ -1,15 +1,16 @@
 # Outbound Send Gate Contract
 
-Task: T220 OutboundMessageRequest Schema + T221 OutboundSendGate + T222 Local Fake Adapter
+Task: T220 OutboundMessageRequest Schema + T221 OutboundSendGate + T222 Local Fake Adapter + T223 Feishu Sandbox Adapter
 Status: worker draft for review
 
 ## Scope
 
-M11 starts in three explicit layers:
+M11 starts in four explicit layers:
 
 - T220: inert outbound request contract
 - T221: deterministic gate decision over that contract
 - T222: local fake adapter simulation after the gate
+- T223: Feishu-specific sandbox payload/result boundary
 
 The committed surfaces are:
 
@@ -24,10 +25,16 @@ The committed surfaces are:
 - `FakeOutboundAdapterConfig`
 - `FakeOutboundDeliveryResult`
 - `LocalFakeOutboundAdapter`
+- `FeishuSandboxRecipient`
+- `FeishuSandboxAdapterConfig`
+- `FeishuSandboxTransportResponse`
+- `FeishuSandboxDeliveryResult`
+- `FeishuSandboxOutboundAdapter`
 
 This contract still does not include delivery, adapters, schedulers, CLI send
 commands, runtime loops, or external services. T222 adds only a local fake
-adapter simulation layer, not a real platform adapter.
+adapter simulation layer, and T223 adds only a Feishu sandbox adapter boundary,
+not a production platform adapter.
 
 ## Relationship To M10 CandidateAction
 
@@ -53,6 +60,10 @@ supplied gate context.
 T222 still does not treat reviewed `CandidateAction` artifacts as send or
 adapter authorization. Direct `CandidateAction` inputs are rejected at the fake
 adapter boundary.
+
+T223 keeps the same rule. Reviewed `CandidateAction` artifacts may inform
+evidence origin only; they never satisfy Feishu adapter authorization by
+themselves.
 
 ## OutboundMessageRequest Layer
 
@@ -108,6 +119,12 @@ Forbidden metadata keys include the full outbound-specific superset:
 - `platform_token`
 - `bot_token`
 - `app_secret`
+- `open_id`
+- `chat_id`
+- `receive_id`
+- `receive_id_type`
+- `feishu_open_id`
+- `feishu_chat_id`
 - `delivery_connector_name`
 - `delivery_response`
 - `send_result`
@@ -213,6 +230,7 @@ Only after both are true can `OutboundMessageRequest.is_sendable()` return
 - message delivered
 - adapter selected
 - fake adapter executed
+- Feishu sandbox payload prepared
 - Feishu or WeChat API called
 - scheduler created
 - background job queued
@@ -293,6 +311,111 @@ T222 proves only that a gate-approved request can cross a safe local adapter
 boundary. It does not prove Feishu, WeChat, webhook, email, browser, desktop,
 notification, or runtime delivery.
 
+## T223 Feishu Sandbox Adapter Inputs
+
+`FeishuSandboxOutboundAdapter.deliver()` accepts:
+
+- a validated `OutboundMessageRequest`
+- or a stable mapping that validates to `OutboundMessageRequest`
+
+The adapter rejects:
+
+- any request where `request.is_sendable()` is `false`
+- direct `CandidateAction` instances
+- candidate-shaped mappings
+- invalid mappings that do not validate to `OutboundMessageRequest`
+- requests whose `channel_preference` is not explicitly `feishu`
+- requests without an explicit sandbox recipient mapping outside payload
+  metadata
+
+T223 chooses the conservative channel rule:
+
+- `channel_preference="feishu"` is required
+- `channel_preference="unspecified"` is not auto-mapped
+- `channel_preference="wechat"` is blocked
+
+## T223 Feishu Sandbox Config Shape
+
+`FeishuSandboxAdapterConfig` controls the sandbox adapter boundary:
+
+- `adapter_name`
+- `dry_run_by_default`
+- `recipient_map`
+
+`recipient_map` is explicit adapter configuration keyed by `contact_id`. It is
+not stored inside `OutboundMessagePayload.metadata`.
+
+Each `FeishuSandboxRecipient` records:
+
+- `recipient_type`
+- `recipient_id`
+
+Current synthetic recipient types are:
+
+- `open_id`
+- `chat_id`
+
+## T223 Feishu Sandbox Result Shape
+
+`FeishuSandboxDeliveryResult` returns:
+
+- `adapter_name`
+- `delivery_status`
+- `delivered`
+- `request_id`
+- `contact_id`
+- `user_id`
+- `channel_preference`
+- `recipient_type`
+- `recipient_id`
+- `prepared_payload`
+- `provider_message_id`
+- `result_at`
+- `audit_notes`
+
+Current statuses are:
+
+- `feishu_dry_run_ready`
+- `feishu_sandbox_sent`
+- `blocked_not_sendable`
+- `blocked_invalid_request`
+- `blocked_missing_recipient`
+- `blocked_wrong_channel`
+- `blocked_transport_error`
+- `blocked_transport_unavailable`
+
+`result_at` is normalized to aware UTC.
+
+## T223 Feishu Sandbox Lifecycle
+
+T223 sandbox lifecycle:
+
+1. accept an outbound request or stable mapping
+2. reject candidate input and non-sendable requests
+3. require `channel_preference=="feishu"`
+4. resolve explicit sandbox recipient mapping by `contact_id`
+5. build a Feishu-compatible text payload from `request.payload.draft_text`
+   only
+6. return dry-run payload readiness by default
+7. optionally call an injected fake/sandbox transport when dry-run is disabled
+
+The adapter does not mutate the input request, does not read secrets from the
+environment, and does not create scheduler/runtime side effects.
+
+## Gate `allowed` Vs Fake `fake_delivered` Vs Feishu Sandbox Vs Real Delivery
+
+These states remain distinct:
+
+- gate `allowed`: deterministic policy eligibility only
+- fake `fake_delivered`: local synthetic adapter simulation only
+- Feishu `feishu_dry_run_ready`: Feishu sandbox payload prepared only
+- Feishu `feishu_sandbox_sent`: injected fake/sandbox transport succeeded only
+- real production delivery: still out of scope and unclaimed
+
+T223 proves only that a gate-approved request can be transformed into a
+Feishu-compatible sandbox payload and optionally passed to an injected fake
+transport. It does not claim production Feishu delivery.
+
 ## Audit Note Conventions
 
 T221 keeps gate notes deterministic and flat. Typical note families are:
@@ -366,22 +489,26 @@ T221 preserves the compact-context rule:
 - no credentials or platform tokens
 - no repository or database dependency
 - no external platform or runtime delivery side effect
+- no production Feishu credential or webhook flow
+- no recipient mapping smuggled through outbound payload metadata
 
 All tests and examples must stay synthetic.
 
-## What T222 Still Does Not Authorize
+## What T223 Still Does Not Authorize
 
-T222 does not authorize:
+T223 does not authorize:
 
 - message sending
 - scheduling
 - reminders, timers, background jobs, or automations
-- Feishu adapter execution
+- production Feishu adapter execution
 - WeChat adapter execution
 - webhook, email, browser, desktop, or notification delivery
 - CLI send commands or runtime loops
 - real delivery completion
 - platform API calls, connector handles, or delivery credentials
+- webhook registration, event callbacks, or bot installation flows
 - mutation of `CandidateAction`, memory records, ContactSkill, relationship
   state, approved stores, or private artifacts
-- treating gate `allowed` or fake `fake_delivered` as real delivery completion
+- treating gate `allowed`, fake `fake_delivered`, `feishu_dry_run_ready`, or
+  `feishu_sandbox_sent` as production delivery completion

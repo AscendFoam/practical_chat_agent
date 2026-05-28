@@ -8,6 +8,8 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
+import pytest
+
 from practical_chat_agent.core.models import (
     CandidateAction,
     CandidateActionPayload,
@@ -95,6 +97,14 @@ def _sendable_request(**overrides: object) -> OutboundMessageRequest:
 
 
 class TestLocalFakeOutboundAdapter:
+    def test_config_rejects_empty_adapter_name(self) -> None:
+        with pytest.raises(ValueError):
+            FakeOutboundAdapterConfig(adapter_name="   ")
+
+    def test_config_rejects_non_positive_preview_char_limit(self) -> None:
+        with pytest.raises(ValueError):
+            FakeOutboundAdapterConfig(preview_char_limit=0)
+
     def test_delivers_sendable_request_without_mutation(self) -> None:
         adapter = LocalFakeOutboundAdapter(
             config=FakeOutboundAdapterConfig(
@@ -129,6 +139,17 @@ class TestLocalFakeOutboundAdapter:
 
         assert result.delivery_status == "fake_delivered"
         assert result.delivered is True
+
+    def test_preserves_existing_audit_notes(self) -> None:
+        adapter = LocalFakeOutboundAdapter()
+
+        result = adapter.deliver(
+            _sendable_request(),
+            existing_audit=["caller_note", "local_fake_delivery_only"],
+        )
+
+        assert "caller_note" in result.audit_notes
+        assert "local_fake_delivery_only" in result.audit_notes
 
     def test_blocks_non_sendable_request(self) -> None:
         adapter = LocalFakeOutboundAdapter()
@@ -178,3 +199,27 @@ class TestLocalFakeOutboundAdapter:
         assert result.delivery_status == "blocked_invalid_request"
         assert result.delivered is False
         assert "request_validation_failed" in result.audit_notes
+
+    def test_preview_exact_boundary_does_not_truncate(self) -> None:
+        adapter = LocalFakeOutboundAdapter(
+            config=FakeOutboundAdapterConfig(preview_char_limit=10),
+        )
+        request = _sendable_request(
+            payload=OutboundMessagePayload(draft_text="1234567890"),
+        )
+
+        result = adapter.deliver(request)
+
+        assert result.payload_preview == "1234567890"
+
+    def test_preview_char_limit_up_to_three_returns_only_dots(self) -> None:
+        adapter = LocalFakeOutboundAdapter(
+            config=FakeOutboundAdapterConfig(preview_char_limit=3),
+        )
+        request = _sendable_request(
+            payload=OutboundMessagePayload(draft_text="1234567890"),
+        )
+
+        result = adapter.deliver(request)
+
+        assert result.payload_preview == "..."

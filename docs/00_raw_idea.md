@@ -1,5 +1,33 @@
 # Raw Idea
 
+## Captain Update 2026-05-28 (T223 Review)
+
+T223 has now passed review with `PASS`, so M11 has a Feishu sandbox adapter
+boundary after the local fake adapter:
+
+- the repo now has `FeishuSandboxOutboundAdapter`,
+  `FeishuSandboxAdapterConfig`, `FeishuSandboxRecipient`, and
+  `FeishuSandboxDeliveryResult`
+- the sandbox adapter consumes only `OutboundMessageRequest` records that are
+  already sendable through explicit outbound human approval plus T221 gate
+  `allowed`
+- direct `CandidateAction` inputs and candidate-shaped mappings are rejected;
+  candidate review state remains evidence only and cannot authorize delivery
+- Feishu delivery is still sandbox-only: dry-run by default, or injected
+  fake/sandbox transport when explicitly configured, with no production
+  credentials, webhook/callback server, runtime send path, scheduler, or
+  automatic sending
+- recipient mapping is explicit adapter configuration and cannot be smuggled
+  through outbound payload metadata
+- reviewer observations are accepted as duplication, defensive validation,
+  mutability, API-validation, or coverage-strength notes under a `PASS`
+  verdict; no repair pass is opened
+- the next safe step is T224 `Feishu Review Card`, limited to a local
+  review-card renderer and synthetic review-intent parser, still without
+  applying approvals, sending, callbacks, feedback-log writes, or memory writes
+
+The Current Unique Task therefore moves to T224 `Feishu Review Card`.
+
 ## Captain Update 2026-05-28 (T222 Review)
 
 T222 has now passed review with `PASS`, so M11 has a local synthetic adapter

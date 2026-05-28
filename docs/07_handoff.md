@@ -1,5 +1,35 @@
 # Handoff
 
+## Captain Current State Override 2026-05-28 (T223 Review Decision)
+
+- T223 review decision: `PASS`.
+- T223 is complete as the Feishu sandbox adapter task for M11.
+- T223 review observation disposition:
+  - Accepted: N01 duplicated candidate-shaped mapping detection is acceptable, N02 redundant `FeishuSandboxRecipient` runtime validation is harmless defensive code, N03 recipient-map normalization by reassignment is functionally correct, N04 Feishu payload shape is a sandbox approximation that must be validated before production delivery, N05 mutable result dataclasses are acceptable for current scope, M01-M06 missing edge tests are useful hardening targets but non-blocking.
+  - Deferred: none from the T223 review decision.
+  - Rejected: none.
+- Captain decision: no T223 repair pass is needed.
+- Current Unique Task: T224 Feishu Review Card.
+- Current task package: `docs/tasks/M11_outbound_sendgate_feishu/T224_feishu_review_card.md`.
+- T224 must remain local-review-card-only and non-executing:
+  - may render deterministic Feishu review-card payloads from `OutboundMessageRequest` plus optional gate / Feishu sandbox result evidence
+  - may parse synthetic card-action payloads into inert review-intent data
+  - must not apply approvals, edits, rejects, or boundary feedback
+  - must not call fake/Feishu adapters, send messages, register webhook/callback servers, read credentials, write feedback logs, write memory, mutate stores/private artifacts, add CLI/runtime send paths, add scheduler/timer/background jobs, or integrate WeChat
+  - must not read `private/chat_history/` or commit private content
+- Captain verification basis:
+  - Reviewer reported no blocking issues.
+  - Reviewer reported `python -m py_compile src/practical_chat_agent/core/models.py src/practical_chat_agent/services/outbound_send_gate.py src/practical_chat_agent/services/outbound_fake_adapter.py src/practical_chat_agent/services/feishu_outbound_adapter.py` passed.
+  - Reviewer reported targeted outbound schema + gate + fake + Feishu adapter tests passed: 65 tests.
+  - Reviewer reported full-suite status as 825 passed plus 16 pre-existing typer/LLM/CLI-dependent failures in the reviewer environment; worker summary reported 845 passed in the worker environment. No T223-targeted failures were reported.
+- M11 residual risks carried forward:
+  - Gate `allowed` is not delivery.
+  - Fake `fake_delivered` is local synthetic simulation only.
+  - Feishu sandbox `feishu_dry_run_ready` / `feishu_sandbox_sent` is sandbox evidence only.
+  - Feishu sandbox payload shape is not production API validation.
+  - T224 review-card actions must remain inert review intents until a later explicit task applies them.
+  - Windows named-timezone verification needs either `tzdata` or a documented UTC-only fallback.
+
 ## Captain Current State Override 2026-05-28 (T222 Review Decision)
 
 - T222 review decision: `PASS`.
@@ -3716,3 +3746,84 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
     transcript leakage.
   - The Windows named-timezone portability risk from T221 remains open because
     T222 intentionally did not add `tzdata`.
+
+## T223 Worker Completion Record
+
+- T223 is the Feishu sandbox outbound adapter task for M11.
+- Worker must not mark T223 as complete in `docs/04_task_board.md`; only the
+  Captain may do so after review.
+- Files changed:
+  - `src/practical_chat_agent/services/feishu_outbound_adapter.py`
+  - `src/practical_chat_agent/core/models.py`
+  - `tests/test_feishu_outbound_adapter.py`
+  - `tests/test_outbound_fake_adapter.py`
+  - `docs/data_contracts/outbound_send_gate_contract.md`
+  - `docs/worker_summary/T223_worker_summary.md`
+  - `docs/07_handoff.md`
+- Test-first evidence:
+  - `tests/test_feishu_outbound_adapter.py` and the T222 hardening additions in
+    `tests/test_outbound_fake_adapter.py` were written before the Feishu
+    adapter existed.
+  - The first targeted pytest run failed during import because
+    `practical_chat_agent.services.feishu_outbound_adapter` did not exist.
+  - The sandbox adapter and minimal supporting metadata guardrails were then
+    added until the targeted tests passed.
+- Feishu sandbox behavior added:
+  - `FeishuSandboxOutboundAdapter.deliver()` accepts a validated
+    `OutboundMessageRequest` or a stable mapping that validates to one.
+  - Direct `CandidateAction` instances and candidate-shaped mappings are
+    rejected with `blocked_invalid_request`.
+  - Non-sendable requests are blocked with `blocked_not_sendable`.
+  - `channel_preference` must be explicitly `feishu`; `unspecified` and
+    `wechat` are blocked with `blocked_wrong_channel`.
+  - Recipient resolution uses explicit adapter config keyed by `contact_id`,
+    outside `OutboundMessagePayload.metadata`.
+  - The adapter builds a Feishu-compatible text payload from
+    `request.payload.draft_text` only.
+  - Dry-run is the default and returns `feishu_dry_run_ready` without invoking
+    any transport.
+  - When dry-run is explicitly disabled, an injected fake/sandbox transport may
+    return `feishu_sandbox_sent`; transport failures return
+    `blocked_transport_error`.
+  - Result metadata records adapter name, request scope, recipient metadata,
+    prepared payload, provider sandbox message id when present, aware-UTC
+    `result_at`, and audit notes that preserve caller-provided audit entries.
+  - Production Feishu delivery is still unclaimed.
+- Additional hardening added:
+  - outbound payload metadata now rejects Feishu recipient-smuggling keys such
+    as `open_id`, `chat_id`, `receive_id`, `receive_id_type`,
+    `feishu_open_id`, and `feishu_chat_id`
+  - `FakeOutboundAdapterConfig` validation tests for empty adapter name and
+    non-positive preview limit
+  - fake adapter `existing_audit` preservation test
+  - fake adapter preview exact-boundary and `preview_char_limit <= 3` tests
+- Verification status:
+  - Commands were run with `TEMP` and `TMP` set to
+    `artifacts\t223_pytest_tmp`, pytest cache set to
+    `artifacts\t223_pytest_cache`, and `--basetemp` set to
+    `artifacts\t223_pytest_basetemp` to keep pytest temp/cache inside the
+    workspace-local sandbox path.
+  - `python -m py_compile src/practical_chat_agent/core/models.py src/practical_chat_agent/services/outbound_send_gate.py src/practical_chat_agent/services/outbound_fake_adapter.py src/practical_chat_agent/services/feishu_outbound_adapter.py`: passed.
+  - `pytest tests/test_outbound_message_request_schema.py tests/test_outbound_send_gate.py tests/test_outbound_fake_adapter.py tests/test_feishu_outbound_adapter.py -q -o cache_dir=artifacts\t223_pytest_cache --basetemp=artifacts\t223_pytest_basetemp`: passed, 65 tests.
+  - `pytest tests/ -q -o cache_dir=artifacts\t223_pytest_cache --basetemp=artifacts\t223_pytest_basetemp`: passed, 845 tests.
+- Explicit non-actions:
+  - No production Feishu sending.
+  - No real Feishu, webhook, email, browser, desktop, notification, WeChat, or
+    other external API calls in committed code/tests.
+  - No production credentials, webhook registration, event callbacks, bot
+    installation flow, or environment-secret reads.
+  - No CLI send path, AppContainer wiring, scheduler, timer, background job,
+    automation, or runtime delivery hook.
+  - No mutation of `OutboundMessageRequest`, `CandidateAction`, memory records,
+    ContactSkill, `RelationshipState`, approved stores, or private artifacts.
+  - No `private/chat_history/` reads and no committed private content.
+  - No task-board update.
+- Remaining risks:
+  - T223 proves only Feishu sandbox payload preparation and injected fake
+    transport behavior; it does not prove production Feishu API compatibility,
+    acknowledgement semantics, retries, or delivery recovery.
+  - Recipient mapping is currently a simple explicit `contact_id` lookup in
+    adapter config; future production work will need reviewed mapping ownership
+    and operational secret handling outside this task.
+  - The Windows named-timezone portability risk from T221 remains open because
+    T223 did not introduce `tzdata`.

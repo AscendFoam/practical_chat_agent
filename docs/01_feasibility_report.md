@@ -1,5 +1,29 @@
 # Feasibility Report
 
+## Captain Update 2026-05-28 (T223 Review)
+
+T223 confirms that a Feishu-specific sandbox adapter boundary is feasible
+without production delivery.
+
+The feasibility question has changed again:
+
+- no longer blocked on whether an already-sendable `OutboundMessageRequest` can
+  be converted into a Feishu-shaped sandbox payload/result behind explicit
+  recipient mapping
+- now focused on whether T224 can render a local Feishu review card and parse
+  synthetic review-intent actions while preserving the separation between
+  display, review intent, approval application, send-gate state, adapter
+  delivery, and feedback/memory writes
+- still not ready for production Feishu delivery, callback/webhook handling,
+  credentials, WeChat adapters, scheduler/background jobs, runtime loops, or
+  automatic outbound behavior
+- Feishu sandbox payload shape remains a sandbox approximation until a later
+  production-delivery task validates current official Feishu API semantics
+
+So the project is ready to commit the T223 Feishu sandbox slice and advance to
+T224, with `feishu_dry_run_ready` / `feishu_sandbox_sent` treated as sandbox
+evidence only, not production delivery.
+
 ## Captain Update 2026-05-28 (T222 Review)
 
 T222 confirms that an outbound adapter boundary is feasible without external

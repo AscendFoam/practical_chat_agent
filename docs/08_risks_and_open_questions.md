@@ -1,5 +1,23 @@
 # Risks And Open Questions
 
+## Captain Update 2026-05-28 (T223 Review Decision)
+
+Authoritative current risk state after the Captain review of T223:
+
+- R040 remains active as a compact-context and privacy boundary rule: M11 and later work must continue to use approved metadata / review-safe artifacts only and must not reopen raw-transcript ingestion.
+- R041 remains active: approved memories, approved patches, derived briefs, relationship-state artifacts, behavior candidates, outbound requests, gate decisions, adapter results, review cards, and parsed review intents remain review/gate artifacts unless a later task explicitly authorizes mutation or execution.
+- R071 remains active: LLM confidence calibration is still unresolved and orthogonal to T223/T224 deterministic outbound infrastructure.
+- R091 remains active and deferred: approved relationship context exists in `ChatContext`, but no planner or policy code path consumes relationship delta semantics.
+- R092 remains active and deferred: relationship guidance that surfaces through summary/retrieval notes is informational only and must not be mistaken for semantic runtime consumption.
+- R093 remains active but narrowed: T220-T223 now separate outbound request, gate decision, fake adapter result, and Feishu sandbox result from `CandidateAction`, but T224+ must still avoid consuming `CandidateAction` review state as send permission.
+- R096 remains active and narrowed: T223 correctly keeps Feishu sandbox evidence separate from production delivery; T224 must preserve the distinction between gate eligibility, fake simulation, Feishu sandbox result, review-card rendering, parsed review intent, applied approval, and production delivery.
+- R097 remains active: T221 named-timezone verification on Windows requires `tzdata`, which is not currently declared in project dependencies. T223 did not modify timezone dependency policy.
+- R098 remains active: T222 `payload_preview` truncation is useful for local synthetic result summaries but is not a privacy boundary for future real, sandbox, or card-rendered payloads.
+- R099 is active: T223 Feishu sandbox payload shape has not been validated against current official Feishu production API semantics.
+- T223 opened no deferred task-review risks. Its non-blocking observations are accepted as duplication, defensive validation, mutability, API-validation, or coverage-strength notes under a `PASS` verdict.
+
+Closed question Q201: T223 is accepted with `PASS`, so the project may proceed to T224 `Feishu Review Card`.
+
 ## Captain Update 2026-05-28 (T222 Review Decision)
 
 Authoritative current risk state after the Captain review of T222:
@@ -745,6 +763,7 @@ Closed question Q124: the updated GPT roadmap is directionally aligned, but M4/M
 | R096 | T221 could blur "gate allowed" with "message delivered" | A gate decision should be an audit/policy state only; treating it as delivery would bypass T222/T223/T224 review boundaries | T221 must not create adapters, send paths, schedulers, background jobs, or runtime delivery side effects |
 | R097 | T221 named-timezone verification on Windows depends on `tzdata`, but `tzdata` is not declared in project dependencies | Fresh Windows environments may fail timezone tests or runtime named-zone evaluation even though the worker environment had `tzdata` installed | Future tasks should either add `tzdata` explicitly or keep new tests/config on UTC-only paths and document the choice |
 | R098 | T222 fake-adapter `payload_preview` truncation is not a privacy boundary | Future real or sandbox adapters could incorrectly treat truncated previews as sufficient redaction or safe payload handling | T223+ must build platform payloads only from approved outbound request text and explicit recipient mapping; preview fields are for audit summaries only |
+| R099 | T223 Feishu sandbox payload shape is not production API validation | The sandbox adapter builds a Feishu-shaped payload for dry-run / injected fake transport, but production API compatibility, acknowledgement semantics, retries, and recovery were not validated | Future production Feishu delivery work must verify current official Feishu API contract, auth, callback, ack/error, retry, and recovery semantics before claiming real delivery |
 
 ## Open Questions
 
@@ -756,6 +775,7 @@ Closed question Q124: the updated GPT roadmap is directionally aligned, but M4/M
 
 | ID | 结论 | 关闭依据 |
 | --- | --- | --- |
+| Q201 | T223 can be accepted as complete and the project may proceed to T224. It is accepted with `PASS`; all review observations are accepted, with no deferred risks or repair pass. | `docs/review/T223_review.md` + Captain decision |
 | Q200 | T222 can be accepted as complete and the project may proceed to T223. It is accepted with `PASS`; all review observations are accepted, with no deferred risks or repair pass. | `docs/review/T222_review.md` + Captain decision |
 | Q199 | T221 can be accepted as complete and the project may proceed to T222. It is accepted with `PASS`; all review observations are accepted, with no deferred risks or repair pass. | `docs/review/T221_review.md` + Captain decision |
 | Q198 | T220 can be accepted as complete and the project may proceed to T221. It is accepted with `PASS`; all review observations are accepted, with no deferred risks or repair pass. | `docs/review/T220_review.md` + Captain decision |

@@ -1,5 +1,24 @@
 # Eval Protocol
 
+## Captain Update 2026-05-28 (T223 Review)
+
+T223 has now been accepted with `PASS`.
+
+Current evaluation sequence is now:
+
+- T224: can the repo render local Feishu review-card payloads and parse
+  synthetic review-intent actions from `OutboundMessageRequest` / gate /
+  Feishu-sandbox evidence while still introducing no approval application,
+  adapter call, production Feishu delivery, callback server, feedback-log
+  write, memory write, scheduler, runtime loop, CLI send path, external-service
+  test call, or automatic outbound behavior?
+
+T223 changes the evaluation baseline in one important way: M11 no longer needs
+to prove whether Feishu-shaped sandbox payload/result data can be prepared
+behind the send gate. That sandbox boundary exists. The next evaluation target
+is human-review presentation and inert review-intent parsing, not approval
+application or real delivery.
+
 ## Captain Update 2026-05-28 (T222 Review)
 
 T222 has now been accepted with `PASS`.

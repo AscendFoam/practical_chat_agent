@@ -1,5 +1,32 @@
 # Decision Log
 
+## D066: T223 PASS, accept Feishu sandbox adapter, advance to T224
+
+- Date: 2026-05-28
+- Status: Accepted
+- Context: `docs/review/T223_review.md` gives `PASS` for the Feishu sandbox adapter task. No blocking issues were found. The review confirms T223 consumes only already-sendable `OutboundMessageRequest` records, rejects direct `CandidateAction` inputs and candidate-shaped mappings, requires channel `feishu`, uses explicit sandbox recipient mapping outside payload metadata, defaults to dry-run, permits only injected fake/sandbox transport when dry-run is disabled, and introduces no production Feishu delivery, credentials, webhook/callback server, scheduler, runtime loop, CLI send path, external API call, private chat-history read, or store mutation.
+- Decision: T223 is complete. The project may continue to T224 `Feishu Review Card`.
+- Review observation handling:
+  - Accepted:
+    - N01 duplicated candidate-shaped mapping detection is acceptable for current adapter-safety scope; shared utility extraction can wait until duplication becomes material.
+    - N02 redundant recipient runtime validation is harmless defensive code.
+    - N03 recipient-map normalization by reassignment is functionally correct and low risk.
+    - N04 Feishu payload shape is acceptable as sandbox approximation, but production delivery must verify current official Feishu API contract before claiming compatibility.
+    - N05 mutable delivery-result dataclasses are acceptable for current service-layer scope.
+    - M01-M06 missing validation, dry-run override, blocked-transport, blocked-no-transport, and dedupe tests are useful hardening targets but non-blocking under the current `PASS` verdict.
+  - Deferred: none from the T223 review decision.
+  - Rejected: none.
+- Conditions carried forward:
+  - T224 may implement only local Feishu review-card rendering and synthetic review-intent parsing over outbound request/gate/sandbox evidence.
+  - T224 must not apply approve/edit/reject/boundary-feedback decisions, call adapters, send messages, write feedback logs, write memory, mutate stores, register callbacks/webhooks, read credentials, add CLI/runtime send paths, schedulers, background jobs, or automatic sending.
+  - T224 must preserve the distinction between gate eligibility, fake simulation, Feishu sandbox evidence, rendered review card, parsed review intent, applied approval, and production delivery.
+  - T224 must keep `CandidateAction` review state as evidence only and must not treat card actions as authorization to send.
+- Impact:
+  - `docs/04_task_board.md` moves the Current Unique Task from T223 to T224 and marks T223 complete.
+  - `docs/07_handoff.md` records the T223 review decision and T224 task boundary.
+  - `docs/08_risks_and_open_questions.md` records the Feishu sandbox API-validation carry-forward risk and closes Q201.
+  - `docs/tasks/M11_outbound_sendgate_feishu/T224_feishu_review_card.md` is expanded into a complete worker task package.
+
 ## D065: T222 PASS, accept local fake adapter, advance to T223
 
 - Date: 2026-05-28

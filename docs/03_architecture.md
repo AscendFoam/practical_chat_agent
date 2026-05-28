@@ -1,5 +1,38 @@
 # Architecture
 
+## Captain Update 2026-05-28 (T223 Review)
+
+T223 adds a Feishu-specific sandbox adapter boundary, still without production
+delivery:
+
+```text
+sendable OutboundMessageRequest
+  -> FeishuSandboxOutboundAdapter
+  -> FeishuSandboxDeliveryResult(feishu_dry_run_ready / feishu_sandbox_sent)
+  -> Feishu-shaped sandbox payload + audit evidence
+  -> no production credentials, webhook/callback server, scheduler, CLI send path, or runtime loop
+```
+
+The next architectural step is T224:
+
+```text
+OutboundMessageRequest + optional gate/sandbox result
+  -> FeishuReviewCardBuilder / equivalent
+  -> local Feishu review-card payload + inert review_intent action values
+  -> synthetic action parser
+  -> no approval application, feedback write, memory write, adapter call, or send
+```
+
+The architecture now has five distinct states that must not be collapsed:
+
+- gate `allowed`: policy eligibility
+- fake `fake_delivered`: local synthetic simulation
+- Feishu sandbox prepared/sent: platform-specific sandbox evidence only
+- review card rendered: human-review presentation only
+- review intent parsed: inert intent data only, not applied approval or delivery
+
+Production Feishu delivery remains outside the current reviewed state.
+
 ## Captain Update 2026-05-28 (T222 Review)
 
 T222 adds the first adapter boundary, but only as local simulation:
