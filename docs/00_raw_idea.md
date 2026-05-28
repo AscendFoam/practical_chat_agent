@@ -1,5 +1,17 @@
 # Raw Idea
 
+## Captain Update 2026-05-28 (T221 Review)
+
+T221 has now passed review with `PASS`, so M11 has a deterministic send-gate layer without delivery:
+
+- the repo now has `OutboundSendGate`, `OutboundSendGateConfig`, `OutboundSendGateContext`, and `OutboundSendGateDecision`
+- the gate evaluates `OutboundMessageRequest` locally and records `allowed` / `blocked` gate state with deterministic audit notes
+- gate allowance is still not delivery; no adapter, scheduler, runtime loop, CLI send path, or platform integration exists
+- reviewer observations are accepted as service-layer design, performance, portability, or coverage-strength notes under a `PASS` verdict; no repair pass is opened
+- the next safe step is T222 `Local Fake Adapter`, limited to local simulated delivery for already sendable requests
+
+The Current Unique Task therefore moves to T222 `Local Fake Adapter`.
+
 ## Captain Update 2026-05-27 (T220 Review)
 
 T220 has now passed review with `PASS`, so M11 has its first outbound boundary without sending anything:

@@ -1,5 +1,28 @@
 # Architecture
 
+## Captain Update 2026-05-28 (T221 Review)
+
+T221 adds the policy gate between outbound intent and any adapter:
+
+```text
+OutboundMessageRequest
+  -> OutboundSendGate
+  -> OutboundRequestSendGate.allowed / blocked
+  -> audit notes
+  -> still not delivered
+```
+
+The next architectural step is T222:
+
+```text
+sendable OutboundMessageRequest
+  -> LocalFakeOutboundAdapter / equivalent
+  -> synthetic local delivery record
+  -> no network, platform API, scheduler, or runtime loop
+```
+
+This keeps the architecture staged: schema, gate, fake adapter, then later real platform adapters only after their own reviews.
+
 ## Captain Update 2026-05-27 (T220 Review)
 
 T220 adds the first M11 outbound boundary:

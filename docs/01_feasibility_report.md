@@ -1,5 +1,18 @@
 # Feasibility Report
 
+## Captain Update 2026-05-28 (T221 Review)
+
+T221 confirms that send-gate policy is feasible without adding delivery infrastructure.
+
+The feasibility question has changed again:
+
+- no longer blocked on whether an outbound request can be evaluated by deterministic local policy
+- now focused on whether T222 can consume only gate-allowed `OutboundMessageRequest` records and simulate delivery locally without external side effects
+- still not ready for Feishu/WeChat adapters, review-card UX, scheduler/background jobs, runtime loops, or automatic outbound behavior
+- Windows `zoneinfo` reproducibility now has a small portability note: T221 timezone tests require `tzdata` on Windows unless future tasks avoid named timezones or add the dependency explicitly
+
+So the project is ready to commit the T221 gate slice and advance to T222, with gate `allowed` still treated as eligibility for later adapter consideration, not as delivery completion.
+
 ## Captain Update 2026-05-27 (T220 Review)
 
 T220 confirms that an outbound request contract is feasible without turning review artifacts into executable actions.

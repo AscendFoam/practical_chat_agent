@@ -1,5 +1,33 @@
 # Handoff
 
+## Captain Current State Override 2026-05-28 (T221 Review Decision)
+
+- T221 review decision: `PASS`.
+- T221 is complete as the deterministic outbound send-gate task for M11.
+- T221 review observation disposition:
+  - Accepted: N01 service-layer dataclasses are acceptable, N02 repeated HH:MM parsing is harmless at current scale, N03 `casefold()` normalization is sufficient for current Chinese/Latin checks, N04 Windows named-timezone use requires `tzdata` and is a portability note, N05 manual-only false config correctly errors, N06 `existing_audit` is harmless but untested, N07 decision audit can be read through `evaluated_request.send_gate`, M01-M04 clear-path gate tests should be added early with T222, M05-M10 remaining tests are minor coverage-strength gaps.
+  - Deferred: none from the T221 review decision.
+  - Rejected: none.
+- Captain decision: no T221 repair pass is needed.
+- Current Unique Task: T222 Local Fake Adapter.
+- Current task package: `docs/tasks/M11_outbound_sendgate_feishu/T222_local_fake_adapter.md`.
+- T222 must remain local-fake-only and non-platform:
+  - may consume only `OutboundMessageRequest` records that are already sendable through explicit outbound human approval plus T221 gate `allowed`
+  - may produce synthetic local fake-delivery records for tests and later adapter-contract validation
+  - must not send messages, schedule actions, integrate Feishu/WeChat/webhook/email/browser/desktop adapters, add CLI/runtime send paths, call LLMs/external services, mutate stores/private artifacts, or treat gate `allowed` as real delivery
+  - must not read `private/chat_history/` or commit private content
+- Captain verification basis:
+  - Reviewer reported no blocking issues.
+  - Reviewer reported `python -m py_compile src/practical_chat_agent/core/models.py src/practical_chat_agent/services/outbound_send_gate.py` passed.
+  - Reviewer reported targeted outbound schema + gate tests passed: 31 tests after `tzdata` was present.
+  - Reviewer reported behavior schema + outbound schema + gate tests passed: 56 tests.
+  - Reviewer noted the current full suite has 791 passed plus 16 pre-existing LLM/typer-dependent failures unrelated to T221; worker summary reported 811 passed in the worker environment with workspace temp/cache.
+- M11 residual risks carried forward:
+  - Gate `allowed` is not delivery.
+  - T222 must keep fake delivery local and synthetic.
+  - T223/T224 and M12 remain behind later task packages.
+  - Windows named-timezone verification needs either `tzdata` or a documented UTC-only fallback.
+
 ## Captain Current State Override 2026-05-27 (T220 Review Decision)
 
 - T220 review decision: `PASS`.
@@ -3515,3 +3543,71 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
     store-backed evidence validation is performed here.
   - `channel_preference` is intentionally data-only and not a real adapter
     target; later platform tasks must keep that separation explicit.
+
+## T221 Worker Completion Record
+
+- T221 is the OutboundSendGate task for M11.
+- Worker must not mark T221 as complete in `docs/04_task_board.md`; only the
+  Captain may do so after review.
+- Files changed:
+  - `src/practical_chat_agent/services/outbound_send_gate.py`
+  - `tests/test_outbound_send_gate.py`
+  - `tests/test_outbound_message_request_schema.py`
+  - `docs/data_contracts/outbound_send_gate_contract.md`
+  - `docs/worker_summary/T221_worker_summary.md`
+  - `docs/07_handoff.md`
+- Test-first evidence:
+  - `tests/test_outbound_send_gate.py` and the extra T220 coverage additions in
+    `tests/test_outbound_message_request_schema.py` were written before the new
+    service existed.
+  - The first targeted pytest run failed during import because
+    `practical_chat_agent.services.outbound_send_gate` did not exist.
+  - The gate service and minimal supporting logic were then added until the
+    targeted tests passed.
+- Gate behavior added:
+  - `OutboundSendGate.evaluate()` accepts a validated
+    `OutboundMessageRequest` or a stable mapping.
+  - Evaluation is pure and returns a new audited request copy inside
+    `OutboundSendGateDecision`.
+  - The service sets `send_gate.gate_state` to `allowed` only when all checks
+    pass, and to `blocked` when any check fails.
+  - Evaluated gate state always records `evaluator_id`, `evaluated_at`, and
+    deterministic `gate_notes`.
+  - Reviewed `CandidateAction` artifacts remain evidence only and are not send
+    authorization.
+- Policy rules implemented:
+  - manual-only outbound approval
+  - kill switch
+  - quiet hours, including overnight windows
+  - frequency limit using supplied synthetic/local request history
+  - duplicate suppression using normalized draft text
+  - self-echo prevention from supplied latest/reference text
+  - defensive whitespace-only payload blocking
+- Verification status:
+  - Commands were run with `TEMP` and `TMP` set to
+    `artifacts\t221_pytest_tmp`, pytest cache set to
+    `artifacts\t221_pytest_cache`, and `--basetemp` set to
+    `artifacts\t221_pytest_basetemp` to keep pytest temp/cache inside the
+    workspace-local sandbox path.
+  - `python -m py_compile src/practical_chat_agent/core/models.py src/practical_chat_agent/services/outbound_send_gate.py`: passed.
+  - `pytest tests/test_outbound_message_request_schema.py tests/test_outbound_send_gate.py -q -o cache_dir=artifacts\t221_pytest_cache --basetemp=artifacts\t221_pytest_basetemp`: passed, 31 tests.
+  - `pytest tests/test_behavior_schema.py tests/test_outbound_message_request_schema.py tests/test_outbound_send_gate.py -q -o cache_dir=artifacts\t221_pytest_cache --basetemp=artifacts\t221_pytest_basetemp`: passed, 56 tests.
+  - `pytest tests -q -o cache_dir=artifacts\t221_pytest_cache --basetemp=artifacts\t221_pytest_basetemp`: passed, 811 tests.
+- Explicit non-actions:
+  - No message sending.
+  - No scheduler, timer, reminder, background job, automation, or runtime loop.
+  - No fake adapter, Feishu adapter, WeChat adapter, review card, or platform integration.
+  - No CLI send command, app-container wiring, or delivery execution path.
+  - No LLM/provider calls, web services, vector DB, Mem0/Zep, or external systems.
+  - No mutation of `CandidateAction`, memory records, ContactSkill,
+    `RelationshipState`, approved stores, or private artifacts.
+  - No `private/chat_history/` reads and no committed private content.
+  - No task-board update.
+- Remaining risks:
+  - T221 is gate-only and records policy state, not delivery state; T222+ must
+    keep `allowed` separate from `delivered`.
+  - Frequency and duplicate checks currently treat prior gate-`allowed`
+    requests as send-equivalent synthetic history because no delivery layer is
+    in scope yet.
+  - `manual_only_mode` remains intentionally fixed to the current conservative
+    mainline and does not create any autonomous send path.

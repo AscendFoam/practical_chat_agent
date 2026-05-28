@@ -1,8 +1,25 @@
 # Task Board
 
-Updated: 2026-05-27
+Updated: 2026-05-28
 
 ## Captain Current State Override
+
+- T221 review decision: `PASS`.
+- T221 is complete as the deterministic outbound send-gate task for M11.
+- T221 review observation disposition:
+  - Accepted: N01 service-layer dataclasses are acceptable, N02 repeated HH:MM parsing is harmless at current scale, N03 `casefold()` normalization is sufficient for current Chinese/Latin checks, N04 Windows named-timezone use requires `tzdata` and is a portability note, N05 manual-only false config correctly errors, N06 `existing_audit` is harmless but untested, N07 decision audit can be read through `evaluated_request.send_gate`, M01-M04 clear-path gate tests should be added early with T222, M05-M10 remaining tests are minor coverage-strength gaps.
+  - Deferred: none from the T221 review decision.
+  - Rejected: none.
+- Current Unique Task: T222 Local Fake Adapter.
+- Current task package: `docs/tasks/M11_outbound_sendgate_feishu/T222_local_fake_adapter.md`.
+- T222 must stay local-fake-only and non-platform: consume only already-sendable `OutboundMessageRequest` records and create synthetic local delivery records, but do not send messages, schedule actions, integrate Feishu/WeChat/webhook/email/browser/desktop adapters, add CLI/runtime send paths, call LLMs/external services, mutate stores/private artifacts, or treat gate `allowed` as real delivery.
+- M11 execution constraints now carried forward:
+  - Gate `allowed` means policy eligibility only, not delivery.
+  - Fake delivery must be explicit, local, synthetic, and non-persistent unless the task package explicitly allows a local test artifact.
+  - `CandidateAction` review state remains evidence only and must not satisfy adapter authorization.
+  - T223 Feishu adapter, T224 review card, and all WeChat adapter work remain forbidden until their own reviewed tasks.
+  - M11 tests must stay synthetic and private-content-free.
+  - Windows named-timezone test paths require `tzdata` or an explicit UTC-only fallback.
 
 - T220 review decision: `PASS`.
 - T220 is complete as the schema-only outbound request boundary for M11.
@@ -413,11 +430,11 @@ Updated: 2026-05-27
 
 ## Current Unique Task
 
-T221: OutboundSendGate.
+T222: Local Fake Adapter.
 
-Task package: `docs/tasks/M11_outbound_sendgate_feishu/T221_outbound_send_gate.md`
+Task package: `docs/tasks/M11_outbound_sendgate_feishu/T222_local_fake_adapter.md`
 
-Why now: T220 has landed with `PASS`, so the repo now has a separate inert `OutboundMessageRequest` contract. The next smallest safe step is a deterministic send gate that evaluates that request and records explicit allowed/blocked audit state before any fake adapter, Feishu adapter, scheduler, runtime autonomy, or automatic send behavior.
+Why now: T221 has landed with `PASS`, so the repo now has an explicit deterministic send gate over `OutboundMessageRequest`. The next smallest safe step is a local fake adapter that consumes only already-sendable requests and records synthetic local delivery evidence before any Feishu adapter, review card, scheduler, runtime autonomy, or automatic send behavior.
 
 ## Board Rules
 
@@ -555,7 +572,7 @@ Goal: generate draft-only proactive action candidates without automatic sending.
 Goal: build a platform-independent send gate before any real adapter work.
 
 - [x] T220: OutboundMessageRequest schema. Review `PASS`.
-- [ ] T221: OutboundSendGate.
+- [x] T221: OutboundSendGate. Review `PASS`.
 - [ ] T222: local fake adapter.
 - [ ] T223: Feishu adapter.
 - [ ] T224: Feishu review card.
@@ -570,6 +587,10 @@ Goal: keep WeChat as a thin final adapter behind the send gate.
 - [ ] T233: WeChat safety mode.
 
 ## Historical Current Unique Task
+
+T221: OutboundSendGate.
+
+It is now complete and accepted with `PASS`. The next worker task is T222, because M11 now needs a local fake adapter to validate adapter-boundary behavior over sendable requests before any Feishu adapter, review card, scheduler, runtime path, or real delivery behavior.
 
 T220: OutboundMessageRequest Schema.
 

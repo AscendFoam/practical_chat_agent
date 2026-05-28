@@ -1,168 +1,306 @@
 # Outbound Send Gate Contract
 
-Task: T220 OutboundMessageRequest Schema  
+Task: T220 OutboundMessageRequest Schema + T221 OutboundSendGate
 Status: worker draft for review
 
 ## Scope
 
-T220 defines the first M11 outbound-send contract as a schema-only boundary.
+M11 starts in two explicit layers:
 
-The committed models are:
+- T220: inert outbound request contract
+- T221: deterministic gate decision over that contract
+
+The committed surfaces are:
 
 - `OutboundMessagePayload`
 - `OutboundRequestHumanApproval`
 - `OutboundRequestSendGate`
 - `OutboundMessageRequest`
+- `OutboundSendGateConfig`
+- `OutboundSendGateContext`
+- `OutboundSendGateDecision`
+- `OutboundSendGate`
 
-This task does not implement send-gate policy, fake adapters, Feishu adapters,
-review cards, schedulers, runtime loops, or any real sending path.
+This contract still does not include delivery, adapters, schedulers, CLI send
+commands, runtime loops, or external services.
 
 ## Relationship To M10 CandidateAction
 
 `CandidateAction` remains a review-only behavior artifact from M10.
 
-Its role in T220 is limited to evidence:
+Its role in M11 is evidence only:
 
-- `OutboundMessageRequest.source_type="candidate_action"` records that the
-  request was derived from a reviewed proactive candidate
+- `OutboundMessageRequest.source_type="candidate_action"` records evidence origin
 - `source_candidate_action_id` stores the candidate artifact id
-- `source_context_refs` may carry review-safe supporting refs
+- `source_context_refs` carry review-safe supporting refs
 
-This does **not** make the request sendable. `CandidateAction.status`,
-`review_state`, and `is_runtime_visible()` are not outbound authorization.
+This does **not** make a request sendable. The following still are not outbound
+authorization:
 
-`OutboundMessageRequest` exists specifically to prevent this confusion by
-separating:
+- `CandidateAction.status="approved"`
+- `review_state="reviewed"`
+- `CandidateAction.is_runtime_visible()`
 
-- review-only candidate evidence
-- outbound draft intent
-- later send-gate evaluation
+T221 evaluates only `OutboundMessageRequest.human_approval`,
+`OutboundMessageRequest.send_gate`, payload text, supplied history, and
+supplied gate context.
 
-## OutboundMessagePayload
+## OutboundMessageRequest Layer
 
-`OutboundMessagePayload` is still draft-only data. It carries:
+`OutboundMessageRequest` stays the top-level outbound-intent record.
 
-- required `draft_text`
-- optional `safe_summary`
-- review-safe `metadata`
-
-The payload is intentionally not a platform adapter payload. It has no
-connector object, no channel id, no scheduling field, and no delivery result.
-
-Forbidden metadata keys include transport, scheduler, adapter, credential, and
-raw/private-content fields such as:
-
-- `send_at`
-- `scheduled_at`
-- `scheduler_id`
-- `channel_id`
-- `webhook_url`
-- `adapter_payload`
-- `platform_target`
-- `access_token`
-- `api_key`
-- `app_secret`
-- `raw_transcript`
-- `chat_history`
-- `private_messages`
-
-## OutboundMessageRequest
-
-`OutboundMessageRequest` is the top-level outbound-intent record.
-
-Required fields:
+Key fields:
 
 - `request_id`
 - `contact_id`
 - `user_id`
 - `source_type`
-- `payload`
-
-Optional but important evidence fields:
-
 - `source_candidate_action_id`
 - `source_context_refs`
+- `payload`
+- `channel_preference`
 - `risk_flags`
+- `human_approval`
+- `send_gate`
+- `created_at`
+- `updated_at`
 
-Channel selection is data only:
+`channel_preference` is data only:
 
-- `channel_preference` is a compact preference value such as `unspecified`,
-  `feishu`, or `wechat`
+- valid values are `unspecified`, `feishu`, and `wechat`
 - it is not a live adapter target
-- the request has no `channel_id`, `platform_target`, or connector handle
+- there is no connector handle, platform client, or delivery object
 
-Source-boundary rules:
+`human_approval` and `send_gate` are separate:
 
-- `source_type="candidate_action"` requires `source_candidate_action_id`
-- `source_type="human_authored"` must not carry `source_candidate_action_id`
+- `human_approval` records explicit outbound approval status
+- `send_gate` records explicit gate evaluation status
 
-## Human Approval And Gate State
+## OutboundMessagePayload Boundary
 
-T220 makes human approval explicit and separate from candidate review.
+`OutboundMessagePayload` carries draft-only outbound text plus optional safe
+summary and review-safe metadata.
 
-`OutboundRequestHumanApproval` defaults to:
+Forbidden metadata keys include the full outbound-specific superset:
 
-- `review_state="pending_human_approval"`
-- `approved_by_human=false`
+- `send_at`
+- `scheduled_at`
+- `scheduler_id`
+- `schedule_id`
+- `timer_id`
+- `reminder_id`
+- `platform`
+- `channel_id`
+- `webhook_url`
+- `recipient_address`
+- `adapter_payload`
+- `adapter_config`
+- `platform_target`
+- `platform_token`
+- `bot_token`
+- `app_secret`
+- `delivery_connector_name`
+- `delivery_response`
+- `send_result`
+- `access_token`
+- `api_key`
+- `raw_transcript`
+- `chat_history`
+- `private_messages`
 
-If the outbound request is later reviewed, it must record:
+The payload is intentionally not an adapter payload and not a scheduler job.
 
-- `reviewer_id`
-- `reviewed_at`
+## T221 Gate Inputs
 
-Approved requests must set `approved_by_human=true`. Rejected requests must
-keep it `false`.
+`OutboundSendGate.evaluate()` accepts:
 
-`OutboundRequestSendGate` defaults to:
+- a validated `OutboundMessageRequest`
+- or a stable mapping that validates to `OutboundMessageRequest`
 
-- `gate_state="not_evaluated"`
+Optional evaluation inputs:
 
-If the gate is later evaluated, it must record:
+- `now`
+- `recent_requests`
+- `context`
+- `existing_audit`
+
+`recent_requests` are explicit in-memory synthetic/local request snapshots.
+T221 does not require a repository, database, queue, or scheduler.
+
+`OutboundSendGateContext` is review-safe only and may provide:
+
+- `latest_inbound_text`
+- `latest_user_text`
+- `self_echo_reference_texts`
+
+## T221 Config Shape
+
+`OutboundSendGateConfig` controls deterministic policy evaluation:
 
 - `evaluator_id`
-- `evaluated_at`
+- `manual_only_mode`
+- `kill_switch_enabled`
+- `quiet_hours_start`
+- `quiet_hours_end`
+- `timezone_name`
+- `frequency_limit_count`
+- `frequency_limit_window_seconds`
+- `duplicate_window_seconds`
 
-T220 does not decide `allowed` or `blocked`; it only reserves the structure
-for T221.
+Current mainline is manual-only. T221 keeps `manual_only_mode=True` and does
+not provide a non-human-approved send path.
 
-## Pre-T221 Lifecycle
+## T221 Decision Shape
 
-Before T221 exists, the request lifecycle is intentionally inert:
+`OutboundSendGateDecision` returns:
 
-1. A human-authored draft request or candidate-derived draft request is created.
-2. `human_approval` stays pending by default.
-3. `send_gate` stays not evaluated by default.
-4. `is_sendable()` remains `false`.
+- `evaluated_request`
+- `allowed`
+- `blocked_reasons`
+- `passed_checks`
+- `gate_notes`
 
-The request only becomes sendable when both are true:
+The returned request is a new audited copy. The input request is not mutated in
+place.
 
-- outbound human approval is explicitly approved
-- later send-gate evaluation is explicitly allowed
+## Gate Lifecycle
 
-T220 provides the check, not the evaluation logic.
+Pre-gate request lifecycle:
+
+1. request exists
+2. outbound human approval may be pending, approved, or rejected
+3. `send_gate.gate_state` is usually `not_evaluated`
+4. request is not sendable by default
+
+T221 evaluation lifecycle:
+
+1. evaluate request against deterministic local policy
+2. create a new `OutboundRequestSendGate`
+3. set:
+   - `gate_state="allowed"` when all checks pass
+   - `gate_state="blocked"` when any blocking rule fails
+4. record:
+   - `evaluator_id`
+   - `evaluated_at`
+   - `gate_notes`
+5. return `OutboundSendGateDecision`
+
+Only after both are true can `OutboundMessageRequest.is_sendable()` return
+`true`:
+
+- `human_approval.review_state=="approved"` and `approved_by_human==true`
+- `send_gate.gate_state=="allowed"`
+
+## Allowed Vs Blocked Semantics
+
+`allowed` means:
+
+- policy checks passed
+- the request is eligible for a later adapter task to consider
+- the gate state is auditable
+
+`allowed` does **not** mean:
+
+- message delivered
+- adapter selected
+- fake adapter executed
+- Feishu or WeChat API called
+- scheduler created
+- background job queued
+
+`blocked` means:
+
+- at least one deterministic policy rule failed
+- the gate records why
+- no delivery side effect occurs
+
+## Audit Note Conventions
+
+T221 keeps gate notes deterministic and flat. Typical note families are:
+
+- pass notes such as:
+  - `manual_only_mode_enabled`
+  - `human_approval_approved`
+  - `kill_switch_disabled`
+  - `quiet_hours_clear`
+  - `frequency_limit_clear`
+  - `duplicate_check_clear`
+  - `self_echo_clear`
+  - `payload_text_present`
+- blocking notes such as:
+  - `human_approval_pending`
+  - `human_approval_rejected`
+  - `kill_switch_enabled`
+  - `quiet_hours_blocked`
+  - `frequency_limit_exceeded`
+  - `duplicate_suppressed`
+  - `self_echo_prevention`
+  - `empty_draft_text`
+- final state note:
+  - `gate_allowed`
+  - `gate_blocked`
+
+These are policy/audit notes only.
+
+## Policy Rules
+
+T221 implements these blocking rules:
+
+1. Manual-only approval
+   - blocks pending or rejected outbound approval
+   - reviewed `CandidateAction` evidence is irrelevant to this check
+2. Kill switch
+   - blocks all requests when enabled
+3. Quiet hours
+   - blocks requests inside the configured local HH:MM window
+   - supports overnight windows such as `23:00` to `08:00`
+4. Frequency limit
+   - blocks excess same-scope requests using supplied recent request history
+   - T221 treats prior gate-`allowed` requests as send-equivalent history
+5. Duplicate suppression
+   - blocks same normalized draft text for the same contact, user, and channel
+     preference within the duplicate window
+6. Self-echo prevention
+   - blocks text identical to supplied latest inbound/user text or explicit
+     self-echo reference text
+7. Defensive empty-text rejection
+   - blocks whitespace-only draft text even if schema `min_length` passed
+
+## Scope Matching Rules
+
+For frequency and duplicate checks, the current T221 scope is:
+
+- same `contact_id`
+- same `user_id`
+- same `channel_preference`
+
+This remains local deterministic policy, not platform addressing.
 
 ## Privacy And Execution Boundaries
 
-The schema preserves the current compact-context rule:
+T221 preserves the compact-context rule:
 
-- no raw transcript cache
+- no raw transcript reads
 - no private chat-history fields
 - no adapter payload smuggling
-- no scheduler or timer fields
+- no scheduler or timer objects
 - no credentials or platform tokens
+- no repository or database dependency
 
-The contract is synthetic-test-friendly and does not require any private input.
+All tests and examples must stay synthetic.
 
-## What T220 Does Not Authorize
+## What T221 Does Not Authorize
 
-T220 does not authorize:
+T221 does not authorize:
 
 - message sending
 - scheduling
-- timers, reminders, background jobs, or automations
-- Feishu, WeChat, webhook, email, browser, or desktop adapters
-- runtime loops or CLI execution paths
-- LLM/provider calls or external services
+- reminders, timers, background jobs, or automations
+- fake adapter execution
+- Feishu adapter execution
+- WeChat adapter execution
+- webhook, email, browser, desktop, or notification delivery
+- CLI send commands or runtime loops
 - mutation of `CandidateAction`, memory records, ContactSkill, relationship
   state, approved stores, or private artifacts
-- treating reviewed `CandidateAction` artifacts as executable outbound requests
+- treating gate `allowed` as delivery completion

@@ -1,5 +1,35 @@
 # Decision Log
 
+## D064: T221 PASS, accept OutboundSendGate, advance to T222
+
+- Date: 2026-05-28
+- Status: Accepted
+- Context: `docs/review/T221_review.md` gives `PASS` for the deterministic outbound send-gate task. No blocking issues were found. The review confirms T221 implements all required gate rules, stays pure/non-mutating, and introduces no adapters, schedulers, CLI send paths, runtime loops, external services, private chat-history reads, or platform integration.
+- Decision: T221 is complete. The project may continue to T222 `Local Fake Adapter`.
+- Review observation handling:
+  - Accepted:
+    - N01 service-layer dataclasses and `ValueError` config validation are acceptable because these objects are not JSON round-trip schemas.
+    - N02 repeated HH:MM parsing is harmless at current evaluate-per-request scale.
+    - N03 `casefold()` normalization is sufficient for current Chinese/Latin duplicate/self-echo checks.
+    - N04 Windows `zoneinfo` requires `tzdata` for named timezones; this is a portability/environment risk, not a T221 correctness blocker.
+    - N05 `manual_only_mode=False` raising a clear error is appropriate defensive design for the conservative mainline.
+    - N06 untested `existing_audit` merge support is harmless forward-compatible surface.
+    - N07 `OutboundSendGateDecision` is acceptable even though audit self-containment requires reading `evaluated_request.send_gate`.
+    - M01-M04 missing clear-path tests for quiet hours, frequency, duplicate, and self-echo are useful T222-adjacent hardening but non-blocking.
+    - M05-M10 missing tests for existing audit, config edge validation, determinism, mapping context input, original `updated_at`, and combined blocking reasons are minor coverage-strength gaps.
+  - Deferred: none from the T221 review decision.
+  - Rejected: none.
+- Conditions carried forward:
+  - T222 may implement only a local fake adapter over already sendable `OutboundMessageRequest` records.
+  - T222 must not call Feishu/WeChat/webhook/email/browser/desktop APIs, create schedulers/background jobs, or add runtime/CLI delivery paths.
+  - T222 should preserve the distinction between gate `allowed`, local fake simulation, and real delivery.
+  - T222 should add the most useful T221 pass-through tests before relying on the allow path end to end.
+- Impact:
+  - `docs/04_task_board.md` moves the Current Unique Task from T221 to T222 and marks T221 complete.
+  - `docs/07_handoff.md` records the T221 review decision and T222 task boundary.
+  - `docs/08_risks_and_open_questions.md` records the T221 portability/carry-forward risks and closes Q199.
+  - `docs/tasks/M11_outbound_sendgate_feishu/T222_local_fake_adapter.md` is expanded into a complete worker task package.
+
 ## D063: T220 PASS, accept outbound request schema, advance to T221
 
 - Date: 2026-05-27

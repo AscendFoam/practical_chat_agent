@@ -7,6 +7,8 @@ platform adapters, scheduling, runtime loops, or private transcript access.
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
+
 import pytest
 from pydantic import ValidationError
 
@@ -16,6 +18,8 @@ from practical_chat_agent.core.models import (
     DistilledArtifactReviewMetadata,
     OutboundMessagePayload,
     OutboundMessageRequest,
+    OutboundRequestHumanApproval,
+    OutboundRequestSendGate,
     ReplyPlanContextRef,
 )
 
@@ -68,6 +72,25 @@ def _make_request(**overrides: object) -> OutboundMessageRequest:
     return OutboundMessageRequest(**data)
 
 
+def _approved_outbound_human_approval() -> OutboundRequestHumanApproval:
+    return OutboundRequestHumanApproval(
+        review_state="approved",
+        approved_by_human=True,
+        reviewer_id="reviewer_synthetic",
+        reviewed_at=datetime(2026, 5, 28, 9, 0, tzinfo=timezone.utc),
+        review_notes=["synthetic outbound approval"],
+    )
+
+
+def _allowed_send_gate() -> OutboundRequestSendGate:
+    return OutboundRequestSendGate(
+        gate_state="allowed",
+        evaluator_id="send_gate_synthetic",
+        evaluated_at=datetime(2026, 5, 28, 9, 5, tzinfo=timezone.utc),
+        gate_notes=["synthetic gate allowed"],
+    )
+
+
 class TestOutboundMessagePayload:
     def test_minimal_payload_requires_only_draft_text(self) -> None:
         payload = OutboundMessagePayload(draft_text="Synthetic outbound draft.")
@@ -87,7 +110,14 @@ class TestOutboundMessagePayload:
             "send_at",
             "scheduled_at",
             "scheduler_id",
+            "timer_id",
             "adapter_payload",
+            "platform_target",
+            "bot_token",
+            "app_secret",
+            "delivery_connector_name",
+            "delivery_response",
+            "send_result",
             "channel_id",
             "webhook_url",
             "access_token",
@@ -104,6 +134,32 @@ class TestOutboundMessagePayload:
                 )
 
 
+class TestOutboundRequestHumanApproval:
+    def test_approved_review_requires_reviewer_metadata(self) -> None:
+        with pytest.raises(ValidationError):
+            OutboundRequestHumanApproval(
+                review_state="approved",
+                approved_by_human=True,
+            )
+
+    def test_rejected_review_requires_reviewer_metadata(self) -> None:
+        with pytest.raises(ValidationError):
+            OutboundRequestHumanApproval(
+                review_state="rejected",
+                approved_by_human=False,
+            )
+
+
+class TestOutboundRequestSendGate:
+    def test_allowed_gate_requires_evaluator_metadata(self) -> None:
+        with pytest.raises(ValidationError):
+            OutboundRequestSendGate(gate_state="allowed")
+
+    def test_blocked_gate_requires_evaluator_metadata(self) -> None:
+        with pytest.raises(ValidationError):
+            OutboundRequestSendGate(gate_state="blocked")
+
+
 class TestOutboundMessageRequest:
     def test_minimal_request_is_inert_until_human_approval_and_gate(self) -> None:
         request = _make_request()
@@ -116,6 +172,13 @@ class TestOutboundMessageRequest:
         assert request.human_approval.approved_by_human is False
         assert request.send_gate.gate_state == "not_evaluated"
         assert request.is_sendable() is False
+
+    def test_request_becomes_sendable_only_with_explicit_approval_and_gate_allow(self) -> None:
+        request = _make_request(
+            human_approval=_approved_outbound_human_approval(),
+            send_gate=_allowed_send_gate(),
+        )
+        assert request.is_sendable() is True
 
     def test_rich_request_preserves_candidate_action_evidence_and_safe_refs(self) -> None:
         candidate = _approved_candidate_action()
@@ -193,6 +256,13 @@ class TestOutboundMessageRequest:
         assert restored.user_id == request.user_id
         assert restored.payload.draft_text == request.payload.draft_text
         assert restored.source_context_refs[0].ref_id == "approved_evidence_010"
+        assert restored.created_at == request.created_at
+        assert restored.updated_at == request.updated_at
+
+    @pytest.mark.parametrize("channel", ["unspecified", "feishu", "wechat"])
+    def test_request_accepts_all_supported_channel_preferences(self, channel: str) -> None:
+        request = _make_request(channel_preference=channel)
+        assert request.channel_preference == channel
 
     def test_request_has_no_scheduler_or_platform_adapter_fields(self) -> None:
         request = _make_request()
@@ -201,4 +271,3 @@ class TestOutboundMessageRequest:
         assert not hasattr(request, "channel_id")
         assert not hasattr(request, "platform_target")
         assert not hasattr(request, "adapter_payload")
-

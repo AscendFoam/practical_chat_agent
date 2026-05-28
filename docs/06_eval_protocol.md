@@ -1,5 +1,15 @@
 # Eval Protocol
 
+## Captain Update 2026-05-28 (T221 Review)
+
+T221 has now been accepted with `PASS`.
+
+Current evaluation sequence is now:
+
+- T222: can the repo implement a local fake outbound adapter that consumes only `OutboundMessageRequest` records where explicit outbound human approval and `OutboundSendGate` allow state make `is_sendable()` true, records synthetic local delivery evidence, and still introduces no real platform, scheduler, background job, runtime loop, or automatic sending?
+
+T221 changes the evaluation baseline in one important way: M11 no longer needs to prove whether send-gate policy can be evaluated locally. That layer exists. The next evaluation target is adapter-boundary discipline using a fake local adapter, not real delivery.
+
 ## Captain Update 2026-05-27 (T220 Review)
 
 T220 has now been accepted with `PASS`.
