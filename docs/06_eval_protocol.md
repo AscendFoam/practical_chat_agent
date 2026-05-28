@@ -1,5 +1,42 @@
 # Eval Protocol
 
+## Captain Update 2026-05-28 (T230 Review / M12 Conditional)
+
+T230 has now been accepted with `PASS`, and M12 has `Gate M12 Conditional`.
+
+Current evaluation sequence is now:
+
+- T231: can the repo add a synthetic-only WeCom WeChat Customer Service inbound
+  contract that maps redacted fake provider message/event payloads to
+  `InboundEvent` through a pure local connector, while still introducing no live
+  callback route, polling loop, platform API call, SDK, credential handling,
+  runtime ingestion hook, private-content read, store mutation, outbound
+  payload, or message sending?
+
+T230 changes the evaluation baseline in one important way: M12 no longer needs
+to ask whether generic WeChat adapter work is safe. It is not. The only current
+path is a narrowed official-surface contract spike, with live outbound and
+provider safety execution blocked until later reviewed packages.
+
+## Captain Update 2026-05-28 (T224 Review / M11 Close)
+
+T224 has now been accepted with `PASS`, and M11 has `Gate M11 Allow` for the
+local/sandbox outbound safety slice only.
+
+Current evaluation sequence is now:
+
+- T230: can the repo produce a docs-only WeChat adapter research decision that
+  separates official/supported options from unofficial or prohibited options,
+  preserves all M11 boundaries, and recommends whether T231/T232/T233 should
+  proceed, be narrowed, or be blocked, while still introducing no connector
+  code, SDK vendoring, login/scan path, platform API call, private-content
+  read, runtime loop, or automatic outbound behavior?
+
+T224 changes the evaluation baseline in one important way: M11 no longer needs
+to prove whether outbound review-card presentation and inert intent parsing can
+be represented safely. That local layer exists. The next evaluation target is
+M12 feasibility and governance for WeChat, not WeChat implementation.
+
 ## Captain Update 2026-05-28 (T223 Review)
 
 T223 has now been accepted with `PASS`.

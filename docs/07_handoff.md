@@ -1,5 +1,64 @@
 # Handoff
 
+## Captain Current State Override 2026-05-28 (T230 Review Decision / M12 Conditional)
+
+- T230 review decision: `PASS`.
+- T230 is complete as the WeChat adapter research spike for M12.
+- M12 gate decision: `Gate M12 Conditional`.
+- T230 review observation disposition:
+  - Accepted: N01 external official docs were cited but not independently refetched by reviewer and must be rechecked before implementation, N02 option matrix depth is appropriate for a research spike and future tasks need deeper API/error/session analysis, N03 final surface selection was intentionally unresolved by worker but Captain selects WeCom Customer Service for T231, N04 broad `channel_preference="wechat"` is accepted as a schema limitation that future outbound work must not use as production adapter selection.
+  - Deferred: none from the T230 review decision.
+  - Rejected: none.
+- Captain decision: no T230 repair pass is needed.
+- Current Unique Task: T231 WeCom Customer Service Inbound Contract Spike.
+- Current task package: `docs/tasks/M12_wechat_adapter/T231_wechat_inbound_adapter.md`.
+- T231 must remain synthetic-inbound-contract-only:
+  - may add a local deterministic parser/normalizer for synthetic WeCom WeChat Customer Service fixtures into `InboundEvent`
+  - may add synthetic fixtures, focused tests, a data contract, worker summary, and handoff record
+  - must not add live callback routes, webhook servers, polling/sync loops, platform API calls, credentials, SDKs, runtime ingestion hooks, `AppContainer` wiring, outbound payloads, sending, memory writes, private reads, or task-board updates
+- Captain verification basis:
+  - Reviewer reported no blocking issues.
+  - Reviewer reported no missing tests applicable to T230 because it is docs-only.
+  - Reviewer verified T230 changed only allowed files: `docs/review/T230_wechat_adapter_research.md`, `docs/worker_summary/T230_worker_summary.md`, and `docs/07_handoff.md`.
+  - Worker summary reports `git diff --check` and the scoped `git diff --check` passed, with line-ending conversion warnings only.
+  - Worker summary reports `git status --short` ran and showed pre-existing unrelated dirty files plus T230 allowed-file changes.
+- M12 residual risks carried forward:
+  - Official docs may drift and must be rechecked before any implementation touches credentials, callbacks, polling, or APIs.
+  - WeCom Customer Service is an official customer-service surface, not a generic personal WeChat friend-chat adapter and not a direct WeFlow contact mapping.
+  - No live account, tenant, app, callback URL, credential flow, recipient mapping, service-window tracking, delivery callback, or provider failure handling has been tested.
+  - T232 live outbound remains blocked until T231 is reviewed and Captain approves a provider-specific recipient mapping / tenant prerequisite model.
+  - Personal WeChat automation, scan-login resurrection, realtime personal-account send/receive, desktop automation, and unofficial SDK vendoring remain blocked.
+
+## Captain Current State Override 2026-05-28 (T224 Review Decision / M11 Close)
+
+- T224 review decision: `PASS`.
+- T224 is complete as the Feishu review-card task for M11.
+- M11 is complete at the task level with `Gate M11 Allow` for local/sandbox outbound safety only.
+- T224 review observation disposition:
+  - Accepted: N01 `.claude/settings.json` allowed-permission overrun is established workspace convention noise, N02 duplicated candidate-shaped mapping detection is acceptable, N03 sandbox-result mapping coercion is acceptable for synthetic current scope, N04 missing config validation edge tests are minor, N05 wide render type signature is intentional for clear runtime rejection, M01-M04 missing mapping-positive, preview-small-limit, frozen-intent, and cosmetic blocked-result tests are useful hardening but non-blocking.
+  - Deferred: none from the T224 review decision.
+  - Rejected: none.
+- Captain decision: no T224 repair pass is needed.
+- Current Unique Task: T230 WeChat Adapter Research Spike.
+- Current task package: `docs/tasks/M12_wechat_adapter/T230_wechat_adapter_research_spike.md`.
+- T230 must remain docs-only and research-only:
+  - may research official/supported WeChat-family adapter options and produce a gate recommendation
+  - may recommend whether T231/T232/T233 should proceed, be narrowed, or be blocked
+  - must not implement connectors, install/vendor SDKs, log in, scan QR codes, send/receive messages, call platform APIs, read credentials/secrets, modify runtime configuration, add callbacks/webhooks, add CLI/runtime paths, or revive the paused personal-WeChat SDK/realtime track
+  - must not read `private/chat_history/` or commit private content
+- Captain verification basis:
+  - Reviewer reported no blocking issues.
+  - Reviewer reported all M11 `py_compile` checks passed.
+  - Reviewer reported T224-targeted pytest passed: 84 tests.
+  - Reviewer reported full-suite status as 844 passed plus 16 pre-existing typer/LLM/CLI-dependent failures in the reviewer environment; worker summary reported 864 passed in the worker environment. No T224-targeted failures were reported.
+- M11 residual risks carried forward:
+  - Gate `allowed` is not delivery.
+  - Fake `fake_delivered` is local synthetic simulation only.
+  - Feishu sandbox `feishu_dry_run_ready` / `feishu_sandbox_sent` is sandbox evidence only.
+  - Feishu review-card actions are inert review intents only.
+  - Feishu sandbox payload/card/callback shapes are not production API validation.
+  - T230/M12 must not resume the old scan-login/realtime WeChat track without explicit later authorization.
+
 ## Captain Current State Override 2026-05-28 (T223 Review Decision)
 
 - T223 review decision: `PASS`.
@@ -3827,3 +3886,122 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
     and operational secret handling outside this task.
   - The Windows named-timezone portability risk from T221 remains open because
     T223 did not introduce `tzdata`.
+
+## T224 Worker Completion Record
+
+- T224 is the Feishu review-card task for M11.
+- Worker must not mark T224 as complete in `docs/04_task_board.md`; only the
+  Captain may do so after review.
+- Files changed:
+  - `src/practical_chat_agent/services/feishu_review_card.py`
+  - `tests/test_feishu_review_card.py`
+  - `docs/data_contracts/outbound_send_gate_contract.md`
+  - `docs/worker_summary/T224_worker_summary.md`
+  - `docs/07_handoff.md`
+- Test-first evidence:
+  - `tests/test_feishu_review_card.py` was written before the new service
+    existed.
+  - The first targeted pytest run failed during import because
+    `practical_chat_agent.services.feishu_review_card` did not exist.
+  - The review-card builder/parser was then added minimally until the targeted
+    tests passed.
+- Review-card behavior added:
+  - `FeishuReviewCardBuilder.render()` accepts a validated
+    `OutboundMessageRequest` or stable mapping and renders a deterministic local
+    Feishu-compatible interactive-card payload.
+  - The builder rejects direct `CandidateAction` instances and candidate-shaped
+    mappings with `blocked_invalid_request`.
+  - Valid requests render whether sendable or not; the card presents approval
+    state, gate state, sendability, risk flags, audit notes, draft preview, and
+    optional T223 sandbox summary without implying delivery or approval.
+  - Button action values encode inert review-intent payloads with
+    `schema_version`, `request_id`, and `action` for `approve`,
+    `request_edit`, `reject`, and `boundary_feedback`.
+  - `FeishuReviewIntentParser.parse()` converts synthetic card-action mappings
+    into validated inert review-intent data and deterministically rejects
+    malformed, missing, unknown, and cross-request payloads.
+  - No approval, edit, reject, or boundary-feedback action is applied in T224.
+- Verification status:
+  - Commands were run with `TEMP` and `TMP` set to
+    `artifacts\t224_pytest_tmp`, pytest cache set to
+    `artifacts\t224_pytest_cache`, and `--basetemp` set to
+    `artifacts\t224_pytest_basetemp` to keep pytest temp/cache inside the
+    workspace-local sandbox path.
+  - `python -m py_compile src/practical_chat_agent/core/models.py src/practical_chat_agent/services/outbound_send_gate.py src/practical_chat_agent/services/outbound_fake_adapter.py src/practical_chat_agent/services/feishu_outbound_adapter.py src/practical_chat_agent/services/feishu_review_card.py`: passed.
+  - `pytest tests/test_outbound_message_request_schema.py tests/test_outbound_send_gate.py tests/test_outbound_fake_adapter.py tests/test_feishu_outbound_adapter.py tests/test_feishu_review_card.py -q -o cache_dir=artifacts\t224_pytest_cache --basetemp=artifacts\t224_pytest_basetemp`: passed, 84 tests.
+  - `pytest tests/ -q -o cache_dir=artifacts\t224_pytest_cache --basetemp=artifacts\t224_pytest_basetemp`: passed, 864 tests.
+- Explicit non-actions:
+  - No real Feishu API calls.
+  - No Feishu webhook/event callback server.
+  - No OAuth, bot installation, tenant token, secret, or environment-variable handling.
+  - No production Feishu delivery.
+  - No CLI send path, AppContainer wiring, scheduler, timer, background job,
+    automation, retry loop, or runtime hook.
+  - No approval application, feedback-log write, memory write, or store
+    mutation.
+  - No `private/chat_history/` reads and no committed private content.
+  - No task-board update.
+- Remaining risks:
+  - T224 proves only local review-card rendering and inert intent parsing; it
+    does not prove callback payload compatibility against real Feishu event
+    traffic.
+  - Card draft preview truncation is display-only and must not be reused as a
+    privacy boundary in later delivery or logging work.
+  - The Windows named-timezone portability risk from T221 remains open because
+    T224 did not introduce `tzdata`.
+
+## T230 Worker Completion Record
+
+- T230 is the WeChat adapter research spike task for M12.
+- Worker must not mark T230 as complete in `docs/04_task_board.md`; only the
+  Captain may do so after review.
+- Files changed:
+  - `docs/review/T230_wechat_adapter_research.md`
+  - `docs/worker_summary/T230_worker_summary.md`
+  - `docs/07_handoff.md`
+- Research decision:
+  - Recommended `Gate M12 Conditional`.
+  - Personal WeChat automation, scan-login resurrection, realtime
+    personal-account send/receive, desktop automation, and unofficial SDK
+    vendoring remain blocked.
+  - Official WeChat-family business surfaces are possible only as narrow,
+    reviewed, synthetic-first adapter paths, not as a generic WeChat adapter.
+- Official surfaces reviewed:
+  - WeCom internal app messages and callbacks.
+  - WeCom WeChat Customer Service send/receive/event surfaces.
+  - Official Account customer-service messages and message callbacks.
+  - Mini Program customer-service messages.
+  - Manual-copy and Feishu/manual handoff alternatives.
+- Recommended next-task disposition:
+  - T231 should be rewritten as a synthetic inbound contract spike for exactly
+    one official surface, with no live callback server, no API calls, no
+    credentials, no polling, no private chat reads, and no store mutation.
+  - T232 live outbound should remain blocked until T231 selects an official
+    surface and a reviewed recipient mapping / tenant prerequisite model exists.
+  - T233 should be rewritten as provider-constraint safety design, not delivery.
+- Explicit non-actions:
+  - No code implementation.
+  - No package install, SDK clone, SDK vendoring, third-party code copy, login,
+    QR scan, session validation, API call, callback registration, sending,
+    receiving, polling, desktop automation, browser automation, or runtime loop.
+  - No real credentials, tokens, cookies, tenant IDs, app IDs, OpenIDs, chat IDs,
+    QR codes, or private recipients used.
+  - No `private/chat_history/` reads and no committed private content.
+  - No task-board update.
+- Verification status:
+  - External official documentation was consulted on 2026-05-28 and cited in
+    `docs/review/T230_wechat_adapter_research.md`.
+  - `git diff --check`: passed. Git reported line-ending conversion warnings
+    for existing dirty files, but no whitespace errors.
+  - `git diff --check -- docs\review\T230_wechat_adapter_research.md docs\worker_summary\T230_worker_summary.md docs\07_handoff.md`:
+    passed. Git reported the same line-ending conversion warning for
+    `docs/07_handoff.md`.
+  - `git status --short`: ran successfully and showed pre-existing unrelated
+    dirty workspace files plus the T230 allowed-file changes.
+- Remaining risks:
+  - No live account, tenant, app, credential flow, callback URL, recipient
+    mapping, delivery callback, or provider failure handling was tested.
+  - Official docs may change and must be rechecked before any future
+    implementation task.
+  - Official business/customer-service surfaces do not cleanly map to personal
+    WeFlow chat contacts.

@@ -1,5 +1,59 @@
 # Raw Idea
 
+## Captain Update 2026-05-28 (T230 Review / M12 Conditional)
+
+T230 has now passed review with `PASS`, and the M12 opening gate is
+`Gate M12 Conditional`.
+
+The research conclusion is deliberately narrow:
+
+- generic personal-WeChat friend-chat automation remains blocked
+- scan-login resurrection, realtime personal-account send/receive, desktop
+  automation, and unofficial SDK vendoring remain blocked
+- M12 may continue only through an official WeChat-family business surface,
+  starting with synthetic contract fixtures and no live platform calls
+- the next worker task is T231, rewritten as a WeCom WeChat Customer Service
+  inbound contract spike
+
+T231 is not live WeChat integration. It may add a local parser/normalizer for
+synthetic WeCom Customer Service message/event fixtures into `InboundEvent`, but
+it must not create a callback server, poll/sync live messages, use credentials,
+call Tencent APIs, read private chat history, write memory, or send messages.
+
+T232 live outbound remains blocked. T233 is now provider-constraint safety
+design only and must not implement delivery.
+
+The Current Unique Task therefore moves to T231 `WeCom Customer Service
+Inbound Contract Spike`.
+
+## Captain Update 2026-05-28 (T224 Review / M11 Close)
+
+T224 has now passed review with `PASS`, so M11 is complete at the task level as
+a local/sandbox outbound-safety slice:
+
+- T220 defines `OutboundMessageRequest` as a separate outbound contract
+- T221 evaluates requests through `OutboundSendGate`
+- T222 simulates local fake delivery only
+- T223 prepares Feishu sandbox payload/result data only
+- T224 renders local Feishu review cards and parses inert review-intent actions
+
+This does not authorize production delivery. Review-card actions are
+presentation and intent data only; they do not apply approval, edit, reject, or
+boundary feedback, and they do not write feedback logs, write memory, call
+adapters, register callbacks, or send messages.
+
+Reviewer observations are accepted as workspace-artifact convention,
+duplication, synthetic mapping fragility, config-test coverage, or type-surface
+notes under a `PASS` verdict; no repair pass is opened and no deferred
+task-review risk is created.
+
+The next safe step is M12/T230 `WeChat Adapter Research Spike`, a docs-only
+research task. It must not resume the old WeChat scan/login/realtime SDK track,
+vendor unofficial SDK code, implement connectors, or bypass M11 send-gate and
+human-review boundaries.
+
+The Current Unique Task therefore moves to T230 `WeChat Adapter Research Spike`.
+
 ## Captain Update 2026-05-28 (T223 Review)
 
 T223 has now passed review with `PASS`, so M11 has a Feishu sandbox adapter

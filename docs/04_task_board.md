@@ -4,6 +4,43 @@ Updated: 2026-05-28
 
 ## Captain Current State Override
 
+- T230 review decision: `PASS`.
+- T230 is complete as the M12 WeChat adapter research spike.
+- M12 gate decision: `Gate M12 Conditional`.
+- Captain decision: accept the T230 recommendation, block generic personal-WeChat adapter work, and proceed only with a narrowed official-surface synthetic contract task.
+- T230 review observation disposition:
+  - Accepted: N01 external documentation was cited but not independently refetched by reviewer; future implementation must recheck current official docs, N02 option-matrix depth is appropriate for a spike and future tasks need deeper API/error/session analysis, N03 the report did not choose between WeCom Customer Service and WeCom internal app; Captain selects WeCom Customer Service for T231, N04 `channel_preference="wechat"` is too broad and must not be used as production adapter selection.
+  - Deferred: none from the T230 review decision.
+  - Rejected: none.
+- Current Unique Task: T231 WeCom Customer Service Inbound Contract Spike.
+- Current task package: `docs/tasks/M12_wechat_adapter/T231_wechat_inbound_adapter.md`.
+- T231 must stay synthetic-inbound-contract-only:
+  - may implement a local deterministic inbound parser/normalizer for synthetic WeCom WeChat Customer Service fixtures into `InboundEvent`
+  - may add synthetic redacted fixtures, focused tests, a data contract, worker summary, and handoff record
+  - must not add live callback routes, webhook servers, polling/sync loops, API calls, credentials, SDKs, runtime ingestion hooks, AppContainer wiring, outbound payloads, sending, memory writes, private reads, or task-board updates
+- M12 conditional constraints now carried forward:
+  - Personal WeChat friend-chat automation, scan-login resurrection, desktop automation, realtime personal-account send/receive, and unofficial SDK vendoring remain blocked.
+  - WeCom Customer Service is an official customer-service surface, not a generic personal WeChat replacement and not a direct WeFlow contact mapping.
+  - T232 live outbound remains blocked until T231 passes review and Captain approves a provider-specific recipient mapping / tenant prerequisite model.
+  - T233 is provider-constraint safety design only until rewritten; it must not implement delivery.
+
+- T224 review decision: `PASS`.
+- T224 is complete as the Feishu review-card task for M11.
+- M11 is complete at the task level with `Gate M11 Allow` for local/sandbox outbound safety only.
+- T224 review observation disposition:
+  - Accepted: N01 `.claude/settings.json` allowed-permission overrun is established workspace convention noise, N02 duplicated candidate-shaped mapping detection is acceptable until shared utility extraction is worthwhile, N03 sandbox-result mapping coercion is acceptable for synthetic current scope, N04 missing `FeishuReviewCardConfig` edge tests are minor coverage-strength debt, N05 wide render type signature is intentional to provide a clear runtime rejection path, M01-M04 missing mapping-positive, preview-small-limit, frozen-intent, and cosmetic blocked-result tests are useful hardening but non-blocking.
+  - Deferred: none from the T224 review decision.
+  - Rejected: none.
+- Current Unique Task: T230 WeChat Adapter Research Spike.
+- Current task package: `docs/tasks/M12_wechat_adapter/T230_wechat_adapter_research_spike.md`.
+- T230 must stay docs-only and research-only: evaluate whether any safe, official, thin WeChat adapter path can fit behind M11 boundaries, but do not implement connectors, install/vendor SDKs, log in, scan QR codes, send/receive messages, call platform APIs, read secrets, add runtime paths, or revive the paused personal-WeChat SDK/realtime track.
+- M12 opening constraints:
+  - M11 allows only local/sandbox request, gate, fake adapter, Feishu sandbox, review-card, and inert review-intent boundaries.
+  - No real Feishu or WeChat production delivery is authorized.
+  - WeChat work must remain behind explicit research and later reviewed task packages.
+  - Any future adapter must preserve explicit `OutboundMessageRequest.human_approval`, `OutboundSendGate`, explicit recipient mapping, audit notes, manual-send-only defaults, and no automatic proactive sending.
+  - Historical note: T230 has since given a defensible `Gate M12 Conditional` recommendation; T231 may proceed only as the narrowed synthetic WeCom Customer Service inbound contract, while T232/T233 remain blocked placeholders.
+
 - T223 review decision: `PASS`.
 - T223 is complete as the Feishu sandbox adapter task for M11.
 - T223 review observation disposition:
@@ -467,11 +504,11 @@ Updated: 2026-05-28
 
 ## Current Unique Task
 
-T224: Feishu Review Card.
+T231: WeCom Customer Service Inbound Contract Spike.
 
-Task package: `docs/tasks/M11_outbound_sendgate_feishu/T224_feishu_review_card.md`
+Task package: `docs/tasks/M12_wechat_adapter/T231_wechat_inbound_adapter.md`
 
-Why now: T223 has landed with `PASS`, so the repo now has a Feishu sandbox adapter that prepares platform-specific dry-run / fake-transport payloads behind explicit outbound approval, send-gate allow state, channel `feishu`, and explicit sandbox recipient mapping. The next smallest safe step is a local Feishu review-card renderer and synthetic review-intent parser, before any production delivery, callback server, approval application, feedback/memory write, scheduler, runtime autonomy, or automatic send behavior.
+Why now: T230 has landed with `PASS` and recommends `Gate M12 Conditional`. The next safe step is not live WeChat integration; it is a synthetic, official-surface inbound contract for exactly one selected path. Captain selects WeCom WeChat Customer Service for T231 because it is an official customer-service surface with documented inbound/event concepts, while personal WeChat automation and live outbound remain blocked.
 
 ## Board Rules
 
@@ -612,18 +649,33 @@ Goal: build a platform-independent send gate before any real adapter work.
 - [x] T221: OutboundSendGate. Review `PASS`.
 - [x] T222: local fake adapter. Review `PASS`.
 - [x] T223: Feishu sandbox adapter. Review `PASS`.
-- [ ] T224: Feishu review card.
+- [x] T224: Feishu review card. Review `PASS`. Gate M11 `Allow` for local/sandbox outbound safety only.
 
 ## Milestone 12: WeChat Adapter
 
-Goal: keep WeChat as a thin final adapter behind the send gate.
+Goal: evaluate and, only if safe, narrow WeChat-family integration to official surfaces behind explicit contracts and the send gate.
 
-- [ ] T230: WeChat adapter research spike.
-- [ ] T231: WeChat inbound adapter.
-- [ ] T232: WeChat outbound adapter.
-- [ ] T233: WeChat safety mode.
+- [x] T230: WeChat adapter research spike. Review `PASS`; Gate M12 `Conditional`.
+- [ ] T231: WeCom Customer Service inbound contract spike.
+- [ ] T232: WeChat-family outbound adapter. Blocked placeholder until T231 review and Captain rewrite.
+- [ ] T233: WeChat-family provider constraint safety design. Blocked placeholder until T231 review and Captain rewrite.
 
 ## Historical Current Unique Task
+
+T230: WeChat Adapter Research Spike.
+
+It is now complete and accepted with `PASS`. The gate recommendation is
+`Gate M12 Conditional`: personal WeChat automation, scan-login resurrection,
+desktop automation, realtime personal-account send/receive, and unofficial SDK
+vendoring remain blocked. The next worker task is T231, rewritten as a WeCom
+WeChat Customer Service synthetic inbound contract spike, because M12 must first
+prove a single official-surface `InboundEvent` normalizer with synthetic
+fixtures before any live callback, credential, polling, recipient mapping,
+outbound delivery, or provider-constraint implementation can proceed.
+
+T224: Feishu Review Card.
+
+It is now complete and accepted with `PASS`. M11 is complete at the task level with `Gate M11 Allow` for local/sandbox outbound safety only. The next worker task is T230, because M12 must begin with a docs-only WeChat adapter research decision before any connector implementation, SDK use, login/scan path, platform API call, runtime path, or automatic send behavior.
 
 T223: Feishu Sandbox Adapter.
 

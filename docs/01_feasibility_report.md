@@ -1,5 +1,50 @@
 # Feasibility Report
 
+## Captain Update 2026-05-28 (T230 Review / M12 Conditional)
+
+T230 confirms that M12 is feasible only as a narrowed official-surface research
+and contract path, not as generic personal-WeChat integration.
+
+The feasibility question has changed again:
+
+- no longer blocked on whether WeChat-family options have been initially
+  researched and separated into official vs prohibited paths
+- now focused on whether a single official surface, selected as WeCom WeChat
+  Customer Service for T231, can be represented through synthetic inbound
+  fixtures and a pure `InboundEvent` normalizer
+- still not ready for live WeChat/WeCom API calls, credentials, callback
+  servers, polling/sync loops, personal-account automation, desktop automation,
+  unofficial SDKs, outbound delivery, or automatic sending
+- official documentation and provider constraints must be rechecked before any
+  later implementation touches credentials or live APIs
+
+So the project is ready to commit the T230 research slice and advance to T231,
+but only as a synthetic inbound contract spike. T232 live outbound and T233
+delivery behavior remain blocked until T231 is reviewed and Captain rewrites
+their task packages.
+
+## Captain Update 2026-05-28 (T224 Review / M11 Close)
+
+T224 confirms that human-review presentation for outbound messages is feasible
+without applying decisions or sending.
+
+The feasibility question has changed again:
+
+- no longer blocked on whether a local Feishu review-card payload and synthetic
+  review-intent parser can be built over outbound request / gate / sandbox
+  evidence
+- now focused on whether M12 has any safe, official, thin WeChat adapter path
+  that can preserve M11 boundaries without reviving the paused scan/login SDK
+  track or adding unofficial realtime automation
+- still not ready for WeChat implementation, production Feishu delivery,
+  real callbacks/webhooks, credentials, scheduler/background jobs, runtime
+  loops, or automatic outbound behavior
+- Feishu review-card payloads and action parsing are local approximations; they
+  are not validation of real Feishu callback/event semantics
+
+So the project is ready to commit the T224 review-card slice, close M11 at the
+task level, and advance to T230 as a docs-only WeChat adapter research spike.
+
 ## Captain Update 2026-05-28 (T223 Review)
 
 T223 confirms that a Feishu-specific sandbox adapter boundary is feasible

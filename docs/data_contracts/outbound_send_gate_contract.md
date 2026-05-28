@@ -1,16 +1,17 @@
 # Outbound Send Gate Contract
 
-Task: T220 OutboundMessageRequest Schema + T221 OutboundSendGate + T222 Local Fake Adapter + T223 Feishu Sandbox Adapter
+Task: T220 OutboundMessageRequest Schema + T221 OutboundSendGate + T222 Local Fake Adapter + T223 Feishu Sandbox Adapter + T224 Feishu Review Card
 Status: worker draft for review
 
 ## Scope
 
-M11 starts in four explicit layers:
+M11 starts in five explicit layers:
 
 - T220: inert outbound request contract
 - T221: deterministic gate decision over that contract
 - T222: local fake adapter simulation after the gate
 - T223: Feishu-specific sandbox payload/result boundary
+- T224: review-card rendering and inert review-intent parsing
 
 The committed surfaces are:
 
@@ -30,11 +31,18 @@ The committed surfaces are:
 - `FeishuSandboxTransportResponse`
 - `FeishuSandboxDeliveryResult`
 - `FeishuSandboxOutboundAdapter`
+- `FeishuReviewCardConfig`
+- `FeishuReviewIntent`
+- `FeishuReviewCardRenderResult`
+- `FeishuReviewIntentParseResult`
+- `FeishuReviewCardBuilder`
+- `FeishuReviewIntentParser`
 
 This contract still does not include delivery, adapters, schedulers, CLI send
 commands, runtime loops, or external services. T222 adds only a local fake
 adapter simulation layer, and T223 adds only a Feishu sandbox adapter boundary,
-not a production platform adapter.
+not a production platform adapter. T224 adds only a presentation and inert
+review-intent layer, not approval application or delivery.
 
 ## Relationship To M10 CandidateAction
 
@@ -64,6 +72,11 @@ adapter boundary.
 T223 keeps the same rule. Reviewed `CandidateAction` artifacts may inform
 evidence origin only; they never satisfy Feishu adapter authorization by
 themselves.
+
+T224 also keeps the same rule. Review cards may display candidate-derived
+evidence references carried through `OutboundMessageRequest`, but card rendering
+and action parsing do not turn those artifacts into approval or delivery
+authorization.
 
 ## OutboundMessageRequest Layer
 
@@ -416,6 +429,116 @@ T223 proves only that a gate-approved request can be transformed into a
 Feishu-compatible sandbox payload and optionally passed to an injected fake
 transport. It does not claim production Feishu delivery.
 
+## T224 Feishu Review Card Inputs
+
+`FeishuReviewCardBuilder.render()` accepts:
+
+- a validated `OutboundMessageRequest`
+- or a stable mapping that validates to `OutboundMessageRequest`
+- an optional `FeishuSandboxDeliveryResult` summary
+
+The builder rejects:
+
+- direct `CandidateAction` instances
+- candidate-shaped mappings
+- invalid mappings that do not validate to `OutboundMessageRequest`
+
+Unlike T222/T223 adapters, T224 may render both sendable and non-sendable
+requests. Review presentation does not imply sendability or delivery.
+
+## T224 Feishu Review Card Payload Shape
+
+`FeishuReviewCardRenderResult` returns:
+
+- `renderer_name`
+- `render_status`
+- `rendered`
+- `request_id`
+- `contact_id`
+- `user_id`
+- `channel_preference`
+- `sendable`
+- `card_payload`
+- `audit_notes`
+
+Current render statuses are:
+
+- `card_rendered`
+- `blocked_invalid_request`
+
+The local Feishu-compatible card payload includes review-safe sections for:
+
+- request identity
+- approval state
+- gate state
+- sendability
+- risk flags
+- gate audit notes
+- draft preview
+- optional sandbox result summary
+- inert review-intent buttons
+
+Draft truncation is display-only. It is not claimed as redaction.
+
+## T224 Review Intent Action Values
+
+Each rendered button value encodes inert review-intent data with:
+
+- `schema_version`
+- `request_id`
+- `action`
+
+Current actions are:
+
+- `approve`
+- `request_edit`
+- `reject`
+- `boundary_feedback`
+
+These values are presentation intent only. T224 does not apply the decision.
+
+## T224 Review Intent Parser
+
+`FeishuReviewIntentParser.parse()` accepts a synthetic Feishu card-action
+mapping and returns `FeishuReviewIntentParseResult`.
+
+Successful parses return:
+
+- `parse_status="intent_parsed"`
+- `accepted=true`
+- a validated `FeishuReviewIntent`
+
+Rejected parses return:
+
+- `parse_status="blocked_invalid_action"`
+- `accepted=false`
+- `intent=null`
+
+The parser rejects:
+
+- malformed or missing action-value mappings
+- missing schema version
+- missing request id
+- unknown action values
+- cross-request payloads when an expected request id is supplied
+
+Parsing yields inert intent data only. It does not mutate request approval,
+re-run the gate, call adapters, send messages, or write feedback/memory.
+
+## Gate Vs Fake Vs Sandbox Vs Card Vs Parsed Intent
+
+These states remain distinct:
+
+- gate `allowed`: deterministic policy eligibility only
+- fake `fake_delivered`: local synthetic adapter simulation only
+- Feishu `feishu_dry_run_ready` / `feishu_sandbox_sent`: sandbox evidence only
+- review card `card_rendered`: human-review presentation only
+- parsed review intent `intent_parsed`: inert user intent only, not applied
+  approval or delivery
+
+T224 adds visibility and synthetic interaction data only. It does not apply or
+persist review outcomes.
+
 ## Audit Note Conventions
 
 T221 keeps gate notes deterministic and flat. Typical note families are:
@@ -494,14 +617,16 @@ T221 preserves the compact-context rule:
 
 All tests and examples must stay synthetic.
 
-## What T223 Still Does Not Authorize
+## What T224 Still Does Not Authorize
 
-T223 does not authorize:
+T224 does not authorize:
 
 - message sending
 - scheduling
 - reminders, timers, background jobs, or automations
 - production Feishu adapter execution
+- approval, edit, reject, or boundary-feedback application
+- feedback-log writes or memory writes
 - WeChat adapter execution
 - webhook, email, browser, desktop, or notification delivery
 - CLI send commands or runtime loops
@@ -511,4 +636,5 @@ T223 does not authorize:
 - mutation of `CandidateAction`, memory records, ContactSkill, relationship
   state, approved stores, or private artifacts
 - treating gate `allowed`, fake `fake_delivered`, `feishu_dry_run_ready`, or
-  `feishu_sandbox_sent` as production delivery completion
+  `feishu_sandbox_sent`, `card_rendered`, or `intent_parsed` as production
+  delivery or applied approval completion

@@ -1,5 +1,55 @@
 # Risks And Open Questions
 
+## Captain Update 2026-05-28 (T230 Review Decision / M12 Conditional)
+
+Authoritative current risk state after the Captain review of T230:
+
+- R040 remains active as a compact-context and privacy boundary rule: M12 and later work must continue to use approved metadata / review-safe artifacts only and must not reopen raw-transcript ingestion.
+- R041 remains active: approved memories, approved patches, derived briefs, relationship-state artifacts, behavior candidates, outbound requests, gate decisions, adapter results, review cards, parsed review intents, and inbound provider events remain review/gate artifacts unless a later task explicitly authorizes mutation or execution.
+- R071 remains active: LLM confidence calibration is still unresolved and orthogonal to M12 deterministic/synthetic adapter-contract work.
+- R091 remains active and deferred: approved relationship context exists in `ChatContext`, but no planner or policy code path consumes relationship delta semantics.
+- R092 remains active and deferred: relationship guidance that surfaces through summary/retrieval notes is informational only and must not be mistaken for semantic runtime consumption.
+- R093 remains active but narrowed: M11 separated outbound requests/gates/adapters/cards from `CandidateAction`; M12 must still avoid consuming `CandidateAction` review state as inbound or outbound platform authorization.
+- R096 remains active and narrowed: M11 review/gate/adapter/card states remain distinct; T231 must not introduce runtime ingestion or delivery state as a side effect of inbound parsing.
+- R097 remains active: T221 named-timezone verification on Windows requires `tzdata`, which is not currently declared in project dependencies.
+- R098 remains active: display preview truncation is useful for local summaries/cards but is not a privacy boundary for future real, sandbox, card-rendered, or WeChat-family payloads.
+- R099 remains active: T223 Feishu sandbox payload shape has not been validated against current official Feishu production API semantics.
+- R100 remains active: T224 Feishu review-card payload and synthetic action parser are local approximations, not validation of real Feishu callback/event semantics.
+- R101 remains active but narrowed: T230 blocked paused personal-WeChat scan/login/realtime SDK work and unofficial SDK vendoring; T231 must preserve that block.
+- R102 is active: official WeChat-family documentation may drift; T231 and later tasks must recheck official docs before relying on API, callback, credential, quota, or service-window facts.
+- R103 is active: WeCom Customer Service does not cleanly map to personal WeFlow chat contacts; T231 must treat provider identities as synthetic contract aliases only, not contact mapping.
+- R104 is active: `channel_preference="wechat"` is too broad for production adapter selection; future outbound work needs an explicit selected surface/subchannel or adapter config before any send path.
+- R105 is active: no live WeCom account, tenant, app, callback URL, credential flow, recipient mapping, service window, delivery callback, or provider failure handling has been tested.
+- T230 opened no deferred task-review risks. Its non-blocking observations are accepted as documentation freshness, research depth, surface-selection, and schema-overbreadth notes under a `PASS` verdict.
+- M12 is conditional only. This does not authorize live WeChat/WeCom callbacks, polling, credentials, outbound delivery, or automatic sending.
+
+Closed question Q203: T230 is accepted with `PASS`, M12 may proceed only as `Gate M12 Conditional`, and the next task is T231 as a WeCom Customer Service synthetic inbound contract spike.
+
+Open question Q204: Can T231 normalize synthetic WeCom Customer Service message/event fixtures into `InboundEvent` without live platform behavior, private reads, store mutation, or runtime wiring?
+
+## Captain Update 2026-05-28 (T224 Review Decision / M11 Close)
+
+Authoritative current risk state after the Captain review of T224:
+
+- R040 remains active as a compact-context and privacy boundary rule: M12 and later work must continue to use approved metadata / review-safe artifacts only and must not reopen raw-transcript ingestion.
+- R041 remains active: approved memories, approved patches, derived briefs, relationship-state artifacts, behavior candidates, outbound requests, gate decisions, adapter results, review cards, and parsed review intents remain review/gate artifacts unless a later task explicitly authorizes mutation or execution.
+- R071 remains active: LLM confidence calibration is still unresolved and orthogonal to M11/M12 deterministic outbound infrastructure.
+- R091 remains active and deferred: approved relationship context exists in `ChatContext`, but no planner or policy code path consumes relationship delta semantics.
+- R092 remains active and deferred: relationship guidance that surfaces through summary/retrieval notes is informational only and must not be mistaken for semantic runtime consumption.
+- R093 remains active but narrowed: T220-T224 now separate outbound request, gate decision, fake adapter result, Feishu sandbox result, review-card payload, and review intent from `CandidateAction`, but M12 must still avoid consuming `CandidateAction` review state as send permission.
+- R096 remains active and narrowed: T224 correctly keeps review intent separate from applied approval or delivery; M12 must preserve the distinction between gate eligibility, fake simulation, Feishu sandbox result, review-card rendering, parsed review intent, applied approval, and production delivery.
+- R097 remains active: T221 named-timezone verification on Windows requires `tzdata`, which is not currently declared in project dependencies. T224 did not modify timezone dependency policy.
+- R098 remains active: display preview truncation is useful for local summaries/cards but is not a privacy boundary for future real, sandbox, or card-rendered payloads.
+- R099 remains active: T223 Feishu sandbox payload shape has not been validated against current official Feishu production API semantics.
+- R100 is active: T224 Feishu review-card payload and synthetic action parser are local approximations, not validation of real Feishu callback/event semantics.
+- R101 is active: M12 could accidentally revive the paused personal-WeChat scan/login/realtime SDK track or unofficial SDK vendoring; T230 has since blocked those paths, and T231 must preserve the synthetic-only WeCom Customer Service boundary.
+- T224 opened no deferred task-review risks. Its non-blocking observations are accepted as workspace-artifact convention, duplication, synthetic mapping fragility, config-test coverage, or type-surface notes under a `PASS` verdict.
+- M11 is complete at the task level with `Gate M11 Allow` for local/sandbox outbound safety only. This does not authorize real Feishu or WeChat delivery.
+
+Closed question Q202: T224 is accepted with `PASS`, M11 may close at task level, and the project may proceed to T230 `WeChat Adapter Research Spike`.
+
+Historical note: this T224 closeout opened Q203 for T230. Q203 is now closed by the T230 `PASS` / `Gate M12 Conditional` Captain decision above.
+
 ## Captain Update 2026-05-28 (T223 Review Decision)
 
 Authoritative current risk state after the Captain review of T223:
@@ -764,17 +814,25 @@ Closed question Q124: the updated GPT roadmap is directionally aligned, but M4/M
 | R097 | T221 named-timezone verification on Windows depends on `tzdata`, but `tzdata` is not declared in project dependencies | Fresh Windows environments may fail timezone tests or runtime named-zone evaluation even though the worker environment had `tzdata` installed | Future tasks should either add `tzdata` explicitly or keep new tests/config on UTC-only paths and document the choice |
 | R098 | T222 fake-adapter `payload_preview` truncation is not a privacy boundary | Future real or sandbox adapters could incorrectly treat truncated previews as sufficient redaction or safe payload handling | T223+ must build platform payloads only from approved outbound request text and explicit recipient mapping; preview fields are for audit summaries only |
 | R099 | T223 Feishu sandbox payload shape is not production API validation | The sandbox adapter builds a Feishu-shaped payload for dry-run / injected fake transport, but production API compatibility, acknowledgement semantics, retries, and recovery were not validated | Future production Feishu delivery work must verify current official Feishu API contract, auth, callback, ack/error, retry, and recovery semantics before claiming real delivery |
+| R100 | T224 Feishu review-card payload/action parser is not real callback validation | Local card payloads and synthetic action mappings can diverge from current Feishu interactive-card callback/event payloads | Future real Feishu callback or approval-application work must validate official event schemas, signatures, auth, idempotency, replay handling, and audit behavior before claiming production integration |
+| R101 | M12 could accidentally revive paused personal-WeChat scan/login/realtime SDK work | The repository rules prohibit resuming the old scan/login SDK track, vendoring unofficial SDK code, or adding realtime platform integration without explicit scoped approval | T230 blocked unsafe paths; T231 must stay synthetic WeCom Customer Service contract-only and must not add personal-WeChat, scan-login, desktop automation, or unofficial SDK behavior |
+| R102 | Official WeChat-family documentation may drift after T230 retrieval | A future implementation could rely on stale API, callback, credential, quota, or service-window facts | T231 and later tasks must recheck official docs before touching provider semantics; if docs cannot be checked, mark those facts unresolved |
+| R103 | WeCom Customer Service does not cleanly map to personal WeFlow chat contacts | M12 could overclaim that official customer-service identity equals arbitrary personal WeChat contact identity | T231 uses only synthetic provider aliases and does not create contact/recipient mapping; mapping requires a later reviewed task |
+| R104 | `channel_preference="wechat"` is too broad for production adapter selection | A later outbound adapter could accidentally route to the wrong WeChat-family surface | Future outbound work needs explicit selected surface/subchannel or adapter config before any payload preparation or send path |
+| R105 | No live WeCom account, tenant, app, callback URL, credential flow, recipient mapping, service window, delivery callback, or provider failure handling has been tested | M12 cannot claim operational readiness or delivery semantics | Keep T231 synthetic-only; keep T232 live outbound blocked until tenant/credential/recipient prerequisites are reviewed |
 
 ## Open Questions
 
 | ID | 问题 | 需要谁回答 | 最晚解决点 |
 | --- | --- | --- | --- |
-| _None_ | _None_ | _None_ | _None_ |
+| Q204 | Can T231 normalize synthetic WeCom Customer Service message/event fixtures into `InboundEvent` without live platform behavior, private reads, store mutation, or runtime wiring? | T231 worker + reviewer + Captain review | Before any T232/T233 rewrite or live WeChat-family work |
 
 ## Closed Questions
 
 | ID | 结论 | 关闭依据 |
 | --- | --- | --- |
+| Q203 | T230 can be accepted as complete and M12 may proceed only as `Gate M12 Conditional`. Generic personal-WeChat adapter work remains blocked; Captain selects WeCom Customer Service for T231 synthetic inbound contract work. | `docs/review/T230_review.md`, `docs/review/T230_wechat_adapter_research.md` + Captain decision |
+| Q202 | T224 can be accepted as complete, M11 can close at task level with `Gate M11 Allow` for local/sandbox outbound safety only, and the project may proceed to T230. It is accepted with `PASS`; all review observations are accepted, with no deferred risks or repair pass. | `docs/review/T224_review.md` + Captain decision |
 | Q201 | T223 can be accepted as complete and the project may proceed to T224. It is accepted with `PASS`; all review observations are accepted, with no deferred risks or repair pass. | `docs/review/T223_review.md` + Captain decision |
 | Q200 | T222 can be accepted as complete and the project may proceed to T223. It is accepted with `PASS`; all review observations are accepted, with no deferred risks or repair pass. | `docs/review/T222_review.md` + Captain decision |
 | Q199 | T221 can be accepted as complete and the project may proceed to T222. It is accepted with `PASS`; all review observations are accepted, with no deferred risks or repair pass. | `docs/review/T221_review.md` + Captain decision |

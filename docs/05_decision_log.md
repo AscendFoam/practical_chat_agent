@@ -1,5 +1,59 @@
 # Decision Log
 
+## D068: T230 PASS, accept Gate M12 Conditional, rewrite T231
+
+- Date: 2026-05-28
+- Status: Accepted
+- Context: `docs/review/T230_review.md` gives `PASS` for the WeChat adapter research spike. No blocking issues were found. The review confirms T230 stayed docs-only and research-only, changed only allowed files, read no private chat content, installed or vendored no SDKs, called no platform APIs, used no credentials, and produced the required `Gate M12 Conditional` research report.
+- Decision: T230 is complete. M12 may continue only through a narrowed official WeChat-family surface and only through synthetic contract work first. Captain selects WeCom WeChat Customer Service for T231 and rewrites T231 as `WeCom Customer Service Inbound Contract Spike`.
+- Review observation handling:
+  - Accepted:
+    - N01 external documentation was cited with retrieval date but not independently refetched by the reviewer; future implementation tasks must recheck official docs before touching credentials, callbacks, or APIs.
+    - N02 the option matrix is intentionally spike-depth; future implementation tasks need deeper API contract, error taxonomy, and session lifecycle analysis for the selected surface.
+    - N03 the report did not choose between WeCom WeChat Customer Service and WeCom internal app; Captain chooses WeCom Customer Service for T231 because it is the best official WeChat-family customer-service candidate for an inbound/event contract spike.
+    - N04 `channel_preference="wechat"` is too broad; T231 must not use it as production adapter selection, and any later outbound work needs an explicit surface/subchannel or adapter config.
+  - Deferred: none from the T230 review decision.
+  - Rejected: none.
+- Conditions carried forward:
+  - Personal WeChat friend-chat automation, scan-login resurrection, realtime personal-account send/receive, desktop automation, and unofficial SDK vendoring remain blocked.
+  - T231 may add only a local deterministic parser/normalizer for synthetic WeCom Customer Service fixtures into `InboundEvent`.
+  - T231 must not add live callback routes, webhook servers, polling/sync loops, platform API calls, credentials, SDKs, runtime ingestion hooks, `AppContainer` wiring, outbound payloads, sending, memory writes, private reads, or task-board updates.
+  - T232 live outbound remains blocked until T231 passes review and Captain approves a provider-specific recipient mapping / tenant prerequisite model.
+  - T233 remains provider-constraint safety design only until rewritten and must not implement delivery.
+- Impact:
+  - `docs/04_task_board.md` moves the Current Unique Task from T230 to T231 and marks T230 complete.
+  - `docs/07_handoff.md` records the T230 review decision and T231 task boundary.
+  - `docs/08_risks_and_open_questions.md` closes Q203, opens Q204 for T231, and records M12 conditional risks.
+  - `docs/tasks/M12_wechat_adapter/T231_wechat_inbound_adapter.md` is rewritten into a complete synthetic-only worker task package.
+  - `docs/tasks/M12_wechat_adapter/T232_wechat_outbound_adapter.md` and `docs/tasks/M12_wechat_adapter/T233_wechat_safety_mode.md` are downgraded to blocked placeholders until Captain rewrites them after T231 review.
+
+## D067: T224 PASS, close M11 local/sandbox slice, advance to T230
+
+- Date: 2026-05-28
+- Status: Accepted
+- Context: `docs/review/T224_review.md` gives `PASS` for the Feishu review-card task. No blocking issues were found. The review confirms T224 renders deterministic local Feishu review-card payloads and parses synthetic inert review-intent actions without network calls, real Feishu API interaction, approval application, adapter calls, feedback-log writes, memory writes, mutation, callbacks, runtime wiring, or automatic sending.
+- Decision: T224 is complete. M11 is complete at the task level with `Gate M11 Allow` for local/sandbox outbound safety only. The project may continue to T230 `WeChat Adapter Research Spike`.
+- Review observation handling:
+  - Accepted:
+    - N01 `.claude/settings.json` allowed-permission change is established workspace-artifact convention noise and not functional code.
+    - N02 duplicated candidate-shaped mapping detection is acceptable until shared extraction becomes justified.
+    - N03 `FeishuSandboxDeliveryResult(**dict(...))` mapping coercion is acceptable for synthetic current scope.
+    - N04 missing `FeishuReviewCardConfig` validation edge tests are minor coverage-strength debt.
+    - N05 wide `render()` type signature is intentional so `CandidateAction` inputs can be rejected with a clear result.
+    - M01-M04 missing positive mapping coercion, small preview-limit, frozen-intent immutability, and cosmetic `CandidateAction` blocked-result tests are useful hardening targets but non-blocking under the current `PASS` verdict.
+  - Deferred: none from the T224 review decision.
+  - Rejected: none.
+- Conditions carried forward:
+  - M11 does not authorize production Feishu delivery, real callback/event validation, WeChat implementation, scheduler/background jobs, runtime loops, or automatic outbound behavior.
+  - Parsed review-card actions are inert review intents only; applying approval/edit/reject/boundary feedback remains a later explicit task.
+  - T230 must be docs-only research and must not resume the old scan-login/realtime personal-WeChat SDK track.
+  - T230 must not implement connectors, vendor SDK code, log in, scan QR codes, send/receive messages, call APIs, read secrets, or alter runtime behavior.
+- Impact:
+  - `docs/04_task_board.md` moves the Current Unique Task from T224 to T230, marks T224 complete, and records M11 as task-level `Gate M11 Allow`.
+  - `docs/07_handoff.md` records the T224 review decision, M11 close, and T230 task boundary.
+  - `docs/08_risks_and_open_questions.md` records review-card callback-validation and M12 WeChat research risks, closes Q202, and opens Q203 for T230.
+  - `docs/tasks/M12_wechat_adapter/T230_wechat_adapter_research_spike.md` is expanded into a complete docs-only worker task package.
+
 ## D066: T223 PASS, accept Feishu sandbox adapter, advance to T224
 
 - Date: 2026-05-28

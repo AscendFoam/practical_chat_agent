@@ -1,5 +1,67 @@
 # Architecture
 
+## Captain Update 2026-05-28 (T230 Review / M12 Conditional)
+
+T230 keeps M12 behind an official-surface contract boundary:
+
+```text
+T230 official-surface research
+  -> Gate M12 Conditional
+  -> selected T231 surface: WeCom WeChat Customer Service
+  -> synthetic callback/message/event fixtures
+  -> pure inbound normalizer
+  -> InboundEvent
+  -> no live callback server, polling loop, API call, credential handling,
+     private read, store mutation, outbound adapter, or send
+```
+
+The architecture must not collapse "WeChat" into a single adapter. The T230
+research shows at least five incompatible identity and policy surfaces:
+
+- personal WeChat friend chat: blocked
+- WeCom internal app: official, enterprise-member only
+- WeCom WeChat Customer Service: official, customer-service constraints
+- Official Account / Mini Program customer service: official, OpenID and
+  service-window constrained
+- manual handoff: non-adapter human operation
+
+T231 therefore starts with WeCom Customer Service inbound contracts only. It may
+normalize synthetic provider messages/events into `InboundEvent`; it may not add
+runtime ingestion, `AppContainer` wiring, credential/config loading, webhook
+routes, polling, outbound requests, or platform delivery.
+
+T232 and T233 remain architectural placeholders until T231 proves a selected
+surface and Captain rewrites the next package.
+
+## Captain Update 2026-05-28 (T224 Review / M11 Close)
+
+T224 completes the M11 local/sandbox outbound review architecture:
+
+```text
+reviewed CandidateAction as evidence only
+  -> OutboundMessageRequest
+  -> OutboundSendGate.allowed / blocked
+  -> LocalFakeOutboundAdapter or FeishuSandboxOutboundAdapter
+  -> FeishuReviewCardBuilder / FeishuReviewIntentParser
+  -> rendered review artifact + inert review_intent
+  -> no applied approval, adapter call, callback server, scheduler, runtime loop, or send
+```
+
+M11 is accepted only as a staged safety boundary. The architecture still has
+states that must not be collapsed:
+
+- gate `allowed`: policy eligibility
+- fake `fake_delivered`: local synthetic simulation
+- Feishu sandbox prepared/sent: platform-specific sandbox evidence only
+- review card rendered: human-review presentation only
+- review intent parsed: inert intent data only
+- applied approval / feedback write / memory write / production delivery: not implemented
+
+The next architectural step, T230, is not an implementation step. It is a
+docs-only research spike to decide whether any WeChat adapter path can fit this
+architecture without reviving scan-login/realtime personal-account automation or
+unofficial SDK vendoring.
+
 ## Captain Update 2026-05-28 (T223 Review)
 
 T223 adds a Feishu-specific sandbox adapter boundary, still without production
