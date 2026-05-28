@@ -1,5 +1,27 @@
 # Feasibility Report
 
+## Captain Update 2026-05-28 (T222 Review)
+
+T222 confirms that an outbound adapter boundary is feasible without external
+delivery.
+
+The feasibility question has changed again:
+
+- no longer blocked on whether a sendable `OutboundMessageRequest` can cross an
+  adapter boundary safely
+- now focused on whether T223 can prepare a Feishu-specific sandbox payload /
+  result while preserving send-gate, human approval, recipient mapping, audit,
+  privacy, and dry-run defaults
+- still not ready for production Feishu delivery, WeChat adapters, review-card
+  UX, scheduler/background jobs, runtime loops, or automatic outbound behavior
+- preview truncation from the fake adapter is not a privacy boundary for real
+  adapters; T223 must construct platform payloads only from the approved
+  outbound request payload and explicit sandbox recipient mapping
+
+So the project is ready to commit the T222 local fake adapter slice and advance
+to T223, with fake `fake_delivered` treated as synthetic evidence only, not
+real delivery.
+
 ## Captain Update 2026-05-28 (T221 Review)
 
 T221 confirms that send-gate policy is feasible without adding delivery infrastructure.

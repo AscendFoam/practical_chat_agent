@@ -224,7 +224,13 @@
       "Bash(python -m py_compile src/practical_chat_agent/core/models.py src/practical_chat_agent/services/outbound_send_gate.py)",
       "Bash(TEMP=artifacts/t221_review_tmp TMP=artifacts/t221_review_tmp python -m pytest tests/test_outbound_message_request_schema.py tests/test_outbound_send_gate.py -q -o cache_dir=artifacts/t221_review_cache --basetemp=artifacts/t221_review_basetemp)",
       "Bash(TEMP=artifacts/t221_review_tmp TMP=artifacts/t221_review_tmp python -m pytest tests/ -q -o cache_dir=artifacts/t221_review_cache --basetemp=artifacts/t221_review_basetemp)",
-      "Bash(TEMP=artifacts/t221_review_tmp TMP=artifacts/t221_review_tmp python -m pytest tests/ -q -o cache_dir=artifacts/t221_review_cache --basetemp=artifacts/t221_review_basetemp --ignore=tests/test_behavior_review_cli.py)"
+      "Bash(TEMP=artifacts/t221_review_tmp TMP=artifacts/t221_review_tmp python -m pytest tests/ -q -o cache_dir=artifacts/t221_review_cache --basetemp=artifacts/t221_review_basetemp --ignore=tests/test_behavior_review_cli.py)",
+      "Bash(TEMP=artifacts/t222_pytest_tmp TMP=artifacts/t222_pytest_tmp python -m py_compile src/practical_chat_agent/core/models.py src/practical_chat_agent/services/outbound_send_gate.py src/practical_chat_agent/services/outbound_fake_adapter.py)",
+      "Bash(TEMP=artifacts/t222_pytest_tmp TMP=artifacts/t222_pytest_tmp pytest tests/test_outbound_send_gate.py tests/test_outbound_fake_adapter.py -q -o cache_dir=artifacts/t222_pytest_cache --basetemp=artifacts/t222_pytest_basetemp)",
+      "Bash(TEMP=artifacts/t222_pytest_tmp TMP=artifacts/t222_pytest_tmp pytest tests/test_outbound_message_request_schema.py tests/test_outbound_send_gate.py tests/test_outbound_fake_adapter.py -q -o cache_dir=artifacts/t222_pytest_cache --basetemp=artifacts/t222_pytest_basetemp)",
+      "Bash(TEMP=artifacts/t222_pytest_tmp TMP=artifacts/t222_pytest_tmp pytest tests/ -q -o cache_dir=artifacts/t222_pytest_cache --basetemp=artifacts/t222_pytest_basetemp)",
+      "Bash(TEMP=artifacts/t222_pytest_tmp TMP=artifacts/t222_pytest_tmp pytest tests/ -q -o cache_dir=artifacts/t222_pytest_cache --basetemp=artifacts/t222_pytest_basetemp --ignore=tests/test_behavior_review_cli.py)",
+      "Bash(TEMP=artifacts/t222_pytest_tmp TMP=artifacts/t222_pytest_tmp pytest tests/ -q -o cache_dir=artifacts/t222_pytest_cache --basetemp=artifacts/t222_pytest_basetemp --ignore=tests/test_behavior_review_cli.py --ignore=tests/test_llm_reply_generator.py)"
     ]
   }
 }

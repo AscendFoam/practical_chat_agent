@@ -191,6 +191,20 @@ class TestOutboundSendGateEvaluate:
         assert decision.allowed is False
         assert "quiet_hours_blocked" in decision.blocked_reasons
 
+    def test_quiet_hours_clear_note_is_recorded_outside_quiet_window(self) -> None:
+        gate = OutboundSendGate(
+            config=_config(
+                quiet_hours_start="23:00",
+                quiet_hours_end="08:00",
+            ),
+        )
+        now = datetime(2026, 5, 28, 14, 30, tzinfo=timezone.utc)
+
+        decision = gate.evaluate(_request(), now=now)
+
+        assert decision.allowed is True
+        assert "quiet_hours_clear" in decision.passed_checks
+
     def test_frequency_limit_blocks_excess_allowed_history(self) -> None:
         now = datetime(2026, 5, 28, 14, 30, tzinfo=timezone.utc)
         history = [
@@ -215,6 +229,26 @@ class TestOutboundSendGateEvaluate:
         assert decision.allowed is False
         assert "frequency_limit_exceeded" in decision.blocked_reasons
 
+    def test_frequency_limit_clear_note_is_recorded_below_threshold(self) -> None:
+        now = datetime(2026, 5, 28, 14, 30, tzinfo=timezone.utc)
+        history = [
+            _allowed_history_request(
+                draft_text="older draft one",
+                evaluated_at=now - timedelta(seconds=120),
+            ),
+        ]
+        gate = OutboundSendGate(
+            config=_config(
+                frequency_limit_count=2,
+                frequency_limit_window_seconds=600,
+            ),
+        )
+
+        decision = gate.evaluate(_request(), now=now, recent_requests=history)
+
+        assert decision.allowed is True
+        assert "frequency_limit_clear" in decision.passed_checks
+
     def test_duplicate_suppression_blocks_same_normalized_draft_text(self) -> None:
         now = datetime(2026, 5, 28, 14, 30, tzinfo=timezone.utc)
         history = [
@@ -234,6 +268,25 @@ class TestOutboundSendGateEvaluate:
         assert decision.allowed is False
         assert "duplicate_suppressed" in decision.blocked_reasons
 
+    def test_duplicate_clear_note_is_recorded_for_distinct_draft_text(self) -> None:
+        now = datetime(2026, 5, 28, 14, 30, tzinfo=timezone.utc)
+        history = [
+            _allowed_history_request(
+                draft_text="A distinct synthetic history draft.",
+                evaluated_at=now - timedelta(seconds=120),
+            ),
+        ]
+        gate = OutboundSendGate(
+            config=_config(
+                duplicate_window_seconds=600,
+            ),
+        )
+
+        decision = gate.evaluate(_request(), now=now, recent_requests=history)
+
+        assert decision.allowed is True
+        assert "duplicate_check_clear" in decision.passed_checks
+
     def test_self_echo_prevention_blocks_latest_inbound_text(self) -> None:
         gate = OutboundSendGate(config=_config())
         context = OutboundSendGateContext(
@@ -245,6 +298,18 @@ class TestOutboundSendGateEvaluate:
         assert decision.allowed is False
         assert "self_echo_prevention" in decision.blocked_reasons
 
+    def test_self_echo_clear_note_is_recorded_for_non_matching_context(self) -> None:
+        gate = OutboundSendGate(config=_config())
+        context = OutboundSendGateContext(
+            latest_inbound_text="A different synthetic inbound message.",
+            self_echo_reference_texts=["Another distinct synthetic note."],
+        )
+
+        decision = gate.evaluate(_request(), context=context)
+
+        assert decision.allowed is True
+        assert "self_echo_clear" in decision.passed_checks
+
     def test_self_echo_prevention_blocks_explicit_reference_text(self) -> None:
         gate = OutboundSendGate(config=_config())
         context = OutboundSendGateContext(
@@ -255,3 +320,15 @@ class TestOutboundSendGateEvaluate:
 
         assert decision.allowed is False
         assert "self_echo_prevention" in decision.blocked_reasons
+
+    def test_multiple_block_reasons_are_preserved(self) -> None:
+        gate = OutboundSendGate(config=_config(kill_switch_enabled=True))
+        request = _request(
+            human_approval=OutboundRequestHumanApproval(),
+        )
+
+        decision = gate.evaluate(request)
+
+        assert decision.allowed is False
+        assert "human_approval_pending" in decision.blocked_reasons
+        assert "kill_switch_enabled" in decision.blocked_reasons

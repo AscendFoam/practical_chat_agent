@@ -1,5 +1,32 @@
 # Decision Log
 
+## D065: T222 PASS, accept local fake adapter, advance to T223
+
+- Date: 2026-05-28
+- Status: Accepted
+- Context: `docs/review/T222_review.md` gives `PASS` for the local fake adapter task. No blocking issues were found. The review confirms T222 consumes only already-sendable `OutboundMessageRequest` records, rejects direct `CandidateAction` inputs, records deterministic synthetic fake-delivery results, and introduces no real platform delivery, scheduler, runtime loop, CLI send path, external service, private chat-history read, or store mutation.
+- Decision: T222 is complete. The project may continue to T223 `Feishu Sandbox Adapter`.
+- Review observation handling:
+  - Accepted:
+    - N01 candidate-shaped mapping detection is intentionally conservative for current adapter-safety scope.
+    - N02 rejected direct `CandidateAction` model instances may report `contact_id=None` / `user_id=None`; this is cosmetic because the result is already `blocked_invalid_request`.
+    - N03 `payload_preview` truncates and normalizes text but is not a privacy boundary for future real adapters.
+    - M01 missing fake-adapter config validation tests are minor coverage-strength debt and should be covered in T223 if touching fake-adapter tests.
+    - M02 missing explicit `existing_audit` fake-adapter test is minor coverage-strength debt and should be covered in T223 if touching fake-adapter tests.
+    - M03 missing exact-boundary preview truncation tests are minor coverage-strength debt and should be covered in T223 if touching fake-adapter tests.
+  - Deferred: none from the T222 review decision.
+  - Rejected: none.
+- Conditions carried forward:
+  - T223 may implement only a Feishu sandbox/dry-run adapter boundary over already-sendable `OutboundMessageRequest` records.
+  - T223 must not add production Feishu delivery, real platform credentials, webhook/event handling, runtime/CLI send paths, schedulers, background jobs, or automatic sending.
+  - T223 must keep recipient mapping explicit and outside `OutboundMessagePayload.metadata`.
+  - T223 must not treat gate `allowed`, fake `fake_delivered`, or candidate approval as production delivery.
+- Impact:
+  - `docs/04_task_board.md` moves the Current Unique Task from T222 to T223 and marks T222 complete.
+  - `docs/07_handoff.md` records the T222 review decision and T223 task boundary.
+  - `docs/08_risks_and_open_questions.md` records the real-adapter privacy carry-forward risk and closes Q200.
+  - `docs/tasks/M11_outbound_sendgate_feishu/T223_feishu_adapter.md` is expanded into a complete worker task package.
+
 ## D064: T221 PASS, accept OutboundSendGate, advance to T222
 
 - Date: 2026-05-28

@@ -1,5 +1,35 @@
 # Handoff
 
+## Captain Current State Override 2026-05-28 (T222 Review Decision)
+
+- T222 review decision: `PASS`.
+- T222 is complete as the local fake outbound adapter task for M11.
+- T222 review observation disposition:
+  - Accepted: N01 candidate-shaped mapping detection is intentionally conservative, N02 blocked direct `CandidateAction` model results may omit `contact_id` / `user_id` cosmetically, N03 `payload_preview` truncation is not a privacy boundary for future real adapters, M01 fake-adapter config validation tests are useful hardening, M02 `existing_audit` coverage is useful hardening, M03 preview boundary tests are useful hardening.
+  - Deferred: none from the T222 review decision.
+  - Rejected: none.
+- Captain decision: no T222 repair pass is needed.
+- Current Unique Task: T223 Feishu Sandbox Adapter.
+- Current task package: `docs/tasks/M11_outbound_sendgate_feishu/T223_feishu_adapter.md`.
+- T223 must remain Feishu-sandbox-only and non-production:
+  - may consume only `OutboundMessageRequest` records that are already sendable through explicit outbound human approval plus T221 gate `allowed`
+  - may prepare Feishu-compatible text payloads from approved outbound draft text and explicit sandbox recipient mapping
+  - may default to dry-run and may use an injected fake/sandbox transport in tests
+  - must not add production Feishu delivery, credentials, webhook/event handling, scheduler/timer/background jobs, CLI/runtime send paths, AppContainer wiring, automatic sending, WeChat integration, or real external API calls in committed tests
+  - must not read `private/chat_history/` or commit private content
+- Captain verification basis:
+  - Reviewer reported no blocking issues.
+  - Reviewer reported `python -m py_compile src/practical_chat_agent/core/models.py src/practical_chat_agent/services/outbound_send_gate.py src/practical_chat_agent/services/outbound_fake_adapter.py` passed.
+  - Reviewer reported `pytest tests/test_outbound_send_gate.py tests/test_outbound_fake_adapter.py` passed: 24 tests.
+  - Reviewer reported `pytest tests/test_outbound_message_request_schema.py tests/test_outbound_send_gate.py tests/test_outbound_fake_adapter.py` passed: 43 tests.
+  - Reviewer reported full-suite status as 10 pre-existing typer/LLM/CLI-dependent failures plus 762 passed in the reviewer environment; worker summary reported 823 passed in the worker environment. No T222-targeted failures were reported.
+- M11 residual risks carried forward:
+  - Gate `allowed` is not delivery.
+  - Fake `fake_delivered` is local synthetic simulation only.
+  - `payload_preview` truncation is not a privacy boundary for future real adapters.
+  - T223/T224 and M12 remain behind later task packages and reviews.
+  - Windows named-timezone verification needs either `tzdata` or a documented UTC-only fallback.
+
 ## Captain Current State Override 2026-05-28 (T221 Review Decision)
 
 - T221 review decision: `PASS`.
@@ -3611,3 +3641,78 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
     in scope yet.
   - `manual_only_mode` remains intentionally fixed to the current conservative
     mainline and does not create any autonomous send path.
+
+## T222 Worker Completion Record
+
+- T222 is the local fake outbound adapter task for M11.
+- Worker must not mark T222 as complete in `docs/04_task_board.md`; only the
+  Captain may do so after review.
+- Files changed:
+  - `src/practical_chat_agent/services/outbound_fake_adapter.py`
+  - `tests/test_outbound_fake_adapter.py`
+  - `tests/test_outbound_send_gate.py`
+  - `docs/data_contracts/outbound_send_gate_contract.md`
+  - `docs/worker_summary/T222_worker_summary.md`
+  - `docs/07_handoff.md`
+- Test-first evidence:
+  - `tests/test_outbound_fake_adapter.py` and the extra T221 clear-path /
+    multi-blocking coverage in `tests/test_outbound_send_gate.py` were written
+    before the adapter existed.
+  - The first targeted pytest run failed during import because
+    `practical_chat_agent.services.outbound_fake_adapter` did not exist.
+  - The local fake adapter was then added minimally until the targeted tests
+    passed.
+- Fake adapter behavior added:
+  - `LocalFakeOutboundAdapter.deliver()` accepts a validated
+    `OutboundMessageRequest` or a stable mapping that validates to one.
+  - Direct `CandidateAction` instances and mappings are rejected with
+    `blocked_invalid_request`.
+  - Requests where `is_sendable()` is false are rejected locally with
+    `blocked_not_sendable`.
+  - Sendable requests produce deterministic in-memory
+    `FakeOutboundDeliveryResult` records with `fake_delivered`.
+  - Result metadata records `request_id`, `contact_id`, `user_id`,
+    `channel_preference`, adapter name, fake delivery timestamp, truncated
+    payload preview, and safe audit notes.
+  - The adapter does not mutate the input request and does not write to disk or
+    contact any external platform.
+- Additional T221 coverage added:
+  - quiet-hours clear path
+  - frequency-limit clear path
+  - duplicate-suppression clear path
+  - self-echo clear path
+  - combined blocking reasons preserved for pending approval plus kill switch
+  - fake-adapter blocking for missing explicit human approval
+- Timezone portability decision:
+  - T222 did not add `tzdata` to `pyproject.toml`.
+  - New T222 test coverage was kept on UTC-based paths, and the earlier Windows
+    named-timezone portability risk remains open as R097.
+- Verification status:
+  - Commands were run with `TEMP` and `TMP` set to
+    `artifacts\t222_pytest_tmp`, pytest cache set to
+    `artifacts\t222_pytest_cache`, and `--basetemp` set to
+    `artifacts\t222_pytest_basetemp` to keep pytest temp/cache inside the
+    workspace-local sandbox path.
+  - `python -m py_compile src/practical_chat_agent/core/models.py src/practical_chat_agent/services/outbound_send_gate.py src/practical_chat_agent/services/outbound_fake_adapter.py`: passed.
+  - `pytest tests/test_outbound_send_gate.py tests/test_outbound_fake_adapter.py -q -o cache_dir=artifacts\t222_pytest_cache --basetemp=artifacts\t222_pytest_basetemp`: passed, 24 tests.
+  - `pytest tests/test_outbound_message_request_schema.py tests/test_outbound_send_gate.py tests/test_outbound_fake_adapter.py -q -o cache_dir=artifacts\t222_pytest_cache --basetemp=artifacts\t222_pytest_basetemp`: passed, 43 tests.
+  - `pytest tests/ -q -o cache_dir=artifacts\t222_pytest_cache --basetemp=artifacts\t222_pytest_basetemp`: passed, 823 tests.
+- Explicit non-actions:
+  - No real message sending.
+  - No Feishu, WeChat, webhook, email, browser, desktop, or notification API
+    calls.
+  - No scheduler, timer, reminder, background job, automation, or runtime loop.
+  - No CLI send path, app-container wiring, or delivery execution hook.
+  - No LLM/provider calls, web services, vector DB, Mem0/Zep, or external systems.
+  - No mutation of `CandidateAction`, memory records, ContactSkill,
+    `RelationshipState`, approved stores, or private artifacts.
+  - No `private/chat_history/` reads and no committed private content.
+  - No task-board update.
+- Remaining risks:
+  - T222 proves only a local synthetic adapter boundary; there is still no real
+    platform delivery, acknowledgement, or retry model.
+  - `FakeOutboundDeliveryResult` stores a truncated preview only; any future
+    adapter task must keep the same review-safe boundary and avoid raw
+    transcript leakage.
+  - The Windows named-timezone portability risk from T221 remains open because
+    T222 intentionally did not add `tzdata`.

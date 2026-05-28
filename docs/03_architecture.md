@@ -1,5 +1,35 @@
 # Architecture
 
+## Captain Update 2026-05-28 (T222 Review)
+
+T222 adds the first adapter boundary, but only as local simulation:
+
+```text
+sendable OutboundMessageRequest
+  -> LocalFakeOutboundAdapter
+  -> FakeOutboundDeliveryResult(fake_delivered)
+  -> synthetic in-memory evidence only
+  -> no network, platform API, scheduler, CLI send path, or runtime loop
+```
+
+The next architectural step is T223:
+
+```text
+sendable OutboundMessageRequest
+  -> FeishuSandboxOutboundAdapter / equivalent
+  -> Feishu-compatible sandbox payload/result
+  -> dry-run or injected fake/sandbox transport only
+  -> still no production Feishu delivery or automatic sending
+```
+
+The architecture now has three distinct states that must not be collapsed:
+
+- gate `allowed`: policy eligibility
+- fake `fake_delivered`: local synthetic simulation
+- Feishu sandbox prepared/sent: platform-specific sandbox boundary only
+
+Production delivery remains outside the current reviewed state.
+
 ## Captain Update 2026-05-28 (T221 Review)
 
 T221 adds the policy gate between outbound intent and any adapter:

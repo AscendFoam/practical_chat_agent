@@ -1,5 +1,24 @@
 # Eval Protocol
 
+## Captain Update 2026-05-28 (T222 Review)
+
+T222 has now been accepted with `PASS`.
+
+Current evaluation sequence is now:
+
+- T223: can the repo implement a Feishu sandbox adapter boundary that consumes
+  only already-sendable `OutboundMessageRequest` records, prepares
+  Feishu-compatible payload/result data from approved outbound text plus
+  explicit sandbox recipient mapping, defaults to dry-run behavior, supports
+  fake/injected transport tests, and still introduces no production Feishu
+  delivery, scheduler, runtime loop, CLI send path, external-service test call,
+  or automatic outbound behavior?
+
+T222 changes the evaluation baseline in one important way: M11 no longer needs
+to prove whether adapter-boundary discipline is possible without platforms.
+That local fake layer exists. The next evaluation target is Feishu-specific
+sandbox payload and audit discipline, not real delivery.
+
 ## Captain Update 2026-05-28 (T221 Review)
 
 T221 has now been accepted with `PASS`.

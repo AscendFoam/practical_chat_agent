@@ -1,14 +1,15 @@
 # Outbound Send Gate Contract
 
-Task: T220 OutboundMessageRequest Schema + T221 OutboundSendGate
+Task: T220 OutboundMessageRequest Schema + T221 OutboundSendGate + T222 Local Fake Adapter
 Status: worker draft for review
 
 ## Scope
 
-M11 starts in two explicit layers:
+M11 starts in three explicit layers:
 
 - T220: inert outbound request contract
 - T221: deterministic gate decision over that contract
+- T222: local fake adapter simulation after the gate
 
 The committed surfaces are:
 
@@ -20,9 +21,13 @@ The committed surfaces are:
 - `OutboundSendGateContext`
 - `OutboundSendGateDecision`
 - `OutboundSendGate`
+- `FakeOutboundAdapterConfig`
+- `FakeOutboundDeliveryResult`
+- `LocalFakeOutboundAdapter`
 
 This contract still does not include delivery, adapters, schedulers, CLI send
-commands, runtime loops, or external services.
+commands, runtime loops, or external services. T222 adds only a local fake
+adapter simulation layer, not a real platform adapter.
 
 ## Relationship To M10 CandidateAction
 
@@ -44,6 +49,10 @@ authorization:
 T221 evaluates only `OutboundMessageRequest.human_approval`,
 `OutboundMessageRequest.send_gate`, payload text, supplied history, and
 supplied gate context.
+
+T222 still does not treat reviewed `CandidateAction` artifacts as send or
+adapter authorization. Direct `CandidateAction` inputs are rejected at the fake
+adapter boundary.
 
 ## OutboundMessageRequest Layer
 
@@ -214,6 +223,76 @@ Only after both are true can `OutboundMessageRequest.is_sendable()` return
 - the gate records why
 - no delivery side effect occurs
 
+## T222 Fake Adapter Inputs
+
+`LocalFakeOutboundAdapter.deliver()` accepts:
+
+- a validated `OutboundMessageRequest`
+- or a stable mapping that validates to `OutboundMessageRequest`
+
+The fake adapter rejects:
+
+- any request where `request.is_sendable()` is `false`
+- any request whose outbound human approval is not explicitly approved
+- any request whose `send_gate.gate_state` is not `allowed`
+- direct `CandidateAction` instances
+- mappings that represent `CandidateAction` records
+- invalid mappings that do not validate to `OutboundMessageRequest`
+
+`OutboundMessageRequest.is_sendable()` is the adapter boundary. T222 does not
+bypass that check and does not infer sendability from prior review artifacts.
+
+## T222 Fake Delivery Result Shape
+
+`FakeOutboundDeliveryResult` returns:
+
+- `adapter_name`
+- `delivery_status`
+- `delivered`
+- `request_id`
+- `contact_id`
+- `user_id`
+- `channel_preference`
+- `delivered_at`
+- `payload_preview`
+- `audit_notes`
+
+Current local statuses are:
+
+- `fake_delivered`
+- `blocked_not_sendable`
+- `blocked_invalid_request`
+
+`payload_preview` is intentionally truncated review-safe text. T222 does not
+persist full raw transcript fields, adapter payload blobs, or delivery
+responses.
+
+## T222 Fake Adapter Lifecycle
+
+T222 fake-adapter lifecycle:
+
+1. accept an outbound request or stable mapping
+2. reject direct `CandidateAction` input
+3. validate request shape locally
+4. require `request.is_sendable()==true`
+5. return a deterministic in-memory `FakeOutboundDeliveryResult`
+6. record local audit notes that distinguish fake simulation from real delivery
+
+The adapter returns a new result object only. It does not mutate the input
+request, create a scheduler job, or write to a platform.
+
+## Gate `allowed` Vs Fake `fake_delivered` Vs Real Delivery
+
+These states are deliberately different:
+
+- gate `allowed`: deterministic policy eligibility only
+- fake `fake_delivered`: local synthetic adapter simulation only
+- real delivery: out of scope for T222 and still not implemented here
+
+T222 proves only that a gate-approved request can cross a safe local adapter
+boundary. It does not prove Feishu, WeChat, webhook, email, browser, desktop,
+notification, or runtime delivery.
+
 ## Audit Note Conventions
 
 T221 keeps gate notes deterministic and flat. Typical note families are:
@@ -286,21 +365,23 @@ T221 preserves the compact-context rule:
 - no scheduler or timer objects
 - no credentials or platform tokens
 - no repository or database dependency
+- no external platform or runtime delivery side effect
 
 All tests and examples must stay synthetic.
 
-## What T221 Does Not Authorize
+## What T222 Still Does Not Authorize
 
-T221 does not authorize:
+T222 does not authorize:
 
 - message sending
 - scheduling
 - reminders, timers, background jobs, or automations
-- fake adapter execution
 - Feishu adapter execution
 - WeChat adapter execution
 - webhook, email, browser, desktop, or notification delivery
 - CLI send commands or runtime loops
+- real delivery completion
+- platform API calls, connector handles, or delivery credentials
 - mutation of `CandidateAction`, memory records, ContactSkill, relationship
   state, approved stores, or private artifacts
-- treating gate `allowed` as delivery completion
+- treating gate `allowed` or fake `fake_delivered` as real delivery completion

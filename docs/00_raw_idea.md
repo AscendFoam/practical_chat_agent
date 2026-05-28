@@ -1,5 +1,27 @@
 # Raw Idea
 
+## Captain Update 2026-05-28 (T222 Review)
+
+T222 has now passed review with `PASS`, so M11 has a local synthetic adapter
+boundary after the send gate:
+
+- the repo now has `LocalFakeOutboundAdapter`,
+  `FakeOutboundAdapterConfig`, and `FakeOutboundDeliveryResult`
+- the fake adapter consumes only `OutboundMessageRequest` records that are
+  already sendable through explicit outbound human approval plus T221 gate
+  `allowed`
+- direct `CandidateAction` inputs are rejected; candidate review state remains
+  evidence only and cannot authorize delivery
+- fake `fake_delivered` is local simulation only, not platform delivery,
+  acknowledgement, retry, scheduler, runtime loop, or automatic sending
+- reviewer observations are accepted as conservative heuristic, cosmetic
+  metadata, privacy-boundary, or minor coverage-strength notes under a `PASS`
+  verdict; no repair pass is opened
+- the next safe step is T223 `Feishu Sandbox Adapter`, limited to a sandbox /
+  dry-run Feishu adapter boundary behind the same sendability checks
+
+The Current Unique Task therefore moves to T223 `Feishu Sandbox Adapter`.
+
 ## Captain Update 2026-05-28 (T221 Review)
 
 T221 has now passed review with `PASS`, so M11 has a deterministic send-gate layer without delivery:
