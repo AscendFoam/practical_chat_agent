@@ -16,6 +16,8 @@ T232 must remain blocked until:
 
 - T231 has selected and reviewed exactly one official WeChat-family inbound
   surface;
+- T233 has defined and reviewed the local provider-constraint safety gate for
+  that surface;
 - Captain has reviewed the T231 result and updated governance docs;
 - a later Captain task package defines provider-specific recipient mapping,
   service-window checks, credential prerequisites, and synthetic dry-run
@@ -43,6 +45,8 @@ adapter similar to T223 Feishu sandbox:
 
 - consume only `OutboundMessageRequest` records where explicit human approval
   and `OutboundSendGate` make `is_sendable()` true;
+- consume only requests allowed by the T233 WeCom Customer Service provider
+  safety gate;
 - require a reviewed explicit recipient map outside
   `OutboundMessagePayload.metadata`;
 - enforce provider service-window and quota preconditions before preparing any

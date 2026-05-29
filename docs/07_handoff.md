@@ -1,5 +1,35 @@
 # Handoff
 
+## Captain Current State Override 2026-05-29 (T231 Review Decision)
+
+- T231 review decision: `PASS`.
+- T231 is complete as the WeCom Customer Service inbound contract spike for M12.
+- T231 review observation disposition:
+  - Accepted: N01 `connectors.inbound.__init__` export style is a minor namespace inconsistency, N02 timestamp epoch fallback is acceptable for synthetic-only scope but live work needs invalid-timestamp semantics, N03 first-message-only parsing matches current one-event inbound abstraction and batching remains future scope, N04 timestamp/text/optional/fallback coverage gaps are minor, N05 far-future timestamp heuristic is not practical current risk.
+  - Deferred: none from the T231 review decision.
+  - Rejected: none.
+- Captain decision: no T231 repair pass is needed.
+- Current Unique Task: T233 WeCom Customer Service Provider Safety Gate.
+- Current task package: `docs/tasks/M12_wechat_adapter/T233_wechat_safety_mode.md`.
+- T233 must remain provider-safety-only and non-delivery:
+  - may implement a deterministic local provider safety gate over already-sendable `OutboundMessageRequest` records
+  - may evaluate explicit recipient map, active service window, 5-message window limit, provider kill switch, manual-send-only defaults, metadata-smuggling blocks, and review-safe audit aliases
+  - must not prepare WeCom API payloads, call APIs, load credentials, register callbacks, poll/sync messages, add runtime wiring, send messages, mutate stores, read private artifacts, or update task board
+- Captain verification basis:
+  - Reviewer reported no blocking issues.
+  - Reviewer verified all required T231 scenarios were covered by six committed tests.
+  - Reviewer verified T231 changed only allowed files and did not modify core models, outbound adapters, send-gate behavior, CLI commands, runtime services, or task board.
+  - Worker summary reports `py_compile` passed for the new connector and inbound package init.
+  - Worker summary reports targeted T231 pytest passed: 6 tests.
+  - Worker summary reports `git diff --check` passed with line-ending conversion warnings only.
+- M12 residual risks carried forward:
+  - T231 is synthetic-contract-only and does not prove live WeCom callback compatibility.
+  - Timestamp fallback and first-message-only parsing are acceptable for synthetic scope but not sufficient for live sync/callback integration.
+  - Official docs may drift before live work.
+  - No recipient mapping exists from synthetic WeCom aliases to repo contacts.
+  - Provider credential flow, callback verification, encryption/decryption, service-window tracking, quota enforcement, and failure-event state mutation remain unresolved.
+  - T232 remains blocked until T233 provider safety passes review and Captain rewrites T232.
+
 ## Captain Current State Override 2026-05-28 (T230 Review Decision / M12 Conditional)
 
 - T230 review decision: `PASS`.
@@ -26,7 +56,7 @@
   - Official docs may drift and must be rechecked before any implementation touches credentials, callbacks, polling, or APIs.
   - WeCom Customer Service is an official customer-service surface, not a generic personal WeChat friend-chat adapter and not a direct WeFlow contact mapping.
   - No live account, tenant, app, callback URL, credential flow, recipient mapping, service-window tracking, delivery callback, or provider failure handling has been tested.
-  - T232 live outbound remains blocked until T231 is reviewed and Captain approves a provider-specific recipient mapping / tenant prerequisite model.
+  - Historical note: T231 has since passed; T232 remains blocked until T233 provider safety passes review and Captain rewrites T232.
   - Personal WeChat automation, scan-login resurrection, realtime personal-account send/receive, desktop automation, and unofficial SDK vendoring remain blocked.
 
 ## Captain Current State Override 2026-05-28 (T224 Review Decision / M11 Close)
@@ -4005,3 +4035,82 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
     implementation task.
   - Official business/customer-service surfaces do not cleanly map to personal
     WeFlow chat contacts.
+
+## T231 Worker Completion Record
+
+- T231 is the WeCom Customer Service inbound contract spike for M12.
+- Worker must not mark T231 as complete in `docs/04_task_board.md`; only the
+  Captain may do so after review.
+- Files changed:
+  - `src/practical_chat_agent/connectors/inbound/wecom_customer_service.py`
+  - `src/practical_chat_agent/connectors/inbound/__init__.py`
+  - `tests/test_wecom_customer_service_inbound.py`
+  - `tests/fixtures/wecom_customer_service_inbound/inbound_text_message.json`
+  - `tests/fixtures/wecom_customer_service_inbound/non_text_message.json`
+  - `tests/fixtures/wecom_customer_service_inbound/send_failure_event.json`
+  - `tests/fixtures/wecom_customer_service_inbound/malformed_missing_identity.json`
+  - `tests/fixtures/wecom_customer_service_inbound/personal_wechat_desktop_like.json`
+  - `docs/data_contracts/wecom_customer_service_inbound_contract.md`
+  - `docs/worker_summary/T231_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED: `pytest tests/test_wecom_customer_service_inbound.py -q` failed during
+    collection because `practical_chat_agent.connectors.inbound.wecom_customer_service`
+    did not exist.
+  - GREEN: the targeted T231 pytest command passed with 6 tests after adding
+    the connector.
+- Inbound contract behavior added:
+  - `WeComCustomerServiceInboundConnector.connector_name` is
+    `wecom_customer_service`.
+  - The connector accepts synthetic wrapper payloads and documented-like WeCom
+    Customer Service `msg_list` / `event` shapes.
+  - Text customer messages normalize to `InboundEvent` with
+    `platform=wechat`, `source_type=chat_message`, `direction=inbound`,
+    `channel_type=dm`, `content_type=text`, deterministic event IDs,
+    customer-service-scoped channel/account IDs, synthetic external-user alias
+    actor IDs, and synthetic raw contract metadata.
+  - Unsupported non-text messages normalize conservatively as
+    `ContentType.SYSTEM` without media fetching.
+  - Provider send-failure events normalize as inbound `SYSTEM_EVENT` evidence
+    without mutating outbound state.
+  - Malformed WeCom-shaped payloads are rejected deterministically.
+  - Personal-WeChat/desktop-like payloads are not accepted.
+- Official docs:
+  - Rechecked official WeCom Customer Service receive/send docs on 2026-05-28:
+    `https://developer.work.weixin.qq.com/document/path/94670` and
+    `https://developer.work.weixin.qq.com/document/path/94677`.
+- Explicit non-actions:
+  - No live callback route, webhook server, polling/sync loop, scheduler,
+    background job, runtime ingestion hook, or `AppContainer` wiring.
+  - No platform API call, package install, SDK clone, SDK vendoring, or
+    unofficial SDK snippet.
+  - No real credentials, tokens, callback secrets, tenant IDs, app IDs, OpenIDs,
+    external user IDs, `open_kfid`, chat IDs, cookies, QR codes, or private
+    recipients.
+  - No encryption/decryption, real signature verification, OAuth, credential
+    loading, environment-variable handling, tenant setup, or IP allowlist.
+  - No outbound payload preparation, sending, retry, delivery interpretation,
+    memory write, ContactSkill mutation, RelationshipState mutation, feedback
+    write, approved-store mutation, or outbound request/gate mutation.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact reads.
+  - No task-board update.
+- Verification status:
+  - `python -m py_compile src/practical_chat_agent/connectors/inbound/wecom_customer_service.py src/practical_chat_agent/connectors/inbound/__init__.py`:
+    passed.
+  - `pytest tests/test_wecom_customer_service_inbound.py -q -o cache_dir=artifacts\t231_pytest_cache --basetemp=artifacts\t231_pytest_basetemp`:
+    passed, 6 tests.
+  - `git diff --check`: passed with line-ending conversion warnings only for
+    `docs/07_handoff.md` and
+    `src/practical_chat_agent/connectors/inbound/__init__.py`.
+  - `git status --short`: ran successfully and showed only T231 allowed-file
+    changes in this worker state.
+- Remaining risks:
+  - T231 proves only synthetic local normalization, not live WeCom callback or
+    sync compatibility.
+  - Official docs may drift before live work.
+  - Parser batching remains undefined because the current inbound abstraction
+    returns one event per parse.
+  - Synthetic WeCom customer aliases are not repo contact mappings.
+  - Credential flow, callback verification, encryption/decryption,
+    service-window tracking, quota enforcement, recipient mapping, and
+    failure-event outbound-state handling remain unresolved.

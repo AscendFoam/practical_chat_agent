@@ -1,5 +1,25 @@
 # Eval Protocol
 
+## Captain Update 2026-05-29 (T231 Review)
+
+T231 has now been accepted with `PASS`.
+
+Current evaluation sequence is now:
+
+- T233: can the repo implement a deterministic local WeCom Customer Service
+  provider safety gate that consumes only already-sendable
+  `OutboundMessageRequest` records and blocks on missing recipient mapping,
+  expired/missing service window, 5-message window limit, provider kill switch,
+  manual-send disallowance, wrong channel/surface, or provider identity/secret
+  metadata smuggling, while still preparing no outbound payload, calling no API,
+  loading no credentials, registering no callbacks, reading no private content,
+  mutating no stores, and sending nothing?
+
+T231 changes the evaluation baseline in one important way: M12 no longer needs
+to prove whether a synthetic WeCom Customer Service inbound normalizer can exist.
+That contract exists. The next evaluation target is provider eligibility and
+audit discipline, not outbound adapter behavior.
+
 ## Captain Update 2026-05-28 (T230 Review / M12 Conditional)
 
 T230 has now been accepted with `PASS`, and M12 has `Gate M12 Conditional`.

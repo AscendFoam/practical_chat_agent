@@ -1,0 +1,24 @@
+{
+  "_meta": {
+    "connector_name": "wecom_customer_service",
+    "fixture_name": "inbound_text_message",
+    "synthetic": true
+  },
+  "agent_id": "wecom_kf_account_support",
+  "next_cursor": "cursor_alias_001",
+  "has_more": 0,
+  "msg_list": [
+    {
+      "msgid": "msg_alias_text_001",
+      "open_kfid": "kf_alias_support",
+      "external_userid": "customer_alias_001",
+      "send_time": 1716883200,
+      "origin": 3,
+      "servicer_userid": "servicer_alias_001",
+      "msgtype": "text",
+      "text": {
+        "content": "Hello, I need help with my appointment."
+      }
+    }
+  ]
+}

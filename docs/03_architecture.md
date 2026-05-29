@@ -1,5 +1,39 @@
 # Architecture
 
+## Captain Update 2026-05-29 (T231 Review)
+
+T231 adds the first selected official WeChat-family inbound contract:
+
+```text
+synthetic WeCom Customer Service message/event fixtures
+  -> WeComCustomerServiceInboundConnector
+  -> InboundConnectorResult
+  -> InboundEvent
+  -> no live callback server, polling loop, credential handling,
+     runtime ingestion hook, store mutation, outbound payload, or send
+```
+
+The next architectural layer is not an outbound adapter. It is a provider
+constraint gate:
+
+```text
+OutboundMessageRequest
+  -> OutboundSendGate.allowed
+  -> WeComCustomerServiceSafetyGate.allowed / blocked
+     - explicit synthetic recipient map
+     - active service window
+     - 5-message window limit
+     - provider kill switch
+     - manual-send-only policy
+     - metadata-smuggling block
+     - review-safe audit aliases
+  -> later dry-run outbound adapter only after review
+```
+
+This keeps M12 staged. Inbound contract, provider eligibility, payload
+preparation, provider transport, callback/failure handling, and delivery
+interpretation remain separate states.
+
 ## Captain Update 2026-05-28 (T230 Review / M12 Conditional)
 
 T230 keeps M12 behind an official-surface contract boundary:
@@ -30,8 +64,9 @@ normalize synthetic provider messages/events into `InboundEvent`; it may not add
 runtime ingestion, `AppContainer` wiring, credential/config loading, webhook
 routes, polling, outbound requests, or platform delivery.
 
-T232 and T233 remain architectural placeholders until T231 proves a selected
-surface and Captain rewrites the next package.
+T231 has since proved the selected synthetic inbound surface. T233 is now the
+provider-safety layer, and T232 remains an architectural placeholder until T233
+passes review and Captain rewrites the outbound package.
 
 ## Captain Update 2026-05-28 (T224 Review / M11 Close)
 

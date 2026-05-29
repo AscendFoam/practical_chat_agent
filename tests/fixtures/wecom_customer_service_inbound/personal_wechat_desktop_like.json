@@ -1,0 +1,16 @@
+{
+  "_meta": {
+    "connector_name": "wechat_desktop",
+    "fixture_name": "personal_wechat_desktop_like",
+    "synthetic": true
+  },
+  "platform": "personal_wechat_desktop",
+  "conversation_title": "Synthetic Personal Chat",
+  "messages": [
+    {
+      "sender_name": "Synthetic Friend",
+      "bubble_side": "left",
+      "text": "This shape must not be accepted as WeCom Customer Service."
+    }
+  ]
+}

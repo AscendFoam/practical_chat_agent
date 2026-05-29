@@ -1,0 +1,18 @@
+{
+  "_meta": {
+    "connector_name": "wecom_customer_service",
+    "fixture_name": "malformed_missing_identity",
+    "synthetic": true
+  },
+  "agent_id": "wecom_kf_account_support",
+  "msg_list": [
+    {
+      "msgid": "msg_alias_missing_identity",
+      "send_time": 1716883320,
+      "msgtype": "text",
+      "text": {
+        "content": "This payload is missing customer-service identity fields."
+      }
+    }
+  ]
+}

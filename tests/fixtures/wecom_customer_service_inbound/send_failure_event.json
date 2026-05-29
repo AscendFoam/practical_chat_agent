@@ -1,0 +1,15 @@
+{
+  "_meta": {
+    "connector_name": "wecom_customer_service",
+    "fixture_name": "send_failure_event",
+    "synthetic": true
+  },
+  "agent_id": "wecom_kf_account_support",
+  "event": {
+    "event_type": "msg_send_fail",
+    "open_kfid": "kf_alias_support",
+    "external_userid": "customer_alias_001",
+    "fail_msgid": "msg_alias_outbound_001",
+    "fail_type": 4
+  }
+}

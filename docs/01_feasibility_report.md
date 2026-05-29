@@ -1,5 +1,28 @@
 # Feasibility Report
 
+## Captain Update 2026-05-29 (T231 Review)
+
+T231 confirms that a selected official WeChat-family surface can be represented
+locally at the inbound contract level.
+
+The feasibility question has changed again:
+
+- no longer blocked on whether WeCom Customer Service message/event payload
+  shapes can be mapped from synthetic fixtures into `InboundEvent`
+- now focused on whether the repo can express WeCom Customer Service provider
+  constraints before outbound payload preparation: explicit recipient map,
+  active service window, 5-message window limit, manual-send-only defaults,
+  provider kill switch, metadata-smuggling blocks, audit redaction, and
+  provider acceptance vs delivery semantics
+- still not ready for live WeCom callbacks, polling/sync, credentials,
+  encryption/signature handling, API calls, outbound delivery, runtime wiring,
+  personal-WeChat automation, desktop automation, or unofficial SDKs
+
+So the project is ready to commit the T231 synthetic inbound contract slice and
+advance to T233 as a local provider safety gate. T232 remains blocked until
+T233 passes review and Captain rewrites it as dry-run outbound payload
+preparation only.
+
 ## Captain Update 2026-05-28 (T230 Review / M12 Conditional)
 
 T230 confirms that M12 is feasible only as a narrowed official-surface research

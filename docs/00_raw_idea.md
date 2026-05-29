@@ -1,5 +1,28 @@
 # Raw Idea
 
+## Captain Update 2026-05-29 (T231 Review)
+
+T231 has now passed review with `PASS`, so M12 has its first selected official
+WeChat-family contract slice:
+
+- `WeComCustomerServiceInboundConnector` normalizes synthetic WeCom Customer
+  Service message/event fixtures into `InboundEvent`
+- committed fixtures are synthetic and redacted
+- no live callback server, polling/sync loop, credential handling, API call,
+  private chat read, runtime ingestion hook, outbound payload, delivery, or
+  store mutation was introduced
+
+The next task is not T232 outbound delivery. WeCom Customer Service outbound has
+provider-specific constraints that must be local and auditable before any dry
+run adapter exists. The Current Unique Task therefore moves to T233 `WeCom
+Customer Service Provider Safety Gate`.
+
+T233 should implement a deterministic local provider-constraint gate after
+`OutboundSendGate`, covering recipient-map ownership, service-window validity,
+5-message window limits, provider kill switch, manual-send-only defaults,
+metadata smuggling blocks, and audit redaction. It still must not prepare WeCom
+API payloads or send messages.
+
 ## Captain Update 2026-05-28 (T230 Review / M12 Conditional)
 
 T230 has now passed review with `PASS`, and the M12 opening gate is

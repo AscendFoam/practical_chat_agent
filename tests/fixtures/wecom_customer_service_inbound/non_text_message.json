@@ -1,0 +1,21 @@
+{
+  "_meta": {
+    "connector_name": "wecom_customer_service",
+    "fixture_name": "non_text_message",
+    "synthetic": true
+  },
+  "agent_id": "wecom_kf_account_support",
+  "msg_list": [
+    {
+      "msgid": "msg_alias_image_001",
+      "open_kfid": "kf_alias_support",
+      "external_userid": "customer_alias_001",
+      "send_time": 1716883260,
+      "origin": 3,
+      "msgtype": "image",
+      "image": {
+        "media_id": "media_alias_image_001"
+      }
+    }
+  ]
+}

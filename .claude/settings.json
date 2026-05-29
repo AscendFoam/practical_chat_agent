@@ -240,7 +240,10 @@
       "Bash(TEMP=artifacts/t224_review_tmp TMP=artifacts/t224_review_tmp python -m py_compile src/practical_chat_agent/core/models.py src/practical_chat_agent/services/outbound_send_gate.py src/practical_chat_agent/services/outbound_fake_adapter.py src/practical_chat_agent/services/feishu_outbound_adapter.py src/practical_chat_agent/services/feishu_review_card.py)",
       "Bash(TEMP=artifacts/t224_review_tmp TMP=artifacts/t224_review_tmp python -m pytest tests/test_outbound_message_request_schema.py tests/test_outbound_send_gate.py tests/test_outbound_fake_adapter.py tests/test_feishu_outbound_adapter.py tests/test_feishu_review_card.py -q -o cache_dir=artifacts/t224_review_cache --basetemp=artifacts/t224_review_basetemp)",
       "Bash(TEMP=artifacts/t224_review_tmp TMP=artifacts/t224_review_tmp python -m pytest tests/ -q -o cache_dir=artifacts/t224_review_cache --basetemp=artifacts/t224_review_basetemp)",
-      "Bash(TEMP=artifacts/t224_review_tmp TMP=artifacts/t224_review_tmp python -m pytest tests/ -q -o cache_dir=artifacts/t224_review_cache --basetemp=artifacts/t224_review_basetemp --ignore=tests/test_behavior_review_cli.py)"
+      "Bash(TEMP=artifacts/t224_review_tmp TMP=artifacts/t224_review_tmp python -m pytest tests/ -q -o cache_dir=artifacts/t224_review_cache --basetemp=artifacts/t224_review_basetemp --ignore=tests/test_behavior_review_cli.py)",
+      "Bash(python -m pytest tests/test_wecom_customer_service_inbound.py -q --tb=short)",
+      "Bash(python -m py_compile src/practical_chat_agent/connectors/inbound/wecom_customer_service.py)",
+      "Bash(python -m py_compile src/practical_chat_agent/connectors/inbound/__init__.py)"
     ]
   }
 }

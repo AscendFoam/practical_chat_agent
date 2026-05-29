@@ -1,5 +1,31 @@
 # Decision Log
 
+## D069: T231 PASS, accept WeCom inbound contract, advance to T233
+
+- Date: 2026-05-29
+- Status: Accepted
+- Context: `docs/review/T231_review.md` gives `PASS` for the WeCom Customer Service inbound contract spike. No blocking issues were found. The review confirms T231 added a real deterministic parser for synthetic WeCom Customer Service message/event fixtures, changed only allowed files, used no private content, introduced no live callback server, polling/sync loop, platform API call, credentials, runtime ingestion hook, outbound payload, sending, or store mutation, and covered the required focused tests.
+- Decision: T231 is complete. The project may continue to T233 `WeCom Customer Service Provider Safety Gate`. T232 remains blocked until T233 passes review and Captain rewrites it as dry-run outbound payload preparation only.
+- Review observation handling:
+  - Accepted:
+    - N01 `connectors.inbound.__init__` exports only the new connector; this is a minor namespace inconsistency and does not break existing direct imports.
+    - N02 `_parse_occurred_at` epoch fallback is acceptable for synthetic-only scope, but future live work must require valid timestamps or use an explicit invalid-timestamp sentinel.
+    - N03 parsing only the first `msg_list` entry matches the current one-event inbound abstraction; batching must be handled before any live `sync_msg` work.
+    - N04 timestamp, text-body, optional-string, and agent-id fallback coverage gaps are minor test-strength notes.
+    - N05 the far-future timestamp heuristic is not practical current risk.
+  - Deferred: none from the T231 review decision.
+  - Rejected: none.
+- Conditions carried forward:
+  - T233 must implement provider eligibility only: recipient map, service window, 5-message limit, provider kill switch, manual-send-only defaults, metadata-smuggling blocks, and audit aliases.
+  - T233 must not prepare WeCom API payloads, call APIs, load credentials, register callbacks, poll/sync messages, add runtime wiring, send messages, mutate stores, or read private artifacts.
+  - T232 live/dry-run outbound remains blocked until T233 passes review and Captain rewrites T232.
+- Impact:
+  - `docs/04_task_board.md` moves the Current Unique Task from T231 to T233 and marks T231 complete.
+  - `docs/07_handoff.md` records the T231 review decision and T233 task boundary.
+  - `docs/08_risks_and_open_questions.md` closes Q204, opens Q205 for T233, and records T231 residual risks.
+  - `docs/tasks/M12_wechat_adapter/T233_wechat_safety_mode.md` is rewritten into a complete provider-safety worker task package.
+  - `docs/tasks/M12_wechat_adapter/T232_wechat_outbound_adapter.md` remains blocked and now explicitly depends on T233.
+
 ## D068: T230 PASS, accept Gate M12 Conditional, rewrite T231
 
 - Date: 2026-05-28
