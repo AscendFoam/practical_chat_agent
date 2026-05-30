@@ -1,5 +1,46 @@
 # Decision Log
 
+## D073: Adopt M13 docs-only commercial companion boundary pack
+
+- Date: 2026-05-31
+- Status: Accepted
+- Context: The user returned
+  `docs/reference/gpt-pro关于后续从M13开始的计划分析.md`, which recommends moving
+  from the M12 local/synthetic WeCom adapter slice toward a transparent,
+  controllable, text-first AI persona companion product. The report also
+  recommends that M13 be docs-only / research-only / governance-only before any
+  Persona Compiler, proactive companionship, memory OS, UX, voice/avatar, or
+  commercial launch work.
+- Decision: Captain accepts the strategic direction and opens M13 with T240
+  `M13 Commercial Companion Positioning And Safety Boundary Pack`.
+- Current task package:
+  `docs/tasks/M13_commercial_companion/T240_commercial_companion_positioning.md`.
+- Gate stance:
+  - T240 may create product, safety, architecture, roadmap, handoff,
+    worker-summary, and M14 task-package documents.
+  - T240 must not modify implementation code/tests or authorize runtime
+    behavior.
+  - M13 may only allow entry into M14 Persona Compiler schema/local creation
+    work after review.
+- Explicitly not adopted for near-term execution:
+  - live WeChat/WeCom/Feishu delivery
+  - personal-WeChat automation or unofficial SDK work
+  - automatic sending or schedulers
+  - unauthorized real-person cloning, ex-partner/family/public-figure replicas,
+    deceased-person resurrection, voice cloning, face/avatar deepfakes, or
+    deceptive real-person simulation
+  - paid intimacy escalation, creator marketplace, app-store submission, or
+    production compliance claims
+- `/goal` decision: feasible only as a constrained branch/worktree experiment
+  that preserves one Current Unique Task, reviewer gates, and Captain
+  integration after each task. Do not use a single broad goal to implement all
+  M13-M22 tasks without review.
+- Impact:
+  - `docs/04_task_board.md` moves Current Unique Task to T240 and records
+    M13-M22 milestone candidates.
+  - `docs/07_handoff.md` records the T240 worker handoff.
+  - `docs/08_risks_and_open_questions.md` closes Q208 and opens Q209 for T240.
+
 ## D072: Close M12 as Gate M12 Conditional and pause for commercial roadmap research
 
 - Date: 2026-05-30

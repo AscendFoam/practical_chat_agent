@@ -1,8 +1,35 @@
 # Task Board
 
-Updated: 2026-05-30
+Updated: 2026-05-31
 
 ## Captain Current State Override
+
+- The GPT-Pro M13+ research report has returned:
+  `docs/reference/gpt-pro关于后续从M13开始的计划分析.md`.
+- Captain accepts the report's main recommendation:
+  - do not continue by adding live WeChat/WeCom delivery
+  - reposition M13+ toward a transparent, controllable, text-first AI persona
+    companion product
+  - keep near-term work docs-first until safety, compliance, product
+    positioning, and roadmap boundaries are explicit
+- M12 remains `Gate M12 Conditional`; it still authorizes only the reviewed
+  local/synthetic/dry-run WeCom Customer Service evidence slice.
+- Current Unique Task: T240 `M13 Commercial Companion Positioning And Safety
+  Boundary Pack`.
+- Current task package:
+  `docs/tasks/M13_commercial_companion/T240_commercial_companion_positioning.md`.
+- T240 is docs-only / research-only / governance-only. It may create product,
+  safety, architecture, roadmap, worker-summary, handoff, and M14 task-package
+  documents. It must not modify implementation code or authorize platform
+  delivery, automatic sending, unauthorized cloning, or deepfake work.
+- Next worker should run only T240. No M14 implementation task is assignable
+  until T240 passes review and Captain makes the next judgment.
+- `/goal` automation note: a branch-bound trial may be useful, but it must
+  still respect one Current Unique Task at a time, reviewer gates, and Captain
+  integration after each task. Do not use a single open-ended goal to implement
+  M13-M22 without reviews.
+
+## Captain Current State Override 2026-05-30 (Historical T234 / M12 Close)
 
 - T234 / M12 closeout decision: accepted.
 - T234 is complete as the M12 WeChat Adapter milestone review.
@@ -21,16 +48,13 @@ Updated: 2026-05-30
 - Personal WeChat automation, scan-login resurrection, desktop automation,
   realtime personal-account send/receive, unofficial SDK vendoring, and
   automatic sending remain blocked.
-- Current Unique Task: External GPT-Pro commercial companion-agent roadmap
-  research.
+- Historical Current Unique Task at T234 closeout: External GPT-Pro commercial
+  companion-agent roadmap research.
 - Prompt file:
   `docs/prompts/commercial_companion_agent_deep_research_prompt.md`.
-- Worker task package: none yet. No implementation worker should be assigned
-  until the external research report returns and Captain writes M13+ task
-  packages under `docs/tasks/`.
-- Next Captain action after research: synthesize the GPT-Pro report into a
-  staged commercial-product roadmap, update governance docs, and create the
-  first scoped worker task package.
+- Historical worker task package state: none yet at T234 closeout.
+- Current 2026-05-31 state: the research has returned and T240 is now open
+  under `docs/tasks/M13_commercial_companion/`.
 
 - T232 review decision: `PASS`.
 - T232 is complete as the WeCom Customer Service dry-run outbound adapter for M12.
@@ -592,35 +616,37 @@ Updated: 2026-05-30
 
 ## Current Unique Task
 
-External GPT-Pro research: Commercial Companion-Agent Roadmap.
+T240: M13 Commercial Companion Positioning And Safety Boundary Pack.
 
-Prompt file: `docs/prompts/commercial_companion_agent_deep_research_prompt.md`
+Current task package:
+`docs/tasks/M13_commercial_companion/T240_commercial_companion_positioning.md`
 
-Worker task package: none yet.
+Why now: the GPT-Pro M13+ research report has returned and recommends a
+docs-only M13 before any product implementation. M12 proved only a
+local/synthetic/dry-run WeCom Customer Service slice. The project now needs a
+commercial companion product boundary pack that converts the research into:
+product positioning, competitor matrix, clone/persona risk tiers, proactive
+redlines, persona-memory-relationship architecture, M13+ roadmap, and the first
+M14 task package.
 
-Why now: T234 has closed M12 with `Gate M12 Conditional`. The project should
-not jump directly into another WeCom or commercial-product implementation
-task. The new GPT-Pro discussion points toward a larger product strategy:
-persona compilation, long-term memory, relationship growth, consented proactive
-behavior, virtual life streams, voice/avatar sequencing, and compliance. That
-needs external market/legal/technical research before Captain can write M13+
-task packages.
-
-Completion condition for this current external action: the user returns a
-GPT-Pro research report based on the prompt file. Captain then decides the
-M13+ roadmap and writes the next worker task package.
+Completion condition: T240 produces the required docs-only boundary pack,
+updates `docs/07_handoff.md` and `docs/worker_summary/T240_worker_summary.md`,
+runs the docs verification commands, and receives reviewer output. Captain will
+then decide PASS / PASS_WITH_WARNINGS / BLOCK and only then open the next task.
 
 ## Board Rules
 
 - Current mainline is WeFlow-export-driven offline distillation and review-only reply planning.
 - Only the `Current Unique Task` may be assigned to a worker.
-- If the Current Unique Task is an external research action with no task
-  package, no worker implementation is assignable yet.
 - Worker must stay within the task package `Allowed files`.
 - `private/` chat history and private distilled artifacts must never be committed.
 - Fixtures, tests, and docs must stay redacted.
 - Do not resume T01 or restart WeChat scan / SDK / realtime platform work on the current mainline.
 - Do not add fine-tuning, automatic sending, or digital-clone behavior.
+- `/goal`, branch, worktree, or multi-step automation must still preserve the
+  Current Unique Task rule and reviewer/Captain gates. It may execute repeated
+  loops only if each task package is reviewed and integrated before the next
+  task starts.
 
 ## Paused Legacy Track: WeChat SDK / Scan
 
@@ -763,7 +789,139 @@ Goal: evaluate and, only if safe, narrow WeChat-family integration to official s
 - [x] T233: WeCom Customer Service provider safety gate. Review `PASS`.
 - [x] T234: M12 WeChat adapter milestone review. Gate M12 `Conditional`.
 
+## Milestone 13: Commercial Companion Product Boundary
+
+Goal: convert the returned GPT-Pro research into a docs-only commercial product
+positioning, safety redline, architecture, roadmap, and M14 task-package pack.
+
+- [ ] T240: M13 commercial companion positioning and safety boundary pack.
+  Current Unique Task. Task package:
+  `docs/tasks/M13_commercial_companion/T240_commercial_companion_positioning.md`.
+
+Gate M13 should allow only entry into M14 Persona Compiler schema/local creation
+work. It must not authorize live platform delivery, automatic sending,
+unauthorized real-person cloning, voice/face deepfake work, paid intimacy
+escalation, or commercial launch.
+
+## Milestone 14: Persona Compiler
+
+Goal: define and locally prototype a transparent, source-labeled, versioned
+Persona Compiler without cloning real people.
+
+- [ ] T250: PersonaCard v1 schema and source/consent policy.
+- [ ] T251: Local prompt-to-schema Persona Compiler prototype.
+- [ ] T252: DeidentificationGuard synthetic tests.
+- [ ] T253: PersonaVersion diff and rollback repository.
+- [ ] T254: Persona review card renderer.
+- [ ] T255: M14 milestone review.
+
+## Milestone 15: Memory OS v2
+
+Goal: separate factual, inferred, relational, procedural, and imagined memories
+with provenance, lifecycle, deletion/freeze semantics, and retrieval isolation.
+
+- [ ] T260: MemoryRecordV2 schema.
+- [ ] T261: TruthStatus and MemoryType migration plan.
+- [ ] T262: ImaginedMemoryStore isolation.
+- [ ] T263: MemoryRetrieverV2 provenance bundle.
+- [ ] T264: Forget/freeze/tombstone semantics.
+- [ ] T265: Memory contamination eval.
+- [ ] T266: M15 milestone review.
+
+## Milestone 16: Relationship Engine Consumption
+
+Goal: make ReplyPlanner and BehaviorPlanner explicitly consume relationship
+semantics without turning relationship state into a manipulation lever.
+
+- [ ] T270: RelationshipStateV2 schema.
+- [ ] T271: RelationshipPolicy rules.
+- [ ] T272: ReplyPlanner relationship adapter.
+- [ ] T273: BehaviorPlanner relationship adapter.
+- [ ] T274: Conflict/repair synthetic scenarios.
+- [ ] T275: Dependency-risk downshift tests.
+- [ ] T276: M16 milestone review.
+
+## Milestone 17: Proactive Engine Consent
+
+Goal: design consented, rate-limited, review-first proactive companionship that
+stays in-app/sandbox and cannot bypass outbound review.
+
+- [ ] T280: ProactiveConsent schema.
+- [ ] T281: ProactivePolicy and gate.
+- [ ] T282: Quiet-hours/frequency/no-response tests.
+- [ ] T283: Proactive review card.
+- [ ] T284: Crisis/low-mood scenario policy.
+- [ ] T285: M17 milestone review.
+
+## Milestone 18: Virtual Life Stream
+
+Goal: implement text-first virtual life stream and role dynamics while keeping
+imagined content labeled and isolated from factual memory.
+
+- [ ] T290: RoleDynamicPost schema.
+- [ ] T291: VirtualLifeEngine text generator.
+- [ ] T292: AIGC labeling metadata.
+- [ ] T293: Imagined/factual contamination tests.
+- [ ] T294: Dynamic review card.
+- [ ] T295: M18 milestone review.
+
+## Milestone 19: Memory And Persona Control Surface
+
+Goal: provide local/prototype controls for viewing, editing, deleting, freezing,
+exporting, and auditing persona and memory records.
+
+- [ ] T300: Memory/persona control requirements.
+- [ ] T301: Memory viewer data contract.
+- [ ] T302: Persona version editor contract.
+- [ ] T303: Delete/freeze/export local flow.
+- [ ] T304: Deletion verification tests.
+- [ ] T305: M19 milestone review.
+
+## Milestone 20: Compliance And Safety Baseline
+
+Goal: establish a first commercial-governance baseline for AI identity labels,
+consent, minor protection, training-use limits, AIGC labeling, crisis handling,
+and platform-policy readiness.
+
+- [ ] T310: China compliance checklist.
+- [ ] T311: International privacy/platform policy checklist.
+- [ ] T312: Consent Center data model.
+- [ ] T313: AIGC labeling plan.
+- [ ] T314: Crisis/dependency policy tests.
+- [ ] T315: M20 milestone review.
+
+## Milestone 21: Text-First Product UX Prototype
+
+Goal: prototype the end-to-end text-first companion UX around persona creation,
+chat, memory explanation, life stream, proactive settings, and data controls.
+
+- [ ] T320: UX information architecture.
+- [ ] T321: Onboarding/persona creation prototype.
+- [ ] T322: Chat plus memory explanation prototype.
+- [ ] T323: Life stream prototype.
+- [ ] T324: Proactive settings prototype.
+- [ ] T325: User study protocol.
+- [ ] T326: M21 milestone review.
+
+## Milestone 22: Voice And Avatar Exploration
+
+Goal: explore authorized voice and non-real-avatar routes only after the
+compliance baseline, without entering unauthorized voice/face cloning.
+
+- [ ] T330: Voice technology survey.
+- [ ] T331: Voice consent data model.
+- [ ] T332: ASR/TTS latency benchmark.
+- [ ] T333: Non-real avatar route survey.
+- [ ] T334: Multimodal labeling test.
+- [ ] T335: M22 milestone review.
+
 ## Historical Current Unique Task
+
+External GPT-Pro research: Commercial Companion-Agent Roadmap.
+
+It is now complete for Captain planning purposes. The returned report is
+`docs/reference/gpt-pro关于后续从M13开始的计划分析.md`. Captain synthesized it on
+2026-05-31 and opened T240 as the first M13 docs-only worker task.
 
 T234: M12 WeChat Adapter Milestone Review.
 

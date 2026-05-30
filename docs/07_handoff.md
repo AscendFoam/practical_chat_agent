@@ -1,5 +1,54 @@
 # Handoff
 
+## Captain Current State Override 2026-05-31 (M13 Research Synthesis / T240 Open)
+
+- Returned research:
+  `docs/reference/gpt-pro关于后续从M13开始的计划分析.md`.
+- Captain decision: accept the report's core recommendation and open M13 as a
+  docs-only commercial companion product boundary pack.
+- M12 remains `Gate M12 Conditional` and still authorizes only the
+  local/synthetic/dry-run WeCom Customer Service evidence slice.
+- Current Unique Task:
+  T240 `M13 Commercial Companion Positioning And Safety Boundary Pack`.
+- Worker task package:
+  `docs/tasks/M13_commercial_companion/T240_commercial_companion_positioning.md`.
+- Why this task is next:
+  - GPT-Pro research has returned and needs to be converted into repo-owned
+    product, safety, architecture, roadmap, and task-package artifacts.
+  - Jumping directly to Persona Compiler, proactive messages, UX, voice/avatar,
+    or platform delivery would bypass review-first and safety governance.
+- Allowed worker scope:
+  - create product positioning and competitor matrix docs
+  - create clone/persona risk tiers and proactive redlines
+  - create M13 persona-memory-relationship architecture and M13+ roadmap docs
+  - create the first M14 Persona Compiler task package
+  - update only `docs/07_handoff.md` and
+    `docs/worker_summary/T240_worker_summary.md` as worker-owned governance
+    outputs
+- Forbidden worker scope:
+  - no implementation code/tests, CLI/runtime/config changes, stores, schemas,
+    connectors, adapters, schedulers, or platform work
+  - no live WeChat/WeCom/Feishu delivery, credentials, callbacks, webhooks,
+    polling, transport, acknowledgements, retries, or automatic sending
+  - no unauthorized real-person clone, ex-partner/family/public-figure
+    replica, deceased-person resurrection, voice cloning, face/avatar deepfake,
+    or deceptive real-person simulation
+  - no `private/chat_history/` or private artifact reads
+- Verification for T240:
+  - `git diff --check`
+  - `Test-Path` checks for all expected docs
+  - `rg` checks for M13 gate, M14-M22, L1/L5, automatic-sending,
+    unauthorized-clone, and imagined-memory coverage in the generated docs
+- Recommended reviewer type: adversarial review.
+- `/goal` / branch recommendation:
+  - A branch-bound `/goal` trial is feasible after the current governance state
+    is committed or otherwise snapshotted.
+  - Do not ask `/goal` to "finish all M13-M22 tasks" in one run.
+  - A safer goal is "complete the current task package, stop for review, then
+    wait for Captain judgment."
+  - Prefer reverting by abandoning/deleting the trial branch or reverting
+    specific commits, not by destructive reset on a dirty main worktree.
+
 ## Captain Current State Override 2026-05-30 (T234 / M12 Close)
 
 - T234 completion basis:

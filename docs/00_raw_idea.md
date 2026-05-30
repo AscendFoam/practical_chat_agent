@@ -1,5 +1,40 @@
 # Raw Idea
 
+## Captain Update 2026-05-31 (M13 Research Synthesis)
+
+The GPT-Pro M13+ research report has returned in
+`docs/reference/gpt-pro关于后续从M13开始的计划分析.md`.
+
+Captain accepts the main strategic direction:
+
+- the project should not continue by piling on live WeChat/WeCom delivery
+- the commercial opportunity is a transparent, controllable, text-first AI
+  persona companion product
+- differentiation should come from persona compilation, trustworthy memory,
+  relationship semantics, consented proactive behavior, virtual life streams,
+  user control, and safety/compliance governance
+- near-term work must avoid unauthorized real-person cloning, ex-partner or
+  family-member replicas, deceased-person resurrection, voice/face deepfakes,
+  deceptive "real person" simulation, automatic sending, and live platform
+  integration
+
+The next idea-level pivot is therefore:
+
+```text
+WeFlow offline relationship-memory prototype
+  -> review-first reply and behavior planning
+  -> local/sandbox outbound safety boundaries
+  -> M13 commercial companion positioning and safety boundary pack
+  -> M14+ Persona Compiler / Memory OS v2 / Relationship Engine / Proactive
+     Engine / Virtual Life Stream / Control Surface / Compliance baseline
+```
+
+Current Unique Task becomes T240
+`M13 Commercial Companion Positioning And Safety Boundary Pack`, a docs-only
+task. It should translate the GPT-Pro report into product positioning, safety
+redlines, architecture, roadmap, and the first M14 worker package. No product
+code should be written in M13.
+
 ## Captain Update 2026-05-30 (T234 / M12 Close)
 
 T234 has completed the M12 milestone review. Captain accepts the worker's

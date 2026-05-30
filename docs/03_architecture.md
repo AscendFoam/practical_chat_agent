@@ -1,5 +1,50 @@
 # Architecture
 
+## Captain Update 2026-05-31 (M13 Research Synthesis)
+
+The M13+ target architecture is a commercial companion-product architecture,
+not a platform-adapter architecture. M12 remains only a conditional local
+WeCom evidence slice.
+
+Target product architecture for M13 planning:
+
+```text
+Persona Compiler
+  -> Memory OS v2
+  -> Relationship Engine
+  -> Dialogue Engine
+  -> Proactive Engine
+  -> Virtual Life Engine
+  -> Safety & Compliance Engine
+```
+
+The architecture must preserve these separations:
+
+- AI persona identity is transparent and fictional unless a later explicitly
+  reviewed consent flow allows something narrower.
+- Real-person style inspiration is not a clone; it must be de-identified,
+  transformed, source-labeled, and reviewable.
+- Factual, inferred, relational, procedural, and imagined memories must remain
+  distinct so virtual life content cannot contaminate evidence-backed memory.
+- Relationship state may guide tone and boundaries only after a reviewed
+  relationship-consumption task; it must not become a retention or manipulation
+  lever.
+- Proactive behavior remains consented, rate-limited, review-first, and
+  in-app/sandbox until a later milestone explicitly changes that.
+- External platform sending remains blocked.
+
+Current architectural task:
+
+```text
+T240 M13 Commercial Companion Positioning And Safety Boundary Pack
+  -> product positioning docs
+  -> clone/persona risk tiers
+  -> proactive redlines
+  -> M14-M22 roadmap
+  -> first M14 Persona Compiler task package
+  -> no implementation code
+```
+
 ## Captain Update 2026-05-30 (T234 / M12 Close)
 
 T234 closes M12 with `Gate M12 Conditional`. The accepted M12 architecture is:

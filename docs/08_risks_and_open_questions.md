@@ -1,5 +1,40 @@
 # Risks And Open Questions
 
+## Captain Update 2026-05-31 (M13 Research Synthesis / T240 Open)
+
+Authoritative current risk state after the GPT-Pro M13+ report:
+
+- Q208 is closed: Captain has selected the M13+ roadmap direction and opened
+  T240 as the first M13 worker task.
+- Current Unique Task:
+  T240 `M13 Commercial Companion Positioning And Safety Boundary Pack`.
+- T240 is docs-only / research-only / governance-only and must not modify
+  implementation code.
+- M12 risks R101-R112 remain active for any future WeChat-family work.
+- Commercial companion-product risks R113-R116 remain active and now become
+  core M13 inputs.
+- New active risks:
+  - R117: broad `/goal` automation could outrun the Captain/Reviewer loop if it
+    tries to complete many tasks without one Current Unique Task, review, and
+    handoff update per task.
+  - R118: M13 could overfit the GPT-Pro report if worker docs do not label
+    source confidence or identify which competitor/legal facts still need
+    independent verification.
+  - R119: legal/compliance interpretation for拟人化互动、深度合成、AIGC 标识,
+    privacy rights, minors, crisis handling, and platform policy may be wrong
+    or drift before launch.
+  - R120: Persona Compiler work could accidentally convert "style inspiration"
+    into identifiable real-person imitation unless L1-L5 risk tiers are strict.
+  - R121: proactive-companion features could become retention pressure,
+    emotional manipulation, or dependency amplification unless consent and
+    redlines exist before implementation.
+- Open question Q209: Can T240 produce a complete M13 boundary pack and M14
+  task package without overclaiming product, legal, implementation, or platform
+  readiness?
+
+Closed question Q208: The M13+ roadmap direction is selected. Open T240 as a
+docs-only commercial companion boundary pack before any M14 implementation.
+
 ## Captain Update 2026-05-30 (T234 / M12 Close)
 
 Authoritative current risk state after T234 and M12 closeout:
@@ -25,16 +60,18 @@ Authoritative current risk state after T234 and M12 closeout:
 - R116 is active: imagined/dream/virtual-life memories can contaminate factual
   memory unless future schema and retrieval keep factual, inferred, and
   imagined records separate.
-- No M13 worker task is open yet. The current action is external GPT-Pro
-  research using
-  `docs/prompts/commercial_companion_agent_deep_research_prompt.md`.
+- Historical note: at T234 closeout no M13 worker task was open yet and the
+  current action was external GPT-Pro research. That research has since
+  returned and T240 is now open.
 
 Closed question Q207: M12 receives `Gate M12 Conditional`, authorizing only the
 local synthetic dry-run WeCom Customer Service slice and continuing to block
 all live platform behavior.
 
-Open question Q208: What commercial companion-agent roadmap, milestone order,
-and first worker task should follow after the external GPT-Pro research returns?
+Historical question Q208: What commercial companion-agent roadmap, milestone
+order, and first worker task should follow after the external GPT-Pro research
+returns? It is now closed by the 2026-05-31 Captain synthesis, which opens
+T240.
 
 ## Captain Update 2026-05-30 (T232 Review Decision)
 
@@ -960,21 +997,27 @@ Closed question Q124: the updated GPT roadmap is directionally aligned, but M4/M
 | R110 | T232 dry-run payloads could be overread as API-compatible or delivery-ready | A review-safe payload artifact is not proof of live WeCom API shape, provider acceptance, acknowledgement, or delivery | T232 contract and result statuses must say dry-run only and must avoid delivery/acknowledgement language |
 | R111 | T232 could bypass T233 or copy arbitrary metadata into a provider payload | Payload preparation without a matching allowed safety decision or with copied metadata would undermine M12 safety boundaries | T232 must require matching allowed `WeComCustomerServiceSafetyDecision`, reject mismatches, and avoid copying arbitrary request metadata |
 | R112 | M12 task-level completion could be overread as live WeCom readiness | T230-T233 now form a local/synthetic chain, but no live provider account, callback, credential, payload compatibility, acknowledgement, retry, failure event, or delivery has been proven | T234 stated the milestone gate boundary; future work must continue to preserve the conditional gate |
-| R113 | Commercial companion-product pivot could outrun evidence-first governance | Product features such as persona compilation, proactive companionship, virtual life streams, and monetization could be implemented before legal, market, safety, and UX risks are understood | Run external GPT-Pro research first; Captain must translate it into reviewed M13+ task packages before implementation |
+| R113 | Commercial companion-product pivot could outrun evidence-first governance | Product features such as persona compilation, proactive companionship, virtual life streams, and monetization could be implemented before legal, market, safety, and UX risks are understood | GPT-Pro research has returned; T240 must translate it into reviewed M13+ task packages before implementation |
 | R114 | 真人风格蒸馏、声音、头像、视频、逝者纪念和前任/家人场景 are high-risk | Unauthorized cloning, privacy violations, personality-rights issues, and grief/attachment harm could occur if treated as ordinary product features | Prefer abstract style inspiration and de-identified new characters first; require consent/legal research before any authorized digital-person track |
 | R115 | Proactive companionship can become manipulative | Active messages can create guilt, dependence, anxiety, or unhealthy retention loops | Future Proactive Engine work must require consent, frequency caps, quiet hours, allowed message types, crisis rules, and anti-coercion policy before any send path |
 | R116 | Imagined/dream/virtual-life memories can contaminate factual memory | A role's generated diary, dream, or virtual life event could be retrieved as if it were evidence about the user or a real person | Future Memory OS work must separate factual, inferred, relational, procedural, and imagined memory types with provenance and retrieval constraints |
+| R117 | Broad `/goal` automation could bypass governance | A long-running goal might attempt multiple tasks, create code, or move beyond the reviewed Current Unique Task before Captain/Reviewer gates run | Use branch/worktree trials only; constrain goal prompts to the current task package; stop after worker summary and review request |
+| R118 | M13 could overfit the GPT-Pro report | Competitor, legal, pricing, and product claims may be stale, report-derived, or insufficiently sourced | T240 must label source confidence and identify follow-up research gaps; no commercial claims without later validation |
+| R119 | Compliance interpretation may drift or be incomplete | 拟人化互动、深度合成、AIGC 标识、privacy rights、minor protection、crisis handling, and platform policies are high-stakes and may change | Treat M13 safety docs as engineering redlines, not legal advice; require later legal/product review before launch |
+| R120 | Style inspiration may become identifiable imitation | Persona Compiler could preserve names, biography, private events, voice, face, or speech fingerprints from real people | T240 must define strict L1-L5 clone/persona risk tiers; M14 must start with fictional/original personas and synthetic tests |
+| R121 | Proactive companion UX may create dependency pressure | Check-ins, virtual-life updates, and relationship prompts can become emotional retention mechanics | T240 must define proactive redlines before any Proactive Engine implementation; M17 must remain consented, rate-limited, and review-first |
 
 ## Open Questions
 
 | ID | 问题 | 需要谁回答 | 最晚解决点 |
 | --- | --- | --- | --- |
-| Q208 | What commercial companion-agent roadmap, milestone order, and first worker task should follow after external GPT-Pro research? | GPT-Pro research + Captain synthesis + user decision | Before assigning any M13 worker implementation task |
+| Q209 | Can T240 produce a complete M13 commercial companion boundary pack and M14 task package without overclaiming product, legal, implementation, or platform readiness? | T240 worker output + adversarial review + Captain judgment | Before opening any M14 implementation task |
 
 ## Closed Questions
 
 | ID | 结论 | 关闭依据 |
 | --- | --- | --- |
+| Q208 | The M13+ roadmap direction is selected. Open T240 as a docs-only commercial companion positioning and safety boundary pack, and do not assign M14 implementation until T240 passes review and Captain judgment. | `docs/reference/gpt-pro关于后续从M13开始的计划分析.md` + Captain synthesis |
 | Q207 | M12 receives `Gate M12 Conditional`. It authorizes only local/synthetic/dry-run WeCom Customer Service evidence and continues to block live WeChat/WeCom credentials, callbacks, webhooks, polling, transport, acknowledgement, retry, failure-event mutation, production recipient mapping, delivery, automatic sending, personal-WeChat automation, scan-login resurrection, desktop automation, and unofficial SDK vendoring. | `docs/review/M12_review.md`, `docs/worker_summary/T234_worker_summary.md` + Captain decision |
 | Q206 | T232 can be accepted as complete. It prepares deterministic review-safe WeCom Customer Service dry-run payloads only from a sendable outbound request plus matching allowed T233 safety decision, without API calls, credentials, transport, callbacks, retries, store mutation, private reads, or delivery claims. | `docs/review/T232_review.md` + Captain decision |
 | Q205 | T233 can be accepted as complete. It defines a deterministic local WeCom Customer Service provider safety gate that blocks unsafe outbound eligibility before payload preparation or delivery. | `docs/review/T233_review.md` + Captain decision |

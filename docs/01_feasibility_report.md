@@ -1,5 +1,42 @@
 # Feasibility Report
 
+## Captain Update 2026-05-31 (M13 Research Synthesis)
+
+The returned GPT-Pro report supports a cautious `Go` for commercial exploration,
+but only under a docs-first M13 gate.
+
+Feasible now:
+
+- a research/governance/product-positioning pack for a transparent AI persona
+  companion
+- a competitor and commoditization matrix based on the GPT-Pro report plus
+  source-confidence labels
+- safety tiers for original personas, de-identified style inspiration,
+  authorized digital selves, high-risk commemorative/third-party modes, and
+  prohibited unauthorized clones
+- proactive-companionship redlines covering consent, frequency, quiet hours,
+  no-response backoff, crisis routing, and anti-manipulation rules
+- a staged M14-M22 roadmap and first M14 task package
+
+Not feasible or authorized now:
+
+- live WeChat/WeCom/Feishu production delivery
+- automatic sending, schedulers, external platform callbacks, credentials, or
+  runtime transport
+- unauthorized real-person cloning, ex-partner/family/public-figure replicas,
+  deceased-person resurrection, voice cloning, face/avatar deepfakes, or
+  deceptive "real person" simulation
+- commercial launch, legal compliance claims, app-store submission, creator
+  marketplace, or paid intimacy escalation
+
+The feasibility judgment for M13 is:
+
+```text
+Go for docs-only M13 boundary pack.
+No-Go for implementation beyond that pack until T240 passes adversarial review
+and Captain opens a scoped M14 task package.
+```
+
 ## Captain Update 2026-05-30 (T234 / M12 Close)
 
 T234 confirms that M12 is feasible only as a bounded local/synthetic WeCom

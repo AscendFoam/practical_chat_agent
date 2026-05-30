@@ -1,5 +1,46 @@
 # Eval Protocol
 
+## Captain Update 2026-05-31 (M13 Research Synthesis)
+
+Current evaluation sequence is now:
+
+- T240: can the repo produce a docs-only M13 commercial companion boundary pack
+  that turns the GPT-Pro report into product positioning, competitor analysis,
+  clone/persona risk tiers, proactive redlines, persona-memory-relationship
+  architecture, M13+ roadmap, and the first M14 task package without claiming
+  implementation, legal approval, live delivery, automatic sending, or
+  unauthorized cloning readiness?
+
+T240 evaluation targets:
+
+- product positioning is specific enough to guide M14 and not just a marketing
+  slogan
+- competitor matrix distinguishes public evidence, GPT-Pro report claims, and
+  follow-up research needs
+- L1-L5 persona/clone risk tiers clearly prohibit unauthorized real-person
+  replicas, voice/face deepfakes, public-figure clones, ex-partner/family
+  replicas, and deceased-person resurrection for near-term work
+- proactive redlines cover consent, frequency, quiet hours, no-response
+  backoff, anti-manipulation, and crisis handling
+- architecture keeps factual/inferred/relational/procedural/imagined memory
+  separate
+- M13-M22 roadmap preserves review gates and one Current Unique Task
+- M14 first task package is concrete and bounded enough for a worker
+
+Gate M13:
+
+```text
+Allow: M13 docs pack is coherent, conservative, and reviewable; project may
+enter M14 Persona Compiler schema/local creation work only.
+
+Conditional: M13 direction is acceptable but needs more research, tighter
+redlines, or clearer M14 task scoping before implementation.
+
+Block: M13 still attempts live platform auto-send, unauthorized real-person
+cloning, deceptive real-person simulation, or implementation claims without
+evidence.
+```
+
 ## Captain Update 2026-05-30 (T234 / M12 Close)
 
 T234 has now closed M12 with `Gate M12 Conditional`.
