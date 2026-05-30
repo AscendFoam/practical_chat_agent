@@ -1872,6 +1872,96 @@ class RelationshipState(BaseModel):
         }
 
 
+class RelationshipContextPersonaSnapshot(BaseModel):
+    persona_id: str
+    display_name: str
+    truth_disclosure: PersonaTruthDisclosure = "fictional_ai_persona"
+    source_risk_tier: PersonaRiskTier
+    runtime_ready: bool = False
+    safety_warnings: list[str] = Field(default_factory=list)
+
+    @classmethod
+    def from_persona_card(cls, persona: PersonaCard) -> "RelationshipContextPersonaSnapshot":
+        warnings: list[str] = []
+        if persona.source_policy.blocked_real_person_similarity:
+            warnings.append("blocked_real_person_similarity")
+        if persona.source_policy.source_type == "prohibited":
+            warnings.append("prohibited_persona_source")
+        return cls(
+            persona_id=persona.persona_id,
+            display_name=persona.display_name,
+            truth_disclosure=persona.truth_disclosure,
+            source_risk_tier=persona.source_policy.risk_tier,
+            runtime_ready=persona.is_runtime_ready(),
+            safety_warnings=warnings,
+        )
+
+
+class RelationshipContextMemorySnapshot(BaseModel):
+    bundle_id: str
+    purpose: MemoryRetrievalPurpose
+    selected_memory_ids: list[str] = Field(default_factory=list)
+    truth_status_counts: dict[str, int] = Field(default_factory=dict)
+    imagined_memory_count: int = 0
+    safety_warnings: list[str] = Field(default_factory=list)
+
+    @classmethod
+    def from_memory_bundle(cls, memory_bundle: MemoryRetrievalBundle) -> "RelationshipContextMemorySnapshot":
+        return cls(
+            bundle_id=memory_bundle.bundle_id,
+            purpose=memory_bundle.purpose,
+            selected_memory_ids=list(memory_bundle.selected_memory_ids),
+            truth_status_counts=dict(memory_bundle.truth_status_counts),
+            imagined_memory_count=memory_bundle.imagined_memory_count,
+            safety_warnings=list(memory_bundle.safety_warnings),
+        )
+
+
+class RelationshipContextBundle(BaseModel):
+    schema_version: str = "relationship_context_bundle_v1"
+    context_bundle_id: str = Field(default_factory=lambda: new_id("relctx"))
+    user_id: str = Field(..., min_length=1)
+    persona: RelationshipContextPersonaSnapshot
+    relationship_dimensions: dict[str, float] = Field(default_factory=dict)
+    memory: RelationshipContextMemorySnapshot
+    safety_warnings: list[str] = Field(default_factory=list)
+    source_persona_id: str
+    source_relationship_state_id: str
+    source_memory_bundle_id: str
+    generated_at: datetime = Field(default_factory=utc_now)
+
+    @classmethod
+    def from_sources(
+        cls,
+        *,
+        user_id: str,
+        persona: PersonaCard,
+        relationship_state: RelationshipState,
+        memory_bundle: MemoryRetrievalBundle,
+    ) -> "RelationshipContextBundle":
+        return cls(
+            user_id=user_id,
+            persona=RelationshipContextPersonaSnapshot.from_persona_card(persona),
+            relationship_dimensions=relationship_state.dimension_snapshot(),
+            memory=RelationshipContextMemorySnapshot.from_memory_bundle(memory_bundle),
+            safety_warnings=list(memory_bundle.safety_warnings),
+            source_persona_id=persona.persona_id,
+            source_relationship_state_id=relationship_state.state_id,
+            source_memory_bundle_id=memory_bundle.bundle_id,
+        )
+
+    @model_validator(mode="after")
+    def validate_relationship_context_bundle(self) -> "RelationshipContextBundle":
+        if not self.persona.runtime_ready:
+            raise ValueError("relationship context bundle requires runtime-ready PersonaCard")
+        if self.memory.purpose == "factual_response" and self.memory.imagined_memory_count:
+            raise ValueError("factual relationship context cannot include imagined memory")
+        forbidden_dimension_names = {"retention_score", "manipulation_score", "engagement_score"}
+        if forbidden_dimension_names.intersection(self.relationship_dimensions):
+            raise ValueError("relationship dimensions must not include retention or manipulation scores")
+        return self
+
+
 class RelationshipDeltaDimension(BaseModel):
     dimension_name: RELATIONSHIP_DIMENSION_NAMES
     current_value: float = Field(..., ge=0.0, le=1.0)

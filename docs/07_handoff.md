@@ -5186,3 +5186,52 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - Relationship/dialogue context consumption has not started.
   - Retrieval ranking, runtime dialogue, proactive behavior, virtual-life
     stream, controls, and commercial UX remain future milestones.
+
+## T270 Worker Completion Record
+
+- T270 is the Relationship Context Bundle task for M16.
+- Worker must not mark T270 as complete in `docs/04_task_board.md`; T270 awaits
+  adversarial review and Captain judgment.
+- Files changed:
+  - `src/practical_chat_agent/core/models.py`
+  - `tests/test_relationship_context_bundle_schema.py`
+  - `docs/data_contracts/relationship_context_bundle_contract.md`
+  - `docs/tasks/M16_relationship_dialogue_consumption/T271_dialogue_context_planner.md`
+  - `docs/worker_summary/T270_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED: targeted pytest failed because `RelationshipContextBundle` did not
+    exist.
+  - GREEN: targeted pytest passed after adding relationship context bundle
+    schemas.
+- Behavior added:
+  - Persona, memory, and relationship context snapshots.
+  - `RelationshipContextBundle.from_sources(...)`.
+  - Runtime-ready PersonaCard is required.
+  - Imagined memory cannot be packaged as factual context.
+  - Retention/manipulation/engagement score dimensions are rejected.
+  - Bundle contains no draft reply, send, schedule, delivery, platform, or
+    webhook fields.
+- T271 next task package:
+  - Created
+    `docs/tasks/M16_relationship_dialogue_consumption/T271_dialogue_context_planner.md`.
+  - T271 is scoped to deterministic planning metadata only.
+- Verification status:
+  - `python -m py_compile src\practical_chat_agent\core\models.py`: passed.
+  - `pytest tests\test_relationship_context_bundle_schema.py -q -o cache_dir=artifacts\t270_pytest_cache --basetemp=artifacts\t270_pytest_basetemp`:
+    passed, 5 tests.
+  - `pytest tests\test_relationship_context_bundle_schema.py tests\test_persona_card_schema.py tests\test_memory_retrieval_bundle_schema.py -q -o cache_dir=artifacts\t270_pytest_cache_min --basetemp=artifacts\t270_pytest_basetemp_min`:
+    passed, 26 tests.
+  - `git diff --check`: passed with Windows line-ending conversion warnings.
+- Explicit non-actions:
+  - No LLM call, reply generation, dialogue planning, retrieval ranking,
+    private reader, proactive candidate, outbound request, platform integration,
+    voice/avatar/video behavior, web demo, or automatic sending.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+  - No real-person clone, public-figure clone, ex-partner/family clone,
+    deceased-person mode, or deceptive impersonation path was authorized.
+- Remaining risks:
+  - T270 is schema-only.
+  - Dialogue planning, draft generation, runtime consumption, proactive
+    behavior, UI, and web demo remain unopened.
