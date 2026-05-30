@@ -6398,3 +6398,43 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
     clearance.
   - M21 UX work must carry consent, AIGC labeling, memory provenance,
     crisis/dependency safety, and data controls into visible product states.
+
+## T320 Worker Completion Record
+
+- T320 is the UX Information Architecture task for M21.
+- Worker must not mark T320 as complete in `docs/04_task_board.md`; T320 awaits
+  product/safety UX review and Captain judgment.
+- Files changed:
+  - `docs/product/text_first_ux_information_architecture.md`
+  - `docs/tasks/M21_text_first_product_ux_prototype/T321_onboarding_persona_creation_prototype.md`
+  - `docs/worker_summary/T320_worker_summary.md`
+  - `docs/07_handoff.md`
+- Design result:
+  - Defines a text-first companion UX IA with five durable areas: Chat,
+    Persona, Memory, Life Stream, and Controls.
+  - Defines first-run onboarding, persona states, chat/memory explanation
+    states, life-stream states, proactive settings, consent/data controls,
+    AIGC label placement, crisis/dependency safety states, and
+    empty/loading/error states.
+- T321 next task package:
+  - Created
+    `docs/tasks/M21_text_first_product_ux_prototype/T321_onboarding_persona_creation_prototype.md`.
+  - T321 is scoped to onboarding/persona creation prototype state contracts.
+- Verification status:
+  - `git diff --check`: passed with Windows line-ending conversion warnings.
+- Explicit non-actions:
+  - No frontend code, browser demo, LLM call, private chat-log read, real
+    persona distillation, production memory mutation, export/share/download
+    writing, proactive candidate generation, automatic sending, scheduling,
+    platform integration, voice/avatar/video behavior, or Live2D behavior was
+    added.
+  - No legal advice, compliance completion, crisis-safety sufficiency, clinical
+    validation, launch approval, app-store approval, or regulator acceptance was
+    claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - T320 is IA only. M21 still needs executable onboarding, chat/memory, life
+    stream, proactive settings, user study, and milestone review work.
+  - Future UI must preserve AI identity labels, consent controls, AIGC labels,
+    memory provenance, and crisis/dependency blocked states.
