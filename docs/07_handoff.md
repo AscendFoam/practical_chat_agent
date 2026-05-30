@@ -4998,3 +4998,56 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - T261 is local JSON storage only.
   - Lifecycle/forgetting policy, retrieval bundle, consolidation, ranking, and
     runtime memory consumption remain unopened.
+
+## T262 Worker Completion Record
+
+- T262 is the Memory Lifecycle Policy task for M15 Memory OS v2.
+- Worker must not mark T262 as complete in `docs/04_task_board.md`; T262 awaits
+  adversarial review and Captain judgment.
+- Files changed:
+  - `src/practical_chat_agent/services/memory_lifecycle_v2.py`
+  - `tests/test_memory_lifecycle_v2.py`
+  - `docs/data_contracts/memory_lifecycle_v2_contract.md`
+  - `docs/tasks/M15_memory_os_v2/T263_memory_retrieval_bundle_contract.md`
+  - `docs/worker_summary/T262_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED: targeted pytest failed because
+    `practical_chat_agent.services.memory_lifecycle_v2` did not exist.
+  - GREEN: targeted pytest passed after adding
+    `MemoryLifecyclePolicyService`.
+- Behavior added:
+  - Deterministic `MemoryLifecyclePolicyService.recommend(...)`.
+  - Recommendation actions: keep, review_required, freeze, delete, archive,
+    decay, and compress.
+  - High-sensitivity/review-required memory is not retrieval-allowed.
+  - Deleted/frozen/archived memory is not retrieval-allowed.
+  - Imagined memory is kept only in imagined context.
+  - Low-salience old memory can be recommended for decay/compression.
+  - Explicit user-delete signal recommends delete.
+  - Policy returns recommendations only and does not mutate stores.
+- T263 next task package:
+  - Created
+    `docs/tasks/M15_memory_os_v2/T263_memory_retrieval_bundle_contract.md`.
+  - T263 is scoped to retrieval bundle schemas only, not ranking/search.
+- Verification status:
+  - `python -m py_compile src\practical_chat_agent\services\memory_lifecycle_v2.py`:
+    passed.
+  - `pytest tests\test_memory_lifecycle_v2.py -q -o cache_dir=artifacts\t262_pytest_cache --basetemp=artifacts\t262_pytest_basetemp`:
+    passed, 7 tests.
+  - `pytest tests\test_memory_lifecycle_v2.py tests\test_memory_event_store.py tests\test_memory_event_schema.py -q -o cache_dir=artifacts\t262_pytest_cache_min --basetemp=artifacts\t262_pytest_basetemp_min`:
+    passed, 23 tests.
+  - `git diff --check`: passed.
+- Explicit non-actions:
+  - No private chat-log read, memory extraction, store mutation, vector search,
+    retrieval ranking, semantic similarity, background consolidation, dialogue
+    runtime consumption, proactive candidate, outbound request, platform
+    integration, voice/avatar/deepfake behavior, or automatic sending.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+  - No real-person clone, public-figure clone, ex-partner/family clone,
+    deceased-person mode, or deceptive impersonation path was authorized.
+- Remaining risks:
+  - T262 is deterministic policy only.
+  - Retrieval bundle schema, consolidation, ranking, and runtime memory
+    consumption remain unopened.
