@@ -1,5 +1,27 @@
 # Feasibility Report
 
+## Captain Update 2026-05-30 (T233 Review)
+
+T233 confirms that the selected WeCom Customer Service surface can be guarded
+locally before any outbound payload exists.
+
+The feasibility question has changed again:
+
+- no longer blocked on whether the repo can express provider eligibility for
+  WeCom Customer Service as a deterministic local gate
+- now focused on whether the repo can prepare a dry-run outbound payload only
+  from a sendable `OutboundMessageRequest` plus a matching T233 allowed safety
+  decision
+- still not ready for live WeCom callbacks, polling/sync, credentials,
+  encryption/signature handling, API calls, injected/live transport, retries,
+  outbound delivery, runtime wiring, personal-WeChat automation, desktop
+  automation, or unofficial SDKs
+
+So the project is ready to commit the T233 provider-safety slice and advance to
+T232 as dry-run payload preparation only. T232 must continue to treat provider
+eligibility, dry-run payload readiness, API acceptance, delivery, and
+failure-event handling as separate states.
+
 ## Captain Update 2026-05-29 (T231 Review)
 
 T231 confirms that a selected official WeChat-family surface can be represented

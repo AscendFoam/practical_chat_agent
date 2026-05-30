@@ -1,5 +1,29 @@
 # Raw Idea
 
+## Captain Update 2026-05-30 (T233 Review)
+
+T233 has now passed review with `PASS`, so M12 has a local provider-safety
+layer for WeCom Customer Service:
+
+- `WeComCustomerServiceSafetyGate` consumes only an already-sendable
+  `OutboundMessageRequest` or stable mapping that validates to one
+- it blocks on non-sendable requests, wrong channel/surface, missing recipient
+  alias mapping, provider kill switch, manual-send disallowance,
+  missing/expired service window, message-window limit, and provider identity
+  or credential metadata smuggling
+- allowed decisions return aliases only and record
+  `provider_eligible_not_delivery` plus `provider_payload_not_prepared`
+- no WeCom API payload preparation, live API call, credential read, callback
+  registration, polling/sync loop, runtime wiring, store mutation, private
+  artifact read, or message sending was introduced
+
+The next task is T232 `WeCom Customer Service Dry-Run Outbound Adapter`.
+T232 is still not live outbound delivery. It may prepare a deterministic
+review-safe dry-run payload only when both `OutboundMessageRequest.is_sendable()`
+and a matching T233 `WeComCustomerServiceSafetyDecision(safety_state="allowed")`
+are present. It must not add live transport, credentials, callbacks, retries,
+runtime send paths, store mutation, or production-readiness claims.
+
 ## Captain Update 2026-05-29 (T231 Review)
 
 T231 has now passed review with `PASS`, so M12 has its first selected official

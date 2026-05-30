@@ -1,5 +1,38 @@
 # Risks And Open Questions
 
+## Captain Update 2026-05-30 (T233 Review Decision)
+
+Authoritative current risk state after the Captain review of T233:
+
+- R040 remains active as a compact-context and privacy boundary rule: M12 and later work must continue to use approved metadata / review-safe artifacts only and must not reopen raw-transcript ingestion.
+- R041 remains active: approved memories, approved patches, derived briefs, relationship-state artifacts, behavior candidates, outbound requests, gate decisions, adapter results, review cards, parsed review intents, inbound provider events, and WeCom safety decisions remain review/gate artifacts unless a later task explicitly authorizes mutation or execution.
+- R071 remains active: LLM confidence calibration is still unresolved and orthogonal to M12 deterministic/synthetic adapter-contract work.
+- R091 remains active and deferred: approved relationship context exists in `ChatContext`, but no planner or policy code path consumes relationship delta semantics.
+- R092 remains active and deferred: relationship guidance that surfaces through summary/retrieval notes is informational only and must not be mistaken for semantic runtime consumption.
+- R093 remains active but narrowed: M11 separated outbound requests/gates/adapters/cards from `CandidateAction`; T232 must still reject candidate-action shortcuts and require explicit outbound request plus safety decision.
+- R096 remains active and narrowed: M11 review/gate/adapter/card states remain distinct; T232 must keep provider safety, dry-run payload preparation, API acceptance, delivery, acknowledgement, retry, and failure-event mutation separate.
+- R097 remains active: T221 named-timezone verification on Windows requires `tzdata`, which is not currently declared in project dependencies.
+- R098 remains active: display preview truncation is useful for local summaries/cards but is not a privacy boundary for future real, sandbox, card-rendered, or WeChat-family payloads.
+- R099 remains active: T223 Feishu sandbox payload shape has not been validated against current official Feishu production API semantics.
+- R100 remains active: T224 Feishu review-card payload and synthetic action parser are local approximations, not validation of real Feishu callback/event semantics.
+- R101 remains active: personal-WeChat scan/login/realtime SDK work and unofficial SDK vendoring remain blocked; T232 must not add personal-WeChat, scan-login, desktop automation, or unofficial SDK behavior.
+- R102 remains active: official WeChat-family documentation may drift; T232 and later tasks must recheck official docs before relying on provider semantics as live API compatibility.
+- R103 remains active: WeCom Customer Service does not cleanly map to personal WeFlow chat contacts; T232 must treat recipients as explicit reviewed aliases only.
+- R104 remains active: `channel_preference="wechat"` is too broad for production adapter selection; T232 must require a matching T233 `provider_surface="wecom_customer_service"` decision rather than treating broad channel preference as sufficient.
+- R105 remains active: no live WeCom account, tenant, app, callback URL, credential flow, recipient mapping, service window, delivery callback, or provider failure handling has been tested.
+- R106 remains active: T231 timestamp fallback uses Unix epoch for missing/unparseable values; future live inbound/sync work must distinguish invalid timestamps from real 1970 timestamps.
+- R107 remains active: T231 parses only the first `msg_list` item because the current inbound connector returns one event per call; future live `sync_msg` work needs explicit batching semantics.
+- R108 remains active: T231 carries synthetic raw payloads into `InboundEvent.raw`; future live adapter work must define redaction before storing real provider payloads or IDs.
+- R109 is active: T233 safety decisions are local context decisions; recipient aliases, service-window expiry, and sent-message counts are not live provider state.
+- R110 is active: T232 dry-run payloads could be overread as API-compatible or delivery-ready if the contract is not explicit.
+- R111 is active: T232 could accidentally bypass T233 or copy arbitrary outbound metadata into a provider payload; the task package now requires explicit matching allowed safety decisions and metadata-copy rejection.
+- T233 opened no deferred task-review risks. Its non-blocking observations are accepted as current-scope design, cosmetic consistency, or minor test-strength notes under a `PASS` verdict.
+- M12 remains conditional only. This does not authorize live WeChat/WeCom callbacks, polling, credentials, outbound delivery, or automatic sending.
+
+Closed question Q205: T233 is accepted with `PASS`, so the WeCom Customer Service provider safety gate is complete and the project may proceed to T232 dry-run payload preparation.
+
+Open question Q206: Can T232 prepare a deterministic review-safe WeCom Customer Service dry-run payload only from a sendable outbound request plus matching allowed T233 safety decision, without API calls, credentials, transport, callbacks, retries, store mutation, private reads, or delivery claims?
+
 ## Captain Update 2026-05-29 (T231 Review Decision)
 
 Authoritative current risk state after the Captain review of T231:
@@ -845,25 +878,29 @@ Closed question Q124: the updated GPT roadmap is directionally aligned, but M4/M
 | R098 | T222 fake-adapter `payload_preview` truncation is not a privacy boundary | Future real or sandbox adapters could incorrectly treat truncated previews as sufficient redaction or safe payload handling | T223+ must build platform payloads only from approved outbound request text and explicit recipient mapping; preview fields are for audit summaries only |
 | R099 | T223 Feishu sandbox payload shape is not production API validation | The sandbox adapter builds a Feishu-shaped payload for dry-run / injected fake transport, but production API compatibility, acknowledgement semantics, retries, and recovery were not validated | Future production Feishu delivery work must verify current official Feishu API contract, auth, callback, ack/error, retry, and recovery semantics before claiming real delivery |
 | R100 | T224 Feishu review-card payload/action parser is not real callback validation | Local card payloads and synthetic action mappings can diverge from current Feishu interactive-card callback/event payloads | Future real Feishu callback or approval-application work must validate official event schemas, signatures, auth, idempotency, replay handling, and audit behavior before claiming production integration |
-| R101 | M12 could accidentally revive paused personal-WeChat scan/login/realtime SDK work | The repository rules prohibit resuming the old scan/login SDK track, vendoring unofficial SDK code, or adding realtime platform integration without explicit scoped approval | T230 blocked unsafe paths; T231 must stay synthetic WeCom Customer Service contract-only and must not add personal-WeChat, scan-login, desktop automation, or unofficial SDK behavior |
-| R102 | Official WeChat-family documentation may drift after T230 retrieval | A future implementation could rely on stale API, callback, credential, quota, or service-window facts | T231 and later tasks must recheck official docs before touching provider semantics; if docs cannot be checked, mark those facts unresolved |
-| R103 | WeCom Customer Service does not cleanly map to personal WeFlow chat contacts | M12 could overclaim that official customer-service identity equals arbitrary personal WeChat contact identity | T231 uses only synthetic provider aliases and does not create contact/recipient mapping; mapping requires a later reviewed task |
-| R104 | `channel_preference="wechat"` is too broad for production adapter selection | A later outbound adapter could accidentally route to the wrong WeChat-family surface | Future outbound work needs explicit selected surface/subchannel or adapter config before any payload preparation or send path |
-| R105 | No live WeCom account, tenant, app, callback URL, credential flow, recipient mapping, service window, delivery callback, or provider failure handling has been tested | M12 cannot claim operational readiness or delivery semantics | Keep T233 provider-safety-only; keep T232 live outbound blocked until provider-safety, tenant, credential, and recipient prerequisites are reviewed |
+| R101 | M12 could accidentally revive paused personal-WeChat scan/login/realtime SDK work | The repository rules prohibit resuming the old scan/login SDK track, vendoring unofficial SDK code, or adding realtime platform integration without explicit scoped approval | T230 blocked unsafe paths; T232 must stay dry-run WeCom Customer Service payload preparation only and must not add personal-WeChat, scan-login, desktop automation, or unofficial SDK behavior |
+| R102 | Official WeChat-family documentation may drift after T230 retrieval | A future implementation could rely on stale API, callback, credential, quota, or service-window facts | T232 and later tasks must recheck official docs before claiming provider API compatibility; if docs cannot be checked, mark those facts unresolved |
+| R103 | WeCom Customer Service does not cleanly map to personal WeFlow chat contacts | M12 could overclaim that official customer-service identity equals arbitrary personal WeChat contact identity | T231/T233 use only synthetic provider aliases and safety context; T232 may consume aliases for dry-run payloads only |
+| R104 | `channel_preference="wechat"` is too broad for production adapter selection | A later outbound adapter could accidentally route to the wrong WeChat-family surface | T232 must require explicit selected surface via a matching T233 `provider_surface="wecom_customer_service"` decision before dry-run payload preparation |
+| R105 | No live WeCom account, tenant, app, callback URL, credential flow, recipient mapping, service window, delivery callback, or provider failure handling has been tested | M12 cannot claim operational readiness or delivery semantics | Keep T232 dry-run-only; live outbound remains blocked until provider-safety, tenant, credential, recipient, callback, and failure-handling prerequisites are reviewed |
 | R106 | T231 timestamp fallback uses Unix epoch for missing or unparseable provider timestamps | Future live inbound/sync work could confuse invalid timestamp data with a real 1970 timestamp | T233 is unaffected; any future live inbound task must require valid timestamps or use an explicit invalid-timestamp sentinel |
 | R107 | T231 parses only the first `msg_list` item | Future live `sync_msg` responses may carry multiple messages and would be under-processed if reused as-is | Define batching semantics before any live callback/sync integration |
 | R108 | T231 stores synthetic source payloads in `InboundEvent.raw` | A future live adapter could leak real provider IDs or callback bodies if it reuses raw storage without redaction | Keep current raw storage synthetic-only; define redaction before live provider payload storage |
+| R109 | T233 safety decisions use local supplied provider context, not live provider state | Recipient aliases, service-window expiry, and sent-message counts can be stale or synthetic | T232 may consume allowed safety decisions for dry-run payload preparation only; live state verification requires a later reviewed provider task |
+| R110 | T232 dry-run payloads could be overread as API-compatible or delivery-ready | A review-safe payload artifact is not proof of live WeCom API shape, provider acceptance, acknowledgement, or delivery | T232 contract and result statuses must say dry-run only and must avoid delivery/acknowledgement language |
+| R111 | T232 could bypass T233 or copy arbitrary metadata into a provider payload | Payload preparation without a matching allowed safety decision or with copied metadata would undermine M12 safety boundaries | T232 must require matching allowed `WeComCustomerServiceSafetyDecision`, reject mismatches, and avoid copying arbitrary request metadata |
 
 ## Open Questions
 
 | ID | 问题 | 需要谁回答 | 最晚解决点 |
 | --- | --- | --- | --- |
-| Q205 | Can T233 define a deterministic local WeCom Customer Service provider safety gate that blocks unsafe outbound eligibility before any payload preparation or delivery? | T233 worker + reviewer + Captain review | Before T232 can be rewritten as dry-run outbound payload preparation |
+| Q206 | Can T232 prepare a deterministic review-safe WeCom Customer Service dry-run payload only from a sendable outbound request plus matching allowed T233 safety decision, without API calls, credentials, transport, callbacks, retries, store mutation, private reads, or delivery claims? | T232 worker + reviewer + Captain review | Before any WeCom live transport, callback, credential, or failure-handling task can be considered |
 
 ## Closed Questions
 
 | ID | 结论 | 关闭依据 |
 | --- | --- | --- |
+| Q205 | T233 can be accepted as complete. It defines a deterministic local WeCom Customer Service provider safety gate that blocks unsafe outbound eligibility before payload preparation or delivery. | `docs/review/T233_review.md` + Captain decision |
 | Q204 | T231 can be accepted as complete. It normalizes synthetic WeCom Customer Service message/event fixtures into `InboundEvent` without live platform behavior, private reads, store mutation, runtime wiring, outbound payloads, or sending. | `docs/review/T231_review.md` + Captain decision |
 | Q203 | T230 can be accepted as complete and M12 may proceed only as `Gate M12 Conditional`. Generic personal-WeChat adapter work remains blocked; Captain selects WeCom Customer Service for T231 synthetic inbound contract work. | `docs/review/T230_review.md`, `docs/review/T230_wechat_adapter_research.md` + Captain decision |
 | Q202 | T224 can be accepted as complete, M11 can close at task level with `Gate M11 Allow` for local/sandbox outbound safety only, and the project may proceed to T230. It is accepted with `PASS`; all review observations are accepted, with no deferred risks or repair pass. | `docs/review/T224_review.md` + Captain decision |

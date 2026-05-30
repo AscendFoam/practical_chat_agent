@@ -1,5 +1,34 @@
 # Decision Log
 
+## D070: T233 PASS, accept WeCom provider safety gate, advance to T232
+
+- Date: 2026-05-30
+- Status: Accepted
+- Context: `docs/review/T233_review.md` gives `PASS` for the WeCom Customer Service provider safety gate. No blocking issues were found. The review confirms T233 added a deterministic local provider eligibility evaluator, changed only allowed files, covered all required scenarios with 25 focused tests, and introduced no WeCom outbound adapter, API payload preparation, live API call, credentials, callback route, polling/sync loop, runtime wiring, store mutation, private artifact read, or message sending.
+- Decision: T233 is complete. The project may continue to T232 `WeCom Customer Service Dry-Run Outbound Adapter`. T232 is authorized only as dry-run payload preparation behind both `OutboundMessageRequest.is_sendable()` and a matching T233 `WeComCustomerServiceSafetyDecision(safety_state="allowed")`.
+- Review observation handling:
+  - Accepted:
+    - N01 `casefold()` metadata-key comparison is correct for the current ASCII lowercase provider-smuggling key set.
+    - N02 short-circuit blocking is acceptable for this safety gate; the contract does not require full reason accumulation.
+    - N03 surface validation at evaluation time is acceptable for current scope, though future config hardening may move it into `__post_init__`.
+    - N04 `_coerce_context` missing-`now` error-type inconsistency is minor and does not affect valid inputs.
+    - N05 UTC normalization uses `timezone.utc` rather than `ZoneInfo("UTC")`; this is harmless and simpler.
+    - N06 provider-smuggling checks partially overlap with `OutboundMessagePayload` validation but remain useful for defensive mapping-input paths.
+    - N07 additional recipient/context/config/key coverage gaps are test-strength notes, not blockers.
+    - N08 `WECom_CUSTOMER_SERVICE_SURFACE` capitalization is cosmetic.
+  - Deferred: none from the T233 review decision.
+  - Rejected: none.
+- Conditions carried forward:
+  - T232 may implement only deterministic dry-run payload preparation for WeCom Customer Service.
+  - T232 must require a matching allowed T233 safety decision and must not reconstruct or bypass provider safety eligibility.
+  - T232 must not call platform APIs, load credentials, register callbacks, add live or fake transport, retry, mutate stores, add runtime/CLI send paths, or claim delivery/API compatibility.
+  - T232 payloads must contain aliases only and must not copy arbitrary outbound request metadata into provider payloads.
+- Impact:
+  - `docs/04_task_board.md` moves the Current Unique Task from T233 to T232 and marks T233 complete.
+  - `docs/07_handoff.md` records the T233 review decision and T232 task boundary.
+  - `docs/08_risks_and_open_questions.md` closes Q205, opens Q206 for T232, and records T233 residual risks.
+  - `docs/tasks/M12_wechat_adapter/T232_wechat_outbound_adapter.md` is rewritten into a complete dry-run-only worker task package.
+
 ## D069: T231 PASS, accept WeCom inbound contract, advance to T233
 
 - Date: 2026-05-29

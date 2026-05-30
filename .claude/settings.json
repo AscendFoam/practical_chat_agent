@@ -243,7 +243,10 @@
       "Bash(TEMP=artifacts/t224_review_tmp TMP=artifacts/t224_review_tmp python -m pytest tests/ -q -o cache_dir=artifacts/t224_review_cache --basetemp=artifacts/t224_review_basetemp --ignore=tests/test_behavior_review_cli.py)",
       "Bash(python -m pytest tests/test_wecom_customer_service_inbound.py -q --tb=short)",
       "Bash(python -m py_compile src/practical_chat_agent/connectors/inbound/wecom_customer_service.py)",
-      "Bash(python -m py_compile src/practical_chat_agent/connectors/inbound/__init__.py)"
+      "Bash(python -m py_compile src/practical_chat_agent/connectors/inbound/__init__.py)",
+      "Bash(python -m pytest tests/test_wecom_customer_service_safety_gate.py -q)",
+      "Bash(python -m pytest tests/test_wecom_customer_service_safety_gate.py tests/test_outbound_message_request_schema.py tests/test_outbound_send_gate.py -q)",
+      "Bash(python -m py_compile src/practical_chat_agent/services/wecom_customer_service_safety.py)"
     ]
   }
 }

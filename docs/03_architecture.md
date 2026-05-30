@@ -1,5 +1,35 @@
 # Architecture
 
+## Captain Update 2026-05-30 (T233 Review)
+
+T233 adds the provider-safety layer for the selected M12 surface:
+
+```text
+OutboundMessageRequest
+  -> OutboundSendGate.allowed
+  -> WeComCustomerServiceSafetyGate
+     -> WeComCustomerServiceSafetyDecision.allowed / blocked
+     -> aliases only, no provider IDs
+     -> no payload prepared, no API call, no delivery
+```
+
+The next architectural layer is now T232 dry-run payload preparation:
+
+```text
+OutboundMessageRequest.is_sendable()
+  + WeComCustomerServiceSafetyDecision.allowed
+  -> WeComCustomerServiceDryRunOutboundAdapter
+  -> review-safe synthetic dry-run payload
+  -> no live transport, credentials, callback, retry, runtime path, or send
+```
+
+The architecture must keep these states distinct:
+
+- send gate `allowed`: policy eligibility for outbound consideration
+- T233 safety `allowed`: provider eligibility for WeCom Customer Service
+- T232 `wecom_dry_run_ready`: deterministic payload-preparation artifact only
+- API accepted / provider acknowledged / delivered / failed: not implemented
+
 ## Captain Update 2026-05-29 (T231 Review)
 
 T231 adds the first selected official WeChat-family inbound contract:

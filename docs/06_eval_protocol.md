@@ -1,5 +1,26 @@
 # Eval Protocol
 
+## Captain Update 2026-05-30 (T233 Review)
+
+T233 has now been accepted with `PASS`.
+
+Current evaluation sequence is now:
+
+- T232: can the repo implement a deterministic WeCom Customer Service dry-run
+  outbound adapter that consumes only an already-sendable
+  `OutboundMessageRequest` plus a matching T233
+  `WeComCustomerServiceSafetyDecision(safety_state="allowed")`, prepares a
+  review-safe synthetic payload with aliases only, rejects safety mismatches and
+  candidate-action shortcuts, copies no arbitrary metadata, mutates no inputs,
+  and still introduces no live platform API call, credential handling,
+  transport hook, callback/webhook route, scheduler, runtime send path, retry,
+  store mutation, private-content read, or delivery claim?
+
+T233 changes the evaluation baseline in one important way: M12 no longer needs
+to prove whether provider eligibility can be checked locally. That gate exists.
+The next evaluation target is dry-run payload boundary discipline, not provider
+transport or live delivery.
+
 ## Captain Update 2026-05-29 (T231 Review)
 
 T231 has now been accepted with `PASS`.

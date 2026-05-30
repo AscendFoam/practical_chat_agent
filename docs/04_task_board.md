@@ -1,8 +1,28 @@
 # Task Board
 
-Updated: 2026-05-29
+Updated: 2026-05-30
 
 ## Captain Current State Override
+
+- T233 review decision: `PASS`.
+- T233 is complete as the WeCom Customer Service provider safety gate for M12.
+- T233 review observation disposition:
+  - Accepted: N01 current `casefold()` metadata-key comparison is correct for ASCII lowercase smuggling keys, N02 short-circuit blocking is acceptable for the safety-gate contract, N03 evaluation-time surface validation is acceptable for current scope, N04 `_coerce_context` missing-`now` error-type inconsistency is minor, N05 `timezone.utc` normalization is harmless, N06 smuggling checks are partially redundant with model validation but useful for mapping inputs, N07 listed coverage gaps are non-blocking test-strength notes, N08 `WECom_CUSTOMER_SERVICE_SURFACE` capitalization is cosmetic.
+  - Deferred: none from the T233 review decision.
+  - Rejected: none.
+- Captain decision: no T233 repair pass is needed.
+- Current Unique Task: T232 WeCom Customer Service Dry-Run Outbound Adapter.
+- Current task package: `docs/tasks/M12_wechat_adapter/T232_wechat_outbound_adapter.md`.
+- T232 must stay dry-run-only and non-delivery:
+  - may implement a deterministic local dry-run adapter that consumes only `OutboundMessageRequest.is_sendable()` requests plus a matching T233 `WeComCustomerServiceSafetyDecision(safety_state="allowed")`
+  - may prepare a review-safe synthetic payload containing approved draft text, safe summary, source audit context, and provider aliases only
+  - must reject missing/blocked/mismatched safety decisions, candidate-action shortcuts, non-sendable requests, wrong channel/surface, missing aliases, invalid mappings, and metadata-copy attempts
+  - must not call WeCom/WeChat/Tencent APIs, load credentials, add live or fake transport, register callbacks, poll/sync messages, retry, add runtime or CLI send paths, mutate stores, read private artifacts, or claim delivery/API compatibility
+- M12 conditional constraints now carried forward:
+  - T231 proves only a synthetic inbound contract, not live WeCom callback compatibility.
+  - T233 proves only local deterministic provider eligibility, not live WeCom API compatibility or provider state.
+  - T232 may prepare only dry-run artifacts and must keep provider eligibility, payload preparation, API acceptance, delivery, acknowledgement, and failure-event mutation separate.
+  - Personal WeChat automation, scan-login resurrection, desktop automation, realtime personal-account send/receive, and unofficial SDK vendoring remain blocked.
 
 - T231 review decision: `PASS`.
 - T231 is complete as the WeCom Customer Service synthetic inbound contract spike for M12.
@@ -523,11 +543,16 @@ Updated: 2026-05-29
 
 ## Current Unique Task
 
-T233: WeCom Customer Service Provider Safety Gate.
+T232: WeCom Customer Service Dry-Run Outbound Adapter.
 
-Task package: `docs/tasks/M12_wechat_adapter/T233_wechat_safety_mode.md`
+Task package: `docs/tasks/M12_wechat_adapter/T232_wechat_outbound_adapter.md`
 
-Why now: T231 has landed with `PASS`, proving only a synthetic inbound contract for WeCom Customer Service. Before any T232 dry-run outbound adapter can be considered, M12 needs a local provider safety gate that enforces explicit recipient mapping, active service windows, the 5-message window limit, manual-send-only defaults, provider kill switch behavior, metadata-smuggling blocks, and review-safe audit aliases without preparing payloads or sending.
+Why now: T233 has landed with `PASS`, proving a local provider-safety gate for
+WeCom Customer Service without payload preparation or delivery. The next safe
+step is a dry-run-only outbound adapter that requires both a sendable
+`OutboundMessageRequest` and a matching T233 allowed safety decision, then
+prepares only a review-safe synthetic payload with aliases and no platform side
+effects.
 
 ## Board Rules
 
@@ -676,10 +701,18 @@ Goal: evaluate and, only if safe, narrow WeChat-family integration to official s
 
 - [x] T230: WeChat adapter research spike. Review `PASS`; Gate M12 `Conditional`.
 - [x] T231: WeCom Customer Service inbound contract spike. Review `PASS`.
-- [ ] T232: WeChat-family outbound adapter. Blocked placeholder until T233 review and Captain rewrite.
-- [ ] T233: WeCom Customer Service provider safety gate.
+- [ ] T232: WeCom Customer Service dry-run outbound adapter.
+- [x] T233: WeCom Customer Service provider safety gate. Review `PASS`.
 
 ## Historical Current Unique Task
+
+T233: WeCom Customer Service Provider Safety Gate.
+
+It is now complete and accepted with `PASS`. The next worker task is T232,
+because T233 proves only local provider eligibility and no payload preparation
+or delivery. T232 must remain a dry-run-only WeCom Customer Service outbound
+adapter that consumes both a sendable `OutboundMessageRequest` and a matching
+T233 allowed safety decision before preparing a review-safe synthetic payload.
 
 T231: WeCom Customer Service Inbound Contract Spike.
 
