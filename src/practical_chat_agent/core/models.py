@@ -33,6 +33,24 @@ DistillationReviewState = Literal["pending_human_review", "reviewed", "unknown"]
 DistillationSensitivity = Literal["low", "medium", "high"]
 DistillationEvidenceValidationStatus = Literal["not_run", "passed", "failed", "partial"]
 DistillationMemoryType = Literal["semantic", "episodic", "relationship", "procedural", "reflection"]
+MemoryEventType = Literal["factual", "inferred", "relational", "procedural", "imagined"]
+MemoryTruthStatus = Literal[
+    "evidence_backed",
+    "inferred",
+    "relationship_state",
+    "procedural_preference",
+    "imagined",
+]
+MemoryProvenanceSourceType = Literal[
+    "conversation",
+    "persona_card",
+    "user_edit",
+    "system_generated",
+    "imagined_generation",
+    "synthetic_test",
+]
+MemoryLifecycleState = Literal["active", "frozen", "deleted", "superseded", "archived"]
+MemoryRetrievalContext = Literal["factual", "inferred", "relational", "procedural", "imagined"]
 ContactRelationshipType = Literal["friend", "classmate", "colleague", "family", "unknown"]
 ApprovedStoreContextStatus = Literal[
     "not_configured",
@@ -415,6 +433,121 @@ class MemoryFactCandidate(BaseModel):
             fact=self.claim,
             evidence_refs=list(self.evidence_refs),
         )
+
+
+class MemoryProvenance(BaseModel):
+    source_type: MemoryProvenanceSourceType
+    evidence_refs: list[str] = Field(default_factory=list)
+    source_event_ids: list[str] = Field(default_factory=list)
+    source_memory_ids: list[str] = Field(default_factory=list)
+    source_persona_ids: list[str] = Field(default_factory=list)
+    source_summary: str | None = None
+
+
+class MemoryRetrievalPermission(BaseModel):
+    allow_factual_retrieval: bool = False
+    allow_inferred_retrieval: bool = False
+    allow_relational_retrieval: bool = False
+    allow_procedural_retrieval: bool = False
+    allow_imagined_retrieval: bool = False
+    review_required: bool = False
+
+    def has_any_route(self) -> bool:
+        return any(
+            [
+                self.allow_factual_retrieval,
+                self.allow_inferred_retrieval,
+                self.allow_relational_retrieval,
+                self.allow_procedural_retrieval,
+                self.allow_imagined_retrieval,
+            ],
+        )
+
+
+class MemoryEvent(BaseModel):
+    schema_version: str = "memory_event_v2"
+    event_id: str = Field(default_factory=lambda: new_id("mev"))
+    user_id: str = Field(..., min_length=1)
+    agent_id: str | None = None
+    persona_id: str | None = None
+    event_type: MemoryEventType
+    truth_status: MemoryTruthStatus
+    summary: str = Field(..., min_length=1)
+    provenance: MemoryProvenance
+    sensitivity: DistillationSensitivity = "low"
+    lifecycle_state: MemoryLifecycleState = "active"
+    retrieval_permission: MemoryRetrievalPermission = Field(default_factory=MemoryRetrievalPermission)
+    salience: float = Field(default=0.5, ge=0.0, le=1.0)
+    confidence: float | None = Field(default=None, ge=0.0, le=1.0)
+    inference_rationale: str | None = None
+    relationship_dimensions: list[str] = Field(default_factory=list)
+    preference_labels: list[str] = Field(default_factory=list)
+    imagined_context_label: str | None = None
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
+
+    @model_validator(mode="after")
+    def validate_memory_event(self) -> "MemoryEvent":
+        expected_truth_by_type: dict[MemoryEventType, MemoryTruthStatus] = {
+            "factual": "evidence_backed",
+            "inferred": "inferred",
+            "relational": "relationship_state",
+            "procedural": "procedural_preference",
+            "imagined": "imagined",
+        }
+        expected_truth = expected_truth_by_type[self.event_type]
+        if self.truth_status != expected_truth:
+            raise ValueError(f"{self.event_type} memory must use truth_status={expected_truth}")
+
+        if self.event_type == "factual" and not self.provenance.evidence_refs:
+            raise ValueError("factual memory requires evidence_refs")
+        if self.event_type == "inferred":
+            if self.confidence is None:
+                raise ValueError("inferred memory requires confidence")
+            if not self.inference_rationale:
+                raise ValueError("inferred memory requires inference_rationale")
+        if self.event_type == "relational" and not self.relationship_dimensions:
+            raise ValueError("relational memory requires relationship_dimensions")
+        if self.event_type == "procedural" and not self.preference_labels:
+            raise ValueError("procedural memory requires preference_labels")
+        if self.event_type == "imagined" and not self.imagined_context_label:
+            raise ValueError("imagined memory requires imagined_context_label")
+
+        self._apply_default_retrieval_permission()
+        if self.event_type == "imagined" and self.retrieval_permission.allow_factual_retrieval:
+            raise ValueError("imagined memory cannot be retrieved as factual evidence")
+        return self
+
+    def _apply_default_retrieval_permission(self) -> None:
+        if not self.retrieval_permission.has_any_route():
+            if self.event_type == "factual":
+                self.retrieval_permission.allow_factual_retrieval = True
+            elif self.event_type == "inferred":
+                self.retrieval_permission.allow_inferred_retrieval = True
+            elif self.event_type == "relational":
+                self.retrieval_permission.allow_relational_retrieval = True
+            elif self.event_type == "procedural":
+                self.retrieval_permission.allow_procedural_retrieval = True
+            elif self.event_type == "imagined":
+                self.retrieval_permission.allow_imagined_retrieval = True
+
+        if self.sensitivity in {"medium", "high"}:
+            self.retrieval_permission.review_required = True
+
+    def is_retrieval_eligible(self, context: MemoryRetrievalContext) -> bool:
+        if self.lifecycle_state in {"frozen", "deleted", "archived"}:
+            return False
+        if self.retrieval_permission.review_required:
+            return False
+        if context == "factual":
+            return self.retrieval_permission.allow_factual_retrieval
+        if context == "inferred":
+            return self.retrieval_permission.allow_inferred_retrieval
+        if context == "relational":
+            return self.retrieval_permission.allow_relational_retrieval
+        if context == "procedural":
+            return self.retrieval_permission.allow_procedural_retrieval
+        return self.retrieval_permission.allow_imagined_retrieval
 
 
 class ContactSkillTopicPreference(DistillationClaim):

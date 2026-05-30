@@ -4896,3 +4896,53 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - Memory OS v2 has not started.
   - Runtime dialogue, proactive behavior, virtual-life stream, controls, and
     commercial UX remain future milestones.
+
+## T260 Worker Completion Record
+
+- T260 is the Memory Event Schema task for M15 Memory OS v2.
+- Worker must not mark T260 as complete in `docs/04_task_board.md`; T260 awaits
+  adversarial review and Captain judgment.
+- Files changed:
+  - `src/practical_chat_agent/core/models.py`
+  - `tests/test_memory_event_schema.py`
+  - `docs/data_contracts/memory_event_v2_contract.md`
+  - `docs/tasks/M15_memory_os_v2/T261_memory_store_v2.md`
+  - `docs/worker_summary/T260_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED: targeted pytest failed because `MemoryEvent` did not exist.
+  - GREEN: targeted pytest passed after adding MemoryEvent v2 schema models.
+- Behavior added:
+  - `MemoryEvent`, `MemoryProvenance`, and `MemoryRetrievalPermission` schemas.
+  - Explicit event/truth separation for factual, inferred, relational,
+    procedural, and imagined memory.
+  - Factual memory requires evidence refs.
+  - Inferred memory requires confidence and rationale.
+  - Relational memory requires relationship dimensions.
+  - Procedural memory requires preference labels and does not become factual.
+  - Imagined memory cannot be retrieved as factual evidence.
+  - Frozen/deleted/archived memory is not retrieval-eligible.
+  - Medium/high sensitivity memory defaults to review-required.
+- T261 next task package:
+  - Created `docs/tasks/M15_memory_os_v2/T261_memory_store_v2.md`.
+  - T261 is scoped to local JSON MemoryEvent store work only.
+- Verification status:
+  - `python -m py_compile src\practical_chat_agent\core\models.py`: passed.
+  - `pytest tests\test_memory_event_schema.py -q -o cache_dir=artifacts\t260_pytest_cache --basetemp=artifacts\t260_pytest_basetemp`:
+    passed, 10 tests.
+  - `pytest tests\test_memory_event_schema.py tests\test_persona_card_schema.py -q -o cache_dir=artifacts\t260_pytest_cache_min --basetemp=artifacts\t260_pytest_basetemp_min`:
+    passed, 23 tests.
+  - `git diff --check`: passed with Windows line-ending conversion warnings.
+- Explicit non-actions:
+  - No memory store, retrieval ranking, vector search, private chat-log
+    ingestion, LLM extraction, background consolidation, dream generation,
+    dialogue runtime consumption, proactive candidate, outbound request,
+    platform integration, voice/avatar/deepfake behavior, or automatic sending.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+  - No real-person clone, public-figure clone, ex-partner/family clone,
+    deceased-person mode, or deceptive impersonation path was authorized.
+- Remaining risks:
+  - T260 is schema-only.
+  - Store, retrieval, consolidation, forgetting policy, and runtime memory
+    consumption remain future work.
