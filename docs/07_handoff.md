@@ -6493,3 +6493,58 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - T321 is a local state/projection contract, not a frontend.
   - M21 still needs chat/memory, life stream, proactive settings, user study,
     and milestone review work.
+
+## T322 Worker Completion Record
+
+- T322 is the Chat Plus Memory Explanation Prototype task for M21.
+- Worker must not mark T322 as complete in `docs/04_task_board.md`; T322 awaits
+  product/safety UX review and Captain judgment.
+- Files changed:
+  - `src/practical_chat_agent/ui/text_first_chat_memory.py`
+  - `tests/test_text_first_chat_memory_prototype.py`
+  - `docs/data_contracts/text_first_chat_memory_contract.md`
+  - `docs/tasks/M21_text_first_product_ux_prototype/T323_life_stream_prototype.md`
+  - `docs/worker_summary/T322_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED: targeted pytest failed because `text_first_chat_memory` did not exist.
+  - GREEN: targeted pytest passed after adding the chat/memory state projection
+    module.
+- Behavior added:
+  - Chat state includes persistent AI identity/AIGC label.
+  - Persona summary exposes compact persona id, display name, truth disclosure,
+    source risk tier, and review status.
+  - Memory explanations preserve summary, truth status, provenance refs,
+    retrieval eligibility, factual-evidence status, imagined flag, and safety
+    notes.
+  - Factual and imagined memory ids are separated.
+  - Imagined memory is forced to not be factual evidence.
+  - Dialogue tone, memory-use, and relationship-pacing notes are preserved.
+  - Crisis/dependency decisions project to blocked or de-escalated chat states.
+- T323 next task package:
+  - Created
+    `docs/tasks/M21_text_first_product_ux_prototype/T323_life_stream_prototype.md`.
+  - T323 is scoped to life-stream prototype states.
+- Verification status:
+  - `pytest tests\test_text_first_chat_memory_prototype.py -q -o cache_dir=artifacts\t322_pytest_cache_green --basetemp=artifacts\t322_pytest_basetemp_green`:
+    passed, 7 tests.
+  - `python -m py_compile src\practical_chat_agent\ui\text_first_chat_memory.py src\practical_chat_agent\core\models.py`:
+    passed.
+  - `pytest tests\test_text_first_chat_memory_prototype.py tests\test_memory_viewer_contract.py tests\test_dialogue_context_planner.py tests\test_crisis_dependency_policy.py -q -o cache_dir=artifacts\t322_pytest_cache_final --basetemp=artifacts\t322_pytest_basetemp_final`:
+    passed, 25 tests.
+  - `git diff --check`: passed with Windows line-ending conversion warnings.
+- Explicit non-actions:
+  - No frontend code, browser demo, final reply generation, LLM call, private
+    chat-log read, memory retrieval ranking, memory/persona mutation,
+    persistence, export/share/download writing, proactive candidate generation,
+    automatic sending, scheduling, platform integration, voice/avatar/video
+    behavior, or Live2D behavior was added.
+  - No legal advice, compliance completion, crisis-safety sufficiency, clinical
+    validation, launch approval, app-store approval, or regulator acceptance was
+    claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - T322 is a local state/projection contract, not a frontend or reply runtime.
+  - M21 still needs life stream, proactive settings, user study, and milestone
+    review work.
