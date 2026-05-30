@@ -5666,3 +5666,47 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - T290 is schema-only.
   - Text generation, AIGC metadata, contamination tests, review cards, UI, and
     web demo remain unopened.
+
+## T291 Worker Completion Record
+
+- T291 is the Virtual Life Engine Text Generator task for M18.
+- Worker must not mark T291 as complete in `docs/04_task_board.md`; T291 awaits
+  adversarial review and Captain judgment.
+- Files changed:
+  - `src/practical_chat_agent/services/virtual_life_engine.py`
+  - `tests/test_virtual_life_engine_text_generator.py`
+  - `docs/data_contracts/virtual_life_engine_contract.md`
+  - `docs/tasks/M18_virtual_life_stream/T292_aigc_labeling_metadata.md`
+  - `docs/worker_summary/T291_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED: targeted pytest failed because
+    `practical_chat_agent.services.virtual_life_engine` did not exist.
+  - GREEN: targeted pytest passed after adding `VirtualLifeEngine`.
+- Behavior added:
+  - Deterministic local virtual life stream draft stub.
+  - Seed context captures mood/activity/topic labels and refs.
+  - Generated posts preserve imagined labels, review status, and local private
+    review visibility.
+- T292 next task package:
+  - Created `docs/tasks/M18_virtual_life_stream/T292_aigc_labeling_metadata.md`.
+  - T292 is scoped to AIGC label/disclosure hardening only.
+- Verification status:
+  - `pytest tests\test_virtual_life_engine_text_generator.py -q -o cache_dir=artifacts\t291_pytest_cache --basetemp=artifacts\t291_pytest_basetemp`:
+    passed, 5 tests.
+  - `python -m py_compile src\practical_chat_agent\services\virtual_life_engine.py`:
+    passed.
+  - `pytest tests\test_virtual_life_engine_text_generator.py tests\test_role_dynamic_post_schema.py -q -o cache_dir=artifacts\t291_pytest_cache_min --basetemp=artifacts\t291_pytest_basetemp_min`:
+    passed, 10 tests.
+  - `git diff --check`: passed with Windows line-ending conversion warnings.
+- Explicit non-actions:
+  - No LLM call, scheduler, publisher, outbound request, delivery adapter,
+    platform integration, push notification, webhook, queue, review UI,
+    voice/avatar/video behavior, Live2D, social feed publishing, web demo, or
+    automatic sending was added.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - T291 is deterministic stub generation only.
+  - Label hardening, contamination tests, review cards, UI, and web demo remain
+    unopened.
