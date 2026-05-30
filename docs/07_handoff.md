@@ -5406,3 +5406,49 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - T280 is schema-only.
   - Policy gate, review card, expanded scenario tests, UI, and web demo remain
     unopened.
+
+## T281 Worker Completion Record
+
+- T281 is the Proactive Policy Gate task for M17.
+- Worker must not mark T281 as complete in `docs/04_task_board.md`; T281 awaits
+  adversarial review and Captain judgment.
+- Files changed:
+  - `src/practical_chat_agent/services/proactive_policy_gate.py`
+  - `tests/test_proactive_policy_gate.py`
+  - `docs/data_contracts/proactive_policy_gate_contract.md`
+  - `docs/tasks/M17_proactive_engine_consent/T282_quiet_hours_frequency_tests.md`
+  - `docs/worker_summary/T281_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED: targeted pytest failed because
+    `practical_chat_agent.services.proactive_policy_gate` did not exist.
+  - GREEN: targeted pytest passed after adding `ProactivePolicyGate`.
+- Behavior added:
+  - Deterministic local proactive policy gate.
+  - Consent status, surface, intent, quiet-hours, frequency-cap, and
+    minimum-interval checks.
+  - Review-only allow decision with mandatory human review.
+  - Block/defer decisions with deterministic reason labels.
+- T282 next task package:
+  - Created
+    `docs/tasks/M17_proactive_engine_consent/T282_quiet_hours_frequency_tests.md`.
+  - T282 is scoped to expanded quiet-hours/frequency/no-response tests.
+- Verification status:
+  - `pytest tests\test_proactive_policy_gate.py -q -o cache_dir=artifacts\t281_pytest_cache --basetemp=artifacts\t281_pytest_basetemp`:
+    passed, 6 tests.
+  - `python -m py_compile src\practical_chat_agent\services\proactive_policy_gate.py`:
+    passed.
+  - `pytest tests\test_proactive_policy_gate.py tests\test_proactive_consent_schema.py -q -o cache_dir=artifacts\t281_pytest_cache_min --basetemp=artifacts\t281_pytest_basetemp_min`:
+    passed, 13 tests.
+  - `git diff --check`: passed with Windows line-ending conversion warnings.
+- Explicit non-actions:
+  - No proactive candidate generator, scheduler, outbound request, delivery
+    adapter, platform integration, push notification, webhook, queue, LLM call,
+    production reply generation, review UI, voice/avatar/video behavior, social
+    feed, web demo, or automatic sending was added.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - T281 is policy-gate-only.
+  - Expanded edge tests, review card, scenario policy, UI, and web demo remain
+    unopened.
