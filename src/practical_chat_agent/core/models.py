@@ -655,6 +655,91 @@ class MemoryRetrievalBundle(BaseModel):
         return self
 
 
+class MemoryViewerItem(BaseModel):
+    schema_version: str = "memory_viewer_item_v1"
+    memory_id: str
+    user_id: str
+    event_type: MemoryEventType
+    truth_status: MemoryTruthStatus
+    sensitivity: DistillationSensitivity
+    lifecycle_state: MemoryLifecycleState
+    review_required: bool
+    summary: str
+    provenance_refs: list[str] = Field(default_factory=list)
+    is_retrieval_eligible: bool
+    is_factual_evidence: bool = False
+    can_edit: bool = True
+    can_delete: bool = True
+    can_freeze: bool = True
+    can_export: bool = True
+    safety_notes: list[str] = Field(default_factory=list)
+    created_at: datetime
+    updated_at: datetime
+
+    @classmethod
+    def from_event(cls, event: MemoryEvent) -> "MemoryViewerItem":
+        context_by_event_type: dict[MemoryEventType, MemoryRetrievalContext] = {
+            "factual": "factual",
+            "inferred": "inferred",
+            "relational": "relational",
+            "procedural": "procedural",
+            "imagined": "imagined",
+        }
+        provenance_refs = [
+            *event.provenance.evidence_refs,
+            *event.provenance.source_event_ids,
+            *event.provenance.source_memory_ids,
+            *event.provenance.source_persona_ids,
+        ]
+        is_retrieval_eligible = event.is_retrieval_eligible(context_by_event_type[event.event_type])
+        safety_notes: list[str] = []
+        if event.event_type == "imagined":
+            safety_notes.append("imagined_memory")
+        if event.retrieval_permission.review_required:
+            safety_notes.append("review_required")
+        if not is_retrieval_eligible:
+            safety_notes.append("not_retrieval_eligible")
+        return cls(
+            memory_id=event.event_id,
+            user_id=event.user_id,
+            event_type=event.event_type,
+            truth_status=event.truth_status,
+            sensitivity=event.sensitivity,
+            lifecycle_state=event.lifecycle_state,
+            review_required=event.retrieval_permission.review_required,
+            summary=event.summary,
+            provenance_refs=provenance_refs,
+            is_retrieval_eligible=is_retrieval_eligible,
+            is_factual_evidence=event.event_type == "factual" and event.is_retrieval_eligible("factual"),
+            can_edit=event.lifecycle_state not in {"deleted", "archived"},
+            can_delete=event.lifecycle_state != "deleted",
+            can_freeze=event.lifecycle_state == "active",
+            can_export=event.lifecycle_state != "deleted",
+            safety_notes=safety_notes,
+            created_at=event.created_at,
+            updated_at=event.updated_at,
+        )
+
+
+class MemoryViewerFilter(BaseModel):
+    schema_version: str = "memory_viewer_filter_v1"
+    event_types: list[MemoryEventType] = Field(default_factory=list)
+    truth_statuses: list[MemoryTruthStatus] = Field(default_factory=list)
+    lifecycle_states: list[MemoryLifecycleState] = Field(default_factory=list)
+    sensitivities: list[DistillationSensitivity] = Field(default_factory=list)
+    include_deleted: bool = False
+
+
+class MemoryViewerPage(BaseModel):
+    schema_version: str = "memory_viewer_page_v1"
+    items: list[MemoryViewerItem] = Field(default_factory=list)
+    filters: MemoryViewerFilter = Field(default_factory=MemoryViewerFilter)
+    total_count: int = Field(default=0, ge=0)
+    page: int = Field(default=1, ge=1)
+    page_size: int = Field(default=20, ge=1)
+    generated_at: datetime = Field(default_factory=utc_now)
+
+
 class ContactSkillTopicPreference(DistillationClaim):
     topic: str
     reason: str | None = None

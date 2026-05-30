@@ -5909,3 +5909,43 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
 - Remaining risks:
   - T300 is requirements-only.
   - M19 still needs concrete contracts and implementation work.
+
+## T301 Worker Completion Record
+
+- T301 is the Memory Viewer Data Contract task for M19.
+- Worker must not mark T301 as complete in `docs/04_task_board.md`; T301 awaits
+  adversarial review and Captain judgment.
+- Files changed:
+  - `src/practical_chat_agent/core/models.py`
+  - `tests/test_memory_viewer_contract.py`
+  - `docs/data_contracts/memory_viewer_contract.md`
+  - `docs/tasks/M19_memory_persona_control_surface/T302_persona_version_editor_contract.md`
+  - `docs/worker_summary/T301_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED: targeted pytest failed because Memory Viewer models did not exist.
+  - GREEN: targeted pytest passed after adding Memory Viewer models.
+- Behavior added:
+  - Read-only memory viewer item/filter/page models.
+  - Edit/delete/freeze/export booleans as metadata only.
+  - Imagined memory labels and non-factual-evidence flagging.
+- T302 next task package:
+  - Created
+    `docs/tasks/M19_memory_persona_control_surface/T302_persona_version_editor_contract.md`.
+  - T302 is scoped to persona version editor data contracts.
+- Verification status:
+  - `pytest tests\test_memory_viewer_contract.py -q -o cache_dir=artifacts\t301_pytest_cache --basetemp=artifacts\t301_pytest_basetemp`:
+    passed, 5 tests.
+  - `python -m py_compile src\practical_chat_agent\core\models.py`: passed.
+  - `pytest tests\test_memory_viewer_contract.py tests\test_memory_event_schema.py tests\test_memory_retrieval_bundle_schema.py -q -o cache_dir=artifacts\t301_pytest_cache_min --basetemp=artifacts\t301_pytest_basetemp_min`:
+    passed, 23 tests.
+  - `git diff --check`: passed with Windows line-ending conversion warnings.
+- Explicit non-actions:
+  - No UI, mutation service, delete/freeze/export execution, persistence
+    change, LLM call, platform integration, sending, scheduling, or web demo
+    was added.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - T301 is read-only data-contract work.
+  - Persona editor and delete/freeze/export contracts remain unopened.
