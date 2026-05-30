@@ -24,7 +24,7 @@ Future T303 worker may create or modify only:
 - `src/practical_chat_agent/core/models.py`
 - `tests/test_delete_freeze_export_flow_contract.py`
 - `docs/data_contracts/delete_freeze_export_flow_contract.md`
-- `docs/tasks/M19_memory_persona_control_surface/T304_m19_gate_review.md`
+- `docs/tasks/M19_memory_persona_control_surface/T304_deletion_verification_tests.md`
 - `docs/worker_summary/T303_worker_summary.md`
 - `docs/07_handoff.md`
 
@@ -95,8 +95,9 @@ fields, invariants, non-actions, and verification.
 
 ### 3. Next Task Package
 
-Create `docs/tasks/M19_memory_persona_control_surface/T304_m19_gate_review.md`
-for M19 adversarial gate review.
+Create
+`docs/tasks/M19_memory_persona_control_surface/T304_deletion_verification_tests.md`
+for deletion verification tests.
 
 ### 4. Worker Summary And Handoff
 

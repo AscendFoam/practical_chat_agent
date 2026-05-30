@@ -124,6 +124,17 @@ RoleDynamicPostReviewStatus = Literal["requires_review", "approved_for_demo", "r
 RoleDynamicPostVisibility = Literal["local_private_review"]
 AIGCLabel = Literal["ai_generated"]
 RoleDynamicMemoryRefUsage = Literal["inspiration_only"]
+ControlArtifactType = Literal[
+    "memory_event",
+    "persona_card",
+    "persona_version_record",
+    "role_dynamic_post",
+    "proactive_consent",
+    "proactive_review_card",
+]
+ControlOperationName = Literal["soft_delete", "hard_delete", "freeze", "unfreeze", "export"]
+ControlConfirmationStatus = Literal["dry_run_only", "confirmed", "rejected"]
+ControlExportFormat = Literal["manifest_json"]
 
 
 _PERSONA_EDITOR_FORBIDDEN_FIELD_TERMS = frozenset(
@@ -1241,6 +1252,263 @@ class PersonaVersionEditReview(BaseModel):
         self.blocking_risk_labels = _ordered_unique(self.blocking_risk_labels)
         if self.decision == "approved_for_manual_apply" and self.blocking_risk_labels:
             raise ValueError("blocking risk labels cannot be approved for manual apply")
+        return self
+
+
+class ControlOperationTarget(BaseModel):
+    schema_version: str = "control_operation_target_v1"
+    artifact_type: ControlArtifactType
+    artifact_id: str = Field(..., min_length=1)
+    user_id: str = Field(..., min_length=1)
+    persona_id: str | None = None
+    current_state: str = Field(default="active", min_length=1)
+    review_required: bool = False
+    retrieval_eligible: bool = True
+    runtime_eligible: bool = False
+    provenance_refs: list[str] = Field(default_factory=list)
+    safety_labels: list[str] = Field(default_factory=list)
+
+
+class ControlOperationPreview(BaseModel):
+    schema_version: str = "control_operation_preview_v1"
+    preview_id: str = Field(default_factory=lambda: new_id("controlpreview"))
+    operation: ControlOperationName
+    target: ControlOperationTarget
+    reason: str = Field(..., min_length=1)
+    dry_run: Literal[True] = True
+    requires_confirmation: Literal[True] = True
+    hard_delete: bool = False
+    would_change_state_to: str | None = None
+    retrieval_eligible_after: bool = True
+    runtime_eligible_after: bool = False
+    source_files_untouched: Literal[True] = True
+    writes_records: Literal[False] = False
+    writes_export_files: Literal[False] = False
+    safety_flags: list[str] = Field(default_factory=list)
+    created_at: datetime = Field(default_factory=utc_now)
+
+    @classmethod
+    def for_target(
+        cls,
+        *,
+        operation: ControlOperationName,
+        target: ControlOperationTarget,
+        reason: str,
+    ) -> "ControlOperationPreview":
+        if operation in {"soft_delete", "hard_delete"}:
+            return cls(
+                operation=operation,
+                target=target,
+                reason=reason,
+                hard_delete=operation == "hard_delete",
+                would_change_state_to="deleted",
+                retrieval_eligible_after=False,
+                runtime_eligible_after=False,
+                safety_flags=["delete_requires_confirmation", "retrieval_blocked_after_operation"],
+            )
+        if operation == "freeze":
+            return cls(
+                operation=operation,
+                target=target,
+                reason=reason,
+                would_change_state_to="frozen",
+                retrieval_eligible_after=False,
+                runtime_eligible_after=False,
+                safety_flags=["freeze_requires_confirmation", "retrieval_blocked_after_operation"],
+            )
+        if operation == "unfreeze":
+            return cls(
+                operation=operation,
+                target=target,
+                reason=reason,
+                would_change_state_to="active",
+                retrieval_eligible_after=target.retrieval_eligible,
+                runtime_eligible_after=target.runtime_eligible,
+                safety_flags=["unfreeze_requires_confirmation"],
+            )
+        return cls(
+            operation=operation,
+            target=target,
+            reason=reason,
+            would_change_state_to=target.current_state,
+            retrieval_eligible_after=target.retrieval_eligible,
+            runtime_eligible_after=target.runtime_eligible,
+            safety_flags=["export_requires_confirmation", "manifest_only"],
+        )
+
+    @model_validator(mode="after")
+    def validate_preview_flags(self) -> "ControlOperationPreview":
+        if self.operation == "hard_delete":
+            self.hard_delete = True
+        elif self.hard_delete:
+            raise ValueError("hard_delete flag is only valid for hard_delete operation")
+
+        if self.operation in {"soft_delete", "hard_delete"}:
+            self.would_change_state_to = "deleted"
+            self.retrieval_eligible_after = False
+            self.runtime_eligible_after = False
+        elif self.operation == "freeze":
+            self.would_change_state_to = "frozen"
+            self.retrieval_eligible_after = False
+            self.runtime_eligible_after = False
+        elif self.operation == "unfreeze":
+            self.would_change_state_to = self.would_change_state_to or "active"
+        else:
+            self.would_change_state_to = self.would_change_state_to or self.target.current_state
+        self.safety_flags = _ordered_unique(self.safety_flags)
+        return self
+
+
+class ControlOperationConfirmation(BaseModel):
+    schema_version: str = "control_operation_confirmation_v1"
+    confirmation_id: str = Field(default_factory=lambda: new_id("controlconfirm"))
+    preview_id: str = Field(..., min_length=1)
+    operation: ControlOperationName
+    target: ControlOperationTarget
+    actor_id: str = Field(..., min_length=1)
+    confirmed: bool
+    confirmation_phrase: str = ""
+    confirmation_status: ControlConfirmationStatus = "rejected"
+    reason: str = Field(..., min_length=1)
+    executes_operation: Literal[False] = False
+    writes_records: Literal[False] = False
+    writes_export_files: Literal[False] = False
+    created_at: datetime = Field(default_factory=utc_now)
+
+    @classmethod
+    def from_preview(
+        cls,
+        preview: ControlOperationPreview,
+        *,
+        actor_id: str,
+        confirmed: bool,
+        confirmation_phrase: str,
+        reason: str,
+    ) -> "ControlOperationConfirmation":
+        return cls(
+            preview_id=preview.preview_id,
+            operation=preview.operation,
+            target=preview.target,
+            actor_id=actor_id,
+            confirmed=confirmed,
+            confirmation_phrase=confirmation_phrase,
+            reason=reason,
+        )
+
+    @model_validator(mode="after")
+    def validate_confirmation_status(self) -> "ControlOperationConfirmation":
+        if self.confirmed and not self.confirmation_phrase.strip():
+            raise ValueError("confirmed control operation requires confirmation_phrase")
+        self.confirmation_status = "confirmed" if self.confirmed else "rejected"
+        return self
+
+
+class ControlAuditEvent(BaseModel):
+    schema_version: str = "control_audit_event_v1"
+    audit_id: str = Field(default_factory=lambda: new_id("controlaudit"))
+    actor_id: str = Field(..., min_length=1)
+    user_id: str = Field(..., min_length=1)
+    target: ControlOperationTarget
+    operation: ControlOperationName
+    before_summary: str = Field(..., min_length=1)
+    after_summary: str = Field(..., min_length=1)
+    reason: str = Field(..., min_length=1)
+    confirmation_status: ControlConfirmationStatus = "dry_run_only"
+    safety_flags: list[str] = Field(default_factory=list)
+    source_surface: str = "local_control_surface"
+    redacted_content_only: Literal[True] = True
+    writes_records: Literal[False] = False
+    writes_export_files: Literal[False] = False
+    created_at: datetime = Field(default_factory=utc_now)
+
+    @classmethod
+    def from_preview(
+        cls,
+        preview: ControlOperationPreview,
+        *,
+        actor_id: str,
+        before_summary: str,
+        after_summary: str,
+        confirmation: ControlOperationConfirmation | None = None,
+        safety_flags: list[str] | None = None,
+    ) -> "ControlAuditEvent":
+        confirmation_status: ControlConfirmationStatus = "dry_run_only"
+        if confirmation is not None:
+            confirmation_status = confirmation.confirmation_status
+        return cls(
+            actor_id=actor_id,
+            user_id=preview.target.user_id,
+            target=preview.target,
+            operation=preview.operation,
+            before_summary=before_summary,
+            after_summary=after_summary,
+            reason=preview.reason,
+            confirmation_status=confirmation_status,
+            safety_flags=safety_flags or [],
+        )
+
+    @model_validator(mode="after")
+    def normalize_safety_flags(self) -> "ControlAuditEvent":
+        self.safety_flags = _ordered_unique(self.safety_flags)
+        return self
+
+
+class ControlExportManifest(BaseModel):
+    schema_version: str = "control_export_manifest_v1"
+    export_id: str = Field(default_factory=lambda: new_id("controlexport"))
+    user_id: str = Field(..., min_length=1)
+    format: ControlExportFormat = "manifest_json"
+    reason: str = Field(..., min_length=1)
+    targets: list[ControlOperationTarget] = Field(..., min_length=1)
+    target_count: int = Field(default=0, ge=0)
+    include_provenance: bool = True
+    provenance_refs: list[str] = Field(default_factory=list)
+    contains_imagined_content: bool = False
+    contains_aigc_content: bool = False
+    contains_review_required_items: bool = False
+    imagined_target_ids: list[str] = Field(default_factory=list)
+    aigc_target_ids: list[str] = Field(default_factory=list)
+    review_required_target_ids: list[str] = Field(default_factory=list)
+    redacted_content_only: Literal[True] = True
+    source_files_untouched: Literal[True] = True
+    writes_export_files: Literal[False] = False
+    generated_at: datetime = Field(default_factory=utc_now)
+
+    @classmethod
+    def from_targets(
+        cls,
+        *,
+        user_id: str,
+        targets: list[ControlOperationTarget],
+        reason: str,
+    ) -> "ControlExportManifest":
+        return cls(user_id=user_id, targets=targets, reason=reason)
+
+    @model_validator(mode="after")
+    def derive_manifest_labels(self) -> "ControlExportManifest":
+        provenance_refs: list[str] = []
+        imagined_target_ids: list[str] = []
+        aigc_target_ids: list[str] = []
+        review_required_target_ids: list[str] = []
+
+        for target in self.targets:
+            provenance_refs.extend(target.provenance_refs)
+            safety_labels = set(target.safety_labels)
+            if safety_labels.intersection({"imagined_content", "imagined_memory", "not_real_world_activity"}):
+                imagined_target_ids.append(target.artifact_id)
+            if safety_labels.intersection({"ai_generated", "aigc", "imagined_ai_generated_content"}):
+                aigc_target_ids.append(target.artifact_id)
+            if target.review_required or "review_required" in safety_labels:
+                review_required_target_ids.append(target.artifact_id)
+
+        self.target_count = len(self.targets)
+        self.provenance_refs = _ordered_unique(provenance_refs)
+        self.imagined_target_ids = _ordered_unique(imagined_target_ids)
+        self.aigc_target_ids = _ordered_unique(aigc_target_ids)
+        self.review_required_target_ids = _ordered_unique(review_required_target_ids)
+        self.contains_imagined_content = bool(self.imagined_target_ids)
+        self.contains_aigc_content = bool(self.aigc_target_ids)
+        self.contains_review_required_items = bool(self.review_required_target_ids)
         return self
 
 

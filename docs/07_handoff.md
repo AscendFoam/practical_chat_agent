@@ -5993,3 +5993,49 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - T302 is contract-only work.
   - Delete/freeze/export contracts, M19 review, UI, and web demo remain
     unopened.
+
+## T303 Worker Completion Record
+
+- T303 is the Delete / Freeze / Export Local Flow Contract task for M19.
+- Worker must not mark T303 as complete in `docs/04_task_board.md`; T303 awaits
+  adversarial review and Captain judgment.
+- Files changed:
+  - `src/practical_chat_agent/core/models.py`
+  - `tests/test_delete_freeze_export_flow_contract.py`
+  - `docs/data_contracts/delete_freeze_export_flow_contract.md`
+  - `docs/tasks/M19_memory_persona_control_surface/T303_delete_freeze_export_local_flow.md`
+  - `docs/tasks/M19_memory_persona_control_surface/T304_deletion_verification_tests.md`
+  - `docs/worker_summary/T303_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED: targeted pytest failed because control-flow models did not exist.
+  - GREEN: targeted pytest passed after adding delete/freeze/export flow
+    models.
+- Behavior added:
+  - Dry-run target/preview/confirmation/audit/export-manifest models.
+  - Soft-delete and hard-delete distinction.
+  - Delete/freeze preview flags that block retrieval/runtime eligibility.
+  - Review/confirmation-only records that cannot execute mutations.
+  - Export manifests that label imagined, AIGC, review-required, and
+    provenance metadata.
+- T304 next task package:
+  - Created
+    `docs/tasks/M19_memory_persona_control_surface/T304_deletion_verification_tests.md`.
+  - T304 is scoped to deletion verification tests.
+- Verification status:
+  - `pytest tests\test_delete_freeze_export_flow_contract.py -q -o cache_dir=artifacts\t303_pytest_cache --basetemp=artifacts\t303_pytest_basetemp`:
+    passed, 5 tests.
+  - `python -m py_compile src\practical_chat_agent\core\models.py`: passed.
+  - `pytest tests\test_delete_freeze_export_flow_contract.py tests\test_memory_viewer_contract.py tests\test_persona_version_editor_contract.py -q -o cache_dir=artifacts\t303_pytest_cache_final --basetemp=artifacts\t303_pytest_basetemp_final`:
+    passed, 15 tests.
+  - `git diff --check`: passed with Windows line-ending conversion warnings.
+- Explicit non-actions:
+  - No UI, mutation service, actual deletion, actual freeze/unfreeze, export
+    file writing, source-file removal, version-store write, LLM call, platform
+    integration, sending, scheduling, or web demo was added.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - T303 is contract-only work.
+  - T304 deletion verification tests, M19 review, UI, and web demo remain
+    unopened.
