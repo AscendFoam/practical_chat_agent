@@ -4505,3 +4505,73 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - Credential handling, tenant eligibility, callback verification,
     encryption/decryption, provider failure events, acknowledgement semantics,
     retries, and production recipient mapping remain unresolved.
+
+## T240 Worker Completion Record
+
+- T240 is the M13 Commercial Companion Positioning And Safety Boundary Pack.
+- Worker must not mark T240 as complete in `docs/04_task_board.md`; T240 awaits
+  adversarial review and Captain judgment.
+- Files changed:
+  - `docs/product/M13_commercial_companion_positioning.md`
+  - `docs/product/M13_competitor_matrix.md`
+  - `docs/safety/M13_clone_and_persona_risk_tiers.md`
+  - `docs/safety/M13_proactive_companionship_redlines.md`
+  - `docs/architecture/M13_persona_memory_relationship_architecture.md`
+  - `docs/roadmap/M13_plus_milestone_plan.md`
+  - `docs/tasks/M14_persona_compiler_schema/T250_persona_compiler_schema.md`
+  - `docs/worker_summary/T240_worker_summary.md`
+  - `docs/07_handoff.md`
+- Product direction:
+  - Reposition M13+ toward a transparent, controllable, text-first AI persona
+    companion product.
+  - Do not continue near-term work by piling on live WeChat/WeCom delivery.
+  - Differentiate through persona compilation, trustworthy memory,
+    relationship semantics, consented proactive behavior, virtual life streams,
+    user controls, and safety/compliance governance.
+- Safety outputs:
+  - L1 original fictional persona is the near-term M14 target.
+  - L2 de-identified style inspiration is future gated work.
+  - L3 self-authorized digital self is future-only and consent-heavy.
+  - L4 third-party/deceased/commemorative mode is research-only now.
+  - L5 unauthorized real-person clone, public-figure clone, ex-partner/family
+    clone, voice/face deepfake, and deceptive impersonation remain prohibited.
+  - Proactive companionship must be opt-in, rate-limited, quiet-hours aware,
+    no-response backed off, non-coercive, crisis-safe, and in-app/sandbox until
+    later reviewed tasks change that boundary.
+- Architecture and roadmap outputs:
+  - Seven-engine architecture: Persona Compiler, Memory OS v2, Relationship
+    Engine, Dialogue Engine, Proactive Engine, Virtual Life Engine, and Safety
+    & Compliance Engine.
+  - M13-M22 milestone plan with candidate task IDs T240 through T335.
+  - First M14 task package: T250 `PersonaCard v1 Schema And Source / Consent
+    Policy`.
+- Public/source checks:
+  - Product pages checked: TheOne, Replika, Character.AI calls/voice, Talkie,
+    and MiniMax Xingye.
+  - Official CAC pages checked: anthropomorphic interaction service rules,
+    deep synthesis rules, and AIGC labeling rules.
+- Verification status:
+  - `git diff --check`: passed, with Windows line-ending conversion warnings
+    for existing working-copy files.
+  - `Test-Path` checks for all expected T240 docs: all returned `True`.
+  - `rg` coverage check for `Gate M13`, `M14`, `M22`, `L1`, `L5`,
+    `automatic sending`, `unauthorized clone`, and `imagined memory`: passed
+    with expected matches.
+- Explicit non-actions:
+  - No implementation code, tests, package metadata, runtime config, CLI,
+    connector, adapter, store, schema migration, or app UI changes.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+  - No platform API calls, credentials, callbacks, polling, transport,
+    scheduler, runtime send path, or automatic sending.
+  - No real-person clone, deceased-person resurrection, voice clone,
+    face/avatar deepfake, or deceptive impersonation path was authorized.
+- Remaining risks:
+  - Competitor, pricing, product, and legal facts may drift and need later
+    validation.
+  - Domestic report-only competitors still need hands-on/app-store/privacy
+    review.
+  - M14 must keep style inspiration from becoming identifiable real-person
+    imitation.
+  - Later Memory OS work must prove imagined/factual isolation.
+  - Later proactive work must preserve consent and anti-manipulation redlines.
