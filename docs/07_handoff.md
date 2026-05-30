@@ -5099,3 +5099,53 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - T263 is schema-only.
   - Actual retrieval selection, ranking, consolidation, and runtime memory
     consumption remain unopened.
+
+## T264 Worker Completion Record
+
+- T264 is the Memory Consolidation Stub task for M15 Memory OS v2.
+- Worker must not mark T264 as complete in `docs/04_task_board.md`; T264 awaits
+  adversarial review and Captain judgment.
+- Files changed:
+  - `src/practical_chat_agent/services/memory_consolidation_v2.py`
+  - `tests/test_memory_consolidation_v2.py`
+  - `docs/data_contracts/memory_consolidation_v2_contract.md`
+  - `docs/tasks/M15_memory_os_v2/T265_memory_os_m15_gate_review.md`
+  - `docs/worker_summary/T264_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED: targeted pytest failed because
+    `practical_chat_agent.services.memory_consolidation_v2` did not exist.
+  - GREEN: targeted pytest passed after adding `MemoryConsolidationService`.
+- Behavior added:
+  - `MemoryConsolidationService.propose(...)` returns deterministic
+    consolidation candidate groups.
+  - Active keep candidates group by event type.
+  - Factual events group only with factual events.
+  - Imagined events emit `separate_imagined` and stay out of factual groups.
+  - Review-required/high-sensitivity events emit `review`.
+  - Low-salience old events can emit `decay` or `compress`.
+  - Service returns candidates only and does not mutate stores.
+- T265 next task package:
+  - Created `docs/tasks/M15_memory_os_v2/T265_memory_os_m15_gate_review.md`.
+  - T265 is scoped to docs-only M15 gate review and M16 entry task creation.
+- Verification status:
+  - `python -m py_compile src\practical_chat_agent\services\memory_consolidation_v2.py`:
+    passed.
+  - `pytest tests\test_memory_consolidation_v2.py -q -o cache_dir=artifacts\t264_pytest_cache --basetemp=artifacts\t264_pytest_basetemp`:
+    passed, 6 tests.
+  - `pytest tests\test_memory_consolidation_v2.py tests\test_memory_retrieval_bundle_schema.py tests\test_memory_lifecycle_v2.py tests\test_memory_event_schema.py -q -o cache_dir=artifacts\t264_pytest_cache_min --basetemp=artifacts\t264_pytest_basetemp_min`:
+    passed, 31 tests.
+  - `git diff --check`: passed.
+- Explicit non-actions:
+  - No LLM summarization, private chat-log read, vector search, retrieval
+    ranking, semantic similarity, store mutation, dialogue runtime consumption,
+    proactive candidate, outbound request, platform integration,
+    voice/avatar/deepfake behavior, or automatic sending.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+  - No real-person clone, public-figure clone, ex-partner/family clone,
+    deceased-person mode, or deceptive impersonation path was authorized.
+- Remaining risks:
+  - T264 is deterministic grouping only.
+  - No generated consolidated memories, LLM summaries, retrieval ranking, or
+    runtime consumption exists yet.
