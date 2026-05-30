@@ -4744,3 +4744,61 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - Future L2 work still needs broader adversarial evaluation before reading
     real private material.
   - PersonaCard review, versioning, and runtime consumption remain unopened.
+
+## T253 Worker Completion Record
+
+- T253 is the Persona Review Card Contract task for M14.
+- Worker must not mark T253 as complete in `docs/04_task_board.md`; T253 awaits
+  adversarial review and Captain judgment.
+- Files changed:
+  - `src/practical_chat_agent/services/persona_review.py`
+  - `tests/test_persona_review.py`
+  - `docs/data_contracts/persona_review_card_contract.md`
+  - `docs/tasks/M14_persona_compiler_schema/T254_persona_version_store.md`
+  - `docs/worker_summary/T253_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED: targeted pytest failed because
+    `practical_chat_agent.services.persona_review` did not exist.
+  - GREEN: targeted pytest passed after adding `PersonaReviewService`.
+- Behavior added:
+  - `PersonaReviewService.render(card)` returns a local review-card payload.
+  - Payloads expose identity, disclosure, source/risk policy, traits, speech
+    style, imagined virtual history, growth policy, proactive preferences,
+    safety flags, warnings, and review decisions.
+  - L5 prohibited cards render with redacted blocked-request background and
+    remain non-runtime-ready.
+  - `PersonaReviewService.review(...)` requires a reviewer id, returns a new
+    PersonaCard, and updates review metadata history.
+  - Approval is blocked for prohibited sources, unsafe tiers, real-person
+    similarity blocks, non-fictional identity, real-person references, or
+    disabled core safety flags.
+  - Rejected and frozen cards remain non-runtime-ready.
+  - Service surface exposes no send/schedule/delivery/runtime/memory retrieval
+    methods.
+- T254 next task package:
+  - Created
+    `docs/tasks/M14_persona_compiler_schema/T254_persona_version_store.md`.
+  - T254 is scoped to local JSON version-store work only.
+- Verification status:
+  - `python -m py_compile src\practical_chat_agent\services\persona_review.py`:
+    passed.
+  - `pytest tests\test_persona_review.py -q -o cache_dir=artifacts\t253_pytest_cache --basetemp=artifacts\t253_pytest_basetemp`:
+    passed, 7 tests.
+  - `pytest tests\test_persona_review.py tests\test_persona_compiler.py tests\test_deidentification_guard.py -q -o cache_dir=artifacts\t253_pytest_cache_min --basetemp=artifacts\t253_pytest_basetemp_min`:
+    passed, 24 tests.
+  - `git diff --check`: passed.
+- Explicit non-actions:
+  - No PersonaCard storage, version history, CLI, UI, LLM call, private
+    chat-log read, runtime dialogue use, memory retrieval, proactive candidate,
+    scheduler, outbound request, platform integration, voice/avatar/deepfake
+    behavior, or automatic sending.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+  - No real-person clone, public-figure clone, ex-partner/family clone,
+    deceased-person mode, or deceptive impersonation path was authorized.
+- Remaining risks:
+  - T253 is not a product UI.
+  - Version persistence, rollback, freeze/delete semantics, and export controls
+    remain unopened until T254.
+  - Runtime dialogue consumption remains unopened.
