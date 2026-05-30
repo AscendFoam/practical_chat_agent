@@ -246,7 +246,13 @@
       "Bash(python -m py_compile src/practical_chat_agent/connectors/inbound/__init__.py)",
       "Bash(python -m pytest tests/test_wecom_customer_service_safety_gate.py -q)",
       "Bash(python -m pytest tests/test_wecom_customer_service_safety_gate.py tests/test_outbound_message_request_schema.py tests/test_outbound_send_gate.py -q)",
-      "Bash(python -m py_compile src/practical_chat_agent/services/wecom_customer_service_safety.py)"
+      "Bash(python -m py_compile src/practical_chat_agent/services/wecom_customer_service_safety.py)",
+      "Bash(python -m py_compile src/practical_chat_agent/services/wecom_customer_service_outbound_adapter.py)",
+      "Bash(python -m pytest tests/test_wecom_customer_service_outbound_adapter.py -q)",
+      "Bash(python -m pytest tests/test_wecom_customer_service_outbound_adapter.py tests/test_wecom_customer_service_safety_gate.py tests/test_outbound_message_request_schema.py tests/test_outbound_send_gate.py -q)",
+      "Bash(python -c \"from practical_chat_agent.services.wecom_customer_service_outbound_adapter import WeComCustomerServiceDryRunOutboundAdapter; a = WeComCustomerServiceDryRunOutboundAdapter\\(\\); print\\(dir\\(a\\)\\)\")",
+      "Bash(python -c \"from practical_chat_agent.services.wecom_customer_service_outbound_adapter import WeComCustomerServiceDryRunOutboundAdapter; a = WeComCustomerServiceDryRunOutboundAdapter\\(\\); attrs = [x for x in dir\\(a\\) if not x.startswith\\('__'\\)]; print\\(attrs\\)\")",
+      "Bash(PYTHONPATH=src python -c \"from practical_chat_agent.services.wecom_customer_service_outbound_adapter import WeComCustomerServiceDryRunOutboundAdapter; a = WeComCustomerServiceDryRunOutboundAdapter\\(\\); attrs = [x for x in dir\\(a\\) if not x.startswith\\('__'\\)]; print\\(attrs\\)\")"
     ]
   }
 }

@@ -1,5 +1,67 @@
 # Raw Idea
 
+## Captain Update 2026-05-30 (T234 / M12 Close)
+
+T234 has completed the M12 milestone review. Captain accepts the worker's
+review artifact as the M12 closeout evidence because T234 itself was a
+review-only milestone task and introduced no implementation changes.
+
+M12 closes with `Gate M12 Conditional`.
+
+What M12 now proves:
+
+- T230 blocked generic personal-WeChat automation, scan-login resurrection,
+  desktop automation, realtime personal-account send/receive, and unofficial
+  SDK vendoring.
+- T231 proved only synthetic WeCom Customer Service inbound normalization.
+- T233 proved only local provider eligibility after `OutboundMessageRequest`
+  and `OutboundSendGate`.
+- T232 proved only review-safe WeCom Customer Service dry-run payload
+  preparation behind a matching allowed T233 decision.
+
+What M12 still does not prove:
+
+- live WeChat/WeCom callbacks, credentials, webhooks, polling, sync loops,
+  transport, official API payload compatibility, provider acknowledgement,
+  retry behavior, failure-event mutation, production recipient mapping,
+  automatic sending, or live delivery readiness.
+
+The next project direction should not be another immediate WeCom worker task.
+The new GPT-Pro discussion in `docs/reference/和gpt-pro的对话.md` points to a
+larger commercial product question: whether this repository should evolve from
+relationship-aware reply assistance toward a transparent, controllable,
+commercial companion-agent product with persona compilation, long-term memory,
+relationship growth, proactive but non-manipulative behavior, virtual life
+streams, and strict consent/compliance boundaries.
+
+Captain has therefore written an external research prompt at
+`docs/prompts/commercial_companion_agent_deep_research_prompt.md`. No M13 worker
+implementation task should be assigned until that research returns and Captain
+turns the result into a scoped milestone/task package.
+
+## Captain Update 2026-05-30 (T232 Review)
+
+T232 has now passed review with `PASS`, so M12 has completed its planned
+local/synthetic WeCom Customer Service implementation slice:
+
+- T230 blocked generic personal-WeChat automation and narrowed M12 to official
+  surfaces
+- T231 normalized synthetic WeCom Customer Service inbound fixtures into
+  `InboundEvent`
+- T233 added a local provider-safety gate before payload preparation
+- T232 added a dry-run outbound payload-preparation adapter that requires both
+  `OutboundMessageRequest.is_sendable()` and a matching T233 allowed safety
+  decision
+
+T232 still does not authorize live WeCom delivery. It adds no platform API
+call, credential read, callback route, polling/sync loop, transport seam,
+retry path, runtime send path, store mutation, private read, or production
+compatibility claim.
+
+The next task is T234 `M12 WeChat Adapter Milestone Review`, a docs-only gate
+review to decide what M12 proves and what remains blocked before any live
+WeCom work.
+
 ## Captain Update 2026-05-30 (T233 Review)
 
 T233 has now passed review with `PASS`, so M12 has a local provider-safety

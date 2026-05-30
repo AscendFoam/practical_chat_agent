@@ -1,5 +1,60 @@
 # Feasibility Report
 
+## Captain Update 2026-05-30 (T234 / M12 Close)
+
+T234 confirms that M12 is feasible only as a bounded local/synthetic WeCom
+Customer Service slice.
+
+The milestone gate is `Gate M12 Conditional`:
+
+- feasible: keep T230/T231/T233/T232 as accepted local evidence for official
+  surface narrowing, synthetic inbound normalization, local provider-safety
+  eligibility, and dry-run payload preparation
+- not feasible/authorized yet: live WeChat or WeCom credentials, callbacks,
+  webhooks, polling/sync, provider transport, official API payload
+  compatibility, acknowledgement, retry, failure-event mutation, production
+  recipient mapping, or delivery
+- still blocked: personal-WeChat automation, scan-login resurrection, desktop
+  automation, unofficial SDK vendoring, and automatic sending
+
+The next feasibility question is no longer "can we add a WeCom adapter?" The
+project now needs a product-level feasibility pass before opening M13:
+
+- Can this codebase become a commercial companion-agent product without
+  collapsing into unauthorized human cloning or manipulative emotional
+  retention?
+- Which near-term features are the safest differentiators: persona compiler,
+  long-term memory OS, relationship engine, consented proactive behavior,
+  virtual life stream, memory/persona controls, or compliance baseline?
+- Which features require additional legal, market, safety, and technical
+  research before task packages exist?
+
+Captain created
+`docs/prompts/commercial_companion_agent_deep_research_prompt.md` for an
+external GPT-Pro research pass. Until that research returns, no new worker
+implementation should be assigned for M13.
+
+## Captain Update 2026-05-30 (T232 Review)
+
+T232 confirms that the repo can prepare a deterministic dry-run WeCom Customer
+Service payload behind the outbound send gate and T233 provider-safety gate.
+
+The feasibility question has changed again:
+
+- no longer blocked on whether a sendable request plus matching allowed T233
+  decision can become a review-safe dry-run payload
+- now focused on whether M12 should close with a milestone gate, and what exact
+  future constraints must apply before any live WeCom callback, credential,
+  provider payload, transport, acknowledgement, retry, or failure-event work
+- still not ready for live WeCom callbacks, polling/sync, credentials,
+  encryption/signature handling, official API payload compatibility, API calls,
+  injected/live transport, retries, outbound delivery, runtime wiring,
+  personal-WeChat automation, desktop automation, or unofficial SDKs
+
+So the project is ready to commit the T232 dry-run slice and advance to T234 as
+a milestone review. Any later WeCom work must be based on the M12 gate result,
+not on an implied delivery authorization from dry-run payload readiness.
+
 ## Captain Update 2026-05-30 (T233 Review)
 
 T233 confirms that the selected WeCom Customer Service surface can be guarded

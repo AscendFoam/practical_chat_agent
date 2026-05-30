@@ -1,5 +1,75 @@
 # Decision Log
 
+## D072: Close M12 as Gate M12 Conditional and pause for commercial roadmap research
+
+- Date: 2026-05-30
+- Status: Accepted
+- Context: `docs/worker_summary/T234_worker_summary.md` and
+  `docs/review/M12_review.md` complete the T234 milestone-review task. T234 was
+  itself review-only and therefore did not receive a separate reviewer pass.
+  The artifact evaluates T230, T231, T233, and T232 and recommends
+  `Gate M12 Conditional`.
+- Decision: Captain accepts T234 as the M12 closeout. T234 is complete. M12 is
+  accepted only as a local, synthetic, dry-run-only WeCom Customer Service
+  slice.
+- Gate result: `Gate M12 Conditional`.
+- This gate allows:
+  - keeping T230/T231/T233/T232 as accepted local M12 evidence
+  - using the synthetic inbound contract, local provider-safety gate, and
+    dry-run payload preparation in review-safe local workflows
+  - future docs-only or design-only live-readiness research tasks
+- This gate blocks:
+  - live WeChat or WeCom API calls
+  - credentials, tokens, tenant/app IDs, callback tokens, EncodingAESKey,
+    OpenID/UnionID/external-user IDs, `open_kfid`, QR codes, or real recipient
+    reads
+  - callbacks, webhooks, polling, sync loops, schedulers, runtime wiring, CLI
+    send paths, transport, retry, acknowledgement, failure-event mutation, or
+    delivery interpretation
+  - automatic sending
+  - personal-WeChat automation, scan-login resurrection, desktop automation,
+    realtime personal-account send/receive, and unofficial SDK vendoring
+  - production readiness or live-delivery claims
+- Next direction: do not assign a new worker implementation task yet. The
+  project should first run an external commercial-product research pass using
+  `docs/prompts/commercial_companion_agent_deep_research_prompt.md`, based on
+  `docs/reference/和gpt-pro的对话.md`.
+- Impact:
+  - `docs/04_task_board.md` marks T234 complete and records M12
+    `Gate M12 Conditional`.
+  - Current worker implementation is paused pending external GPT-Pro research.
+  - `docs/07_handoff.md` records the M12 closeout and next Captain action.
+  - `docs/08_risks_and_open_questions.md` closes Q207 and opens the M13
+    commercial-roadmap research question.
+
+## D071: T232 PASS, accept WeCom dry-run outbound adapter, advance to T234
+
+- Date: 2026-05-30
+- Status: Accepted
+- Context: `docs/review/T232_review.md` gives `PASS` for the WeCom Customer Service dry-run outbound adapter. No blocking issues were found. The review confirms T232 added a deterministic local payload-preparation boundary, changed only allowed files, covered all required scenarios with 23 focused tests, and introduced no live/fake transport, API call, credential read, callback route, polling/sync loop, scheduler, runtime/CLI send path, retry path, store mutation, private artifact read, or delivery claim.
+- Decision: T232 is complete. M12 is complete at the task level and should proceed to T234 `M12 WeChat Adapter Milestone Review` before any further WeCom work is considered.
+- Review observation handling:
+  - Accepted:
+    - N01 duplicated candidate-action detection across adapters is acceptable until the heuristic changes enough to justify shared utility extraction.
+    - N02 dataclass mapping coercion for safety decisions is acceptable because malformed mappings are blocked and do not prepare payloads.
+    - N03 candidate-action rejection audit notes consistently include both the specific rejection and `wecom_dry_run_blocked`.
+    - N04 missing safety decision identity fields defensively produce mismatch blocks; explicit edge coverage can wait.
+    - N05 hardcoded text message type is correct for T232 dry-run text scope; future multi-type payloads require a later task.
+    - N06 dry-run config validation is a useful pattern improvement.
+    - N07 `WECom_CUSTOMER_SERVICE_SURFACE` plus one payload literal is a minor consistency note, not a behavior risk at current values.
+    - N08 listed coverage gaps are non-blocking test-strength notes.
+  - Deferred: none from the T232 review decision.
+  - Rejected: none.
+- Conditions carried forward:
+  - T234 must be docs-only milestone review and must not add implementation.
+  - M12 local artifacts must not be interpreted as live WeCom API, callback, credential, transport, acknowledgement, retry, failure-event, or delivery readiness.
+  - Personal-WeChat scan/login/realtime SDK work, desktop automation, unofficial SDK vendoring, and automatic sending remain blocked.
+- Impact:
+  - `docs/04_task_board.md` moves the Current Unique Task from T232 to T234 and marks T232 complete.
+  - `docs/07_handoff.md` records the T232 review decision and T234 task boundary.
+  - `docs/08_risks_and_open_questions.md` closes Q206, opens Q207 for T234, and carries forward M12 residual risks.
+  - `docs/tasks/M12_wechat_adapter/T234_m12_milestone_review.md` is created as the next docs-only milestone review task package.
+
 ## D070: T233 PASS, accept WeCom provider safety gate, advance to T232
 
 - Date: 2026-05-30

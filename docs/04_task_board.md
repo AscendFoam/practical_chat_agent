@@ -4,6 +4,55 @@ Updated: 2026-05-30
 
 ## Captain Current State Override
 
+- T234 / M12 closeout decision: accepted.
+- T234 is complete as the M12 WeChat Adapter milestone review.
+- M12 gate decision: `Gate M12 Conditional`.
+- M12 is accepted only as a local/synthetic/dry-run WeCom Customer Service
+  slice:
+  - T230 narrowed unsafe WeChat-family paths and kept personal-WeChat
+    automation blocked.
+  - T231 proved synthetic inbound normalization only.
+  - T233 proved local provider eligibility only.
+  - T232 proved dry-run payload preparation only.
+- M12 does not authorize live WeChat/WeCom callbacks, credentials, webhooks,
+  polling, sync loops, transport, official API payload compatibility,
+  acknowledgement, retry, failure-event mutation, production recipient mapping,
+  automatic sending, or delivery readiness.
+- Personal WeChat automation, scan-login resurrection, desktop automation,
+  realtime personal-account send/receive, unofficial SDK vendoring, and
+  automatic sending remain blocked.
+- Current Unique Task: External GPT-Pro commercial companion-agent roadmap
+  research.
+- Prompt file:
+  `docs/prompts/commercial_companion_agent_deep_research_prompt.md`.
+- Worker task package: none yet. No implementation worker should be assigned
+  until the external research report returns and Captain writes M13+ task
+  packages under `docs/tasks/`.
+- Next Captain action after research: synthesize the GPT-Pro report into a
+  staged commercial-product roadmap, update governance docs, and create the
+  first scoped worker task package.
+
+- T232 review decision: `PASS`.
+- T232 is complete as the WeCom Customer Service dry-run outbound adapter for M12.
+- T232 review observation disposition:
+  - Accepted: N01 duplicated candidate-action detection is acceptable for now, N02 safety-decision dataclass mapping coercion blocks malformed inputs sufficiently for dry-run scope, N03 rejection audit construction is consistent, N04 missing safety IDs defensively mismatch, N05 hardcoded text message type is correct for T232 scope, N06 dry-run config validation is a useful pattern improvement, N07 surface constant/literal duplication is minor, N08 listed coverage gaps are non-blocking test-strength notes.
+  - Deferred: none from the T232 review decision.
+  - Rejected: none.
+- Captain decision: no T232 repair pass is needed.
+- Historical next task at the T232 closeout point: T234 M12 WeChat Adapter
+  Milestone Review.
+- Historical task package:
+  `docs/tasks/M12_wechat_adapter/T234_m12_milestone_review.md`.
+- T234 was scoped as docs-only and review-only:
+  - may evaluate T230/T231/T233/T232 evidence and recommend `Gate M12 Allow`, `Gate M12 Conditional`, or `Gate M12 Block`
+  - may run local read-only verification commands over M12 code/tests
+  - must not modify implementation code/tests, add connectors/adapters, call platform APIs, load credentials, register callbacks, poll/sync messages, add transport/retry/runtime/CLI send paths, mutate stores, read private artifacts, or authorize live delivery
+- M12 task-level state:
+  - T230, T231, T233, and T232 are all accepted with `PASS`.
+  - M12 now proves only a local/synthetic WeCom Customer Service chain: research narrowing, synthetic inbound normalization, local provider safety, and dry-run payload preparation.
+  - M12 does not prove live WeCom API compatibility, credentials, callbacks, real recipient mapping, provider state, transport, acknowledgement, retry, failure-event handling, or delivery.
+  - Personal WeChat automation, scan-login resurrection, desktop automation, realtime personal-account send/receive, unofficial SDK vendoring, and automatic sending remain blocked.
+
 - T233 review decision: `PASS`.
 - T233 is complete as the WeCom Customer Service provider safety gate for M12.
 - T233 review observation disposition:
@@ -543,21 +592,30 @@ Updated: 2026-05-30
 
 ## Current Unique Task
 
-T232: WeCom Customer Service Dry-Run Outbound Adapter.
+External GPT-Pro research: Commercial Companion-Agent Roadmap.
 
-Task package: `docs/tasks/M12_wechat_adapter/T232_wechat_outbound_adapter.md`
+Prompt file: `docs/prompts/commercial_companion_agent_deep_research_prompt.md`
 
-Why now: T233 has landed with `PASS`, proving a local provider-safety gate for
-WeCom Customer Service without payload preparation or delivery. The next safe
-step is a dry-run-only outbound adapter that requires both a sendable
-`OutboundMessageRequest` and a matching T233 allowed safety decision, then
-prepares only a review-safe synthetic payload with aliases and no platform side
-effects.
+Worker task package: none yet.
+
+Why now: T234 has closed M12 with `Gate M12 Conditional`. The project should
+not jump directly into another WeCom or commercial-product implementation
+task. The new GPT-Pro discussion points toward a larger product strategy:
+persona compilation, long-term memory, relationship growth, consented proactive
+behavior, virtual life streams, voice/avatar sequencing, and compliance. That
+needs external market/legal/technical research before Captain can write M13+
+task packages.
+
+Completion condition for this current external action: the user returns a
+GPT-Pro research report based on the prompt file. Captain then decides the
+M13+ roadmap and writes the next worker task package.
 
 ## Board Rules
 
 - Current mainline is WeFlow-export-driven offline distillation and review-only reply planning.
 - Only the `Current Unique Task` may be assigned to a worker.
+- If the Current Unique Task is an external research action with no task
+  package, no worker implementation is assignable yet.
 - Worker must stay within the task package `Allowed files`.
 - `private/` chat history and private distilled artifacts must never be committed.
 - Fixtures, tests, and docs must stay redacted.
@@ -701,10 +759,27 @@ Goal: evaluate and, only if safe, narrow WeChat-family integration to official s
 
 - [x] T230: WeChat adapter research spike. Review `PASS`; Gate M12 `Conditional`.
 - [x] T231: WeCom Customer Service inbound contract spike. Review `PASS`.
-- [ ] T232: WeCom Customer Service dry-run outbound adapter.
+- [x] T232: WeCom Customer Service dry-run outbound adapter. Review `PASS`.
 - [x] T233: WeCom Customer Service provider safety gate. Review `PASS`.
+- [x] T234: M12 WeChat adapter milestone review. Gate M12 `Conditional`.
 
 ## Historical Current Unique Task
+
+T234: M12 WeChat Adapter Milestone Review.
+
+It is now complete and accepted as the M12 closeout. M12 closes with
+`Gate M12 Conditional`: the local/synthetic WeCom Customer Service chain is
+accepted as reviewed evidence, but live WeChat/WeCom behavior remains blocked.
+The next active item is not a worker implementation task; it is the external
+GPT-Pro commercial companion-agent roadmap research prompt at
+`docs/prompts/commercial_companion_agent_deep_research_prompt.md`.
+
+T232: WeCom Customer Service Dry-Run Outbound Adapter.
+
+It is now complete and accepted with `PASS`. The next worker task is T234,
+because M12 has completed its planned local/synthetic implementation tasks and
+needs a milestone gate review before any future WeCom callback, credential,
+transport, delivery, or live-readiness work can be considered.
 
 T233: WeCom Customer Service Provider Safety Gate.
 

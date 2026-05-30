@@ -1,5 +1,86 @@
 # Handoff
 
+## Captain Current State Override 2026-05-30 (T234 / M12 Close)
+
+- T234 completion basis:
+  - `docs/worker_summary/T234_worker_summary.md`
+  - `docs/review/M12_review.md`
+- Captain decision: accept T234 as complete. No separate reviewer pass is
+  required because T234 was itself the M12 milestone-review task and changed
+  only review/handoff/summary docs.
+- M12 gate decision: `Gate M12 Conditional`.
+- M12 is complete only as a local/synthetic/dry-run WeCom Customer Service
+  evidence slice:
+  - T230 research gate narrowed unsafe WeChat-family options.
+  - T231 proved synthetic inbound normalization.
+  - T233 proved local provider eligibility after `OutboundSendGate`.
+  - T232 proved dry-run payload preparation behind a matching allowed T233
+    decision.
+- M12 does not authorize:
+  - live WeChat or WeCom API calls
+  - credentials, callbacks, webhooks, polling, sync loops, schedulers, runtime
+    wiring, CLI send paths, transport, fake transport, retries,
+    acknowledgement, failure-event mutation, or delivery interpretation
+  - production recipient mapping or live provider identity claims
+  - automatic sending
+  - personal-WeChat automation, scan-login resurrection, desktop automation,
+    realtime personal-account send/receive, or unofficial SDK vendoring
+- Current implementation worker status: no new worker task is assigned yet.
+- Current external research action:
+  - Prompt file:
+    `docs/prompts/commercial_companion_agent_deep_research_prompt.md`
+  - Input context:
+    `docs/reference/和gpt-pro的对话.md`
+  - Owner: user running GPT-Pro outside the worker flow.
+- Next Captain action after research returns:
+  - synthesize the GPT-Pro report into M13+ milestones
+  - update 00-08 governance docs
+  - create the first worker task package under `docs/tasks/`
+  - preserve review-first, privacy-safe, no-deception, no-unauthorized-clone,
+    and no-automatic-send boundaries
+- Recommended commercial-product direction to research:
+  - Persona Compiler
+  - Memory OS v2 with factual/inferred/imagined separation
+  - Relationship Engine semantic consumption
+  - consented and rate-limited Proactive Engine
+  - Virtual Life Stream / role dynamics
+  - memory/persona user controls
+  - compliance and safety baseline
+
+## Captain Current State Override 2026-05-30 (T232 Review Decision)
+
+- T232 review decision: `PASS`.
+- T232 is complete as the WeCom Customer Service dry-run outbound adapter for M12.
+- T232 review observation disposition:
+  - Accepted: N01 duplicated candidate-action detection is acceptable until shared extraction is justified, N02 safety-decision dataclass coercion blocks malformed mappings sufficiently for dry-run scope, N03 blocked audit notes are consistent, N04 missing safety identity fields defensively mismatch, N05 hardcoded text message type is correct for T232 scope, N06 dry-run config validation is a useful pattern improvement, N07 surface constant/literal duplication is minor, N08 coverage gaps are non-blocking test-strength notes.
+  - Deferred: none from the T232 review decision.
+  - Rejected: none.
+- Captain decision: no T232 repair pass is needed.
+- Historical next task at the T232 closeout point: T234 M12 WeChat Adapter
+  Milestone Review.
+- Historical task package:
+  `docs/tasks/M12_wechat_adapter/T234_m12_milestone_review.md`.
+- T234 was scoped as docs-only and review-only:
+  - may inspect T230/T231/T233/T232 task packages, reviews, worker summaries, data contracts, code, and tests
+  - may run local read-only verification commands
+  - must not modify code/tests beyond the allowed review docs, call platform APIs, load credentials, add runtime paths, send messages, mutate stores, read private artifacts, or authorize live WeCom behavior
+- Captain verification basis:
+  - Reviewer reported no blocking issues and no required missing tests.
+  - Reviewer verified T232 changed only allowed files and did not modify core models, send-gate behavior, T233 safety gate code, inbound connectors, Feishu/fake adapters, runtime services, CLI commands, or task board.
+  - Reviewer verified all required T232 scenarios were covered by 23 focused tests.
+  - Worker summary reports `py_compile` passed for `wecom_customer_service_outbound_adapter.py`.
+  - Worker summary reports targeted T232 pytest passed: 23 tests.
+  - Worker summary reports combined T232 + T233 + outbound schema + send-gate pytest passed: 84 tests.
+  - Worker summary reports `git diff --check` passed with line-ending conversion warnings only.
+- M12 residual risks carried forward:
+  - T232 proves only local deterministic dry-run payload preparation, not live WeCom Customer Service API compatibility.
+  - Official Tencent/WeCom docs were not refetched in T232 and may drift before live work.
+  - The dry-run payload shape is synthetic and review-safe, not an official API request contract.
+  - T233 safety decisions are local snapshots, not live provider state.
+  - Recipient aliases are not proven provider identifiers.
+  - Credential handling, tenant eligibility, callback verification, encryption/decryption, provider failure events, acknowledgement semantics, retries, and production recipient mapping remain unresolved.
+  - M12 task completion must not be interpreted as live WeCom delivery authorization; T234 has stated the gate boundary explicitly.
+
 ## Captain Current State Override 2026-05-30 (T233 Review Decision)
 
 - T233 review decision: `PASS`.
@@ -4222,3 +4303,156 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
     retries, and production recipient mapping remain unresolved.
   - `channel_preference="wechat"` is still broad and only narrows to WeCom
     Customer Service through explicit T233 safety config.
+
+## T232 Worker Completion Record
+
+- T232 is the WeCom Customer Service dry-run outbound adapter task for M12.
+- Worker must not mark T232 as complete in `docs/04_task_board.md`; only the
+  Captain may do so after review.
+- Files changed:
+  - `src/practical_chat_agent/services/wecom_customer_service_outbound_adapter.py`
+  - `tests/test_wecom_customer_service_outbound_adapter.py`
+  - `docs/data_contracts/wecom_customer_service_outbound_contract.md`
+  - `docs/worker_summary/T232_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED: `pytest tests/test_wecom_customer_service_outbound_adapter.py -q`
+    failed during collection because
+    `practical_chat_agent.services.wecom_customer_service_outbound_adapter`
+    did not exist.
+  - GREEN: the targeted T232 pytest command passed with 23 tests after adding
+    the dry-run adapter.
+- Dry-run adapter behavior added:
+  - `WeComCustomerServiceDryRunOutboundAdapter.prepare_dry_run()` accepts a
+    validated `OutboundMessageRequest` or stable mapping that validates to one.
+  - The adapter requires a matching explicit T233
+    `WeComCustomerServiceSafetyDecision(safety_state="allowed")`.
+  - Direct `CandidateAction` inputs and candidate-shaped mappings are rejected.
+  - Invalid mappings, non-sendable requests, non-`wechat` channel preferences,
+    missing safety decisions, blocked safety decisions, mismatched
+    request/contact/user identity, wrong safety surface, missing aliases, and
+    missing T233 boundary audit notes all produce blocked dry-run results.
+  - The allow path builds an in-memory dry-run payload with provider surface,
+    `dry_run=true`, request/contact/user scope, recipient aliases only,
+    approved draft text, optional safe summary, and source audit context.
+  - Arbitrary `OutboundMessagePayload.metadata` is not copied into the prepared
+    payload.
+  - Caller and safety audit notes are preserved with deduplication.
+  - The adapter exposes no `transport`, `send`, or `deliver` seam.
+  - The input request and safety decision are not mutated.
+- Verification status:
+  - `python -m py_compile src/practical_chat_agent/services/wecom_customer_service_outbound_adapter.py`:
+    passed.
+  - `pytest tests/test_wecom_customer_service_outbound_adapter.py -q`: passed,
+    23 tests, with pytest cache-provider warnings because `.pytest_cache` was
+    not writable in this environment.
+  - `pytest tests/test_wecom_customer_service_outbound_adapter.py tests/test_wecom_customer_service_safety_gate.py tests/test_outbound_message_request_schema.py tests/test_outbound_send_gate.py -q`:
+    passed, 84 tests, with the same pytest cache-provider warnings.
+  - `git diff --check`: passed with a line-ending conversion warning for
+    `docs/07_handoff.md`.
+  - `git status --short`: ran and showed only T232 allowed-file changes. Git
+    also reported global ignore permission warnings in this environment.
+- Explicit non-actions:
+  - No WeCom, WeChat, Tencent, Feishu, or external API calls.
+  - No credential, environment-variable, token, cookie, tenant ID, app ID,
+    OpenID, UnionID, external user ID, `open_kfid`, callback Token,
+    EncodingAESKey, corpsecret, app secret, QR code, or real recipient read.
+  - No live transport, fake transport, injected transport, retry logic,
+    acknowledgement handling, failure-event mutation, callback route, webhook
+    route, polling/sync loop, scheduler, background job, runtime wiring,
+    `AppContainer` wiring, or CLI send path.
+  - No message sending and no result represented as provider delivered,
+    accepted, queued, retried, or acknowledged.
+  - No outbound request, safety decision, memory, ContactSkill,
+    RelationshipState, feedback-log, approved-store, inbound-store, or private
+    artifact mutation.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact reads.
+  - No task-board update.
+  - No production WeCom compatibility or live-delivery readiness claim.
+- Remaining risks:
+  - T232 proves only local deterministic dry-run payload preparation, not live
+    WeCom Customer Service API compatibility.
+  - Official Tencent/WeCom docs were not refetched in T232 and may drift before
+    live work.
+  - The dry-run payload shape is synthetic and review-safe, not an official API
+    contract.
+  - T233 safety decisions are local snapshots, not live provider state.
+  - Recipient aliases are not proven provider identifiers.
+  - Credential handling, tenant eligibility, callback verification,
+    encryption/decryption, provider failure events, acknowledgement semantics,
+    retries, and production recipient mapping remain unresolved.
+
+## T234 Worker Completion Record
+
+- T234 is the M12 WeChat Adapter milestone review task.
+- Worker must not mark T234 as complete in `docs/04_task_board.md`; only the
+  Captain/Reviewer may advance task-board state after review.
+- Files changed:
+  - `docs/review/M12_review.md`
+  - `docs/worker_summary/T234_worker_summary.md`
+  - `docs/07_handoff.md`
+- Gate recommendation:
+  - `Gate M12 Conditional`.
+  - M12 is accepted only as a local, synthetic, dry-run-only WeCom Customer
+    Service slice.
+  - M12 does not authorize live WeChat or WeCom delivery, credentials,
+    callbacks, webhooks, polling, sync loops, transport, retries, provider
+    acknowledgement, failure-event mutation, automatic sending, production
+    recipient mapping, personal-WeChat automation, scan-login resurrection,
+    desktop automation, or unofficial SDK use.
+- Evidence reviewed:
+  - T230 research/review/summary: unsafe paths remain blocked; WeCom Customer
+    Service may be used only as a conditional official-surface candidate.
+  - T231 connector/contract/tests/review/summary: synthetic inbound
+    message/event normalization only; no live callback, polling, credential,
+    store, or outbound behavior.
+  - T233 safety gate/contract/tests/review/summary: local provider eligibility
+    after `OutboundMessageRequest.is_sendable()` only; `allowed` is not payload
+    preparation or delivery.
+  - T232 dry-run adapter/contract/tests/review/summary: prepares local
+    review-safe dry-run payloads only after a matching allowed T233 decision;
+    no `transport`, `send`, or `deliver` seam.
+- Verification status:
+  - `python -m py_compile src/practical_chat_agent/connectors/inbound/wecom_customer_service.py src/practical_chat_agent/services/wecom_customer_service_safety.py src/practical_chat_agent/services/wecom_customer_service_outbound_adapter.py`:
+    passed.
+  - `pytest tests/test_wecom_customer_service_inbound.py tests/test_wecom_customer_service_safety_gate.py tests/test_wecom_customer_service_outbound_adapter.py tests/test_outbound_message_request_schema.py tests/test_outbound_send_gate.py -q`:
+    passed, 90 tests, with pytest cache-provider warnings because
+    `.pytest_cache` was not writable in this environment.
+  - `git diff --check`: passed with line-ending conversion warnings for
+    pre-existing dirty files in this Windows working copy.
+  - `git status --short`: ran; the worktree already had pre-existing
+    modified/untracked files, and T234 touched only its allowed files. Git also
+    reported global ignore permission warnings in this environment.
+- Explicit non-actions:
+  - No code, tests, schemas, CLI, config, package metadata, risk doc, decision
+    log, task package, or task-board edits.
+  - No WeCom, WeChat, Tencent, Feishu, or external API calls.
+  - No credential, environment-variable, token, cookie, tenant ID, app ID,
+    OpenID, UnionID, external user ID, `open_kfid`, callback Token,
+    EncodingAESKey, corpsecret, app secret, QR code, or real recipient read.
+  - No callback route, webhook route, polling/sync loop, scheduler, background
+    job, runtime wiring, `AppContainer` wiring, CLI send path, transport, fake
+    transport, retry loop, acknowledgement handling, failure-event mutation, or
+    delivery path.
+  - No outbound request, safety decision, memory, ContactSkill,
+    RelationshipState, feedback-log, approved-store, inbound-store, or private
+    artifact mutation.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    reads.
+  - No production WeCom compatibility or live-delivery readiness claim.
+- Remaining risks:
+  - Official Tencent/WeCom docs may drift before live work.
+  - WeCom Customer Service may remain a product mismatch for WeFlow personal
+    chat exports and personal relationship workflows.
+  - `channel_preference="wechat"` is broad and only narrows to WeCom Customer
+    Service through explicit T233/T232 surfaces.
+  - T231 synthetic fixtures cover only a narrow subset and do not define live
+    batching or redaction.
+  - T233 service-window and quota checks are supplied local context, not live
+    provider state.
+  - T232 dry-run payload shape is synthetic and review-safe, not an official
+    API request contract.
+  - Recipient aliases are not proven provider identifiers.
+  - Credential handling, tenant eligibility, callback verification,
+    encryption/decryption, provider failure events, acknowledgement semantics,
+    retries, and production recipient mapping remain unresolved.

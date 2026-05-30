@@ -1,5 +1,71 @@
 # Architecture
 
+## Captain Update 2026-05-30 (T234 / M12 Close)
+
+T234 closes M12 with `Gate M12 Conditional`. The accepted M12 architecture is:
+
+```text
+T230 research gate
+  -> selected official surface: WeCom Customer Service
+  -> T231 synthetic inbound fixture normalization
+  -> T233 local provider eligibility after OutboundSendGate
+  -> T232 dry-run payload preparation behind matching allowed safety decision
+  -> no live transport, callback, credential, retry, acknowledgement, or send
+```
+
+The architecture must continue to keep these states separate:
+
+- `CandidateAction`: review evidence only
+- `OutboundMessageRequest.is_sendable()`: human approval plus send-gate
+  eligibility
+- `WeComCustomerServiceSafetyDecision.allowed`: local provider eligibility
+  snapshot
+- `wecom_dry_run_ready`: review-safe payload prepared locally
+- API accepted / acknowledged / retried / failed / delivered: not implemented
+
+M12 does not create the next architectural layer by itself. The next direction
+is a product architecture research pass for a commercial companion agent:
+
+```text
+Persona Compiler
+  + Memory OS v2
+  + Relationship Engine
+  + Style & Dialogue Engine
+  + consented Proactive Engine
+  + Virtual Life Stream
+  + Safety & Compliance Engine
+  -> later M13+ task packages after external research
+```
+
+This commercial-product direction must preserve existing project boundaries:
+evidence-backed memory, human review, user control, no unauthorized clone, no
+automatic sending, no deception, and no private-content commits.
+
+## Captain Update 2026-05-30 (T232 Review)
+
+T232 adds the dry-run outbound payload boundary for the selected M12 surface:
+
+```text
+OutboundMessageRequest.is_sendable()
+  + WeComCustomerServiceSafetyDecision.allowed
+  -> WeComCustomerServiceDryRunOutboundAdapter.prepare_dry_run()
+  -> WeComCustomerServiceDryRunResult(wecom_dry_run_ready, delivered=False)
+  -> synthetic in-memory payload with aliases only
+  -> no transport, API call, credential, callback, retry, runtime path, or send
+```
+
+M12 now has a complete local chain:
+
+```text
+synthetic inbound fixture -> InboundEvent
+OutboundMessageRequest -> OutboundSendGate -> T233 provider safety
+T233 allowed decision -> T232 dry-run payload
+```
+
+The next architectural action is not another adapter. It is T234 milestone
+review, which must decide the M12 gate and preserve the separation between
+local dry-run readiness and any future live WeCom provider behavior.
+
 ## Captain Update 2026-05-30 (T233 Review)
 
 T233 adds the provider-safety layer for the selected M12 surface:

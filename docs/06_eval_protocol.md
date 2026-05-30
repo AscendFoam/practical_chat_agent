@@ -1,5 +1,53 @@
 # Eval Protocol
 
+## Captain Update 2026-05-30 (T234 / M12 Close)
+
+T234 has now closed M12 with `Gate M12 Conditional`.
+
+Current evaluation sequence is now:
+
+- External GPT-Pro research: can the project define a commercially credible,
+  legally safer, technically staged companion-agent roadmap that builds on the
+  existing relationship-memory/review/outbound-safety stack without reverting
+  to unauthorized cloning, deceptive "real person" simulation, unbounded
+  proactive messaging, automatic sending, or live platform behavior?
+
+The evaluation target for the next Captain pass is not code correctness. It is
+roadmap quality:
+
+- market and competitor evidence
+- legal/compliance constraints for China and international markets
+- persona compiler feasibility
+- memory OS v2 design with factual/inferred/imagined separation
+- relationship-engine and proactive-engine safety boundaries
+- virtual life stream / voice / avatar sequencing
+- open-source vs commercial strategy
+- a staged M13+ milestone plan with review gates
+
+M12 changes the evaluation baseline in one important way: the project no
+longer needs to ask whether the WeChat-family slice can be represented
+locally. It can, but only conditionally and synthetically. Future product work
+must start from this boundary rather than treating M12 as live WeCom readiness.
+
+## Captain Update 2026-05-30 (T232 Review)
+
+T232 has now been accepted with `PASS`.
+
+Current evaluation sequence is now:
+
+- T234: can the repo produce a milestone-level M12 gate review that accurately
+  distinguishes the completed local/synthetic WeCom Customer Service chain
+  from unproven live provider behavior, verifies the T230-T233 evidence, names
+  residual risks, and recommends `Gate M12 Allow`, `Gate M12 Conditional`, or
+  `Gate M12 Block` without authorizing credentials, callbacks, polling,
+  official API payload compatibility, live transport, retries, store mutation,
+  private reads, personal-WeChat automation, or message delivery?
+
+T232 changes the evaluation baseline in one important way: M12 no longer needs
+to prove whether dry-run outbound payload preparation can sit behind the send
+gate and T233 safety gate. That local boundary exists. The next evaluation
+target is milestone-level gate clarity, not live WeCom implementation.
+
 ## Captain Update 2026-05-30 (T233 Review)
 
 T233 has now been accepted with `PASS`.

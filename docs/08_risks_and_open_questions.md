@@ -1,5 +1,75 @@
 # Risks And Open Questions
 
+## Captain Update 2026-05-30 (T234 / M12 Close)
+
+Authoritative current risk state after T234 and M12 closeout:
+
+- M12 closes with `Gate M12 Conditional`.
+- Q207 is closed: M12 authorizes only the reviewed local/synthetic/dry-run
+  WeCom Customer Service evidence slice.
+- R101-R112 remain active for any future WeChat-family work:
+  - no personal-WeChat automation, scan-login resurrection, desktop automation,
+    realtime personal-account send/receive, or unofficial SDK vendoring
+  - no live WeCom credentials, callbacks, webhooks, polling/sync, transport,
+    acknowledgement, retry, failure-event mutation, production recipient
+    mapping, or delivery interpretation
+  - no production readiness claims from T231/T233/T232 local artifacts
+- R113 is active: a commercial companion-product pivot could overrun the
+  evidence-first project discipline if it jumps directly to implementation
+  before market/legal/safety research.
+- R114 is active: 真人风格蒸馏、声音、头像、视频、逝者纪念和前任/家人类场景有高合规和伦理风险；near-term work must
+  prefer abstract style inspiration and de-identified new characters.
+- R115 is active: proactive companionship can become dependency or emotional
+  manipulation if consent, frequency limits, quiet hours, crisis handling, and
+  anti-coercion rules are not designed before product UX.
+- R116 is active: imagined/dream/virtual-life memories can contaminate factual
+  memory unless future schema and retrieval keep factual, inferred, and
+  imagined records separate.
+- No M13 worker task is open yet. The current action is external GPT-Pro
+  research using
+  `docs/prompts/commercial_companion_agent_deep_research_prompt.md`.
+
+Closed question Q207: M12 receives `Gate M12 Conditional`, authorizing only the
+local synthetic dry-run WeCom Customer Service slice and continuing to block
+all live platform behavior.
+
+Open question Q208: What commercial companion-agent roadmap, milestone order,
+and first worker task should follow after the external GPT-Pro research returns?
+
+## Captain Update 2026-05-30 (T232 Review Decision)
+
+Authoritative current risk state after the Captain review of T232:
+
+- R040 remains active as a compact-context and privacy boundary rule: M12 and later work must continue to use approved metadata / review-safe artifacts only and must not reopen raw-transcript ingestion.
+- R041 remains active: approved memories, approved patches, derived briefs, relationship-state artifacts, behavior candidates, outbound requests, gate decisions, adapter results, review cards, parsed review intents, inbound provider events, WeCom safety decisions, and dry-run payload results remain review/gate artifacts unless a later task explicitly authorizes mutation or execution.
+- R071 remains active: LLM confidence calibration is still unresolved and orthogonal to M12 deterministic/synthetic adapter-contract work.
+- R091 remains active and deferred: approved relationship context exists in `ChatContext`, but no planner or policy code path consumes relationship delta semantics.
+- R092 remains active and deferred: relationship guidance that surfaces through summary/retrieval notes is informational only and must not be mistaken for semantic runtime consumption.
+- R093 remains active but narrowed: T232 rejects direct `CandidateAction` inputs; later work must continue to require explicit outbound request and gate/safety artifacts.
+- R096 remains active and narrowed: T232 keeps dry-run readiness separate from delivery; T234 has preserved this distinction in the milestone gate.
+- R097 remains active: T221 named-timezone verification on Windows requires `tzdata`, which is not currently declared in project dependencies.
+- R098 remains active: display preview truncation is useful for local summaries/cards but is not a privacy boundary for future real, sandbox, card-rendered, or WeChat-family payloads.
+- R099 remains active: T223 Feishu sandbox payload shape has not been validated against current official Feishu production API semantics.
+- R100 remains active: T224 Feishu review-card payload and synthetic action parser are local approximations, not validation of real Feishu callback/event semantics.
+- R101 remains active: personal-WeChat scan/login/realtime SDK work and unofficial SDK vendoring remain blocked; T234 did not reopen those paths.
+- R102 remains active: official WeChat-family documentation may drift; no live WeCom work may rely on stale provider semantics.
+- R103 remains active: WeCom Customer Service does not cleanly map to personal WeFlow chat contacts; T232 uses aliases only.
+- R104 remains active: `channel_preference="wechat"` is too broad for production adapter selection; T232 requires matching T233 surface/safety decision but future production routing still needs explicit provider config.
+- R105 remains active: no live WeCom account, tenant, app, callback URL, credential flow, recipient mapping, service window, delivery callback, or provider failure handling has been tested.
+- R106 remains active: T231 timestamp fallback uses Unix epoch for missing/unparseable values; future live inbound/sync work must distinguish invalid timestamps from real 1970 timestamps.
+- R107 remains active: T231 parses only the first `msg_list` item because the current inbound connector returns one event per call; future live `sync_msg` work needs explicit batching semantics.
+- R108 remains active: T231 carries synthetic raw payloads into `InboundEvent.raw`; future live adapter work must define redaction before storing real provider payloads or IDs.
+- R109 remains active: T233 safety decisions are local context decisions; recipient aliases, service-window expiry, and sent-message counts are not live provider state.
+- R110 remains active: T232 dry-run payloads could be overread as API-compatible or delivery-ready if the contract is not explicit.
+- R111 remains active: T232 could be bypassed or future payload work could copy arbitrary metadata unless future tasks preserve the matching safety-decision and metadata-copy constraints.
+- R112 is active: M12 task-level completion could be overread as live WeCom readiness; T234 made the milestone gate boundary explicit and the risk remains active for future readers.
+- T232 opened no deferred task-review risks. Its non-blocking observations are accepted as current-scope duplication, validation-style, audit-construction, consistency, or minor test-strength notes under a `PASS` verdict.
+- Historical note: at the T232 review point M12 was task-complete but not yet closed. T234 has since closed M12 with `Gate M12 Conditional`, still without authorizing live WeChat/WeCom callbacks, polling, credentials, outbound delivery, or automatic sending.
+
+Closed question Q206: T232 is accepted with `PASS`, so the WeCom Customer Service dry-run outbound adapter is complete.
+
+Historical note: this T232 closeout opened Q207 for T234. Q207 is now closed by the T234 / M12 closeout above.
+
 ## Captain Update 2026-05-30 (T233 Review Decision)
 
 Authoritative current risk state after the Captain review of T233:
@@ -889,17 +959,24 @@ Closed question Q124: the updated GPT roadmap is directionally aligned, but M4/M
 | R109 | T233 safety decisions use local supplied provider context, not live provider state | Recipient aliases, service-window expiry, and sent-message counts can be stale or synthetic | T232 may consume allowed safety decisions for dry-run payload preparation only; live state verification requires a later reviewed provider task |
 | R110 | T232 dry-run payloads could be overread as API-compatible or delivery-ready | A review-safe payload artifact is not proof of live WeCom API shape, provider acceptance, acknowledgement, or delivery | T232 contract and result statuses must say dry-run only and must avoid delivery/acknowledgement language |
 | R111 | T232 could bypass T233 or copy arbitrary metadata into a provider payload | Payload preparation without a matching allowed safety decision or with copied metadata would undermine M12 safety boundaries | T232 must require matching allowed `WeComCustomerServiceSafetyDecision`, reject mismatches, and avoid copying arbitrary request metadata |
+| R112 | M12 task-level completion could be overread as live WeCom readiness | T230-T233 now form a local/synthetic chain, but no live provider account, callback, credential, payload compatibility, acknowledgement, retry, failure event, or delivery has been proven | T234 stated the milestone gate boundary; future work must continue to preserve the conditional gate |
+| R113 | Commercial companion-product pivot could outrun evidence-first governance | Product features such as persona compilation, proactive companionship, virtual life streams, and monetization could be implemented before legal, market, safety, and UX risks are understood | Run external GPT-Pro research first; Captain must translate it into reviewed M13+ task packages before implementation |
+| R114 | 真人风格蒸馏、声音、头像、视频、逝者纪念和前任/家人场景 are high-risk | Unauthorized cloning, privacy violations, personality-rights issues, and grief/attachment harm could occur if treated as ordinary product features | Prefer abstract style inspiration and de-identified new characters first; require consent/legal research before any authorized digital-person track |
+| R115 | Proactive companionship can become manipulative | Active messages can create guilt, dependence, anxiety, or unhealthy retention loops | Future Proactive Engine work must require consent, frequency caps, quiet hours, allowed message types, crisis rules, and anti-coercion policy before any send path |
+| R116 | Imagined/dream/virtual-life memories can contaminate factual memory | A role's generated diary, dream, or virtual life event could be retrieved as if it were evidence about the user or a real person | Future Memory OS work must separate factual, inferred, relational, procedural, and imagined memory types with provenance and retrieval constraints |
 
 ## Open Questions
 
 | ID | 问题 | 需要谁回答 | 最晚解决点 |
 | --- | --- | --- | --- |
-| Q206 | Can T232 prepare a deterministic review-safe WeCom Customer Service dry-run payload only from a sendable outbound request plus matching allowed T233 safety decision, without API calls, credentials, transport, callbacks, retries, store mutation, private reads, or delivery claims? | T232 worker + reviewer + Captain review | Before any WeCom live transport, callback, credential, or failure-handling task can be considered |
+| Q208 | What commercial companion-agent roadmap, milestone order, and first worker task should follow after external GPT-Pro research? | GPT-Pro research + Captain synthesis + user decision | Before assigning any M13 worker implementation task |
 
 ## Closed Questions
 
 | ID | 结论 | 关闭依据 |
 | --- | --- | --- |
+| Q207 | M12 receives `Gate M12 Conditional`. It authorizes only local/synthetic/dry-run WeCom Customer Service evidence and continues to block live WeChat/WeCom credentials, callbacks, webhooks, polling, transport, acknowledgement, retry, failure-event mutation, production recipient mapping, delivery, automatic sending, personal-WeChat automation, scan-login resurrection, desktop automation, and unofficial SDK vendoring. | `docs/review/M12_review.md`, `docs/worker_summary/T234_worker_summary.md` + Captain decision |
+| Q206 | T232 can be accepted as complete. It prepares deterministic review-safe WeCom Customer Service dry-run payloads only from a sendable outbound request plus matching allowed T233 safety decision, without API calls, credentials, transport, callbacks, retries, store mutation, private reads, or delivery claims. | `docs/review/T232_review.md` + Captain decision |
 | Q205 | T233 can be accepted as complete. It defines a deterministic local WeCom Customer Service provider safety gate that blocks unsafe outbound eligibility before payload preparation or delivery. | `docs/review/T233_review.md` + Captain decision |
 | Q204 | T231 can be accepted as complete. It normalizes synthetic WeCom Customer Service message/event fixtures into `InboundEvent` without live platform behavior, private reads, store mutation, runtime wiring, outbound payloads, or sending. | `docs/review/T231_review.md` + Captain decision |
 | Q203 | T230 can be accepted as complete and M12 may proceed only as `Gate M12 Conditional`. Generic personal-WeChat adapter work remains blocked; Captain selects WeCom Customer Service for T231 synthetic inbound contract work. | `docs/review/T230_review.md`, `docs/review/T230_wechat_adapter_research.md` + Captain decision |
