@@ -6656,3 +6656,40 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - T324 is a local state/projection contract, not a frontend or proactive
     runtime.
   - M21 still needs user study protocol and milestone review work.
+
+## T325 Worker Completion Record
+
+- T325 is the User Study Protocol task for M21.
+- Worker must not mark T325 as complete in `docs/04_task_board.md`; T325 awaits
+  product/safety research review and Captain judgment.
+- Files changed:
+  - `docs/product/text_first_user_study_protocol.md`
+  - `docs/tasks/M21_text_first_product_ux_prototype/T326_m21_milestone_review.md`
+  - `docs/worker_summary/T325_worker_summary.md`
+  - `docs/07_handoff.md`
+- Protocol result:
+  - Defines future study goals, participant assumptions, prototype surfaces,
+    tasks/scenarios, comprehension checks, qualitative questions, quantitative
+    thresholds, safety stop criteria, data collection boundaries, and analysis
+    buckets.
+  - Covers AI identity, persona boundaries, memory provenance, AIGC labels,
+    proactive consent, and crisis/dependency states.
+- T326 next task package:
+  - Created
+    `docs/tasks/M21_text_first_product_ux_prototype/T326_m21_milestone_review.md`.
+  - T326 is scoped to M21 milestone review.
+- Verification status:
+  - `git diff --check`: passed with Windows line-ending conversion warnings.
+- Explicit non-actions:
+  - No user recruitment, real study execution, data collection, survey tooling,
+    browser demo, frontend code, LLM call, private chat-log read, clinical
+    validation, legal sufficiency, app-store approval, launch approval,
+    automatic sending, scheduling, or platform integration was added.
+  - No legal advice, compliance completion, crisis-safety sufficiency, clinical
+    validation, user-study validation, launch approval, app-store approval, or
+    regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - T325 is a protocol only; no user research has been run.
+  - M21 still needs milestone review before entering M22 voice/avatar work.
