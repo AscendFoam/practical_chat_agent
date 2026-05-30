@@ -108,6 +108,15 @@ PersonaSourceType = Literal[
 ]
 PersonaRiskTier = Literal["L1", "L2", "L3", "L4", "L5"]
 PersonaVirtualContentStatus = Literal["imagined_ai_generated"]
+ProactiveConsentStatus = Literal["disabled", "enabled", "paused", "revoked"]
+ProactiveConsentSurface = Literal["in_app_review_card", "local_sandbox_preview"]
+ProactiveConsentIntent = Literal[
+    "gentle_check_in",
+    "memory_follow_up",
+    "care_routine",
+    "shared_interest",
+    "relationship_repair_note",
+]
 
 
 class InboundEvent(BaseModel):
@@ -1959,6 +1968,43 @@ class RelationshipContextBundle(BaseModel):
         forbidden_dimension_names = {"retention_score", "manipulation_score", "engagement_score"}
         if forbidden_dimension_names.intersection(self.relationship_dimensions):
             raise ValueError("relationship dimensions must not include retention or manipulation scores")
+        return self
+
+
+class ProactiveQuietHours(BaseModel):
+    timezone: str = Field(default="UTC", min_length=1)
+    start: str | None = None
+    end: str | None = None
+
+
+class ProactiveConsent(BaseModel):
+    schema_version: str = "proactive_consent_v1"
+    consent_id: str = Field(default_factory=lambda: new_id("proconsent"))
+    user_id: str = Field(..., min_length=1)
+    status: ProactiveConsentStatus = "disabled"
+    allowed_surfaces: list[ProactiveConsentSurface] = Field(default_factory=list)
+    allowed_intents: list[ProactiveConsentIntent] = Field(default_factory=list)
+    quiet_hours: ProactiveQuietHours = Field(default_factory=ProactiveQuietHours)
+    max_suggestions_per_day: int = Field(default=0, ge=0, le=3)
+    min_interval_hours: float = Field(default=24.0, ge=0.0)
+    requires_human_review: bool = True
+    pause_reasons: list[str] = Field(default_factory=list)
+    revoked_at: datetime | None = None
+    safety_notes: list[str] = Field(default_factory=list)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
+
+    @model_validator(mode="after")
+    def validate_proactive_consent(self) -> "ProactiveConsent":
+        if not self.requires_human_review:
+            raise ValueError("proactive consent requires human review")
+        if self.status == "enabled":
+            if not self.allowed_surfaces:
+                raise ValueError("enabled proactive consent requires at least one local review surface")
+            if not self.allowed_intents:
+                raise ValueError("enabled proactive consent requires at least one low-pressure intent")
+        if self.status == "revoked" and self.revoked_at is None:
+            raise ValueError("revoked proactive consent requires revoked_at")
         return self
 
 

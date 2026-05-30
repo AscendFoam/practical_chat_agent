@@ -5362,3 +5362,47 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - M16 is a local review-first foundation only.
   - M17 must still implement explicit consent and policy gates before any
     proactive UX can be safely prototyped.
+
+## T280 Worker Completion Record
+
+- T280 is the Proactive Consent schema task for M17.
+- Worker must not mark T280 as complete in `docs/04_task_board.md`; T280 awaits
+  adversarial review and Captain judgment.
+- Files changed:
+  - `src/practical_chat_agent/core/models.py`
+  - `tests/test_proactive_consent_schema.py`
+  - `docs/data_contracts/proactive_consent_contract.md`
+  - `docs/tasks/M17_proactive_engine_consent/T281_proactive_policy_gate.md`
+  - `docs/worker_summary/T280_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED: targeted pytest failed because `ProactiveConsent` did not exist.
+  - GREEN: targeted pytest passed after adding `ProactiveConsent`.
+- Behavior added:
+  - Local review-only proactive consent schema.
+  - Consent status, quiet hours, frequency cap, interval cap, pause/revocation,
+    local surfaces, low-pressure intents, and safety notes.
+  - Human review is mandatory.
+  - Outbound/platform surfaces and disallowed intents are rejected.
+- T281 next task package:
+  - Created
+    `docs/tasks/M17_proactive_engine_consent/T281_proactive_policy_gate.md`.
+  - T281 is scoped to deterministic policy gate evaluation only.
+- Verification status:
+  - `pytest tests\test_proactive_consent_schema.py -q -o cache_dir=artifacts\t280_pytest_cache --basetemp=artifacts\t280_pytest_basetemp`:
+    passed, 7 tests.
+  - `python -m py_compile src\practical_chat_agent\core\models.py`: passed.
+  - `pytest tests\test_proactive_consent_schema.py tests\test_relationship_context_bundle_schema.py -q -o cache_dir=artifacts\t280_pytest_cache_min --basetemp=artifacts\t280_pytest_basetemp_min`:
+    passed, 12 tests.
+  - `git diff --check`: passed with Windows line-ending conversion warnings.
+- Explicit non-actions:
+  - No proactive candidate, scheduler, outbound request, delivery adapter,
+    platform integration, push notification, webhook, queue, LLM call,
+    production reply generation, voice/avatar/video behavior, social feed, web
+    demo, or automatic sending was added.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - T280 is schema-only.
+  - Policy gate, review card, expanded scenario tests, UI, and web demo remain
+    unopened.
