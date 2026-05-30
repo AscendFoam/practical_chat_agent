@@ -5332,3 +5332,33 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - T272 is a deterministic review-only stub, not production dialogue.
   - Runtime chat, UI, proactive behavior, platform integration, and web demo
     remain unopened.
+
+## T273 Worker Completion Record
+
+- T273 is the M16 Relationship Dialogue gate review task.
+- Worker must not mark T273 as complete in `docs/04_task_board.md`; T273 awaits
+  adversarial review and Captain judgment.
+- Files changed:
+  - `docs/review/M16_review.md`
+  - `docs/tasks/M17_proactive_engine_consent/T280_proactive_consent_schema.md`
+  - `docs/worker_summary/T273_worker_summary.md`
+  - `docs/07_handoff.md`
+- Review evidence:
+  - Read T270-T272 contracts, worker summaries, and tests.
+  - Created the M16 gate review with PASS_WITH_WARNINGS recommendation.
+  - Created the T280 M17 entry task package for proactive consent schema work.
+- Verification status:
+  - `pytest tests\test_relationship_context_bundle_schema.py tests\test_dialogue_context_planner.py tests\test_dialogue_draft_stub.py -q -o cache_dir=artifacts\t273_pytest_cache --basetemp=artifacts\t273_pytest_basetemp`:
+    passed, 16 tests.
+  - `git diff --check`: passed.
+- Explicit non-actions:
+  - No code implementation, test modification, task-board status change, LLM
+    call, proactive candidate, scheduler, outbound request, delivery adapter,
+    platform integration, voice/avatar/video behavior, web demo, or automatic
+    sending was added.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - M16 is a local review-first foundation only.
+  - M17 must still implement explicit consent and policy gates before any
+    proactive UX can be safely prototyped.
