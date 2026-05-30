@@ -57,7 +57,9 @@ Candidate metadata is input only. T281 does not generate it.
 4. Quiet hours defer with `quiet_hours`.
 5. Daily cap violations block with `frequency_cap_reached`.
 6. Minimum interval violations block with `minimum_interval_not_met`.
-7. Otherwise the candidate is allowed for review with
+7. Repeated follow-up after no user response blocks with
+   `no_response_pressure_risk`.
+8. Otherwise the candidate is allowed for review with
    `human_review_required`.
 
 All allow decisions remain review-only.
@@ -69,6 +71,7 @@ All allow decisions remain review-only.
 - Disallowed intents block.
 - Quiet-hours cases defer instead of allowing immediate review.
 - Frequency and interval violations block.
+- Repeated follow-up attempts after a prolonged no-response window block.
 - Decision payloads contain no send, schedule, delivery, platform, webhook,
   token, or queue fields.
 - Gate service exposes no send, schedule, delivery, execution, runtime, or

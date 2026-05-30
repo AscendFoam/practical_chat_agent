@@ -44,6 +44,8 @@ class ProactivePolicyGate:
         recent_suggestion_count: int,
         hours_since_last_suggestion: float,
         is_quiet_hours: bool,
+        unanswered_follow_up_count: int = 0,
+        hours_since_last_user_response: float | None = None,
     ) -> ProactivePolicyDecision:
         if consent.status != "enabled":
             return self._decision(candidate, "block", ["consent_not_enabled"])
@@ -62,6 +64,13 @@ class ProactivePolicyGate:
 
         if hours_since_last_suggestion < consent.min_interval_hours:
             return self._decision(candidate, "block", ["minimum_interval_not_met"])
+
+        if (
+            unanswered_follow_up_count >= 2
+            and hours_since_last_user_response is not None
+            and hours_since_last_user_response >= 24
+        ):
+            return self._decision(candidate, "block", ["no_response_pressure_risk"])
 
         return self._decision(
             candidate,

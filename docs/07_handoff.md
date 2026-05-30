@@ -5452,3 +5452,48 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - T281 is policy-gate-only.
   - Expanded edge tests, review card, scenario policy, UI, and web demo remain
     unopened.
+
+## T282 Worker Completion Record
+
+- T282 is the Quiet-Hours And Frequency Edge Tests task for M17.
+- Worker must not mark T282 as complete in `docs/04_task_board.md`; T282 awaits
+  adversarial review and Captain judgment.
+- Files changed:
+  - `src/practical_chat_agent/services/proactive_policy_gate.py`
+  - `tests/test_proactive_quiet_hours_frequency.py`
+  - `docs/data_contracts/proactive_policy_gate_contract.md`
+  - `docs/tasks/M17_proactive_engine_consent/T283_proactive_review_card.md`
+  - `docs/worker_summary/T282_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED: targeted pytest failed because
+    `ProactivePolicyGate.evaluate(...)` did not accept
+    `unanswered_follow_up_count`.
+  - GREEN: targeted pytest passed after adding no-response pressure handling.
+- Behavior added:
+  - Quiet-hours, frequency-cap, minimum-interval, and no-response edge tests.
+  - `no_response_pressure_risk` block reason for repeated follow-up after a
+    prolonged no-response window.
+- T283 next task package:
+  - Created
+    `docs/tasks/M17_proactive_engine_consent/T283_proactive_review_card.md`.
+  - T283 is scoped to local review card rendering only.
+- Verification status:
+  - `pytest tests\test_proactive_quiet_hours_frequency.py -q -o cache_dir=artifacts\t282_pytest_cache --basetemp=artifacts\t282_pytest_basetemp`:
+    passed, 5 tests.
+  - `python -m py_compile src\practical_chat_agent\services\proactive_policy_gate.py`:
+    passed.
+  - `pytest tests\test_proactive_policy_gate.py tests\test_proactive_quiet_hours_frequency.py tests\test_proactive_consent_schema.py -q -o cache_dir=artifacts\t282_pytest_cache_min --basetemp=artifacts\t282_pytest_basetemp_min`:
+    passed, 18 tests.
+  - `git diff --check`: passed with Windows line-ending conversion warnings.
+- Explicit non-actions:
+  - No proactive candidate generator, scheduler, outbound request, delivery
+    adapter, platform integration, push notification, webhook, queue, LLM call,
+    production reply generation, review UI, voice/avatar/video behavior, social
+    feed, web demo, or automatic sending was added.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - T282 is policy-test-focused.
+  - Review cards, crisis/low-mood policy, M17 gate review, UI, and web demo
+    remain unopened.
