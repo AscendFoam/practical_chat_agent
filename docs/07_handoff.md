@@ -4632,3 +4632,60 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
     tests.
   - Runtime dialogue consumption remains unopened and must stay behind future
     task packages.
+
+## T251 Worker Completion Record
+
+- T251 is the Local Prompt-To-Schema Persona Compiler Prototype task for M14.
+- Worker must not mark T251 as complete in `docs/04_task_board.md`; T251 awaits
+  adversarial review and Captain judgment.
+- Files changed:
+  - `src/practical_chat_agent/services/persona_compiler.py`
+  - `tests/test_persona_compiler.py`
+  - `docs/data_contracts/persona_compiler_contract.md`
+  - `docs/tasks/M14_persona_compiler_schema/T252_deidentification_guard_tests.md`
+  - `docs/worker_summary/T251_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED: targeted pytest failed because
+    `practical_chat_agent.services.persona_compiler` did not exist.
+  - GREEN: targeted pytest passed after adding `PersonaCompilerService`.
+- Behavior added:
+  - `PersonaCompilerService.compile(payload)` returns `PersonaCard v1`.
+  - Safe synthetic fictional inputs produce L1 candidate PersonaCards.
+  - `detailed_prompt`, `fuzzy_preference`, `template`, and `random_seed` are
+    accepted by the local compiler.
+  - Fuzzy/template/random inputs use safe fictional defaults.
+  - Deterministic keyword mapping populates mood, speech, trait, relationship,
+    virtual-history, growth-policy, proactive, and safety fields.
+  - Real-person clone, voice/face/deepfake, hidden impersonation, and automatic
+    sending signals return rejected L5 prohibited PersonaCards.
+  - Compiler surface exposes only `compile()`; no send/schedule/delivery/runtime
+    or private chat-history extraction methods were added.
+- T252 next task package:
+  - Created
+    `docs/tasks/M14_persona_compiler_schema/T252_deidentification_guard_tests.md`.
+  - T252 is scoped to synthetic deidentification guard tests only; no private
+    chat-log reads or real style extraction.
+- Verification status:
+  - `python -m py_compile src\practical_chat_agent\services\persona_compiler.py`:
+    passed.
+  - `pytest tests\test_persona_compiler.py -q -o cache_dir=artifacts\t251_pytest_cache --basetemp=artifacts\t251_pytest_basetemp`:
+    passed, 10 tests.
+  - `pytest tests\test_persona_card_schema.py tests\test_persona_compiler.py -q -o cache_dir=artifacts\t251_pytest_cache_final --basetemp=artifacts\t251_pytest_basetemp_final`:
+    passed, 23 tests.
+  - `git diff --check`: passed.
+- Explicit non-actions:
+  - No LLM call, model provider, external API, browser automation, network
+    service, private chat-log read, style extraction, similarity scoring,
+    runtime dialogue use, review UI, storage repository, migration, proactive
+    candidate, platform integration, voice/avatar/deepfake behavior, or
+    automatic sending.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+  - No real-person clone, public-figure clone, ex-partner/family clone,
+    deceased-person mode, or deceptive impersonation path was authorized.
+- Remaining risks:
+  - Keyword mapping is intentionally shallow.
+  - `style_inspiration` remains unsupported until T252 and later review gates.
+  - L5 detection is not a complete policy engine.
+  - Runtime dialogue and versioned storage remain unopened.
