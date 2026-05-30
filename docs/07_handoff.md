@@ -5591,3 +5591,35 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
 - Remaining risks:
   - T284 is deterministic high-risk policy only.
   - M17 gate review, virtual life stream, UI, and web demo remain unopened.
+
+## T285 Worker Completion Record
+
+- T285 is the M17 Gate Review task.
+- Worker must not mark T285 as complete in `docs/04_task_board.md`; T285 awaits
+  adversarial review and Captain judgment.
+- Files changed:
+  - `docs/review/M17_review.md`
+  - `docs/tasks/M18_virtual_life_stream/T290_role_dynamic_post_schema.md`
+  - `docs/worker_summary/T285_worker_summary.md`
+  - `docs/07_handoff.md`
+- Review evidence:
+  - Read M17 contracts, worker summaries, and proactive tests.
+  - Created the M17 gate review with PASS_WITH_WARNINGS recommendation.
+  - Created the T290 M18 entry task package for virtual life stream schema
+    work.
+- Verification status:
+  - `pytest tests\test_proactive_consent_schema.py tests\test_proactive_policy_gate.py tests\test_proactive_quiet_hours_frequency.py tests\test_proactive_review_card.py tests\test_proactive_crisis_low_mood_policy.py -q -o cache_dir=artifacts\t285_pytest_cache --basetemp=artifacts\t285_pytest_basetemp`:
+    passed, 27 tests.
+  - `git diff --check`: passed.
+- Explicit non-actions:
+  - No code implementation, test modification, task-board status change, LLM
+    call, proactive candidate generation, scheduler, outbound request, delivery
+    adapter, platform integration, diagnosis, treatment, medical advice,
+    emergency handling, external escalation, voice/avatar/video behavior,
+    social feed publishing, web demo, or automatic sending was added.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - M17 is a local consented review-first foundation only.
+  - M18 must still implement virtual life stream schemas and review-first
+    generation stubs before UI/demo consumption.
