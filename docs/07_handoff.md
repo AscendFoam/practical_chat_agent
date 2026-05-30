@@ -5844,3 +5844,34 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
 - Remaining risks:
   - T294 creates review artifacts only.
   - M18 gate review, control surface, UI, and web demo remain unopened.
+
+## T295 Worker Completion Record
+
+- T295 is the M18 Gate Review task.
+- Worker must not mark T295 as complete in `docs/04_task_board.md`; T295 awaits
+  adversarial review and Captain judgment.
+- Files changed:
+  - `docs/review/M18_review.md`
+  - `docs/tasks/M19_memory_persona_control_surface/T300_memory_persona_control_requirements.md`
+  - `docs/worker_summary/T295_worker_summary.md`
+  - `docs/07_handoff.md`
+- Review evidence:
+  - Read M18 contracts, worker summaries, and virtual life tests.
+  - Created the M18 gate review with PASS_WITH_WARNINGS recommendation.
+  - Created the T300 M19 entry task package for control-surface requirements.
+- Verification status:
+  - `pytest tests\test_role_dynamic_post_schema.py tests\test_virtual_life_engine_text_generator.py tests\test_virtual_life_aigc_labeling.py tests\test_virtual_life_contamination.py tests\test_virtual_life_review_card.py -q -o cache_dir=artifacts\t295_pytest_cache --basetemp=artifacts\t295_pytest_basetemp`:
+    passed, 24 tests.
+  - `git diff --check`: passed.
+- Explicit non-actions:
+  - No code implementation, test modification, task-board status change, LLM
+    call, scheduler, publisher, outbound request, delivery adapter, platform
+    integration, push notification, webhook, queue, review UI,
+    voice/avatar/video behavior, Live2D, social feed publishing, web demo, or
+    automatic sending was added.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - M18 is a local review-only virtual life foundation.
+  - M19 must still define and implement local control surfaces before UI/demo
+    consumption.
