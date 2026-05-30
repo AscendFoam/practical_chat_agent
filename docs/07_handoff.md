@@ -6116,3 +6116,41 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
 - Remaining risks:
   - M20 compliance and safety baseline remains unopened.
   - UI, closed-test UX, voice/avatar/Live2D, and web demo remain future work.
+
+## T310 Worker Completion Record
+
+- T310 is the China Compliance Checklist task for M20.
+- Worker must not mark T310 as complete in `docs/04_task_board.md`; T310 awaits
+  adversarial legal/product-policy review and Captain judgment.
+- Files changed:
+  - `docs/compliance/china_compliance_checklist.md`
+  - `docs/tasks/M20_compliance_and_safety_baseline/T311_international_privacy_platform_policy_checklist.md`
+  - `docs/worker_summary/T310_worker_summary.md`
+  - `docs/07_handoff.md`
+- Research evidence:
+  - Used official/primary sources from China NPC, China Government, CAC, and
+    TC260 where available.
+  - Included access date and source URLs in the checklist.
+  - Identified the 2026 Anthropomorphic AI Interactive Services Measures as a
+    core product constraint for this companion-agent project.
+- Checklist added:
+  - Privacy, consent, data rights, AIGC labeling, anthropomorphic controls,
+    generated-content safety, minors, deletion/export, security/incident
+    response, platform/channel policy, open questions, and closed-test gates.
+- T311 next task package:
+  - Created
+    `docs/tasks/M20_compliance_and_safety_baseline/T311_international_privacy_platform_policy_checklist.md`.
+  - T311 is scoped to international privacy/platform policy checklist work.
+- Verification status:
+  - `git diff --check`: passed with Windows line-ending conversion warnings.
+- Explicit non-actions:
+  - No legal advice, compliance completion, filing, registration, launch
+    approval, app-store approval, or regulator acceptance was claimed.
+  - No code, tests, UI, platform integration, sending, scheduling,
+    model-provider integration, or user-data processing change was added.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - T310 is a checklist for review, not legal clearance.
+  - International privacy/platform checklist, Consent Center model, AIGC
+    labeling plan, crisis/dependency tests, UI, and web demo remain future work.
