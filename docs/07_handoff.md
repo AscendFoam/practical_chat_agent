@@ -5949,3 +5949,47 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
 - Remaining risks:
   - T301 is read-only data-contract work.
   - Persona editor and delete/freeze/export contracts remain unopened.
+
+## T302 Worker Completion Record
+
+- T302 is the Persona Version Editor Contract task for M19.
+- Worker must not mark T302 as complete in `docs/04_task_board.md`; T302 awaits
+  adversarial review and Captain judgment.
+- Files changed:
+  - `src/practical_chat_agent/core/models.py`
+  - `tests/test_persona_version_editor_contract.py`
+  - `docs/data_contracts/persona_version_editor_contract.md`
+  - `docs/tasks/M19_memory_persona_control_surface/T303_delete_freeze_export_local_flow.md`
+  - `docs/worker_summary/T302_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED: targeted pytest failed because persona version editor models did not
+    exist.
+  - GREEN: targeted pytest passed after adding persona version editor models.
+- Behavior added:
+  - Draft-only persona field-change proposal models.
+  - Source persona id/version references.
+  - Identity/source-policy/safety field review requirements.
+  - Blocking labels for unsafe and real-person-similarity edits.
+  - Review-only review records that cannot write persona versions.
+- T303 next task package:
+  - Created
+    `docs/tasks/M19_memory_persona_control_surface/T303_delete_freeze_export_local_flow.md`.
+  - T303 is scoped to local delete/freeze/export flow contracts.
+- Verification status:
+  - `pytest tests\test_persona_version_editor_contract.py -q -o cache_dir=artifacts\t302_pytest_cache --basetemp=artifacts\t302_pytest_basetemp`:
+    passed, 5 tests.
+  - `python -m py_compile src\practical_chat_agent\core\models.py`: passed.
+  - `pytest tests\test_persona_version_editor_contract.py tests\test_persona_card_schema.py tests\test_persona_version_store.py -q -o cache_dir=artifacts\t302_pytest_cache_final --basetemp=artifacts\t302_pytest_basetemp_final`:
+    passed, 25 tests.
+  - `git diff --check`: passed with Windows line-ending conversion warnings.
+- Explicit non-actions:
+  - No UI, mutation service, version-store write, actual persona edit,
+    approval execution, persistence change, LLM call, platform integration,
+    sending, scheduling, or web demo was added.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - T302 is contract-only work.
+  - Delete/freeze/export contracts, M19 review, UI, and web demo remain
+    unopened.

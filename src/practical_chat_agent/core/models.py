@@ -108,6 +108,8 @@ PersonaSourceType = Literal[
 ]
 PersonaRiskTier = Literal["L1", "L2", "L3", "L4", "L5"]
 PersonaVirtualContentStatus = Literal["imagined_ai_generated"]
+PersonaVersionEditProposalState = Literal["draft_review_only"]
+PersonaVersionEditReviewDecision = Literal["approved_for_manual_apply", "rejected", "needs_changes"]
 ProactiveConsentStatus = Literal["disabled", "enabled", "paused", "revoked"]
 ProactiveConsentSurface = Literal["in_app_review_card", "local_sandbox_preview"]
 ProactiveConsentIntent = Literal[
@@ -122,6 +124,38 @@ RoleDynamicPostReviewStatus = Literal["requires_review", "approved_for_demo", "r
 RoleDynamicPostVisibility = Literal["local_private_review"]
 AIGCLabel = Literal["ai_generated"]
 RoleDynamicMemoryRefUsage = Literal["inspiration_only"]
+
+
+_PERSONA_EDITOR_FORBIDDEN_FIELD_TERMS = frozenset(
+    {
+        "send",
+        "schedule",
+        "delivery",
+        "platform",
+        "webhook",
+        "token",
+        "queue",
+    }
+)
+_PERSONA_EDITOR_BLOCKING_RISK_LABELS = frozenset(
+    {
+        "real_person_similarity",
+        "unsafe_content",
+        "unauthorized_clone_risk",
+        "deception_risk",
+        "public_person_reference",
+    }
+)
+
+
+def _ordered_unique(values: list[str]) -> list[str]:
+    seen: set[str] = set()
+    unique_values: list[str] = []
+    for value in values:
+        if value not in seen:
+            unique_values.append(value)
+            seen.add(value)
+    return unique_values
 
 
 class InboundEvent(BaseModel):
@@ -1072,6 +1106,142 @@ class PersonaCard(BaseModel):
         if not self.safety_policy.no_deception or not self.safety_policy.no_unauthorized_clone:
             return False
         return True
+
+
+class PersonaEditFieldChange(BaseModel):
+    schema_version: str = "persona_edit_field_change_v1"
+    field_path: str = Field(..., min_length=1)
+    old_value_summary: str = Field(..., min_length=1)
+    proposed_value_summary: str = Field(..., min_length=1)
+    reason: str = Field(..., min_length=1)
+    risk_labels: list[str] = Field(default_factory=list)
+    requires_review: bool = False
+    review_required_reasons: list[str] = Field(default_factory=list)
+    blocks_auto_approval: bool = False
+    blocking_risk_labels: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_review_flags(self) -> "PersonaEditFieldChange":
+        field_path = self.field_path.strip()
+        lowered_path = field_path.lower()
+        if any(term in lowered_path for term in _PERSONA_EDITOR_FORBIDDEN_FIELD_TERMS):
+            raise ValueError("persona edit field_path cannot target delivery or platform surfaces")
+
+        review_reasons = list(self.review_required_reasons)
+        if field_path == "display_name" or field_path.startswith("identity."):
+            review_reasons.append("identity_field_change")
+        if field_path == "source_policy" or field_path.startswith("source_policy."):
+            review_reasons.append("source_policy_change")
+        if field_path == "safety_policy" or field_path.startswith("safety_policy."):
+            review_reasons.append("safety_policy_change")
+
+        blocking_labels = [
+            label
+            for label in self.risk_labels
+            if label in _PERSONA_EDITOR_BLOCKING_RISK_LABELS
+        ]
+        if blocking_labels:
+            review_reasons.append("blocking_risk_label")
+
+        self.field_path = field_path
+        self.review_required_reasons = _ordered_unique(review_reasons)
+        self.blocking_risk_labels = _ordered_unique(blocking_labels)
+        self.blocks_auto_approval = bool(self.blocking_risk_labels)
+        self.requires_review = self.requires_review or bool(self.review_required_reasons)
+        return self
+
+
+class PersonaVersionEditProposal(BaseModel):
+    schema_version: str = "persona_version_edit_proposal_v1"
+    proposal_id: str = Field(default_factory=lambda: new_id("personaedit"))
+    user_id: str = Field(..., min_length=1)
+    source_persona_id: str = Field(..., min_length=1)
+    source_persona_version: int = Field(..., ge=1)
+    source_persona_schema_version: str = "persona_card_v1"
+    requested_by: str = Field(..., min_length=1)
+    proposal_reason: str = Field(..., min_length=1)
+    changes: list[PersonaEditFieldChange] = Field(..., min_length=1)
+    proposal_state: PersonaVersionEditProposalState = "draft_review_only"
+    human_review_required: Literal[True] = True
+    auto_approval_allowed: Literal[False] = False
+    auto_approval_blocked: bool = True
+    auto_apply_allowed: Literal[False] = False
+    writes_persona_version: Literal[False] = False
+    blocking_risk_labels: list[str] = Field(default_factory=list)
+    review_required_reasons: list[str] = Field(default_factory=list)
+    created_at: datetime = Field(default_factory=utc_now)
+
+    @classmethod
+    def from_persona_card(
+        cls,
+        persona: PersonaCard,
+        *,
+        requested_by: str,
+        changes: list[PersonaEditFieldChange],
+        proposal_reason: str,
+    ) -> "PersonaVersionEditProposal":
+        return cls(
+            user_id=persona.user_id,
+            source_persona_id=persona.persona_id,
+            source_persona_version=persona.version,
+            source_persona_schema_version=persona.schema_version,
+            requested_by=requested_by,
+            proposal_reason=proposal_reason,
+            changes=changes,
+        )
+
+    @model_validator(mode="after")
+    def validate_draft_only_review_contract(self) -> "PersonaVersionEditProposal":
+        blocking_labels: list[str] = []
+        review_reasons: list[str] = []
+        for change in self.changes:
+            blocking_labels.extend(change.blocking_risk_labels)
+            review_reasons.extend(change.review_required_reasons)
+            if change.requires_review:
+                review_reasons.append("field_change_requires_review")
+
+        self.blocking_risk_labels = _ordered_unique(blocking_labels)
+        self.review_required_reasons = _ordered_unique(review_reasons)
+        self.auto_approval_blocked = True
+        return self
+
+
+class PersonaVersionEditReview(BaseModel):
+    schema_version: str = "persona_version_edit_review_v1"
+    review_id: str = Field(default_factory=lambda: new_id("personaeditreview"))
+    proposal_id: str = Field(..., min_length=1)
+    reviewer_id: str = Field(..., min_length=1)
+    decision: PersonaVersionEditReviewDecision
+    notes: list[str] = Field(default_factory=list)
+    blocking_risk_labels: list[str] = Field(default_factory=list)
+    auto_apply_allowed: Literal[False] = False
+    approved_for_auto_apply: Literal[False] = False
+    writes_persona_version: Literal[False] = False
+    reviewed_at: datetime = Field(default_factory=utc_now)
+
+    @classmethod
+    def from_proposal(
+        cls,
+        proposal: PersonaVersionEditProposal,
+        *,
+        reviewer_id: str,
+        decision: PersonaVersionEditReviewDecision,
+        notes: list[str] | None = None,
+    ) -> "PersonaVersionEditReview":
+        return cls(
+            proposal_id=proposal.proposal_id,
+            reviewer_id=reviewer_id,
+            decision=decision,
+            notes=notes or [],
+            blocking_risk_labels=proposal.blocking_risk_labels,
+        )
+
+    @model_validator(mode="after")
+    def validate_review_only_contract(self) -> "PersonaVersionEditReview":
+        self.blocking_risk_labels = _ordered_unique(self.blocking_risk_labels)
+        if self.decision == "approved_for_manual_apply" and self.blocking_risk_labels:
+            raise ValueError("blocking risk labels cannot be approved for manual apply")
+        return self
 
 
 class MemoryFactStoreRecord(BaseModel):
