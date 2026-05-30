@@ -36,6 +36,7 @@ Implemented objects:
 - deterministic text from mood/activity/topic labels;
 - imagined AI-generated content status;
 - explicit imagined-content truth disclosure;
+- explicit AIGC disclosure metadata;
 - review-required status;
 - local private review visibility;
 - copied memory and relationship context refs;
@@ -47,6 +48,7 @@ Implemented objects:
 - The engine does not retrieve memories.
 - Memory refs are inspiration references only.
 - Output remains imagined and review-only.
+- Output preserves AIGC disclosure metadata for downstream review surfaces.
 - Payloads contain no publish, send, schedule, delivery, platform, webhook,
   token, or queue fields.
 - Service exposes no publish, send, schedule, delivery, execution, runtime, or

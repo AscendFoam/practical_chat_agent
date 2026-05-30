@@ -120,6 +120,7 @@ ProactiveConsentIntent = Literal[
 RoleDynamicPostTruthDisclosure = Literal["imagined_ai_generated_content"]
 RoleDynamicPostReviewStatus = Literal["requires_review", "approved_for_demo", "rejected"]
 RoleDynamicPostVisibility = Literal["local_private_review"]
+AIGCLabel = Literal["ai_generated"]
 
 
 class InboundEvent(BaseModel):
@@ -2011,6 +2012,29 @@ class ProactiveConsent(BaseModel):
         return self
 
 
+class AIGCDisclosureMetadata(BaseModel):
+    schema_version: str = "aigc_disclosure_v1"
+    aigc_label: AIGCLabel = "ai_generated"
+    disclosure_text: str = "AI-generated imagined companion content for review."
+    disclosure_labels: list[str] = Field(
+        default_factory=lambda: [
+            "ai_generated",
+            "imagined_content",
+            "review_required",
+            "not_real_world_activity",
+        ],
+    )
+
+    @model_validator(mode="after")
+    def validate_aigc_disclosure_metadata(self) -> "AIGCDisclosureMetadata":
+        required_labels = {"ai_generated", "imagined_content", "review_required", "not_real_world_activity"}
+        if not required_labels.issubset(set(self.disclosure_labels)):
+            raise ValueError("AIGC disclosure metadata missing required labels")
+        if "AI-generated" not in self.disclosure_text or "imagined" not in self.disclosure_text.lower():
+            raise ValueError("AIGC disclosure text must mention AI-generated imagined content")
+        return self
+
+
 class RoleDynamicPost(BaseModel):
     schema_version: str = "role_dynamic_post_v1"
     post_id: str = Field(default_factory=lambda: new_id("rolepost"))
@@ -2024,6 +2048,7 @@ class RoleDynamicPost(BaseModel):
     memory_refs: list[str] = Field(default_factory=list)
     relationship_context_refs: list[str] = Field(default_factory=list)
     source_prompt_summary: str | None = None
+    aigc_metadata: AIGCDisclosureMetadata = Field(default_factory=AIGCDisclosureMetadata)
     contains_factual_claims: bool = False
     factual_claims_review_notes: list[str] = Field(default_factory=list)
     safety_notes: list[str] = Field(default_factory=list)

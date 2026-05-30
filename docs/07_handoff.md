@@ -5710,3 +5710,49 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - T291 is deterministic stub generation only.
   - Label hardening, contamination tests, review cards, UI, and web demo remain
     unopened.
+
+## T292 Worker Completion Record
+
+- T292 is the AIGC Labeling Metadata task for M18.
+- Worker must not mark T292 as complete in `docs/04_task_board.md`; T292 awaits
+  adversarial review and Captain judgment.
+- Files changed:
+  - `src/practical_chat_agent/core/models.py`
+  - `src/practical_chat_agent/services/virtual_life_engine.py`
+  - `tests/test_virtual_life_aigc_labeling.py`
+  - `docs/data_contracts/role_dynamic_post_contract.md`
+  - `docs/data_contracts/virtual_life_engine_contract.md`
+  - `docs/tasks/M18_virtual_life_stream/T293_imagined_factual_contamination_tests.md`
+  - `docs/worker_summary/T292_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED: targeted pytest failed because `RoleDynamicPost` did not expose
+    `aigc_metadata`.
+  - GREEN: targeted pytest passed after adding `AIGCDisclosureMetadata`.
+- Behavior added:
+  - Explicit AIGC disclosure metadata on RoleDynamicPost.
+  - Required labels for AI-generated, imagined, review-required, and
+    not-real-world-activity status.
+  - Engine-created posts preserve disclosure metadata.
+- T293 next task package:
+  - Created
+    `docs/tasks/M18_virtual_life_stream/T293_imagined_factual_contamination_tests.md`.
+  - T293 is scoped to imagined/factual contamination tests only.
+- Verification status:
+  - `pytest tests\test_virtual_life_aigc_labeling.py -q -o cache_dir=artifacts\t292_pytest_cache --basetemp=artifacts\t292_pytest_basetemp`:
+    passed, 4 tests.
+  - `python -m py_compile src\practical_chat_agent\core\models.py src\practical_chat_agent\services\virtual_life_engine.py`:
+    passed.
+  - `pytest tests\test_virtual_life_aigc_labeling.py tests\test_virtual_life_engine_text_generator.py tests\test_role_dynamic_post_schema.py -q -o cache_dir=artifacts\t292_pytest_cache_min --basetemp=artifacts\t292_pytest_basetemp_min`:
+    passed, 14 tests.
+  - `git diff --check`: passed with Windows line-ending conversion warnings.
+- Explicit non-actions:
+  - No LLM call, scheduler, publisher, outbound request, delivery adapter,
+    platform integration, push notification, webhook, queue, review UI,
+    voice/avatar/video behavior, Live2D, social feed publishing, web demo, or
+    automatic sending was added.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - T292 hardens labels only.
+  - Contamination tests, review cards, UI, and web demo remain unopened.

@@ -29,6 +29,7 @@ Implemented model:
 | `memory_refs` | Optional memory ids used as inspiration references. |
 | `relationship_context_refs` | Optional relationship context ids. |
 | `source_prompt_summary` | Caller-supplied source summary. |
+| `aigc_metadata` | Explicit AI-generated imagined-content disclosure metadata. |
 | `contains_factual_claims` | Whether the draft contains factual claims. |
 | `factual_claims_review_notes` | Required if factual claims are present. |
 | `safety_notes` | Review labels or safety notes. |
@@ -36,6 +37,9 @@ Implemented model:
 
 ## Invariants
 
+- AIGC disclosure metadata includes `ai_generated`, `imagined_content`,
+  `review_required`, and `not_real_world_activity`.
+- AIGC disclosure text mentions AI-generated imagined content.
 - Content status is imagined AI-generated.
 - Truth disclosure is explicit.
 - Review status defaults to review required.
