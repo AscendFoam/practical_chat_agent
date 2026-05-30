@@ -12,6 +12,12 @@ from practical_chat_agent.core.models import ProactiveConsent
 
 ProactivePolicyDecisionValue = Literal["allow_for_review", "block", "defer"]
 
+HIGH_RISK_REASON_BY_FLAG = {
+    "crisis_like_signal": "crisis_safety_review_required",
+    "low_mood_signal": "low_mood_pressure_risk",
+    "dependency_pressure": "dependency_pressure_risk",
+}
+
 
 class ProactiveCandidateMetadata(BaseModel):
     schema_version: str = "proactive_candidate_metadata_v1"
@@ -55,6 +61,10 @@ class ProactivePolicyGate:
 
         if candidate.intent not in consent.allowed_intents:
             return self._decision(candidate, "block", ["intent_not_allowed"])
+
+        for safety_flag in candidate.safety_flags:
+            if safety_flag in HIGH_RISK_REASON_BY_FLAG:
+                return self._decision(candidate, "block", [HIGH_RISK_REASON_BY_FLAG[safety_flag]])
 
         if is_quiet_hours:
             return self._decision(candidate, "defer", ["quiet_hours"])

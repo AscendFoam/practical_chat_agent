@@ -33,6 +33,7 @@ Implemented objects:
 | `review_required` | Always true. |
 | `review_actions` | Local review actions. |
 | `safety_notes` | Candidate safety flags plus consent safety notes. |
+| `support_review_notes` | Support-oriented review labels for high-risk decisions. |
 
 ## Review Actions
 
@@ -43,6 +44,7 @@ Allowed review actions:
 - `pause_consent`
 - `request_changes`
 - `hold_for_later`
+- `add_support_note`
 
 `approve_for_draft` means approval for a future local draft surface only. It is
 not approval to send, schedule, deliver, enqueue, webhook, notify, or call any
@@ -55,10 +57,16 @@ platform adapter.
 - `defer` decisions expose `hold_for_later`, `reject`, `pause_consent`, and
   `request_changes`.
 - `block` decisions expose `reject`, `pause_consent`, and `request_changes`.
+- High-risk policy reasons expose `add_support_note`, `reject`,
+  `pause_consent`, and `request_changes`.
+- High-risk policy reasons add `support_oriented_review_only` to
+  `support_review_notes`.
 - All cards preserve policy reasons and consent status.
 - All cards require human review.
 - Card payloads contain no send, schedule, delivery, platform, webhook, token,
   or queue fields.
+- Card payloads do not claim diagnosis, treatment, medical advice, emergency
+  handling, external escalation, or crisis response.
 - Service exposes no send, schedule, delivery, execution, runtime, notification,
   or platform methods.
 

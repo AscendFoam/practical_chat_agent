@@ -15,7 +15,19 @@ from practical_chat_agent.services.proactive_policy_gate import (
 )
 
 
-ProactiveReviewAction = Literal["approve_for_draft", "reject", "pause_consent", "request_changes", "hold_for_later"]
+ProactiveReviewAction = Literal[
+    "approve_for_draft",
+    "reject",
+    "pause_consent",
+    "request_changes",
+    "hold_for_later",
+    "add_support_note",
+]
+SUPPORT_REVIEW_REASONS = {
+    "crisis_safety_review_required",
+    "low_mood_pressure_risk",
+    "dependency_pressure_risk",
+}
 
 
 class ProactiveReviewCard(BaseModel):
@@ -33,6 +45,7 @@ class ProactiveReviewCard(BaseModel):
     review_required: bool = True
     review_actions: list[ProactiveReviewAction] = Field(default_factory=list)
     safety_notes: list[str] = Field(default_factory=list)
+    support_review_notes: list[str] = Field(default_factory=list)
 
 
 class ProactiveReviewCardService:
@@ -56,12 +69,21 @@ class ProactiveReviewCardService:
             consent_status=consent.status,
             review_actions=self._review_actions(decision),
             safety_notes=[*candidate.safety_flags, *consent.safety_notes],
+            support_review_notes=self._support_review_notes(decision),
         )
 
     @staticmethod
     def _review_actions(decision: ProactivePolicyDecision) -> list[ProactiveReviewAction]:
+        if SUPPORT_REVIEW_REASONS.intersection(decision.reasons):
+            return ["add_support_note", "reject", "pause_consent", "request_changes"]
         if decision.decision == "allow_for_review":
             return ["approve_for_draft", "reject", "request_changes", "pause_consent"]
         if decision.decision == "defer":
             return ["hold_for_later", "reject", "pause_consent", "request_changes"]
         return ["reject", "pause_consent", "request_changes"]
+
+    @staticmethod
+    def _support_review_notes(decision: ProactivePolicyDecision) -> list[str]:
+        if SUPPORT_REVIEW_REASONS.intersection(decision.reasons):
+            return ["support_oriented_review_only"]
+        return []

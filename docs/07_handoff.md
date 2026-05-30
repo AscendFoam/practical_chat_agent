@@ -5542,3 +5542,52 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
 - Remaining risks:
   - T283 creates review artifacts only.
   - Crisis/low-mood policy, M17 gate review, UI, and web demo remain unopened.
+
+## T284 Worker Completion Record
+
+- T284 is the Crisis And Low-Mood Proactive Policy task for M17.
+- Worker must not mark T284 as complete in `docs/04_task_board.md`; T284 awaits
+  adversarial review and Captain judgment.
+- Files changed:
+  - `src/practical_chat_agent/services/proactive_policy_gate.py`
+  - `src/practical_chat_agent/services/proactive_review_card.py`
+  - `tests/test_proactive_crisis_low_mood_policy.py`
+  - `docs/data_contracts/proactive_policy_gate_contract.md`
+  - `docs/data_contracts/proactive_review_card_contract.md`
+  - `docs/tasks/M17_proactive_engine_consent/T285_m17_gate_review.md`
+  - `docs/worker_summary/T284_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED: targeted pytest failed because high-risk safety flags were still
+    allowed.
+  - GREEN: targeted pytest passed after adding high-risk flag blocks and
+    support-oriented review notes.
+- Behavior added:
+  - Crisis-like, low-mood, and dependency-pressure safety flags block normal
+    proactive approval.
+  - High-risk review cards expose support-oriented conservative review actions
+    only.
+  - High-risk card payloads avoid diagnosis, treatment, medical advice,
+    emergency handling claims, and delivery/platform fields.
+- T285 next task package:
+  - Created `docs/tasks/M17_proactive_engine_consent/T285_m17_gate_review.md`.
+  - T285 is scoped to docs-only M17 gate review and M18 entry task creation.
+- Verification status:
+  - `pytest tests\test_proactive_crisis_low_mood_policy.py -q -o cache_dir=artifacts\t284_pytest_cache --basetemp=artifacts\t284_pytest_basetemp`:
+    passed, 4 tests.
+  - `python -m py_compile src\practical_chat_agent\services\proactive_policy_gate.py src\practical_chat_agent\services\proactive_review_card.py`:
+    passed.
+  - `pytest tests\test_proactive_crisis_low_mood_policy.py tests\test_proactive_review_card.py tests\test_proactive_policy_gate.py -q -o cache_dir=artifacts\t284_pytest_cache_min --basetemp=artifacts\t284_pytest_basetemp_min`:
+    passed, 15 tests.
+  - `git diff --check`: passed with Windows line-ending conversion warnings.
+- Explicit non-actions:
+  - No diagnosis, treatment, medical advice, emergency handling, external
+    escalation, proactive candidate generator, scheduler, outbound request,
+    delivery adapter, platform integration, push notification, webhook, queue,
+    LLM call, production reply generation, review UI, voice/avatar/video
+    behavior, social feed, web demo, or automatic sending was added.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - T284 is deterministic high-risk policy only.
+  - M17 gate review, virtual life stream, UI, and web demo remain unopened.

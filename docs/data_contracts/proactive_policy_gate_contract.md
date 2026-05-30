@@ -54,12 +54,16 @@ Candidate metadata is input only. T281 does not generate it.
 2. Candidate surface not included in consent blocks with
    `surface_not_allowed`.
 3. Candidate intent not included in consent blocks with `intent_not_allowed`.
-4. Quiet hours defer with `quiet_hours`.
-5. Daily cap violations block with `frequency_cap_reached`.
-6. Minimum interval violations block with `minimum_interval_not_met`.
-7. Repeated follow-up after no user response blocks with
+4. High-risk safety flags block with support-review reasons:
+   - `crisis_safety_review_required`;
+   - `low_mood_pressure_risk`;
+   - `dependency_pressure_risk`.
+5. Quiet hours defer with `quiet_hours`.
+6. Daily cap violations block with `frequency_cap_reached`.
+7. Minimum interval violations block with `minimum_interval_not_met`.
+8. Repeated follow-up after no user response blocks with
    `no_response_pressure_risk`.
-8. Otherwise the candidate is allowed for review with
+9. Otherwise the candidate is allowed for review with
    `human_review_required`.
 
 All allow decisions remain review-only.
@@ -69,6 +73,8 @@ All allow decisions remain review-only.
 - Disabled, paused, and revoked consent block.
 - Unknown or outbound surfaces block when not explicitly listed in consent.
 - Disallowed intents block.
+- Crisis-like, low-mood, and dependency-pressure safety flags block normal
+  proactive approval.
 - Quiet-hours cases defer instead of allowing immediate review.
 - Frequency and interval violations block.
 - Repeated follow-up attempts after a prolonged no-response window block.
