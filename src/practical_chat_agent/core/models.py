@@ -51,6 +51,14 @@ MemoryProvenanceSourceType = Literal[
 ]
 MemoryLifecycleState = Literal["active", "frozen", "deleted", "superseded", "archived"]
 MemoryRetrievalContext = Literal["factual", "inferred", "relational", "procedural", "imagined"]
+MemoryRetrievalPurpose = Literal[
+    "factual_response",
+    "inferred_context",
+    "relationship_context",
+    "procedural_context",
+    "imagined_context",
+    "review_surface",
+]
 ContactRelationshipType = Literal["friend", "classmate", "colleague", "family", "unknown"]
 ApprovedStoreContextStatus = Literal[
     "not_configured",
@@ -548,6 +556,87 @@ class MemoryEvent(BaseModel):
         if context == "procedural":
             return self.retrieval_permission.allow_procedural_retrieval
         return self.retrieval_permission.allow_imagined_retrieval
+
+
+class MemoryRetrievalBundleItem(BaseModel):
+    schema_version: str = "memory_retrieval_bundle_item_v2"
+    event_id: str
+    event_type: MemoryEventType
+    truth_status: MemoryTruthStatus
+    summary: str
+    provenance_refs: list[str] = Field(default_factory=list)
+    retrieval_context: MemoryRetrievalContext
+    sensitivity: DistillationSensitivity
+    lifecycle_state: MemoryLifecycleState
+    review_required: bool = False
+
+    @classmethod
+    def from_event(
+        cls,
+        event: MemoryEvent,
+        *,
+        retrieval_context: MemoryRetrievalContext,
+    ) -> "MemoryRetrievalBundleItem":
+        provenance_refs = [
+            *event.provenance.evidence_refs,
+            *event.provenance.source_event_ids,
+            *event.provenance.source_memory_ids,
+            *event.provenance.source_persona_ids,
+        ]
+        return cls(
+            event_id=event.event_id,
+            event_type=event.event_type,
+            truth_status=event.truth_status,
+            summary=event.summary,
+            provenance_refs=provenance_refs,
+            retrieval_context=retrieval_context,
+            sensitivity=event.sensitivity,
+            lifecycle_state=event.lifecycle_state,
+            review_required=event.retrieval_permission.review_required,
+        )
+
+
+class MemoryRetrievalBundle(BaseModel):
+    schema_version: str = "memory_retrieval_bundle_v2"
+    bundle_id: str = Field(default_factory=lambda: new_id("memrb"))
+    purpose: MemoryRetrievalPurpose
+    query_summary: str = Field(..., min_length=1)
+    items: list[MemoryRetrievalBundleItem] = Field(default_factory=list)
+    selected_memory_ids: list[str] = Field(default_factory=list)
+    excluded_memory_ids: list[str] = Field(default_factory=list)
+    exclusion_reasons: dict[str, str] = Field(default_factory=dict)
+    truth_status_counts: dict[str, int] = Field(default_factory=dict)
+    imagined_memory_count: int = 0
+    safety_warnings: list[str] = Field(default_factory=list)
+    include_review_required: bool = False
+    generated_at: datetime = Field(default_factory=utc_now)
+
+    @model_validator(mode="after")
+    def validate_bundle(self) -> "MemoryRetrievalBundle":
+        if self.purpose == "factual_response":
+            for item in self.items:
+                if item.event_type == "imagined" or item.truth_status == "imagined":
+                    raise ValueError("factual_response bundles cannot include imagined memory as evidence")
+
+        inactive_items = [
+            item.event_id
+            for item in self.items
+            if item.lifecycle_state in {"deleted", "frozen", "archived"}
+        ]
+        if inactive_items:
+            raise ValueError("deleted, frozen, or archived memory cannot be included in retrieval bundles")
+
+        review_required_items = [item.event_id for item in self.items if item.review_required]
+        if review_required_items and not self.include_review_required:
+            raise ValueError("review-required memory requires include_review_required=true")
+
+        self.selected_memory_ids = [item.event_id for item in self.items]
+        counts: dict[str, int] = {}
+        for item in self.items:
+            counts[item.truth_status] = counts.get(item.truth_status, 0) + 1
+        self.truth_status_counts = counts
+        self.imagined_memory_count = counts.get("imagined", 0)
+        return self
 
 
 class ContactSkillTopicPreference(DistillationClaim):

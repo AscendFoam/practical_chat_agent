@@ -5051,3 +5051,51 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - T262 is deterministic policy only.
   - Retrieval bundle schema, consolidation, ranking, and runtime memory
     consumption remain unopened.
+
+## T263 Worker Completion Record
+
+- T263 is the Memory Retrieval Bundle Contract task for M15 Memory OS v2.
+- Worker must not mark T263 as complete in `docs/04_task_board.md`; T263 awaits
+  adversarial review and Captain judgment.
+- Files changed:
+  - `src/practical_chat_agent/core/models.py`
+  - `tests/test_memory_retrieval_bundle_schema.py`
+  - `docs/data_contracts/memory_retrieval_bundle_v2_contract.md`
+  - `docs/tasks/M15_memory_os_v2/T264_memory_consolidation_stub.md`
+  - `docs/worker_summary/T263_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED: targeted pytest failed because `MemoryRetrievalBundle` did not exist.
+  - GREEN: targeted pytest passed after adding retrieval bundle schemas.
+- Behavior added:
+  - `MemoryRetrievalBundleItem.from_event(...)` packages selected MemoryEvent
+    records without ranking or search.
+  - `MemoryRetrievalBundle` records purpose, query summary, selected ids,
+    exclusions, truth-status counts, imagined-memory count, safety warnings,
+    and generated timestamp.
+  - Factual-purpose bundles reject imagined memory as factual evidence.
+  - Deleted/frozen/archived memory cannot be included.
+  - Review-required memory requires `include_review_required=true`.
+- T264 next task package:
+  - Created `docs/tasks/M15_memory_os_v2/T264_memory_consolidation_stub.md`.
+  - T264 is scoped to deterministic local consolidation candidates only.
+- Verification status:
+  - `python -m py_compile src\practical_chat_agent\core\models.py`: passed.
+  - `pytest tests\test_memory_retrieval_bundle_schema.py -q -o cache_dir=artifacts\t263_pytest_cache --basetemp=artifacts\t263_pytest_basetemp`:
+    passed, 8 tests.
+  - `pytest tests\test_memory_retrieval_bundle_schema.py tests\test_memory_event_schema.py -q -o cache_dir=artifacts\t263_pytest_cache_min --basetemp=artifacts\t263_pytest_basetemp_min`:
+    passed, 18 tests.
+  - `git diff --check`: passed with Windows line-ending conversion warnings.
+- Explicit non-actions:
+  - No memory selection, vector search, retrieval ranking, semantic similarity,
+    query parsing, private chat-log read, LLM extraction, dialogue runtime
+    consumption, proactive candidate, outbound request, platform integration,
+    voice/avatar/deepfake behavior, or automatic sending.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+  - No real-person clone, public-figure clone, ex-partner/family clone,
+    deceased-person mode, or deceptive impersonation path was authorized.
+- Remaining risks:
+  - T263 is schema-only.
+  - Actual retrieval selection, ranking, consolidation, and runtime memory
+    consumption remain unopened.
