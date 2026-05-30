@@ -6357,3 +6357,44 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - T314 is a deterministic local policy contract, not clinically validated
     crisis handling.
   - M20 milestone review, UI, and web demo remain future work.
+
+## T315 Worker Completion Record
+
+- T315 is the M20 Milestone Review task.
+- Worker must not mark T315 as complete in `docs/04_task_board.md`; T315 awaits
+  adversarial safety/legal/product-policy review and Captain judgment.
+- Files changed:
+  - `docs/review/M20_review.md`
+  - `docs/tasks/M21_text_first_product_ux_prototype/T320_ux_information_architecture.md`
+  - `docs/worker_summary/T315_worker_summary.md`
+  - `docs/07_handoff.md`
+- Gate recommendation:
+  - PASS_WITH_WARNINGS for entering M21 text-first product UX prototype work.
+- Review basis:
+  - T310 China compliance checklist.
+  - T311 international privacy/platform policy checklist.
+  - T312 Consent Center data model.
+  - T313 AIGC labeling plan and contract.
+  - T314 crisis/dependency policy tests.
+- T320 next task package:
+  - Created
+    `docs/tasks/M21_text_first_product_ux_prototype/T320_ux_information_architecture.md`.
+  - T320 is scoped to UX information architecture.
+- Verification status:
+  - `pytest tests\test_consent_center_data_model.py tests\test_aigc_labeling_plan_contract.py tests\test_crisis_dependency_policy.py tests\test_proactive_policy_gate.py tests\test_proactive_consent_schema.py -q -o cache_dir=artifacts\t315_pytest_cache_final --basetemp=artifacts\t315_pytest_basetemp_final`:
+    passed, 31 tests.
+  - `git diff --check`: passed with Windows line-ending conversion warnings.
+- Explicit non-actions:
+  - No code, tests, UI, runtime behavior, model-provider call, platform
+    integration, sending, scheduling, notification, webhook, queue, legal
+    filing, or production data workflow was added.
+  - No legal advice, compliance completion, crisis-safety sufficiency, clinical
+    validation, launch approval, app-store approval, or regulator acceptance was
+    claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - M20 remains a local compliance/safety baseline, not legal or clinical
+    clearance.
+  - M21 UX work must carry consent, AIGC labeling, memory provenance,
+    crisis/dependency safety, and data controls into visible product states.
