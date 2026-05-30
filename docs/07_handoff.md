@@ -6297,3 +6297,63 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
 - Remaining risks:
   - T313 is a local labeling contract and plan only.
   - Crisis/dependency policy tests, UI, and web demo remain future work.
+
+## T314 Worker Completion Record
+
+- T314 is the Crisis And Dependency Policy Tests task for M20.
+- Worker must not mark T314 as complete in `docs/04_task_board.md`; T314 awaits
+  adversarial safety/legal/product-policy review and Captain judgment.
+- Files changed:
+  - `src/practical_chat_agent/services/companion_safety_policy.py`
+  - `tests/test_crisis_dependency_policy.py`
+  - `docs/data_contracts/crisis_dependency_policy_contract.md`
+  - `docs/tasks/M20_compliance_and_safety_baseline/T315_m20_milestone_review.md`
+  - `docs/worker_summary/T314_worker_summary.md`
+  - `docs/07_handoff.md`
+- Source review evidence:
+  - Checked official/primary sources from SAMHSA 988, SAMHSA 988/911 crisis
+    response, WHO suicide-prevention communication guidance, and Google Play
+    AI-generated content policy.
+  - Used sources only to set conservative product boundaries; no clinical or
+    legal sufficiency is claimed.
+- TDD evidence:
+  - RED: targeted pytest failed because `companion_safety_policy` did not
+    exist.
+  - GREEN: targeted pytest passed after adding the companion safety policy
+    service and decision contract.
+- Behavior added:
+  - Crisis/self-harm indicators block with high-risk review.
+  - Dependency/replacement indicators de-escalate for review.
+  - Romantic or manipulative escalation blocks for vulnerable states.
+  - Proactive outreach remains blocked when crisis/dependency/escalation risk
+    is present.
+  - Low-risk companion replies remain review-only and supportive/non-clinical.
+  - Decision payload tests cover raw private and delivery/platform field
+    leakage.
+- T315 next task package:
+  - Created
+    `docs/tasks/M20_compliance_and_safety_baseline/T315_m20_milestone_review.md`.
+  - T315 is scoped to M20 milestone review.
+- Verification status:
+  - `pytest tests\test_crisis_dependency_policy.py -q -o cache_dir=artifacts\t314_pytest_cache_green --basetemp=artifacts\t314_pytest_basetemp_green`:
+    passed, 7 tests.
+  - `python -m py_compile src\practical_chat_agent\services\companion_safety_policy.py src\practical_chat_agent\core\models.py`:
+    passed.
+  - `pytest tests\test_crisis_dependency_policy.py tests\test_proactive_policy_gate.py tests\test_proactive_consent_schema.py -q -o cache_dir=artifacts\t314_pytest_cache_final --basetemp=artifacts\t314_pytest_basetemp_final`:
+    passed, 20 tests.
+  - `git diff --check`: passed with Windows line-ending conversion warnings.
+- Explicit non-actions:
+  - No medical or mental-health advice, clinical validation, crisis-safety
+    sufficiency, emergency escalation, or location-specific emergency routing
+    was added.
+  - No UI, reply generation, proactive candidate generation, platform
+    integration, model call, sending, scheduling, notification, webhook, queue,
+    or public launch behavior was added.
+  - No legal advice, compliance completion, filing, registration, launch
+    approval, app-store approval, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - T314 is a deterministic local policy contract, not clinically validated
+    crisis handling.
+  - M20 milestone review, UI, and web demo remain future work.
