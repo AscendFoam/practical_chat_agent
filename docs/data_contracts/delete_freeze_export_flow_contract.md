@@ -67,6 +67,11 @@ Supported `artifact_type` values:
 Delete and freeze previews mark retrieval/runtime eligibility false. Export
 previews keep current eligibility and are manifest-only.
 
+`hard_delete` previews must include:
+
+- `hard_delete_preview_only`
+- `high_impact_control`
+
 ## ControlOperationConfirmation
 
 | Field | Meaning |
@@ -106,6 +111,7 @@ operation.
 | `safety_flags` | Safety flags. |
 | `source_surface` | Local surface id. |
 | `redacted_content_only` | Always true. |
+| `executes_operation` | Always false. |
 | `writes_records` | Always false. |
 | `writes_export_files` | Always false. |
 | `created_at` | Audit timestamp. |
@@ -139,6 +145,8 @@ operation.
 - Every high-impact operation starts as a dry-run preview.
 - Confirmations reference a preview and do not execute the operation.
 - Delete distinguishes `soft_delete` from `hard_delete`.
+- Hard delete is represented as high-impact preview-only metadata unless a
+  future explicit deletion implementation changes this contract.
 - Delete and freeze previews make affected artifacts non-retrieval/runtime
   eligible in the preview.
 - Audit events preserve actor, user, target, operation, summaries, reason,

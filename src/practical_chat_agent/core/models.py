@@ -1296,6 +1296,9 @@ class ControlOperationPreview(BaseModel):
         reason: str,
     ) -> "ControlOperationPreview":
         if operation in {"soft_delete", "hard_delete"}:
+            safety_flags = ["delete_requires_confirmation", "retrieval_blocked_after_operation"]
+            if operation == "hard_delete":
+                safety_flags.extend(["hard_delete_preview_only", "high_impact_control"])
             return cls(
                 operation=operation,
                 target=target,
@@ -1304,7 +1307,7 @@ class ControlOperationPreview(BaseModel):
                 would_change_state_to="deleted",
                 retrieval_eligible_after=False,
                 runtime_eligible_after=False,
-                safety_flags=["delete_requires_confirmation", "retrieval_blocked_after_operation"],
+                safety_flags=safety_flags,
             )
         if operation == "freeze":
             return cls(
@@ -1340,6 +1343,7 @@ class ControlOperationPreview(BaseModel):
     def validate_preview_flags(self) -> "ControlOperationPreview":
         if self.operation == "hard_delete":
             self.hard_delete = True
+            self.safety_flags.extend(["hard_delete_preview_only", "high_impact_control"])
         elif self.hard_delete:
             raise ValueError("hard_delete flag is only valid for hard_delete operation")
 
@@ -1417,6 +1421,7 @@ class ControlAuditEvent(BaseModel):
     safety_flags: list[str] = Field(default_factory=list)
     source_surface: str = "local_control_surface"
     redacted_content_only: Literal[True] = True
+    executes_operation: Literal[False] = False
     writes_records: Literal[False] = False
     writes_export_files: Literal[False] = False
     created_at: datetime = Field(default_factory=utc_now)

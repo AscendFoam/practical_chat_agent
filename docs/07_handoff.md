@@ -6039,3 +6039,48 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - T303 is contract-only work.
   - T304 deletion verification tests, M19 review, UI, and web demo remain
     unopened.
+
+## T304 Worker Completion Record
+
+- T304 is the Deletion Verification Tests task for M19.
+- Worker must not mark T304 as complete in `docs/04_task_board.md`; T304 awaits
+  adversarial review and Captain judgment.
+- Files changed:
+  - `tests/test_deletion_verification.py`
+  - `src/practical_chat_agent/core/models.py`
+  - `docs/data_contracts/delete_freeze_export_flow_contract.md`
+  - `docs/tasks/M19_memory_persona_control_surface/T305_m19_gate_review.md`
+  - `docs/worker_summary/T304_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED: targeted pytest failed because `ControlAuditEvent` lacked
+    `executes_operation` and hard-delete previews lacked high-impact
+    preview-only flags.
+  - GREEN: targeted pytest passed after adding those contract fields/flags.
+- Behavior added:
+  - Persona version-store tombstone preservation verification.
+  - Latest non-deleted lookup verification.
+  - Delete/export payload leakage verification.
+  - Dry-run delete preview verification before confirmation.
+  - Non-executing confirmation and audit verification.
+  - Hard-delete high-impact preview-only labels.
+- T305 next task package:
+  - Created `docs/tasks/M19_memory_persona_control_surface/T305_m19_gate_review.md`.
+  - T305 is scoped to M19 adversarial milestone review.
+- Verification status:
+  - `pytest tests\test_deletion_verification.py -q -o cache_dir=artifacts\t304_pytest_cache --basetemp=artifacts\t304_pytest_basetemp`:
+    passed, 5 tests.
+  - `python -m py_compile src\practical_chat_agent\core\models.py src\practical_chat_agent\services\persona_version_store.py`:
+    passed.
+  - `pytest tests\test_deletion_verification.py tests\test_delete_freeze_export_flow_contract.py tests\test_persona_version_store.py -q -o cache_dir=artifacts\t304_pytest_cache_final --basetemp=artifacts\t304_pytest_basetemp_final`:
+    passed, 17 tests.
+  - `git diff --check`: passed with Windows line-ending conversion warnings.
+- Explicit non-actions:
+  - No UI, production deletion, source-file removal, export file writing,
+    mutation service, LLM call, platform integration, sending, scheduling, or
+    web demo was added.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - T304 verifies local tombstone/preview behavior only.
+  - M19 review, compliance baseline, UI, and web demo remain unopened.
