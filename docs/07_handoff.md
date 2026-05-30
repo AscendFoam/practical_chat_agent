@@ -4946,3 +4946,55 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - T260 is schema-only.
   - Store, retrieval, consolidation, forgetting policy, and runtime memory
     consumption remain future work.
+
+## T261 Worker Completion Record
+
+- T261 is the Memory Store v2 task for M15 Memory OS v2.
+- Worker must not mark T261 as complete in `docs/04_task_board.md`; T261 awaits
+  adversarial review and Captain judgment.
+- Files changed:
+  - `src/practical_chat_agent/services/memory_event_store.py`
+  - `tests/test_memory_event_store.py`
+  - `docs/data_contracts/memory_event_store_v2_contract.md`
+  - `docs/tasks/M15_memory_os_v2/T262_memory_lifecycle_policy.md`
+  - `docs/worker_summary/T261_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED: targeted pytest failed because
+    `practical_chat_agent.services.memory_event_store` did not exist.
+  - GREEN: targeted pytest passed after adding `MemoryEventStore`.
+- Behavior added:
+  - Caller-path local JSON MemoryEvent store.
+  - Append-only store records with `append` and `lifecycle_update`.
+  - Latest-record list/query helpers and full-history access.
+  - Type-aware helpers for user id, event type, and factual events.
+  - Lifecycle updates preserve history and make frozen/deleted events
+    retrieval-ineligible.
+  - Imagined events are excluded from factual helpers.
+  - Safe JSON export omits raw private/delivery fields.
+  - Store surface exposes no send/schedule/delivery/runtime/dialogue methods.
+- T262 next task package:
+  - Created `docs/tasks/M15_memory_os_v2/T262_memory_lifecycle_policy.md`.
+  - T262 is scoped to deterministic lifecycle/forgetting policy helpers only.
+- Verification status:
+  - `python -m py_compile src\practical_chat_agent\services\memory_event_store.py`:
+    passed.
+  - `pytest tests\test_memory_event_store.py -q -o cache_dir=artifacts\t261_pytest_cache --basetemp=artifacts\t261_pytest_basetemp`:
+    passed, 6 tests.
+  - `pytest tests\test_memory_event_store.py tests\test_memory_event_schema.py -q -o cache_dir=artifacts\t261_pytest_cache_min --basetemp=artifacts\t261_pytest_basetemp_min`:
+    passed, 16 tests.
+  - `git diff --check`: passed.
+- Explicit non-actions:
+  - No vector search, retrieval ranking, semantic similarity, private chat-log
+    ingestion, LLM extraction, background consolidation, forgetting/decay
+    policy, dialogue runtime consumption, proactive candidate, outbound
+    request, platform integration, voice/avatar/deepfake behavior, or automatic
+    sending.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+  - No real-person clone, public-figure clone, ex-partner/family clone,
+    deceased-person mode, or deceptive impersonation path was authorized.
+- Remaining risks:
+  - T261 is local JSON storage only.
+  - Lifecycle/forgetting policy, retrieval bundle, consolidation, ranking, and
+    runtime memory consumption remain unopened.
