@@ -4689,3 +4689,58 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - `style_inspiration` remains unsupported until T252 and later review gates.
   - L5 detection is not a complete policy engine.
   - Runtime dialogue and versioned storage remain unopened.
+
+## T252 Worker Completion Record
+
+- T252 is the Synthetic Deidentification Guard Tests task for M14.
+- Worker must not mark T252 as complete in `docs/04_task_board.md`; T252 awaits
+  adversarial review and Captain judgment.
+- Files changed:
+  - `src/practical_chat_agent/services/deidentification_guard.py`
+  - `tests/test_deidentification_guard.py`
+  - `docs/data_contracts/deidentification_guard_contract.md`
+  - `docs/tasks/M14_persona_compiler_schema/T253_persona_review_card_contract.md`
+  - `docs/worker_summary/T252_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED: targeted pytest failed because
+    `practical_chat_agent.services.deidentification_guard` did not exist.
+  - GREEN: targeted pytest passed after adding `DeidentificationGuard`.
+- Behavior added:
+  - `DeidentificationGuard.assess(text)` returns a machine-readable
+    `DeidentificationGuardDecision`.
+  - Generic abstract style signals such as concise, warm, delayed response,
+    dry humor, practical, and gentle can pass.
+  - Direct identifiers, contact identifiers, locations, organizations/schools,
+    handles, biometric cues, real-person avatar cues, private events, exact
+    biography, clone intent, and distinctive catchphrases are blocked.
+  - Decisions never retain raw source text.
+  - Guard surface exposes no private file/corpus, similarity, PersonaCard
+    compiler, runtime, send, schedule, or delivery methods.
+- T253 next task package:
+  - Created
+    `docs/tasks/M14_persona_compiler_schema/T253_persona_review_card_contract.md`.
+  - T253 is scoped to local PersonaCard review-card and decision-contract work.
+- Verification status:
+  - `python -m py_compile src\practical_chat_agent\services\deidentification_guard.py`:
+    passed.
+  - `pytest tests\test_deidentification_guard.py -q -o cache_dir=artifacts\t252_pytest_cache --basetemp=artifacts\t252_pytest_basetemp`:
+    passed, 7 tests.
+  - `pytest tests\test_deidentification_guard.py tests\test_persona_compiler.py -q -o cache_dir=artifacts\t252_pytest_cache_min --basetemp=artifacts\t252_pytest_basetemp_min`:
+    passed, 17 tests.
+  - `git diff --check`: passed.
+- Explicit non-actions:
+  - No private chat-log read, private corpus access, real deidentification
+    quality claim, similarity scoring, LLM call, embedding, PersonaCard
+    generation, runtime dialogue use, proactive behavior, platform integration,
+    voice/avatar/deepfake processing, or automatic sending.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+  - No real-person clone, public-figure clone, ex-partner/family clone,
+    deceased-person mode, or deceptive impersonation path was authorized.
+- Remaining risks:
+  - T252 is synthetic and deterministic; it is not a production
+    deidentification guarantee.
+  - Future L2 work still needs broader adversarial evaluation before reading
+    real private material.
+  - PersonaCard review, versioning, and runtime consumption remain unopened.
