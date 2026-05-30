@@ -5623,3 +5623,46 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - M17 is a local consented review-first foundation only.
   - M18 must still implement virtual life stream schemas and review-first
     generation stubs before UI/demo consumption.
+
+## T290 Worker Completion Record
+
+- T290 is the Role Dynamic Post Schema task for M18.
+- Worker must not mark T290 as complete in `docs/04_task_board.md`; T290 awaits
+  adversarial review and Captain judgment.
+- Files changed:
+  - `src/practical_chat_agent/core/models.py`
+  - `tests/test_role_dynamic_post_schema.py`
+  - `docs/data_contracts/role_dynamic_post_contract.md`
+  - `docs/tasks/M18_virtual_life_stream/T291_virtual_life_engine_text_generator.md`
+  - `docs/worker_summary/T290_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED: targeted pytest failed because `RoleDynamicPost` did not exist.
+  - GREEN: targeted pytest passed after adding `RoleDynamicPost`.
+- Behavior added:
+  - Review-only virtual life stream draft schema.
+  - Imagined AI-generated content status and explicit truth disclosure.
+  - Local private review visibility.
+  - Factual claims require review notes and remain imagined content.
+- T291 next task package:
+  - Created
+    `docs/tasks/M18_virtual_life_stream/T291_virtual_life_engine_text_generator.md`.
+  - T291 is scoped to deterministic local text stub generation only.
+- Verification status:
+  - `pytest tests\test_role_dynamic_post_schema.py -q -o cache_dir=artifacts\t290_pytest_cache --basetemp=artifacts\t290_pytest_basetemp`:
+    passed, 5 tests.
+  - `python -m py_compile src\practical_chat_agent\core\models.py`: passed.
+  - `pytest tests\test_role_dynamic_post_schema.py tests\test_proactive_consent_schema.py -q -o cache_dir=artifacts\t290_pytest_cache_min --basetemp=artifacts\t290_pytest_basetemp_min`:
+    passed, 12 tests.
+  - `git diff --check`: passed with Windows line-ending conversion warnings.
+- Explicit non-actions:
+  - No post generator, LLM call, scheduler, publisher, outbound request,
+    delivery adapter, platform integration, push notification, webhook, queue,
+    review UI, voice/avatar/video behavior, Live2D, social feed publishing, web
+    demo, or automatic sending was added.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - T290 is schema-only.
+  - Text generation, AIGC metadata, contamination tests, review cards, UI, and
+    web demo remain unopened.

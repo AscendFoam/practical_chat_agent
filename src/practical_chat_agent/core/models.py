@@ -117,6 +117,9 @@ ProactiveConsentIntent = Literal[
     "shared_interest",
     "relationship_repair_note",
 ]
+RoleDynamicPostTruthDisclosure = Literal["imagined_ai_generated_content"]
+RoleDynamicPostReviewStatus = Literal["requires_review", "approved_for_demo", "rejected"]
+RoleDynamicPostVisibility = Literal["local_private_review"]
 
 
 class InboundEvent(BaseModel):
@@ -2005,6 +2008,32 @@ class ProactiveConsent(BaseModel):
                 raise ValueError("enabled proactive consent requires at least one low-pressure intent")
         if self.status == "revoked" and self.revoked_at is None:
             raise ValueError("revoked proactive consent requires revoked_at")
+        return self
+
+
+class RoleDynamicPost(BaseModel):
+    schema_version: str = "role_dynamic_post_v1"
+    post_id: str = Field(default_factory=lambda: new_id("rolepost"))
+    user_id: str = Field(..., min_length=1)
+    persona_id: str = Field(..., min_length=1)
+    content_text: str = Field(..., min_length=1)
+    content_status: PersonaVirtualContentStatus = "imagined_ai_generated"
+    truth_disclosure: RoleDynamicPostTruthDisclosure = "imagined_ai_generated_content"
+    review_status: RoleDynamicPostReviewStatus = "requires_review"
+    visibility: RoleDynamicPostVisibility = "local_private_review"
+    memory_refs: list[str] = Field(default_factory=list)
+    relationship_context_refs: list[str] = Field(default_factory=list)
+    source_prompt_summary: str | None = None
+    contains_factual_claims: bool = False
+    factual_claims_review_notes: list[str] = Field(default_factory=list)
+    safety_notes: list[str] = Field(default_factory=list)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
+
+    @model_validator(mode="after")
+    def validate_role_dynamic_post(self) -> "RoleDynamicPost":
+        if self.contains_factual_claims and not self.factual_claims_review_notes:
+            raise ValueError("factual claims in imagined posts require review notes")
         return self
 
 
