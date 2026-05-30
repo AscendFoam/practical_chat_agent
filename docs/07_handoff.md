@@ -5235,3 +5235,52 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - T270 is schema-only.
   - Dialogue planning, draft generation, runtime consumption, proactive
     behavior, UI, and web demo remain unopened.
+
+## T271 Worker Completion Record
+
+- T271 is the Dialogue Context Planner task for M16.
+- Worker must not mark T271 as complete in `docs/04_task_board.md`; T271 awaits
+  adversarial review and Captain judgment.
+- Files changed:
+  - `src/practical_chat_agent/services/dialogue_context_planner.py`
+  - `tests/test_dialogue_context_planner.py`
+  - `docs/data_contracts/dialogue_context_plan_contract.md`
+  - `docs/tasks/M16_relationship_dialogue_consumption/T272_dialogue_draft_stub.md`
+  - `docs/worker_summary/T271_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED: targeted pytest failed because
+    `practical_chat_agent.services.dialogue_context_planner` did not exist.
+  - GREEN: targeted pytest passed after adding `DialogueContextPlanner`.
+- Behavior added:
+  - Deterministic `DialogueContextPlan` metadata.
+  - High boundary risk increases caution.
+  - High trust/warmth allows warmer tone without dependency language.
+  - Factual context gets factual-only notes.
+  - Imagined context is labeled and not treated as factual evidence.
+  - Planner emits no draft reply, send, schedule, delivery, platform, or runtime
+    fields.
+- T272 next task package:
+  - Created
+    `docs/tasks/M16_relationship_dialogue_consumption/T272_dialogue_draft_stub.md`.
+  - T272 is scoped to deterministic review-only draft stub work.
+- Verification status:
+  - `python -m py_compile src\practical_chat_agent\services\dialogue_context_planner.py`:
+    passed.
+  - `pytest tests\test_dialogue_context_planner.py -q -o cache_dir=artifacts\t271_pytest_cache --basetemp=artifacts\t271_pytest_basetemp`:
+    passed, 6 tests.
+  - `pytest tests\test_dialogue_context_planner.py tests\test_relationship_context_bundle_schema.py -q -o cache_dir=artifacts\t271_pytest_cache_min --basetemp=artifacts\t271_pytest_basetemp_min`:
+    passed, 11 tests.
+  - `git diff --check`: passed.
+- Explicit non-actions:
+  - No LLM call, final reply generation, retrieval ranking, memory selection,
+    proactive candidate, outbound request, platform integration,
+    voice/avatar/video behavior, web demo, or automatic sending.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+  - No real-person clone, public-figure clone, ex-partner/family clone,
+    deceased-person mode, or deceptive impersonation path was authorized.
+- Remaining risks:
+  - T271 is planning metadata only.
+  - Draft generation, runtime dialogue, UI, proactive behavior, and web demo
+    remain unopened.
