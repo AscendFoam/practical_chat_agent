@@ -5875,3 +5875,37 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - M18 is a local review-only virtual life foundation.
   - M19 must still define and implement local control surfaces before UI/demo
     consumption.
+
+## T300 Worker Completion Record
+
+- T300 is the Memory/persona Control Requirements task for M19.
+- Worker must not mark T300 as complete in `docs/04_task_board.md`; T300 awaits
+  adversarial review and Captain judgment.
+- Files changed:
+  - `docs/requirements/memory_persona_control_requirements.md`
+  - `docs/tasks/M19_memory_persona_control_surface/T301_memory_viewer_data_contract.md`
+  - `docs/worker_summary/T300_worker_summary.md`
+  - `docs/07_handoff.md`
+- Requirements added:
+  - Artifact inventory.
+  - View/edit/delete/freeze/export control requirements.
+  - Audit event requirements.
+  - Review/confirmation requirements.
+  - Privacy and safety boundaries.
+- T301 next task package:
+  - Created
+    `docs/tasks/M19_memory_persona_control_surface/T301_memory_viewer_data_contract.md`.
+  - T301 is scoped to read-only Memory Viewer data contracts.
+- Verification status:
+  - `git diff --check`: passed with Windows line-ending conversion warnings.
+- Explicit non-actions:
+  - No code implementation, test modification, UI, record mutation, deletion,
+    freeze, export, migration, LLM call, scheduler, publisher, outbound
+    request, delivery adapter, platform integration, push notification, webhook,
+    queue, review UI, voice/avatar/video behavior, Live2D, social feed
+    publishing, web demo, or automatic sending was added.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - T300 is requirements-only.
+  - M19 still needs concrete contracts and implementation work.
