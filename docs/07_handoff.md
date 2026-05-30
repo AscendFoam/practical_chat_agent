@@ -6693,3 +6693,44 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
 - Remaining risks:
   - T325 is a protocol only; no user research has been run.
   - M21 still needs milestone review before entering M22 voice/avatar work.
+
+## T326 Worker Completion Record
+
+- T326 is the M21 Milestone Review task.
+- Worker must not mark T326 as complete in `docs/04_task_board.md`; T326 awaits
+  adversarial product/safety UX review and Captain judgment.
+- Files changed:
+  - `docs/review/M21_review.md`
+  - `docs/tasks/M22_voice_and_avatar_exploration/T330_voice_technology_survey.md`
+  - `docs/worker_summary/T326_worker_summary.md`
+  - `docs/07_handoff.md`
+- Gate recommendation:
+  - PASS_WITH_WARNINGS for entering M22 voice and avatar exploration.
+- Review basis:
+  - T320 UX information architecture.
+  - T321 onboarding/persona creation prototype.
+  - T322 chat plus memory explanation prototype.
+  - T323 life stream prototype.
+  - T324 proactive settings prototype.
+  - T325 user study protocol.
+- T330 next task package:
+  - Created
+    `docs/tasks/M22_voice_and_avatar_exploration/T330_voice_technology_survey.md`.
+  - T330 is scoped to voice technology survey.
+- Verification status:
+  - `pytest tests\test_text_first_onboarding_prototype.py tests\test_text_first_chat_memory_prototype.py tests\test_text_first_life_stream_prototype.py tests\test_text_first_proactive_settings_prototype.py -q -o cache_dir=artifacts\t326_pytest_cache_final --basetemp=artifacts\t326_pytest_basetemp_final`:
+    passed, 30 tests.
+  - `git diff --check`: passed with Windows line-ending conversion warnings.
+- Explicit non-actions:
+  - No code, tests, UI implementation, browser automation, model-provider call,
+    private data processing, external survey, platform adapter, outbound
+    messaging, or task-board edit was added.
+  - No legal advice, compliance completion, crisis-safety sufficiency, clinical
+    validation, user-study validation, launch approval, app-store approval, or
+    regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - M21 is still local state-contract work, not a usable browser demo.
+  - M22 voice/avatar work must start with research, consent, and labeling
+    contracts only.
