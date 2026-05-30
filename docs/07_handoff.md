@@ -5497,3 +5497,48 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - T282 is policy-test-focused.
   - Review cards, crisis/low-mood policy, M17 gate review, UI, and web demo
     remain unopened.
+
+## T283 Worker Completion Record
+
+- T283 is the Proactive Review Card task for M17.
+- Worker must not mark T283 as complete in `docs/04_task_board.md`; T283 awaits
+  adversarial review and Captain judgment.
+- Files changed:
+  - `src/practical_chat_agent/services/proactive_review_card.py`
+  - `tests/test_proactive_review_card.py`
+  - `docs/data_contracts/proactive_review_card_contract.md`
+  - `docs/tasks/M17_proactive_engine_consent/T284_crisis_low_mood_policy.md`
+  - `docs/worker_summary/T283_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED: targeted pytest failed because
+    `practical_chat_agent.services.proactive_review_card` did not exist.
+  - GREEN: targeted pytest passed after adding `ProactiveReviewCardService`.
+- Behavior added:
+  - Local proactive review card rendering.
+  - Review actions for allow, block, and defer decisions.
+  - Policy reasons, consent status, candidate summary, and safety notes are
+    preserved.
+  - All cards require review.
+- T284 next task package:
+  - Created
+    `docs/tasks/M17_proactive_engine_consent/T284_crisis_low_mood_policy.md`.
+  - T284 is scoped to deterministic crisis/low-mood policy handling only.
+- Verification status:
+  - `pytest tests\test_proactive_review_card.py -q -o cache_dir=artifacts\t283_pytest_cache --basetemp=artifacts\t283_pytest_basetemp`:
+    passed, 5 tests.
+  - `python -m py_compile src\practical_chat_agent\services\proactive_review_card.py`:
+    passed.
+  - `pytest tests\test_proactive_review_card.py tests\test_proactive_policy_gate.py tests\test_proactive_quiet_hours_frequency.py -q -o cache_dir=artifacts\t283_pytest_cache_min --basetemp=artifacts\t283_pytest_basetemp_min`:
+    passed, 16 tests.
+  - `git diff --check`: passed with Windows line-ending conversion warnings.
+- Explicit non-actions:
+  - No proactive candidate generator, scheduler, outbound request, delivery
+    adapter, platform integration, push notification, webhook, queue, LLM call,
+    production reply generation, review UI, voice/avatar/video behavior, social
+    feed, web demo, or automatic sending was added.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - T283 creates review artifacts only.
+  - Crisis/low-mood policy, M17 gate review, UI, and web demo remain unopened.
