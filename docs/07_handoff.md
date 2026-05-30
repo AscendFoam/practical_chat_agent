@@ -6154,3 +6154,44 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - T310 is a checklist for review, not legal clearance.
   - International privacy/platform checklist, Consent Center model, AIGC
     labeling plan, crisis/dependency tests, UI, and web demo remain future work.
+
+## T311 Worker Completion Record
+
+- T311 is the International Privacy / Platform Policy Checklist task for M20.
+- Worker must not mark T311 as complete in `docs/04_task_board.md`; T311 awaits
+  adversarial legal/product-policy review and Captain judgment.
+- Files changed:
+  - `docs/compliance/international_privacy_platform_policy_checklist.md`
+  - `docs/tasks/M20_compliance_and_safety_baseline/T312_consent_center_data_model.md`
+  - `docs/worker_summary/T311_worker_summary.md`
+  - `docs/07_handoff.md`
+- Research evidence:
+  - Used official/primary sources from EUR-Lex, FTC, UK ICO, California AG/CPPA,
+    Illinois General Assembly, Apple Developer, and Google Play where
+    available.
+  - Included access date and source URLs in the checklist.
+  - Identified companion-chatbot child/teen safety, AI deception,
+    voice/biometric misuse, AI transparency, and app-store policy as core
+    international risks.
+- Checklist added:
+  - Privacy, consent, data rights, AI transparency, companion/dependency/crisis
+    risk, children/minors, voice/avatar/biometrics, platform/app-store policy,
+    payments, data transfer/security/vendor controls, open questions, and
+    closed-test gates.
+- T312 next task package:
+  - Created
+    `docs/tasks/M20_compliance_and_safety_baseline/T312_consent_center_data_model.md`.
+  - T312 is scoped to local Consent Center data models.
+- Verification status:
+  - `git diff --check`: passed with Windows line-ending conversion warnings.
+- Explicit non-actions:
+  - No legal advice, compliance completion, filing, registration, launch
+    approval, app-store approval, or regulator acceptance was claimed.
+  - No code, tests, UI, platform integration, sending, scheduling,
+    model-provider integration, or user-data processing change was added.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - T311 is a checklist for review, not legal clearance.
+  - Consent Center model, AIGC labeling plan, crisis/dependency tests, UI, and
+    web demo remain future work.
