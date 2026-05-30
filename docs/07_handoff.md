@@ -6195,3 +6195,48 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - T311 is a checklist for review, not legal clearance.
   - Consent Center model, AIGC labeling plan, crisis/dependency tests, UI, and
     web demo remain future work.
+
+## T312 Worker Completion Record
+
+- T312 is the Consent Center Data Model task for M20.
+- Worker must not mark T312 as complete in `docs/04_task_board.md`; T312 awaits
+  adversarial legal/product-policy review and Captain judgment.
+- Files changed:
+  - `src/practical_chat_agent/core/models.py`
+  - `tests/test_consent_center_data_model.py`
+  - `docs/data_contracts/consent_center_contract.md`
+  - `docs/tasks/M20_compliance_and_safety_baseline/T313_aigc_labeling_plan.md`
+  - `docs/worker_summary/T312_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED: targeted pytest failed because Consent Center models did not exist.
+  - GREEN: targeted pytest passed after adding Consent Center models.
+- Behavior added:
+  - Feature-specific consent grant records.
+  - Consent withdrawal records that supersede prior grants.
+  - Consent center state with active/withdrawn scope derivation.
+  - Minor/guardian state with minor access disabled by default.
+  - Data-rights request records for access, correction, deletion, export,
+    withdrawal, objection, and status tracking.
+- T313 next task package:
+  - Created `docs/tasks/M20_compliance_and_safety_baseline/T313_aigc_labeling_plan.md`.
+  - T313 is scoped to AIGC labeling plan work.
+- Verification status:
+  - `pytest tests\test_consent_center_data_model.py -q -o cache_dir=artifacts\t312_pytest_cache --basetemp=artifacts\t312_pytest_basetemp`:
+    passed, 6 tests.
+  - `python -m py_compile src\practical_chat_agent\core\models.py`: passed.
+  - `pytest tests\test_consent_center_data_model.py tests\test_proactive_consent_schema.py tests\test_delete_freeze_export_flow_contract.py -q -o cache_dir=artifacts\t312_pytest_cache_final --basetemp=artifacts\t312_pytest_basetemp_final`:
+    passed, 18 tests.
+  - `git diff --check`: passed with Windows line-ending conversion warnings.
+- Explicit non-actions:
+  - No UI, external consent capture, persistence, legal sufficiency, production
+    privacy workflow, data mutation, training/fine-tuning execution, model call,
+    platform integration, sending, scheduling, or web demo was added.
+  - No legal advice, compliance completion, filing, registration, launch
+    approval, app-store approval, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - T312 is local contract work only.
+  - AIGC labeling plan, crisis/dependency tests, UI, and web demo remain future
+    work.

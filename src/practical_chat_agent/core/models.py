@@ -135,6 +135,19 @@ ControlArtifactType = Literal[
 ControlOperationName = Literal["soft_delete", "hard_delete", "freeze", "unfreeze", "export"]
 ControlConfirmationStatus = Literal["dry_run_only", "confirmed", "rejected"]
 ControlExportFormat = Literal["manifest_json"]
+ConsentFeatureScope = Literal[
+    "memory",
+    "persona_distillation",
+    "proactive_messaging",
+    "aigc_export_share",
+    "voice_avatar",
+    "analytics",
+    "model_improvement",
+    "payment_marketing",
+]
+ConsentActorType = Literal["user", "guardian", "reviewer", "system"]
+DataRightsRequestType = Literal["access", "correction", "deletion", "export", "withdrawal", "objection"]
+DataRightsRequestStatus = Literal["received", "in_review", "fulfilled", "rejected", "cancelled"]
 
 
 _PERSONA_EDITOR_FORBIDDEN_FIELD_TERMS = frozenset(
@@ -1515,6 +1528,100 @@ class ControlExportManifest(BaseModel):
         self.contains_aigc_content = bool(self.aigc_target_ids)
         self.contains_review_required_items = bool(self.review_required_target_ids)
         return self
+
+
+class ConsentGrantRecord(BaseModel):
+    schema_version: str = "consent_grant_record_v1"
+    grant_id: str = Field(default_factory=lambda: new_id("consentgrant"))
+    user_id: str = Field(..., min_length=1)
+    feature_scope: ConsentFeatureScope
+    policy_version: str = Field(..., min_length=1)
+    actor_id: str = Field(..., min_length=1)
+    actor_type: ConsentActorType = "user"
+    granted: Literal[True] = True
+    granted_at: datetime = Field(default_factory=utc_now)
+    expires_at: datetime | None = None
+    evidence_refs: list[str] = Field(default_factory=list)
+    review_required: bool = True
+
+
+class ConsentWithdrawalRecord(BaseModel):
+    schema_version: str = "consent_withdrawal_record_v1"
+    withdrawal_id: str = Field(default_factory=lambda: new_id("consentwithdrawal"))
+    user_id: str = Field(..., min_length=1)
+    feature_scope: ConsentFeatureScope
+    supersedes_grant_ids: list[str] = Field(default_factory=list)
+    actor_id: str = Field(..., min_length=1)
+    actor_type: ConsentActorType = "user"
+    reason: str = Field(..., min_length=1)
+    withdrawn_at: datetime = Field(default_factory=utc_now)
+    evidence_refs: list[str] = Field(default_factory=list)
+
+
+class ConsentCenterState(BaseModel):
+    schema_version: str = "consent_center_state_v1"
+    user_id: str = Field(..., min_length=1)
+    grants: list[ConsentGrantRecord] = Field(default_factory=list)
+    withdrawals: list[ConsentWithdrawalRecord] = Field(default_factory=list)
+    is_minor: bool = False
+    guardian_actor_id: str | None = None
+    guardian_consent_required: bool = True
+    minor_access_allowed: Literal[False] = False
+    active_feature_scopes: list[ConsentFeatureScope] = Field(default_factory=list)
+    withdrawn_feature_scopes: list[ConsentFeatureScope] = Field(default_factory=list)
+    generated_at: datetime = Field(default_factory=utc_now)
+
+    def has_active_consent(self, feature_scope: ConsentFeatureScope) -> bool:
+        return feature_scope in self.active_feature_scopes
+
+    @model_validator(mode="after")
+    def derive_active_scopes(self) -> "ConsentCenterState":
+        for grant in self.grants:
+            if grant.user_id != self.user_id:
+                raise ValueError("consent grant user_id must match consent center user_id")
+        for withdrawal in self.withdrawals:
+            if withdrawal.user_id != self.user_id:
+                raise ValueError("consent withdrawal user_id must match consent center user_id")
+
+        withdrawn_feature_scopes = _ordered_unique([withdrawal.feature_scope for withdrawal in self.withdrawals])
+        superseded_grant_ids: set[str] = set()
+        latest_withdrawal_by_scope: dict[ConsentFeatureScope, datetime] = {}
+        for withdrawal in self.withdrawals:
+            superseded_grant_ids.update(withdrawal.supersedes_grant_ids)
+            current = latest_withdrawal_by_scope.get(withdrawal.feature_scope)
+            if current is None or withdrawal.withdrawn_at > current:
+                latest_withdrawal_by_scope[withdrawal.feature_scope] = withdrawal.withdrawn_at
+
+        active_scopes: list[ConsentFeatureScope] = []
+        for grant in self.grants:
+            if grant.grant_id in superseded_grant_ids:
+                continue
+            latest_withdrawal = latest_withdrawal_by_scope.get(grant.feature_scope)
+            if latest_withdrawal is not None and grant.granted_at <= latest_withdrawal:
+                continue
+            active_scopes.append(grant.feature_scope)
+
+        self.active_feature_scopes = _ordered_unique(active_scopes)
+        self.withdrawn_feature_scopes = withdrawn_feature_scopes
+        return self
+
+
+class DataRightsRequestRecord(BaseModel):
+    schema_version: str = "data_rights_request_record_v1"
+    request_id: str = Field(default_factory=lambda: new_id("datarights"))
+    user_id: str = Field(..., min_length=1)
+    request_type: DataRightsRequestType
+    status: DataRightsRequestStatus = "received"
+    actor_id: str = Field(..., min_length=1)
+    actor_type: ConsentActorType = "user"
+    reason: str = Field(..., min_length=1)
+    target_scopes: list[ConsentFeatureScope] = Field(default_factory=list)
+    review_required: bool = True
+    submitted_at: datetime = Field(default_factory=utc_now)
+    due_at: datetime | None = None
+    completed_at: datetime | None = None
+    result_summary: str | None = None
+    audit_refs: list[str] = Field(default_factory=list)
 
 
 class MemoryFactStoreRecord(BaseModel):
