@@ -5284,3 +5284,51 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - T271 is planning metadata only.
   - Draft generation, runtime dialogue, UI, proactive behavior, and web demo
     remain unopened.
+
+## T272 Worker Completion Record
+
+- T272 is the Dialogue Draft Stub task for M16.
+- Worker must not mark T272 as complete in `docs/04_task_board.md`; T272 awaits
+  adversarial review and Captain judgment.
+- Files changed:
+  - `src/practical_chat_agent/services/dialogue_draft_stub.py`
+  - `tests/test_dialogue_draft_stub.py`
+  - `docs/data_contracts/dialogue_draft_stub_contract.md`
+  - `docs/tasks/M16_relationship_dialogue_consumption/T273_relationship_dialogue_m16_gate_review.md`
+  - `docs/worker_summary/T272_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED: targeted pytest failed because
+    `practical_chat_agent.services.dialogue_draft_stub` did not exist.
+  - GREEN: targeted pytest passed after adding `DialogueDraftStubService`.
+- Behavior added:
+  - `DialogueDraftStubService.create(plan)` returns review-only
+    `DialogueDraftStub`.
+  - Draft text is deterministic from plan metadata.
+  - Drafts require review.
+  - Plan metadata and imagined-memory warnings remain visible.
+  - Dependency/manipulation phrases are absent.
+- T273 next task package:
+  - Created
+    `docs/tasks/M16_relationship_dialogue_consumption/T273_relationship_dialogue_m16_gate_review.md`.
+  - T273 is scoped to docs-only M16 gate review and M17 entry task creation.
+- Verification status:
+  - `python -m py_compile src\practical_chat_agent\services\dialogue_draft_stub.py`:
+    passed.
+  - `pytest tests\test_dialogue_draft_stub.py -q -o cache_dir=artifacts\t272_pytest_cache --basetemp=artifacts\t272_pytest_basetemp`:
+    passed, 5 tests.
+  - `pytest tests\test_dialogue_draft_stub.py tests\test_dialogue_context_planner.py -q -o cache_dir=artifacts\t272_pytest_cache_min --basetemp=artifacts\t272_pytest_basetemp_min`:
+    passed, 11 tests.
+  - `git diff --check`: passed.
+- Explicit non-actions:
+  - No LLM call, final user-visible reply generation, runtime dialogue,
+    proactive candidate, outbound request, scheduler, platform integration,
+    voice/avatar/video behavior, web demo, or automatic sending.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+  - No real-person clone, public-figure clone, ex-partner/family clone,
+    deceased-person mode, or deceptive impersonation path was authorized.
+- Remaining risks:
+  - T272 is a deterministic review-only stub, not production dialogue.
+  - Runtime chat, UI, proactive behavior, platform integration, and web demo
+    remain unopened.
