@@ -4575,3 +4575,60 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
     imitation.
   - Later Memory OS work must prove imagined/factual isolation.
   - Later proactive work must preserve consent and anti-manipulation redlines.
+
+## T250 Worker Completion Record
+
+- T250 is the PersonaCard v1 Schema And Source / Consent Policy task for M14.
+- Worker must not mark T250 as complete in `docs/04_task_board.md`; T250 awaits
+  adversarial review and Captain judgment.
+- Files changed:
+  - `src/practical_chat_agent/core/models.py`
+  - `tests/test_persona_card_schema.py`
+  - `docs/data_contracts/persona_card_v1_contract.md`
+  - `docs/tasks/M14_persona_compiler_schema/T251_persona_compiler_local_prototype.md`
+  - `docs/worker_summary/T250_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED: targeted pytest failed because `PersonaCard` did not exist.
+  - GREEN: targeted pytest passed after adding the schema models.
+- Schema behavior added:
+  - `PersonaCard` with `persona_card_v1` version, generated `persona_` id,
+    source policy, fictional identity, traits, speech style, emotion model,
+    relationship model, imagined virtual history, growth policy, proactive
+    preferences, safety policy, status, and review metadata.
+  - `PersonaSourcePolicy` maps `original`/`deidentified_style`/
+    `self_authorized`/`third_party_authorized`/`prohibited` to L1-L5 tiers.
+  - Non-original non-prohibited sources require consent artifacts.
+  - L5 prohibited cards never become runtime-ready.
+  - `PersonaVirtualHistory` is explicitly imagined AI-generated content and
+    rejects factual claims.
+  - `PersonaCard.is_runtime_ready()` requires approved human review and blocks
+    unsafe risk/source/identity/safety states.
+- T251 next task package:
+  - Created
+    `docs/tasks/M14_persona_compiler_schema/T251_persona_compiler_local_prototype.md`.
+  - T251 is scoped to deterministic local L1 persona compilation from synthetic
+    descriptions; no private reads, LLM calls, clone behavior, proactive
+    sending, or platform integration.
+- Verification status:
+  - `python -m py_compile src\practical_chat_agent\core\models.py`: passed.
+  - `pytest tests\test_persona_card_schema.py -q`: passed, 13 tests, with
+    pytest cache-provider warnings because `.pytest_cache` was not writable.
+  - `pytest tests\test_persona_card_schema.py tests\test_behavior_schema.py tests\test_contactskill_persona_brief.py tests\test_relationship_context.py tests\test_outbound_message_request_schema.py -q -o cache_dir=artifacts\t250_pytest_cache --basetemp=artifacts\t250_pytest_basetemp`:
+    passed, 109 tests. A prior broader attempt failed only while creating
+    `C:\Users\26410\AppData\Local\Temp\pytest-of-26410`.
+  - `git diff --check`: passed with Windows line-ending conversion warnings.
+- Explicit non-actions:
+  - No compiler service, LLM call, private chat-log read, runtime dialogue use,
+    CLI command, storage repository, migration, proactive behavior, platform
+    integration, voice/avatar/deepfake behavior, or automatic sending.
+  - No real-person clone, public-figure clone, ex-partner/family clone,
+    deceased-person mode, or deceptive impersonation path was authorized.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - The schema is not yet a compiler or UX.
+  - L2 style inspiration still needs a deidentification guard and similarity
+    tests.
+  - Runtime dialogue consumption remains unopened and must stay behind future
+    task packages.

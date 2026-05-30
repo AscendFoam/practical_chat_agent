@@ -65,6 +65,23 @@ OutboundMessageChannel = Literal["unspecified", "feishu", "wechat"]
 OutboundRequestSourceType = Literal["candidate_action", "human_authored"]
 OutboundHumanApprovalState = Literal["pending_human_approval", "approved", "rejected"]
 OutboundSendGateState = Literal["not_evaluated", "allowed", "blocked"]
+PersonaCreationMode = Literal[
+    "detailed_prompt",
+    "fuzzy_preference",
+    "template",
+    "random_seed",
+    "style_inspiration",
+]
+PersonaTruthDisclosure = Literal["fictional_ai_persona"]
+PersonaSourceType = Literal[
+    "original",
+    "deidentified_style",
+    "self_authorized",
+    "third_party_authorized",
+    "prohibited",
+]
+PersonaRiskTier = Literal["L1", "L2", "L3", "L4", "L5"]
+PersonaVirtualContentStatus = Literal["imagined_ai_generated"]
 
 
 class InboundEvent(BaseModel):
@@ -537,6 +554,201 @@ class DistilledArtifactSourceMetadata(BaseModel):
     source_chunk_ids: list[str] = Field(default_factory=list)
     source_memory_ids: list[str] = Field(default_factory=list)
     source_event_ids: list[str] = Field(default_factory=list)
+
+
+class PersonaSourcePolicy(BaseModel):
+    source_type: PersonaSourceType = "original"
+    risk_tier: PersonaRiskTier = "L1"
+    consent_artifact_ids: list[str] = Field(default_factory=list)
+    blocked_real_person_similarity: bool = False
+    deidentification_notes: list[str] = Field(default_factory=list)
+    prohibited_reason: str | None = None
+
+    @model_validator(mode="after")
+    def validate_source_policy(self) -> "PersonaSourcePolicy":
+        expected_tier_by_source = {
+            "original": "L1",
+            "deidentified_style": "L2",
+            "self_authorized": "L3",
+            "third_party_authorized": "L4",
+            "prohibited": "L5",
+        }
+        expected_tier = expected_tier_by_source[self.source_type]
+        if self.risk_tier != expected_tier:
+            raise ValueError(f"{self.source_type} source must use risk tier {expected_tier}")
+        if self.source_type not in {"original", "prohibited"} and not self.consent_artifact_ids:
+            raise ValueError("non-original persona sources require consent_artifact_ids")
+        if self.source_type == "prohibited" and not self.prohibited_reason:
+            raise ValueError("prohibited persona sources require prohibited_reason")
+        return self
+
+
+class PersonaIdentity(BaseModel):
+    display_name: str = Field(..., min_length=1)
+    fictional: bool = True
+    age_range: str | None = None
+    world_setting: str | None = None
+    public_person_or_real_person_reference: bool = False
+
+    @model_validator(mode="after")
+    def validate_fictional_identity(self) -> "PersonaIdentity":
+        if not self.fictional:
+            raise ValueError("PersonaCard v1 supports fictional identities only")
+        if self.public_person_or_real_person_reference:
+            raise ValueError("PersonaCard v1 cannot reference a public or real person")
+        return self
+
+
+class PersonaTraitProfile(BaseModel):
+    warmth: float = Field(default=0.5, ge=0.0, le=1.0)
+    directness: float = Field(default=0.5, ge=0.0, le=1.0)
+    humor: float = Field(default=0.5, ge=0.0, le=1.0)
+    independence: float = Field(default=0.5, ge=0.0, le=1.0)
+    jealousy: float = Field(default=0.0, ge=0.0, le=1.0)
+    emotional_stability: float = Field(default=0.5, ge=0.0, le=1.0)
+
+
+class PersonaSpeechStyle(BaseModel):
+    sentence_length: str | None = None
+    emoji_frequency: str | None = None
+    punctuation_style: str | None = None
+    dialect: str | None = None
+    humor_type: str | None = None
+    pet_names: str | None = None
+    taboo_phrases: list[str] = Field(default_factory=list)
+
+
+class PersonaEmotionModel(BaseModel):
+    baseline_mood: str | None = None
+    stress_response: str | None = None
+    comforting_style: str | None = None
+    conflict_style: str | None = None
+
+
+class PersonaRelationshipModel(BaseModel):
+    attachment_style: str | None = None
+    trust_growth_rate: float = Field(default=0.0, ge=0.0, le=1.0)
+    intimacy_growth_rate: float = Field(default=0.0, ge=0.0, le=1.0)
+    boundary_sensitivity: float = Field(default=0.5, ge=0.0, le=1.0)
+
+
+class PersonaVirtualHistory(BaseModel):
+    background: str | None = None
+    daily_routine: list[str] = Field(default_factory=list)
+    current_goals: list[str] = Field(default_factory=list)
+    virtual_social_circle: list[str] = Field(default_factory=list)
+    content_status: PersonaVirtualContentStatus = "imagined_ai_generated"
+    factual_claims_allowed: bool = False
+    source_memory_ids: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_imagined_only(self) -> "PersonaVirtualHistory":
+        if self.factual_claims_allowed:
+            raise ValueError("virtual history is imagined content and cannot make factual claims")
+        return self
+
+
+class PersonaGrowthPolicy(BaseModel):
+    frozen_fields: list[str] = Field(default_factory=list)
+    mutable_fields: list[str] = Field(default_factory=list)
+    max_weekly_trait_delta: float = Field(default=0.05, ge=0.0, le=0.2)
+    requires_user_review_for: list[str] = Field(
+        default_factory=lambda: [
+            "romantic_intensity",
+            "dependency_language",
+            "real_person_similarity",
+        ],
+    )
+
+    @model_validator(mode="after")
+    def validate_field_sets(self) -> "PersonaGrowthPolicy":
+        overlap = set(self.frozen_fields).intersection(self.mutable_fields)
+        if overlap:
+            raise ValueError("frozen_fields and mutable_fields must not overlap")
+        return self
+
+
+class PersonaProactivePreferences(BaseModel):
+    default_enabled: bool = False
+    allowed_message_types: list[str] = Field(default_factory=list)
+    max_daily_messages: int = Field(default=0, ge=0, le=3)
+    quiet_hours: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_review_first_defaults(self) -> "PersonaProactivePreferences":
+        if self.default_enabled:
+            raise ValueError("proactive behavior must not be enabled by default")
+        return self
+
+
+class PersonaSafetyPolicy(BaseModel):
+    minor_mode_allowed: bool = False
+    self_harm_response_style: str = "supportive_redirect"
+    dependency_guardrails: bool = True
+    no_deception: bool = True
+    no_unauthorized_clone: bool = True
+    no_paid_intimacy_escalation: bool = True
+
+    @model_validator(mode="after")
+    def validate_required_safety_flags(self) -> "PersonaSafetyPolicy":
+        if not self.dependency_guardrails:
+            raise ValueError("dependency_guardrails must remain enabled")
+        if not self.no_deception:
+            raise ValueError("no_deception must remain enabled")
+        if not self.no_unauthorized_clone:
+            raise ValueError("no_unauthorized_clone must remain enabled")
+        if not self.no_paid_intimacy_escalation:
+            raise ValueError("no_paid_intimacy_escalation must remain enabled")
+        return self
+
+
+class PersonaCard(BaseModel):
+    schema_version: str = "persona_card_v1"
+    persona_id: str = Field(default_factory=lambda: new_id("persona"))
+    version: int = Field(default=1, ge=1)
+    user_id: str = Field(..., min_length=1)
+    display_name: str = Field(..., min_length=1)
+    creation_mode: PersonaCreationMode
+    truth_disclosure: PersonaTruthDisclosure = "fictional_ai_persona"
+    source_policy: PersonaSourcePolicy = Field(default_factory=PersonaSourcePolicy)
+    identity: PersonaIdentity
+    core_traits: PersonaTraitProfile = Field(default_factory=PersonaTraitProfile)
+    speech_style: PersonaSpeechStyle = Field(default_factory=PersonaSpeechStyle)
+    emotion_model: PersonaEmotionModel = Field(default_factory=PersonaEmotionModel)
+    relationship_model: PersonaRelationshipModel = Field(default_factory=PersonaRelationshipModel)
+    virtual_history: PersonaVirtualHistory = Field(default_factory=PersonaVirtualHistory)
+    growth_policy: PersonaGrowthPolicy = Field(default_factory=PersonaGrowthPolicy)
+    proactive_preferences: PersonaProactivePreferences = Field(default_factory=PersonaProactivePreferences)
+    safety_policy: PersonaSafetyPolicy = Field(default_factory=PersonaSafetyPolicy)
+    status: DistillationStatus = "candidate"
+    review_metadata: DistilledArtifactReviewMetadata = Field(default_factory=DistilledArtifactReviewMetadata)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
+
+    @model_validator(mode="after")
+    def validate_persona_card(self) -> "PersonaCard":
+        if self.creation_mode == "style_inspiration" and self.source_policy.source_type != "deidentified_style":
+            raise ValueError("style_inspiration creation requires deidentified_style source policy")
+        if self.source_policy.source_type == "original" and self.creation_mode == "style_inspiration":
+            raise ValueError("original source cannot use style_inspiration creation mode")
+        if self.source_policy.risk_tier == "L5" and not self.source_policy.blocked_real_person_similarity:
+            raise ValueError("L5 persona requests must record blocked_real_person_similarity")
+        return self
+
+    def is_runtime_ready(self) -> bool:
+        if not self.review_metadata.is_runtime_ready(status=self.status):
+            return False
+        if self.source_policy.risk_tier not in {"L1", "L2"}:
+            return False
+        if self.source_policy.source_type == "prohibited":
+            return False
+        if self.source_policy.blocked_real_person_similarity:
+            return False
+        if not self.identity.fictional or self.identity.public_person_or_real_person_reference:
+            return False
+        if not self.safety_policy.no_deception or not self.safety_policy.no_unauthorized_clone:
+            return False
+        return True
 
 
 class MemoryFactStoreRecord(BaseModel):
