@@ -6240,3 +6240,60 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - T312 is local contract work only.
   - AIGC labeling plan, crisis/dependency tests, UI, and web demo remain future
     work.
+
+## T313 Worker Completion Record
+
+- T313 is the AIGC Labeling Plan task for M20.
+- Worker must not mark T313 as complete in `docs/04_task_board.md`; T313 awaits
+  adversarial legal/product-policy review and Captain judgment.
+- Files changed:
+  - `src/practical_chat_agent/core/models.py`
+  - `tests/test_aigc_labeling_plan_contract.py`
+  - `docs/compliance/aigc_labeling_plan.md`
+  - `docs/data_contracts/aigc_labeling_contract.md`
+  - `docs/tasks/M20_compliance_and_safety_baseline/T314_crisis_dependency_policy_tests.md`
+  - `docs/worker_summary/T313_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED: targeted pytest failed because AIGC labeling contract types did not
+    exist.
+  - GREEN: targeted pytest passed after adding the labeling requirement model
+    and literals.
+  - RED: a stricter virtual-history/role-post label test failed because the
+    visible label did not mention imagined/not-real-world content.
+  - GREEN: targeted pytest passed after normalizing imagined role-life visible
+    labels.
+- Behavior added:
+  - Distinct labeling modality and product-surface literals for generated text,
+    image, audio, video, virtual scene, persona, virtual history, role dynamic
+    post, export, and shared content.
+  - Reusable AIGC labeling requirements with visible labels, disclosure labels,
+    metadata/implicit-label flags, source refs, and review-required state.
+  - Automatic preservation of `ai_generated`, `synthetic_content`, and
+    `review_required`.
+  - Automatic imagined/not-real-world labels for virtual history and role
+    dynamic posts.
+  - Automatic `implicit_metadata_label` requirement for generated media,
+    export/share, and voice/avatar surfaces.
+- T314 next task package:
+  - Created
+    `docs/tasks/M20_compliance_and_safety_baseline/T314_crisis_dependency_policy_tests.md`.
+  - T314 is scoped to crisis/dependency policy tests.
+- Verification status:
+  - `pytest tests\test_aigc_labeling_plan_contract.py -q -o cache_dir=artifacts\t313_pytest_cache_green2 --basetemp=artifacts\t313_pytest_basetemp_green2`:
+    passed, 5 tests.
+  - `python -m py_compile src\practical_chat_agent\core\models.py`: passed.
+  - `pytest tests\test_aigc_labeling_plan_contract.py tests\test_virtual_life_aigc_labeling.py tests\test_consent_center_data_model.py -q -o cache_dir=artifacts\t313_pytest_cache_final --basetemp=artifacts\t313_pytest_basetemp_final`:
+    passed, 15 tests.
+  - `git diff --check`: passed with Windows line-ending conversion warnings.
+- Explicit non-actions:
+  - No legal advice, compliance completion, filing, registration, launch
+    approval, app-store approval, or regulator acceptance was claimed.
+  - No watermarking, file metadata insertion, export writing,
+    copy/download/share, publishing, UI, platform integration, model call,
+    sending, or scheduling was added.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - T313 is a local labeling contract and plan only.
+  - Crisis/dependency policy tests, UI, and web demo remain future work.

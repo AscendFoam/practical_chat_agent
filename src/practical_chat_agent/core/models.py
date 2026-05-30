@@ -124,6 +124,28 @@ RoleDynamicPostReviewStatus = Literal["requires_review", "approved_for_demo", "r
 RoleDynamicPostVisibility = Literal["local_private_review"]
 AIGCLabel = Literal["ai_generated"]
 RoleDynamicMemoryRefUsage = Literal["inspiration_only"]
+AIGCContentModality = Literal[
+    "text",
+    "image",
+    "audio",
+    "video",
+    "virtual_scene",
+    "persona",
+    "virtual_history",
+    "role_dynamic_post",
+    "export",
+    "shared_content",
+]
+AIGCProductSurface = Literal[
+    "companion_reply",
+    "persona_card",
+    "virtual_history",
+    "role_dynamic_post",
+    "export_manifest",
+    "shared_content",
+    "voice_avatar",
+    "web_demo",
+]
 ControlArtifactType = Literal[
     "memory_event",
     "persona_card",
@@ -2670,6 +2692,90 @@ class AIGCDisclosureMetadata(BaseModel):
             raise ValueError("AIGC disclosure metadata missing required labels")
         if "AI-generated" not in self.disclosure_text or "imagined" not in self.disclosure_text.lower():
             raise ValueError("AIGC disclosure text must mention AI-generated imagined content")
+        return self
+
+
+class AIGCLabelingRequirement(BaseModel):
+    schema_version: str = "aigc_labeling_requirement_v1"
+    requirement_id: str = Field(default_factory=lambda: new_id("aigclabel"))
+    user_id: str = Field(..., min_length=1)
+    content_id: str = Field(..., min_length=1)
+    content_modality: AIGCContentModality
+    product_surface: AIGCProductSurface
+    visible_label_required: Literal[True] = True
+    visible_label_text: str = "AI-generated synthetic content."
+    disclosure_labels: list[str] = Field(
+        default_factory=lambda: [
+            "ai_generated",
+            "synthetic_content",
+            "review_required",
+        ],
+    )
+    metadata_label_required: bool = False
+    metadata_labels: list[str] = Field(default_factory=list)
+    copy_download_export_share_requires_metadata: bool = False
+    review_required: Literal[True] = True
+    source_refs: list[str] = Field(default_factory=list)
+    created_at: datetime = Field(default_factory=utc_now)
+
+    @classmethod
+    def from_disclosure_labels(
+        cls,
+        *,
+        user_id: str,
+        content_id: str,
+        content_modality: AIGCContentModality,
+        product_surface: AIGCProductSurface,
+        disclosure_labels: list[str],
+        source_refs: list[str] | None = None,
+    ) -> "AIGCLabelingRequirement":
+        return cls(
+            user_id=user_id,
+            content_id=content_id,
+            content_modality=content_modality,
+            product_surface=product_surface,
+            disclosure_labels=disclosure_labels,
+            source_refs=source_refs or [],
+        )
+
+    @model_validator(mode="after")
+    def validate_aigc_labeling_requirement(self) -> "AIGCLabelingRequirement":
+        labels = set(self.disclosure_labels)
+        labels.update({"ai_generated", "synthetic_content", "review_required"})
+        is_imagined_role_life = self.content_modality in {
+            "virtual_history",
+            "role_dynamic_post",
+        } or self.product_surface in {
+            "virtual_history",
+            "role_dynamic_post",
+        }
+        if is_imagined_role_life:
+            labels.update({"imagined_content", "not_real_world_activity"})
+            self.visible_label_text = "AI-generated synthetic imagined companion content. Not real-world activity."
+
+        ordered_labels = [
+            label
+            for label in [
+                "ai_generated",
+                "synthetic_content",
+                "imagined_content",
+                "review_required",
+                "not_real_world_activity",
+            ]
+            if label in labels
+        ]
+        ordered_labels.extend(label for label in self.disclosure_labels if label not in ordered_labels)
+        self.disclosure_labels = _ordered_unique(ordered_labels)
+
+        if self.content_modality in {"image", "audio", "video", "virtual_scene", "export", "shared_content"} or (
+            self.product_surface in {"export_manifest", "shared_content", "voice_avatar"}
+        ):
+            self.metadata_label_required = True
+            self.copy_download_export_share_requires_metadata = True
+            self.metadata_labels = _ordered_unique([*self.metadata_labels, "implicit_metadata_label"])
+
+        if "AI-generated" not in self.visible_label_text or "synthetic" not in self.visible_label_text.lower():
+            raise ValueError("AIGC visible label text must mention AI-generated synthetic content")
         return self
 
 
