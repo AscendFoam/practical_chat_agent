@@ -4802,3 +4802,61 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - Version persistence, rollback, freeze/delete semantics, and export controls
     remain unopened until T254.
   - Runtime dialogue consumption remains unopened.
+
+## T254 Worker Completion Record
+
+- T254 is the Persona Version Store task for M14.
+- Worker must not mark T254 as complete in `docs/04_task_board.md`; T254 awaits
+  adversarial review and Captain judgment.
+- Files changed:
+  - `src/practical_chat_agent/services/persona_version_store.py`
+  - `tests/test_persona_version_store.py`
+  - `docs/data_contracts/persona_version_store_contract.md`
+  - `docs/tasks/M14_persona_compiler_schema/T255_persona_compiler_m14_gate_review.md`
+  - `docs/worker_summary/T254_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED: targeted pytest failed because
+    `practical_chat_agent.services.persona_version_store` did not exist.
+  - GREEN: targeted pytest passed after adding `PersonaVersionStore`.
+- Behavior added:
+  - `PersonaVersionStore` writes to a caller-provided local JSON path.
+  - Saving a candidate creates version 1; saving an approved review copy
+    creates a later version.
+  - Latest lookup returns the latest non-deleted version.
+  - Rollback appends a new version copied from a prior version without mutating
+    history.
+  - Freeze appends a frozen review copy; delete appends an archived tombstone.
+  - Freeze/delete states are not runtime-ready.
+  - Export returns JSON-compatible store data and omits raw private/delivery
+    fields.
+  - Store surface exposes no send/schedule/delivery/runtime/memory retrieval
+    methods.
+- T255 next task package:
+  - Created
+    `docs/tasks/M14_persona_compiler_schema/T255_persona_compiler_m14_gate_review.md`.
+  - T255 is scoped to docs-only M14 gate review and M15 entry task creation.
+- Verification status:
+  - `python -m py_compile src\practical_chat_agent\services\persona_version_store.py`:
+    passed.
+  - `pytest tests\test_persona_version_store.py -q -o cache_dir=artifacts\t254_pytest_cache --basetemp=artifacts\t254_pytest_basetemp`:
+    passed, 7 tests.
+  - `pytest tests\test_persona_version_store.py tests\test_persona_review.py tests\test_persona_compiler.py -q -o cache_dir=artifacts\t254_pytest_cache_min --basetemp=artifacts\t254_pytest_basetemp_min`:
+    passed, 24 tests.
+  - `pytest tests\test_persona_card_schema.py tests\test_persona_compiler.py tests\test_deidentification_guard.py tests\test_persona_review.py tests\test_persona_version_store.py -q -o cache_dir=artifacts\t254_pytest_cache_final --basetemp=artifacts\t254_pytest_basetemp_final`:
+    passed, 44 tests.
+  - `git diff --check`: passed.
+- Explicit non-actions:
+  - No database migration, global store discovery, CLI, UI, LLM call, private
+    chat-log read, runtime dialogue use, memory retrieval, proactive candidate,
+    scheduler, outbound request, platform integration, voice/avatar/deepfake
+    behavior, or automatic sending.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+  - No real-person clone, public-figure clone, ex-partner/family clone,
+    deceased-person mode, or deceptive impersonation path was authorized.
+- Remaining risks:
+  - T254 is a local file store, not production persistence.
+  - Concurrency, encryption, access control, cloud sync, and retention remain
+    future work.
+  - Runtime dialogue and Memory OS v2 remain unopened.
