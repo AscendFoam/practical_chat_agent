@@ -27,6 +27,7 @@ Implemented model:
 | `review_status` | Defaults to `requires_review`. |
 | `visibility` | Always `local_private_review`. |
 | `memory_refs` | Optional memory ids used as inspiration references. |
+| `memory_ref_usage` | Always `inspiration_only`. |
 | `relationship_context_refs` | Optional relationship context ids. |
 | `source_prompt_summary` | Caller-supplied source summary. |
 | `aigc_metadata` | Explicit AI-generated imagined-content disclosure metadata. |
@@ -47,6 +48,8 @@ Implemented model:
 - Empty content is rejected.
 - Factual claims require review notes and do not promote the post to factual
   memory.
+- Memory refs are inspiration-only and cannot become factual evidence.
+- Factual `MemoryEvent` records cannot use `imagined_generation` provenance.
 - Serialized posts contain no publish, send, schedule, delivery, platform,
   webhook, token, or queue fields.
 

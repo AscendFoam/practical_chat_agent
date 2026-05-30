@@ -121,6 +121,7 @@ RoleDynamicPostTruthDisclosure = Literal["imagined_ai_generated_content"]
 RoleDynamicPostReviewStatus = Literal["requires_review", "approved_for_demo", "rejected"]
 RoleDynamicPostVisibility = Literal["local_private_review"]
 AIGCLabel = Literal["ai_generated"]
+RoleDynamicMemoryRefUsage = Literal["inspiration_only"]
 
 
 class InboundEvent(BaseModel):
@@ -522,6 +523,8 @@ class MemoryEvent(BaseModel):
 
         if self.event_type == "factual" and not self.provenance.evidence_refs:
             raise ValueError("factual memory requires evidence_refs")
+        if self.event_type == "factual" and self.provenance.source_type == "imagined_generation":
+            raise ValueError("factual memory cannot use imagined generation provenance")
         if self.event_type == "inferred":
             if self.confidence is None:
                 raise ValueError("inferred memory requires confidence")
@@ -2046,6 +2049,7 @@ class RoleDynamicPost(BaseModel):
     review_status: RoleDynamicPostReviewStatus = "requires_review"
     visibility: RoleDynamicPostVisibility = "local_private_review"
     memory_refs: list[str] = Field(default_factory=list)
+    memory_ref_usage: RoleDynamicMemoryRefUsage = "inspiration_only"
     relationship_context_refs: list[str] = Field(default_factory=list)
     source_prompt_summary: str | None = None
     aigc_metadata: AIGCDisclosureMetadata = Field(default_factory=AIGCDisclosureMetadata)

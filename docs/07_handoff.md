@@ -5756,3 +5756,48 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
 - Remaining risks:
   - T292 hardens labels only.
   - Contamination tests, review cards, UI, and web demo remain unopened.
+
+## T293 Worker Completion Record
+
+- T293 is the Imagined/Factual Contamination Tests task for M18.
+- Worker must not mark T293 as complete in `docs/04_task_board.md`; T293 awaits
+  adversarial review and Captain judgment.
+- Files changed:
+  - `src/practical_chat_agent/core/models.py`
+  - `tests/test_virtual_life_contamination.py`
+  - `docs/data_contracts/role_dynamic_post_contract.md`
+  - `docs/data_contracts/virtual_life_engine_contract.md`
+  - `docs/tasks/M18_virtual_life_stream/T294_dynamic_review_card.md`
+  - `docs/worker_summary/T293_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED: targeted pytest failed because factual memory could use
+    `imagined_generation` provenance and `RoleDynamicPost` lacked
+    `memory_ref_usage`.
+  - GREEN: targeted pytest passed after adding the contamination guard and
+    inspiration-only memory-ref usage.
+- Behavior added:
+  - Factual memory cannot use imagined-generation provenance.
+  - Virtual life memory refs are explicitly inspiration-only.
+  - Tests prevent imagined posts from becoming factual retrieval evidence.
+- T294 next task package:
+  - Created `docs/tasks/M18_virtual_life_stream/T294_dynamic_review_card.md`.
+  - T294 is scoped to local virtual life review-card rendering only.
+- Verification status:
+  - `pytest tests\test_virtual_life_contamination.py -q -o cache_dir=artifacts\t293_pytest_cache --basetemp=artifacts\t293_pytest_basetemp`:
+    passed, 5 tests.
+  - `python -m py_compile src\practical_chat_agent\core\models.py src\practical_chat_agent\services\virtual_life_engine.py`:
+    passed.
+  - `pytest tests\test_virtual_life_contamination.py tests\test_virtual_life_aigc_labeling.py tests\test_memory_retrieval_bundle_schema.py -q -o cache_dir=artifacts\t293_pytest_cache_min --basetemp=artifacts\t293_pytest_basetemp_min`:
+    passed, 17 tests.
+  - `git diff --check`: passed with Windows line-ending conversion warnings.
+- Explicit non-actions:
+  - No LLM call, scheduler, publisher, outbound request, delivery adapter,
+    platform integration, push notification, webhook, queue, review UI,
+    voice/avatar/video behavior, Live2D, social feed publishing, web demo, or
+    automatic sending was added.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - T293 adds contamination guards and tests only.
+  - Dynamic review cards, M18 gate review, UI, and web demo remain unopened.

@@ -40,6 +40,7 @@ Implemented objects:
 - review-required status;
 - local private review visibility;
 - copied memory and relationship context refs;
+- `memory_ref_usage=inspiration_only`;
 - caller labels copied as safety notes.
 
 ## Invariants
@@ -47,6 +48,8 @@ Implemented objects:
 - The engine consumes seed metadata only.
 - The engine does not retrieve memories.
 - Memory refs are inspiration references only.
+- Engine-created posts cannot be promoted to factual memory via
+  `imagined_generation` provenance.
 - Output remains imagined and review-only.
 - Output preserves AIGC disclosure metadata for downstream review surfaces.
 - Payloads contain no publish, send, schedule, delivery, platform, webhook,
