@@ -5801,3 +5801,46 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
 - Remaining risks:
   - T293 adds contamination guards and tests only.
   - Dynamic review cards, M18 gate review, UI, and web demo remain unopened.
+
+## T294 Worker Completion Record
+
+- T294 is the Dynamic Review Card task for M18.
+- Worker must not mark T294 as complete in `docs/04_task_board.md`; T294 awaits
+  adversarial review and Captain judgment.
+- Files changed:
+  - `src/practical_chat_agent/services/virtual_life_review_card.py`
+  - `tests/test_virtual_life_review_card.py`
+  - `docs/data_contracts/virtual_life_review_card_contract.md`
+  - `docs/tasks/M18_virtual_life_stream/T295_m18_gate_review.md`
+  - `docs/worker_summary/T294_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED: targeted pytest failed because
+    `practical_chat_agent.services.virtual_life_review_card` did not exist.
+  - GREEN: targeted pytest passed after adding `VirtualLifeReviewCardService`.
+- Behavior added:
+  - Local virtual life review card rendering.
+  - AIGC/imagined labels, memory-ref usage, factual-claim notes, and safety
+    notes are preserved.
+  - Factual-claim posts expose conservative review action.
+- T295 next task package:
+  - Created `docs/tasks/M18_virtual_life_stream/T295_m18_gate_review.md`.
+  - T295 is scoped to docs-only M18 gate review and M19 entry task creation.
+- Verification status:
+  - `pytest tests\test_virtual_life_review_card.py -q -o cache_dir=artifacts\t294_pytest_cache --basetemp=artifacts\t294_pytest_basetemp`:
+    passed, 5 tests.
+  - `python -m py_compile src\practical_chat_agent\services\virtual_life_review_card.py`:
+    passed.
+  - `pytest tests\test_virtual_life_review_card.py tests\test_virtual_life_contamination.py tests\test_virtual_life_aigc_labeling.py -q -o cache_dir=artifacts\t294_pytest_cache_min --basetemp=artifacts\t294_pytest_basetemp_min`:
+    passed, 14 tests.
+  - `git diff --check`: passed with Windows line-ending conversion warnings.
+- Explicit non-actions:
+  - No post generator, LLM call, scheduler, publisher, outbound request,
+    delivery adapter, platform integration, push notification, webhook, queue,
+    review UI, voice/avatar/video behavior, Live2D, social feed publishing, web
+    demo, or automatic sending was added.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - T294 creates review artifacts only.
+  - M18 gate review, control surface, UI, and web demo remain unopened.
