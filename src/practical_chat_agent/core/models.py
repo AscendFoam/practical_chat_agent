@@ -170,6 +170,34 @@ ConsentFeatureScope = Literal[
 ConsentActorType = Literal["user", "guardian", "reviewer", "system"]
 DataRightsRequestType = Literal["access", "correction", "deletion", "export", "withdrawal", "objection"]
 DataRightsRequestStatus = Literal["received", "in_review", "fulfilled", "rejected", "cancelled"]
+VoiceMode = Literal[
+    "disabled",
+    "non_real_synthetic_voice",
+    "generated_fictional_voice",
+    "recorded_user_voice",
+    "third_party_authorized_voice",
+    "blocked_voice_clone",
+]
+VoiceSourceRoute = Literal[
+    "disabled",
+    "non_real_synthetic_voice",
+    "generated_fictional_voice",
+    "recorded_user_voice",
+    "third_party_authorized_voice",
+    "blocked_voice_clone",
+]
+VoiceRequestedLikenessType = Literal[
+    "none",
+    "self",
+    "authorized_voice_talent",
+    "real_person",
+    "deceased_person",
+    "public_figure",
+    "family_member",
+    "ex_partner",
+]
+VoiceConsentDecision = Literal["disabled", "blocked", "review_required"]
+VoiceSafetyDecisionAction = Literal["allow_for_review", "deescalate_for_review", "block"]
 
 
 _PERSONA_EDITOR_FORBIDDEN_FIELD_TERMS = frozenset(
@@ -2777,6 +2805,194 @@ class AIGCLabelingRequirement(BaseModel):
         if "AI-generated" not in self.visible_label_text or "synthetic" not in self.visible_label_text.lower():
             raise ValueError("AIGC visible label text must mention AI-generated synthetic content")
         return self
+
+
+class VoicePreferenceState(BaseModel):
+    schema_version: str = "voice_preference_state_v1"
+    preference_id: str = Field(default_factory=lambda: new_id("voicepref"))
+    user_id: str = Field(..., min_length=1)
+    voice_mode: VoiceMode = "disabled"
+    source_route: VoiceSourceRoute = "disabled"
+    requested_likeness_type: VoiceRequestedLikenessType = "none"
+    required_consent_scope: Literal["voice_avatar"] = "voice_avatar"
+    has_active_voice_avatar_consent: bool = False
+    decision: VoiceConsentDecision = "disabled"
+    voice_enabled: Literal[False] = False
+    review_required: Literal[True] = True
+    visible_label_text: str = "AI-generated synthetic voice. Not a human voice."
+    disclosure_labels: list[str] = Field(
+        default_factory=lambda: [
+            "ai_generated",
+            "synthetic_content",
+            "audio",
+            "voice_avatar",
+            "review_required",
+        ],
+    )
+    metadata_label_required: bool = True
+    metadata_labels: list[str] = Field(default_factory=lambda: ["implicit_metadata_label"])
+    copy_download_export_share_requires_metadata: bool = True
+    aigc_labeling_requirement: AIGCLabelingRequirement | None = None
+    safety_decision_action: VoiceSafetyDecisionAction = "allow_for_review"
+    safety_reason_labels: list[str] = Field(default_factory=list)
+    blocked_reason_labels: list[str] = Field(default_factory=list)
+    consent_evidence_refs: list[str] = Field(default_factory=list)
+    created_at: datetime = Field(default_factory=utc_now)
+
+    @model_validator(mode="after")
+    def validate_voice_preference_state(self) -> "VoicePreferenceState":
+        labels = _ordered_unique(
+            [
+                *self.disclosure_labels,
+                "ai_generated",
+                "synthetic_content",
+                "audio",
+                "voice_avatar",
+                "review_required",
+                "implicit_metadata_label",
+            ]
+        )
+        self.disclosure_labels = labels
+        self.metadata_label_required = True
+        self.metadata_labels = _ordered_unique([*self.metadata_labels, "implicit_metadata_label"])
+        self.copy_download_export_share_requires_metadata = True
+
+        blocked_reasons = list(self.blocked_reason_labels)
+        if not self.has_active_voice_avatar_consent:
+            blocked_reasons.append("voice_avatar_consent_required")
+
+        blocked_likeness_types = {
+            "real_person",
+            "deceased_person",
+            "public_figure",
+            "family_member",
+            "ex_partner",
+        }
+        if self.requested_likeness_type in blocked_likeness_types:
+            blocked_reasons.append("real_person_voice_likeness_blocked")
+
+        if self.source_route == "blocked_voice_clone":
+            blocked_reasons.append("voice_clone_blocked")
+
+        if self.source_route in {
+            "generated_fictional_voice",
+            "recorded_user_voice",
+            "third_party_authorized_voice",
+        }:
+            blocked_reasons.append("future_voice_route_requires_policy_review")
+
+        if self.safety_decision_action in {"block", "deescalate_for_review"}:
+            blocked_reasons.append("voice_blocked_by_safety_decision")
+
+        self.blocked_reason_labels = _ordered_unique(blocked_reasons)
+
+        if self.source_route == "disabled":
+            self.voice_mode = "disabled"
+            self.decision = "disabled"
+        elif self.blocked_reason_labels:
+            self.voice_mode = self.source_route
+            self.decision = "blocked"
+        elif self.source_route == "non_real_synthetic_voice":
+            self.voice_mode = "non_real_synthetic_voice"
+            self.decision = "review_required"
+        else:
+            self.voice_mode = self.source_route
+            self.decision = "blocked"
+            self.blocked_reason_labels = _ordered_unique(
+                [*self.blocked_reason_labels, "unsupported_voice_route"]
+            )
+
+        if self.source_route != "disabled" and self.aigc_labeling_requirement is None:
+            self.aigc_labeling_requirement = AIGCLabelingRequirement(
+                user_id=self.user_id,
+                content_id=f"voice_content_{self.preference_id}",
+                content_modality="audio",
+                product_surface="voice_avatar",
+                visible_label_text=self.visible_label_text,
+                disclosure_labels=[
+                    "ai_generated",
+                    "synthetic_content",
+                    "review_required",
+                ],
+                source_refs=[self.preference_id],
+            )
+
+        if "AI-generated" not in self.visible_label_text or "synthetic" not in self.visible_label_text.lower():
+            raise ValueError("voice visible label text must mention AI-generated synthetic voice")
+        return self
+
+
+class VoiceConsentPolicy(BaseModel):
+    schema_version: str = "voice_consent_policy_v1"
+    policy_id: str = Field(default_factory=lambda: new_id("voicepolicy"))
+    required_consent_scope: Literal["voice_avatar"] = "voice_avatar"
+    allowed_source_routes: list[VoiceSourceRoute] = Field(default_factory=lambda: ["non_real_synthetic_voice"])
+    deferred_source_routes: list[VoiceSourceRoute] = Field(
+        default_factory=lambda: [
+            "generated_fictional_voice",
+            "recorded_user_voice",
+            "third_party_authorized_voice",
+        ],
+    )
+    blocked_source_routes: list[VoiceSourceRoute] = Field(default_factory=lambda: ["blocked_voice_clone"])
+    blocked_likeness_types: list[VoiceRequestedLikenessType] = Field(
+        default_factory=lambda: [
+            "real_person",
+            "deceased_person",
+            "public_figure",
+            "family_member",
+            "ex_partner",
+        ],
+    )
+    visible_label_text: str = "AI-generated synthetic voice. Not a human voice."
+    review_required: Literal[True] = True
+
+    def evaluate(
+        self,
+        *,
+        user_id: str,
+        source_route: VoiceSourceRoute,
+        consent_state: ConsentCenterState | None = None,
+        requested_likeness_type: VoiceRequestedLikenessType = "none",
+        safety_decision_action: VoiceSafetyDecisionAction = "allow_for_review",
+        safety_reasons: list[str] | None = None,
+    ) -> VoicePreferenceState:
+        has_voice_consent = (
+            consent_state is not None
+            and consent_state.user_id == user_id
+            and consent_state.has_active_consent(self.required_consent_scope)
+        )
+        consent_refs: list[str] = []
+        if consent_state is not None and consent_state.user_id == user_id:
+            consent_refs = [
+                ref
+                for grant in consent_state.grants
+                if grant.feature_scope == self.required_consent_scope
+                for ref in grant.evidence_refs
+            ]
+
+        blocked_reasons: list[str] = []
+        if consent_state is not None and consent_state.user_id != user_id:
+            blocked_reasons.append("voice_consent_user_mismatch")
+        if source_route in self.blocked_source_routes:
+            blocked_reasons.append("voice_clone_blocked")
+        if requested_likeness_type in self.blocked_likeness_types:
+            blocked_reasons.append("real_person_voice_likeness_blocked")
+        if source_route in self.deferred_source_routes:
+            blocked_reasons.append("future_voice_route_requires_policy_review")
+
+        return VoicePreferenceState(
+            user_id=user_id,
+            voice_mode=source_route,
+            source_route=source_route,
+            requested_likeness_type=requested_likeness_type,
+            has_active_voice_avatar_consent=has_voice_consent,
+            visible_label_text=self.visible_label_text,
+            safety_decision_action=safety_decision_action,
+            safety_reason_labels=safety_reasons or [],
+            blocked_reason_labels=blocked_reasons,
+            consent_evidence_refs=_ordered_unique(consent_refs),
+        )
 
 
 class RoleDynamicPost(BaseModel):

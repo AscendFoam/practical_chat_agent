@@ -6774,3 +6774,57 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - T330 is a dated research snapshot; provider docs and platform policies can
     change.
   - No voice runtime, benchmark, UI, or user study has been implemented.
+
+## T331 Worker Completion Record
+
+- T331 is the Voice Consent Data Model task for M22.
+- Worker must not mark T331 as complete in `docs/04_task_board.md`; T331 awaits
+  adversarial voice/privacy/product-policy review and Captain judgment.
+- Files changed:
+  - `src/practical_chat_agent/core/models.py`
+  - `tests/test_voice_consent_data_model.py`
+  - `docs/data_contracts/voice_consent_contract.md`
+  - `docs/tasks/M22_voice_and_avatar_exploration/T332_asr_tts_latency_benchmark.md`
+  - `docs/worker_summary/T331_worker_summary.md`
+  - `docs/07_handoff.md`
+- Implementation result:
+  - Adds local `VoicePreferenceState` and `VoiceConsentPolicy` models.
+  - Voice defaults to disabled and remains runtime-disabled.
+  - `voice_avatar` consent is required for any non-disabled route.
+  - `non_real_synthetic_voice` can become review-required with active consent.
+  - Synthetic audio labels map to `audio` and `voice_avatar` with metadata
+    labels required before any future copy/download/export/share action.
+  - Real-person, deceased-person, public-figure, family-member, ex-partner, and
+    voice-clone routes are blocked.
+  - Recorded-user and third-party-authorized voice routes are represented but
+    deferred behind future policy review.
+  - Crisis/dependency safety decisions can block voice output.
+- T332 next task package:
+  - Created
+    `docs/tasks/M22_voice_and_avatar_exploration/T332_asr_tts_latency_benchmark.md`.
+  - T332 is scoped to synthetic-fixture-only ASR/TTS latency benchmark planning.
+- TDD evidence:
+  - RED `pytest tests\test_voice_consent_data_model.py -q -o cache_dir=artifacts\t331_pytest_cache_red --basetemp=artifacts\t331_pytest_basetemp_red`:
+    failed as expected because `VoiceConsentPolicy` did not exist.
+  - GREEN `pytest tests\test_voice_consent_data_model.py -q -o cache_dir=artifacts\t331_pytest_cache_green --basetemp=artifacts\t331_pytest_basetemp_green`:
+    passed, 7 tests.
+- Verification status:
+  - `python -m py_compile src\practical_chat_agent\core\models.py`: passed.
+  - `pytest tests\test_voice_consent_data_model.py -q -o cache_dir=artifacts\t331_pytest_cache_final --basetemp=artifacts\t331_pytest_basetemp_final`:
+    passed, 7 tests.
+  - `pytest tests\test_consent_center_data_model.py tests\test_aigc_labeling_plan_contract.py tests\test_crisis_dependency_policy.py tests\test_voice_consent_data_model.py -q -o cache_dir=artifacts\t331_pytest_cache_related --basetemp=artifacts\t331_pytest_basetemp_related`:
+    passed, 25 tests.
+  - `git diff --check`: passed with Windows line-ending conversion warnings.
+- Explicit non-actions:
+  - No model-provider call, TTS, ASR, voice cloning, voice conversion,
+    microphone capture, audio upload, audio generation, audio processing,
+    benchmark execution, UI, avatar/Live2D behavior, platform adapter, outbound
+    messaging, or task-board edit was added.
+  - No legal advice, compliance completion, biometric compliance,
+    synthetic-media compliance, crisis-safety sufficiency, app-store approval,
+    launch approval, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - T331 is a local data model only; no voice runtime, benchmark, UI, provider
+    review, legal review, or user study has been completed.
