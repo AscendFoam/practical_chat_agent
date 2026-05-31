@@ -8690,3 +8690,71 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - T383 still needs executable binding records and tests.
   - M28 does not yet have a snapshot store, decision impact preview, safe
     export manifest, UI, persistence, or apply executor.
+
+## T383 Worker Completion Record
+
+- T383 is the Review Workspace Binding Records task.
+- Worker must not mark T383 as complete in `docs/04_task_board.md`; T383
+  awaits adversarial review workspace, binding safety, privacy, dry-run
+  safety, distillation safety, product-safety, and documentation-accuracy
+  review.
+- Files changed:
+  - `src/practical_chat_agent/services/review_workspace.py`
+  - `tests/test_review_workspace_bindings.py`
+  - `docs/data_contracts/review_workspace_binding_contract.md`
+  - `docs/tasks/M28_local_review_workspace/T384_review_workspace_snapshot_store.md`
+  - `docs/worker_summary/T383_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD record:
+  - RED:
+    `$env:PYTHONPATH='src'; pytest tests\test_review_workspace_bindings.py -q -o cache_dir=artifacts\t383_pytest_cache --basetemp=artifacts\t383_pytest_basetemp`
+    failed with `9 failed` because
+    `practical_chat_agent.services.review_workspace` did not exist.
+  - GREEN:
+    the same focused test command passed with `9 passed` after implementing
+    `review_workspace.py`.
+- Implementation result:
+  - Added local Pydantic records for review workspace binding issues,
+    candidate bindings, artifact bindings, and bundles.
+  - Added `ReviewWorkspaceService` helpers for candidate binding, artifact
+    binding, and bundle aggregation.
+  - Added blocker issues for candidate-kind mismatch, candidate-id mismatch,
+    artifact source mismatch, and distillation review queue ref mismatch.
+  - Kept workspace bundles review-required, preview-only, non-runtime-ready,
+    and non-mutating.
+- Contract result:
+  - Created `docs/data_contracts/review_workspace_binding_contract.md`.
+  - Documented binding records, invariants, issue codes, forbidden fields,
+    tests, verification, non-actions, and residual risks.
+- T384 next task package:
+  - Created
+    `docs/tasks/M28_local_review_workspace/T384_review_workspace_snapshot_store.md`.
+  - T384 is scoped to local JSON snapshot storage without applying decisions
+    or storing raw private content.
+- Verification status:
+  - `python -m py_compile src\practical_chat_agent\services\review_workspace.py`:
+    passed.
+  - focused pytest with review workspace bindings and M27 focused tests:
+    passed, `33 passed`.
+  - `git diff --check`: passed with Windows line-ending conversion warning for
+    `docs/07_handoff.md`.
+- Explicit non-actions:
+  - No private data reader, source ingestion from real logs, extraction,
+    embedding, vector search, retrieval ranking, similarity scoring,
+    model-provider call, PersonaCard synthesis, final reply generation,
+    proactive candidate, persistence expansion, route, CLI, scheduler, queue
+    persistence, webhook, token, platform adapter, outbound messaging,
+    voice/avatar runtime, media generation, Browser artifact, package-manager
+    dependency, or task-board edit was added.
+  - No review decision apply path, memory store mutation, PersonaCard
+    mutation, PersonaVersionStore write, deletion executor, or retrieval
+    enablement was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - Binding records are local review records only; no snapshot store exists
+    yet.
+  - T384 still needs local review workspace snapshot storage.
