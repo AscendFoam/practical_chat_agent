@@ -6953,3 +6953,43 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - Voice/avatar runtime remains blocked.
   - M23 needs an integrated text-first UI before voice/avatar work should
     resume.
+
+## T340 Worker Completion Record
+
+- T340 is the Text-First Web Demo Scope task for M23.
+- Worker must not mark T340 as complete in `docs/04_task_board.md`; T340 awaits
+  adversarial product/safety UX review and Captain judgment.
+- Files changed:
+  - `docs/product/text_first_web_demo_scope.md`
+  - `docs/tasks/M23_integrated_text_first_web_demo/T341_web_demo_state_adapter.md`
+  - `docs/worker_summary/T340_worker_summary.md`
+  - `docs/07_handoff.md`
+- Scope result:
+  - Defines M23 as a dependency-light local text-first web demo.
+  - Selects Python state adapter first, then static HTML/CSS/JavaScript or
+    small Python-served shell later.
+  - Requires synthetic fixtures only and existing text-first, consent, AIGC,
+    safety, and voice-consent contracts as the demo source.
+  - Keeps voice/avatar runtime disabled or locked.
+  - Blocks model-provider calls, private data processing, outbound messaging,
+    media generation, microphone/camera capture, platform integration, and
+    launch claims.
+- T341 next task package:
+  - Created
+    `docs/tasks/M23_integrated_text_first_web_demo/T341_web_demo_state_adapter.md`.
+  - T341 is scoped to a local state adapter and tests.
+- Verification status:
+  - `git diff --check`: passed with Windows line-ending conversion warnings.
+- Explicit non-actions:
+  - No code, tests, frontend implementation, browser automation,
+    model-provider call, voice/avatar runtime, media generation, private data
+    processing, platform adapter, outbound messaging, or task-board edit was
+    added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - T340 is a scope document only; no demo payload or UI exists yet.
+  - T341 must prove the demo can be assembled from existing contracts without
+    hiding labels or introducing runtime behavior.
