@@ -10291,3 +10291,46 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - Apply audit cards are synthetic local review records only.
   - M33 still needs adversarial review.
   - Automatic apply remains unauthorized.
+
+## T411 Worker Completion Record
+
+- T411 is the Controlled Apply Executor Review task.
+- Worker must not mark T411 complete in `docs/04_task_board.md`; T411 awaits
+  review of the M33 review verdict and M34 scope handoff.
+- Files changed:
+  - `docs/review/M33_review.md`
+  - `docs/product/m34_integrated_companion_demo_scope.md`
+  - `docs/tasks/M34_integrated_companion_demo/T412_integrated_companion_demo_scope.md`
+  - `docs/worker_summary/T411_worker_summary.md`
+  - `docs/07_handoff.md`
+- Review result:
+  - M33 verdict is `PASS_WITH_WARNINGS`.
+  - No blocking defects were found in the reviewed M33 scope.
+  - Warnings are confined to local-only/prototype limits, synthetic review
+    workspace data, no automatic apply authorization, and no production
+    concurrency/rollback execution proof.
+- M34 next milestone:
+  - Created `docs/product/m34_integrated_companion_demo_scope.md`.
+  - Created
+    `docs/tasks/M34_integrated_companion_demo/T412_integrated_companion_demo_scope.md`.
+- Verification status:
+  - M33 py_compile set: passed.
+  - M33 focused pytest: passed, `21 passed`.
+  - `git diff --check`: passed with CRLF warnings only.
+- Explicit non-actions:
+  - No code, new apply execution, persona version mutation, memory lifecycle
+    mutation, private data reader, source ingestion from real logs, extraction,
+    embedding, vector search, retrieval ranking, similarity scoring,
+    model-provider call, PersonaCard synthesis, final reply generation,
+    proactive candidate, scheduler, queue persistence, webhook, token,
+    platform adapter, outbound messaging, voice/avatar runtime, media
+    generation, package-manager dependency, or task-board edit was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - M33 is local-only and not production authorization.
+  - M34 still needs code-facing demo integration tasks.
+  - Automatic apply remains unauthorized.
