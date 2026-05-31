@@ -7330,3 +7330,51 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
     content was read, quoted, summarized, or committed.
 - Remaining risks:
   - T350 is scope only. T351 must implement the first M24 code path and tests.
+
+## T351 Worker Completion Record
+
+- T351 is the Local Demo Server task for M24.
+- Worker must not mark T351 as complete in `docs/04_task_board.md`; T351 awaits
+  adversarial architecture and product/safety UX review and Captain judgment.
+- Files changed:
+  - `tests/test_text_first_web_demo_local_server.py`
+  - `src/practical_chat_agent/ui/text_first_web_demo_local_server.py`
+  - `docs/data_contracts/local_web_demo_server_contract.md`
+  - `docs/tasks/M24_demo_hardening_and_local_backend/T352_friendly_labels_accessibility_contract.md`
+  - `docs/worker_summary/T351_worker_summary.md`
+  - `docs/07_handoff.md`
+- Implementation result:
+  - Added dependency-free local routes for adapter-backed HTML, synthetic JSON,
+    CSS, and JS.
+  - Added explicit response status codes and content types.
+  - Added path traversal rejection.
+  - Added `build_http_server(...)` for local review tooling.
+  - Added route tests that do not require a long-lived server process.
+- T352 next task package:
+  - Created
+    `docs/tasks/M24_demo_hardening_and_local_backend/T352_friendly_labels_accessibility_contract.md`.
+  - T352 is scoped to friendly labels and accessibility contract work.
+- TDD evidence:
+  - RED `pytest tests\test_text_first_web_demo_local_server.py -q -o cache_dir=artifacts\t351_pytest_cache_red --basetemp=artifacts\t351_pytest_basetemp_red`:
+    failed as expected because the local server module did not exist.
+  - GREEN `pytest tests\test_text_first_web_demo_local_server.py -q -o cache_dir=artifacts\t351_pytest_cache_green --basetemp=artifacts\t351_pytest_basetemp_green`:
+    passed, 6 tests.
+- Verification status:
+  - `python -m py_compile src\practical_chat_agent\ui\text_first_web_demo_local_server.py`:
+    passed.
+  - `pytest tests\test_text_first_web_demo_local_server.py tests\test_text_first_web_demo_static.py tests\test_text_first_web_demo_adapter.py -q -o cache_dir=artifacts\t351_pytest_cache --basetemp=artifacts\t351_pytest_basetemp`:
+    passed, 17 tests.
+  - `git diff --check`: passed with Windows line-ending conversion warnings.
+- Explicit non-actions:
+  - No static UI edit, browser QA, model-provider call, final reply generation,
+    private data processing, voice/avatar runtime, media generation, external
+    network asset, package manager, platform adapter, outbound messaging,
+    screenshot artifact, or task-board edit was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - Browser QA, friendly labels, keyboard behavior, accessibility semantics, and
+    responsive hardening remain for later M24 tasks.
