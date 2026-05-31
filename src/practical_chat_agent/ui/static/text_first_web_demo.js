@@ -85,8 +85,14 @@
     }
   };
 
+  const baseState = state();
+
   function state() {
     return window.TEXT_FIRST_WEB_DEMO_STATE || fallbackState;
+  }
+
+  function cloneState(value) {
+    return JSON.parse(JSON.stringify(value));
   }
 
   function one(selector) {
@@ -142,8 +148,52 @@
     });
   }
 
-  function draw() {
-    const data = state();
+  function activatePanel(target) {
+    document.querySelectorAll(".tab").forEach(function (item) {
+      item.classList.toggle("is-active", item.getAttribute("data-tab") === target);
+    });
+    document.querySelectorAll(".panel").forEach(function (panel) {
+      panel.classList.toggle("is-active", panel.getAttribute("data-panel") === target);
+    });
+  }
+
+  function activateScenarios() {
+    document.querySelectorAll(".scenario").forEach(function (button) {
+      button.addEventListener("click", function () {
+        setScenario(button.getAttribute("data-scenario"));
+      });
+    });
+  }
+
+  function setScenario(name) {
+    const next = cloneState(baseState);
+    const labels = {
+      "safe-review": "Safe review",
+      "blocked-persona": "Blocked persona",
+      "crisis-chat": "Crisis chat",
+      "dependency-proactive": "Dependency",
+      "life-review": "Life review",
+      "controls-review": "Controls",
+      "voice-avatar-locked": "Voice / Avatar"
+    };
+    const panels = {
+      "safe-review": "chat",
+      "blocked-persona": "persona",
+      "crisis-chat": "chat",
+      "dependency-proactive": "proactive",
+      "life-review": "life",
+      "controls-review": "controls",
+      "voice-avatar-locked": "voice-avatar"
+    };
+    document.querySelectorAll(".scenario").forEach(function (item) {
+      item.classList.toggle("is-active", item.getAttribute("data-scenario") === name);
+    });
+    text("#scenario-status", labels[name] || labels["safe-review"]);
+    activatePanel(panels[name] || "chat");
+    draw(next);
+  }
+
+  function draw(data) {
     const persona = data.persona.safe_persona_state.persona_preview || {};
     const personaLabel = data.persona.safe_persona_state.persona_label || {};
     const chat = data.chat_memory.review_state;
@@ -203,5 +253,6 @@
   }
 
   activateTabs();
-  draw();
+  activateScenarios();
+  setScenario("safe-review");
 })();

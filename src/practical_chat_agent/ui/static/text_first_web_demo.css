@@ -106,6 +106,46 @@ h2 {
   color: #ffffff;
 }
 
+.scenario-controls {
+  display: grid;
+  grid-template-columns: 160px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  padding: 12px;
+  margin-bottom: 16px;
+}
+
+.scenario-status {
+  font-weight: 700;
+}
+
+.scenario-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.scenario {
+  border: 1px solid var(--line);
+  background: #f9fafb;
+  color: var(--ink);
+  padding: 7px 10px;
+  cursor: pointer;
+}
+
+.scenario:focus-visible {
+  outline: 3px solid var(--accent-soft);
+  outline-offset: 2px;
+}
+
+.scenario.is-active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
 .panel {
   display: none;
   background: var(--panel);
@@ -206,5 +246,9 @@ h2 {
   .panel-head {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .scenario-controls {
+    grid-template-columns: 1fr;
   }
 }

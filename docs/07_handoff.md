@@ -7104,3 +7104,57 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
 - Remaining risks:
   - T342 is still a static shell; scenario switching and deeper visual QA remain
     for follow-up tasks.
+
+## T343 Worker Completion Record
+
+- T343 is the Web Demo State Switching task for M23.
+- Worker must not mark T343 as complete in `docs/04_task_board.md`; T343 awaits
+  adversarial product/safety UX and frontend review and Captain judgment.
+- Files changed:
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.html`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.css`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.js`
+  - `tests/test_text_first_web_demo_state_switching.py`
+  - `docs/data_contracts/web_demo_state_switching_contract.md`
+  - `docs/tasks/M23_integrated_text_first_web_demo/T344_web_demo_visual_qa.md`
+  - `docs/worker_summary/T343_worker_summary.md`
+  - `docs/07_handoff.md`
+- Implementation result:
+  - Adds local scenario controls for safe review, blocked persona, crisis chat,
+    dependency, life review, controls, and voice/avatar locked states.
+  - Adds local base-state cloning before switching.
+  - Updates active scenario and active top-level panel without external calls.
+  - Preserves persistent AI-generated synthetic identity label.
+- T344 next task package:
+  - Created
+    `docs/tasks/M23_integrated_text_first_web_demo/T344_web_demo_visual_qa.md`.
+  - T344 is scoped to browser visual QA.
+- TDD evidence:
+  - RED `pytest tests\test_text_first_web_demo_state_switching.py -q -o cache_dir=artifacts\t343_pytest_cache_red --basetemp=artifacts\t343_pytest_basetemp_red`:
+    failed as expected because scenario controls and switching logic were
+    absent.
+  - GREEN `pytest tests\test_text_first_web_demo_state_switching.py -q -o cache_dir=artifacts\t343_pytest_cache_green --basetemp=artifacts\t343_pytest_basetemp_green`:
+    passed, 4 tests.
+- Browser verification:
+  - Used a temporary localhost static server for
+    `src/practical_chat_agent/ui/static`.
+  - Verified Dependency scenario selected Proactive panel.
+  - Verified Voice / Avatar scenario selected Voice / Avatar panel.
+  - Verified AI identity remained visible and voice/avatar remained not enabled.
+  - Stopped the temporary localhost server after verification.
+- Verification status:
+  - `pytest tests\test_text_first_web_demo_state_switching.py tests\test_text_first_web_demo_static.py tests\test_text_first_web_demo_adapter.py -q -o cache_dir=artifacts\t343_pytest_cache --basetemp=artifacts\t343_pytest_basetemp`:
+    passed, 15 tests.
+  - `git diff --check`: passed with Windows line-ending conversion warnings.
+- Explicit non-actions:
+  - No model-provider call, final reply generation, private data processing,
+    voice/avatar runtime, media generation, external network asset, package
+    manager, platform adapter, outbound messaging, or task-board edit was
+    added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - T343 adds local scenario switching only; formal desktop/mobile visual QA is
+    left for T344.
