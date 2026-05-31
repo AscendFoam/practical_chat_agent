@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Text-First Companion Demo</title>
+    <link rel="stylesheet" href="./text_first_web_demo.css">
+  </head>
+  <body>
+    <main id="app" class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Local synthetic prototype</p>
+          <h1>Text-first companion console</h1>
+        </div>
+        <div id="identity-strip" class="status-strip">AI-generated synthetic companion. Review required.</div>
+      </header>
+
+      <nav class="tabs" aria-label="Demo sections">
+        <button class="tab is-active" data-tab="chat" type="button">Chat</button>
+        <button class="tab" data-tab="persona" type="button">Persona</button>
+        <button class="tab" data-tab="memory" type="button">Memory</button>
+        <button class="tab" data-tab="life" type="button">Life</button>
+        <button class="tab" data-tab="proactive" type="button">Proactive</button>
+        <button class="tab" data-tab="controls" type="button">Controls</button>
+        <button class="tab" data-tab="voice-avatar" type="button">Voice / Avatar</button>
+      </nav>
+
+      <section id="chat-panel" class="panel is-active" data-panel="chat">
+        <div class="panel-head">
+          <h2>Chat Review</h2>
+          <span id="chat-state" class="tag">review</span>
+        </div>
+        <p id="chat-summary" class="lead"></p>
+        <div id="chat-memory-list" class="item-list"></div>
+        <div id="chat-blocked" class="notice"></div>
+      </section>
+
+      <section id="persona-panel" class="panel" data-panel="persona">
+        <div class="panel-head">
+          <h2>Persona</h2>
+          <span id="persona-state" class="tag">draft</span>
+        </div>
+        <p id="persona-summary" class="lead"></p>
+        <div id="persona-labels" class="label-row"></div>
+        <div id="persona-blocked" class="notice"></div>
+      </section>
+
+      <section id="memory-panel" class="panel" data-panel="memory">
+        <div class="panel-head">
+          <h2>Memory</h2>
+          <span class="tag">explainable</span>
+        </div>
+        <div id="memory-list" class="item-list"></div>
+      </section>
+
+      <section id="life-panel" class="panel" data-panel="life">
+        <div class="panel-head">
+          <h2>Life Stream</h2>
+          <span class="tag">imagined</span>
+        </div>
+        <div id="life-list" class="item-list"></div>
+      </section>
+
+      <section id="proactive-panel" class="panel" data-panel="proactive">
+        <div class="panel-head">
+          <h2>Proactive</h2>
+          <span id="proactive-state" class="tag">review</span>
+        </div>
+        <p id="proactive-summary" class="lead"></p>
+        <div id="proactive-blocked" class="notice"></div>
+      </section>
+
+      <section id="controls-panel" class="panel" data-panel="controls">
+        <div class="panel-head">
+          <h2>Controls</h2>
+          <span class="tag">local review</span>
+        </div>
+        <div id="consent-list" class="item-list"></div>
+        <div id="aigc-labels" class="label-row"></div>
+      </section>
+
+      <section id="voice-avatar-panel" class="panel" data-panel="voice-avatar">
+        <div class="panel-head">
+          <h2>Voice / Avatar</h2>
+          <span class="tag">locked</span>
+        </div>
+        <div id="voice-state" class="item-list"></div>
+        <div id="avatar-state" class="notice"></div>
+      </section>
+    </main>
+
+    <script>
+      window.TEXT_FIRST_WEB_DEMO_STATE = null;
+    </script>
+    <script src="./text_first_web_demo.js"></script>
+  </body>
+</html>

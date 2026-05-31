@@ -7044,3 +7044,63 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - T341 creates payload assembly only; no browser UI exists yet.
   - T342 must render the payload without hiding labels, adding external network
     assets, or implying runtime voice/avatar behavior.
+
+## T342 Worker Completion Record
+
+- T342 is the Static Web Demo Shell task for M23.
+- Worker must not mark T342 as complete in `docs/04_task_board.md`; T342 awaits
+  adversarial product/safety UX and frontend review and Captain judgment.
+- Files changed:
+  - `src/practical_chat_agent/ui/text_first_web_demo_static.py`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.html`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.css`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.js`
+  - `tests/test_text_first_web_demo_static.py`
+  - `docs/data_contracts/static_web_demo_shell_contract.md`
+  - `docs/tasks/M23_integrated_text_first_web_demo/T343_web_demo_state_switching.md`
+  - `docs/worker_summary/T342_worker_summary.md`
+  - `docs/07_handoff.md`
+- Implementation result:
+  - Adds a dependency-light local static web shell with no package manager and
+    no external network assets.
+  - Adds Python helper for asset paths and adapter-generated embedded HTML.
+  - Adds tabs for Chat, Persona, Memory, Life, Proactive, Controls, and
+    Voice / Avatar.
+  - Preserves persistent AI-generated synthetic identity label.
+  - Shows voice and avatar as not enabled.
+  - Provides a static fallback payload for direct local preview.
+- T343 next task package:
+  - Created
+    `docs/tasks/M23_integrated_text_first_web_demo/T343_web_demo_state_switching.md`.
+  - T343 is scoped to local scenario switching.
+- TDD evidence:
+  - RED `pytest tests\test_text_first_web_demo_static.py -q -o cache_dir=artifacts\t342_pytest_cache_red --basetemp=artifacts\t342_pytest_basetemp_red`:
+    failed as expected because `practical_chat_agent.ui.text_first_web_demo_static`
+    did not exist.
+  - GREEN `pytest tests\test_text_first_web_demo_static.py -q -o cache_dir=artifacts\t342_pytest_cache_green --basetemp=artifacts\t342_pytest_basetemp_green`:
+    passed, 5 tests.
+- Browser verification:
+  - Direct `file://` navigation was blocked by browser URL policy.
+  - Used a temporary localhost static server for
+    `src/practical_chat_agent/ui/static`.
+  - Verified `http://127.0.0.1:8767/` loaded with 7 tabs and 7 panels.
+  - Verified Voice / Avatar tab selection and locked/not-enabled state.
+  - Stopped the temporary localhost server after verification.
+- Verification status:
+  - `python -m py_compile src\practical_chat_agent\ui\text_first_web_demo_static.py`:
+    passed.
+  - `pytest tests\test_text_first_web_demo_static.py tests\test_text_first_web_demo_adapter.py -q -o cache_dir=artifacts\t342_pytest_cache --basetemp=artifacts\t342_pytest_basetemp`:
+    passed, 11 tests.
+  - `git diff --check`: passed.
+- Explicit non-actions:
+  - No model-provider call, final reply generation, private data processing,
+    voice/avatar runtime, media generation, external network asset, package
+    manager, platform adapter, outbound messaging, or task-board edit was
+    added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - T342 is still a static shell; scenario switching and deeper visual QA remain
+    for follow-up tasks.
