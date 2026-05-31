@@ -51,14 +51,13 @@ Each risk card contains:
 - `preview_only`
 - `risk_assessment_only`
 - `executor_ready=false`
-- `applies_changes=false`
-- `writes_memory_store=false`
-- `writes_persona_version=false`
 - `changes_state=false`
 - `runtime_ready=false`
 
 The payload is built from synthetic `ApplyExecutorRiskAssessment`,
 `ApplyExecutorApprovalDecision`, and `ManualApplyEligibilityDecision` records.
+Internal apply/write flags from the source records are intentionally stripped
+from the served review workspace card payload.
 
 ## Static Rendering
 

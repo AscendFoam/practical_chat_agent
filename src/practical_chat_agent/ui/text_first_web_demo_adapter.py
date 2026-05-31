@@ -766,9 +766,6 @@ def _safe_apply_risk_review_card(
         "preview_only": True,
         "risk_assessment_only": True,
         "executor_ready": False,
-        "applies_changes": False,
-        "writes_memory_store": False,
-        "writes_persona_version": False,
         "changes_state": False,
         "runtime_ready": False,
     }
