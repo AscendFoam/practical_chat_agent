@@ -10861,3 +10861,43 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
 - Remaining risks:
   - M35 still needs adversarial milestone review in T422.
   - Session loop and review linkage remain local synthetic demo surfaces.
+
+## T422 Worker Completion Record
+
+- T422 is the M35 Milestone Review task.
+- Worker must not mark T422 complete in `docs/04_task_board.md`; T422 awaits
+  review of the M35 verdict and M36 scope handoff.
+- Files changed:
+  - `docs/review/M35_review.md`
+  - `docs/product/m36_next_iteration_scope.md`
+  - `docs/tasks/M36_next_iteration/T423_next_iteration_scope.md`
+  - `docs/worker_summary/T422_worker_summary.md`
+  - `docs/07_handoff.md`
+- Review result:
+  - M35 verdict is `PASS_WITH_WARNINGS`.
+  - No blocking defects were found in the reviewed M35 scope.
+  - Warnings are confined to deterministic/synthetic session quality,
+    display-only review linkage, Browser viewport limits, and future real
+    distillation/provider/outbound/voice/avatar/media work.
+- M36 next milestone:
+  - Created `docs/product/m36_next_iteration_scope.md`.
+  - Created `docs/tasks/M36_next_iteration/T423_next_iteration_scope.md`.
+- Verification status:
+  - M35 focused pytest passed, `43 passed`.
+  - `git diff --check`: passed with CRLF warnings only.
+- Explicit non-actions:
+  - No code, tests, package dependencies, source readers, model-provider calls,
+    embeddings, vector search, semantic ranking, similarity scoring,
+    fine-tuning, runtime store writes, PersonaCard synthesis, platform
+    adapters, schedulers, queues, webhooks, tokens, recipient ids, delivery
+    state, outbound messaging, automatic outreach, voice/avatar runtime, media
+    generation, payment processing, or task-board edit was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - M36 still needs scope refinement and implementation.
+  - Real private-chat distillation remains unauthorized until a later explicit
+    privacy, consent, and source-handling milestone exists.
