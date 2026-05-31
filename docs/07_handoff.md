@@ -7889,3 +7889,53 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
     code and tests before sensitive workflows expand.
   - T370 still needs to create the detailed M26 implementation scope and the
     first code/test task package.
+
+## T370 Worker Completion Record
+
+- T370 is the M26 Memory Persona Implementation Scope task.
+- Worker must not mark T370 as complete in `docs/04_task_board.md`; T370 awaits
+  adversarial implementation-scope, privacy, memory-safety, persona-safety,
+  distillation-safety, dependency-risk, and product-safety review and Captain
+  judgment.
+- Files changed:
+  - `docs/product/m26_memory_persona_implementation_scope.md`
+  - `docs/tasks/M26_memory_persona_implementation/T371_memory_governance_candidate_models.md`
+  - `docs/worker_summary/T370_worker_summary.md`
+  - `docs/07_handoff.md`
+- Scope result:
+  - Created `docs/product/m26_memory_persona_implementation_scope.md`.
+  - Defined M26 as synthetic fixtures, local candidate models, deterministic
+    local services, and tests.
+  - Preserved M25 boundaries around typed memory, imagined/factual separation,
+    recommendation-only consolidation, review-first contradiction/supersession,
+    consent withdrawal cascades, bounded persona growth, and de-identified
+    fictional-persona distillation.
+  - Defined the M26 sequence as T371 memory governance candidates, T372 persona
+    growth candidates, T373 synthetic distillation input candidates, T374
+    retrieval/explanation integration, and T375 milestone review.
+- T371 next task package:
+  - Created
+    `docs/tasks/M26_memory_persona_implementation/T371_memory_governance_candidate_models.md`.
+  - T371 is scoped to implement and test local synthetic memory-governance
+    candidate records without private data, provider calls, runtime dialogue,
+    outbound messaging, platform delivery, voice/avatar runtime, media
+    generation, or real-person recreation.
+- Verification status:
+  - `git diff --check`: passed with Windows line-ending conversion warning for
+    `docs/07_handoff.md`.
+- Explicit non-actions:
+  - No Python source code or tests were changed in T370.
+  - No Browser rerun, backend route, model-provider call, final reply
+    generation, private data processing, persistence, voice/avatar runtime,
+    media generation, external network asset, package manager, platform
+    adapter, outbound messaging, screenshot artifact, or task-board edit was
+    added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - M26 implementation has not started yet.
+  - T371 still needs to implement memory governance candidate records and
+    tests before persona growth or distillation implementation expands.
