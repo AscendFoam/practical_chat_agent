@@ -10746,3 +10746,64 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
     into the review workspace surface.
   - T420 is needed to connect the session loop to review-first candidate
     governance.
+
+## T420 Worker Completion Record
+
+- T420 is the Session Review Candidate Linkage task.
+- Worker must not mark T420 complete in `docs/04_task_board.md`; T420 awaits
+  adversarial review-linkage review for session candidate traceability,
+  review-first controls, non-execution boundaries, and no provider/outbound/media
+  surface expansion.
+- Files changed:
+  - `src/practical_chat_agent/ui/text_first_web_demo_adapter.py`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.js`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.css`
+  - `tests/test_session_review_candidate_linkage.py`
+  - `docs/data_contracts/session_review_candidate_linkage_contract.md`
+  - `docs/tasks/M35_next_iteration/T421_session_loop_responsive_hardening.md`
+  - `docs/worker_summary/T420_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD record:
+  - RED:
+    `$env:PYTHONPATH='src'; pytest tests\test_session_review_candidate_linkage.py -q -o cache_dir=artifacts\t420_pytest_cache --basetemp=artifacts\t420_pytest_basetemp`
+    failed with `3 failed, 2 passed` because review workspace
+    `session_candidate_cards` and static review rendering hooks did not exist.
+  - GREEN:
+    focused tests passed with `5 passed`.
+- Implementation result:
+  - Added session candidate cards to the local review workspace payload.
+  - Added a `session` filter tab.
+  - Projected session post-turn candidates as review-required, preview-only,
+    non-mutating, non-sending cards.
+  - Updated static review workspace rendering to include session candidate cards
+    and source/turn/non-execution details.
+- T421 next task package:
+  - Created
+    `docs/tasks/M35_next_iteration/T421_session_loop_responsive_hardening.md`.
+  - T421 is scoped to responsive/browser hardening for the session loop and
+    review linkage surfaces.
+- Verification status:
+  - py_compile: passed.
+  - focused pytest: passed, `5 passed`.
+  - final combined pytest: passed, `26 passed`.
+  - Browser QA: passed through localhost at 642px viewport with 4 session
+    candidate review cards, visible memory/proactive candidate labels, 2
+    existing apply audit cards, no forbidden action controls, and no horizontal
+    overflow.
+  - `git diff --check`: passed with CRLF warnings only.
+- Explicit non-actions:
+  - No package dependencies, source readers, model-provider calls, embeddings,
+    vector search, semantic ranking, similarity scoring, fine-tuning, runtime
+    store writes, PersonaCard synthesis, platform adapters, schedulers, queues,
+    webhooks, tokens, recipient ids, delivery state, outbound messaging,
+    automatic outreach, voice/avatar runtime, media generation, payment
+    processing, or task-board edit was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - Review linkage is still local and synthetic.
+  - T421 should harden responsive layout and Browser QA for the session loop and
+    session candidate review cards.

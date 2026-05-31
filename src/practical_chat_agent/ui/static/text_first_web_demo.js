@@ -339,6 +339,7 @@
         { key: "eligible", label: "Eligible", count: 1 },
         { key: "memory", label: "Memory", count: 1 },
         { key: "persona", label: "Persona", count: 1 },
+        { key: "session", label: "Session", count: 4 },
         { key: "distillation", label: "Distillation", count: 0 }
       ],
       cards: [
@@ -522,6 +523,84 @@
           changes_state: false,
           runtime_ready: false
         }
+      ],
+      session_candidate_cards: [
+        {
+          schema_version: "review_workspace_session_candidate_card_v1",
+          card_kind: "session_candidate_review",
+          title: "Session candidate review",
+          display_label: "memory candidate",
+          safe_summary: "Review whether short evening planning should become a low-sensitivity preference.",
+          filter_keys: ["all", "session", "memory"],
+          status_badges: [{ label: "Session candidate needs review", tone: "review" }],
+          candidate_id: "session_candidate_memory_001",
+          candidate_kind: "memory_candidate",
+          originating_turn_id: "turn_002",
+          source_surface: "companion_session",
+          review_required: true,
+          preview_only: true,
+          changes_state: false,
+          automatic_apply: false,
+          sends_messages: false,
+          runtime_ready: false
+        },
+        {
+          schema_version: "review_workspace_session_candidate_card_v1",
+          card_kind: "session_candidate_review",
+          title: "Session candidate review",
+          display_label: "persona growth patch",
+          safe_summary: "Review a small persona bias toward concise evening replies.",
+          filter_keys: ["all", "session", "persona"],
+          status_badges: [{ label: "Session candidate needs review", tone: "review" }],
+          candidate_id: "session_candidate_persona_001",
+          candidate_kind: "persona_growth_patch",
+          originating_turn_id: "turn_002",
+          source_surface: "companion_session",
+          review_required: true,
+          preview_only: true,
+          changes_state: false,
+          automatic_apply: false,
+          sends_messages: false,
+          runtime_ready: false
+        },
+        {
+          schema_version: "review_workspace_session_candidate_card_v1",
+          card_kind: "session_candidate_review",
+          title: "Session candidate review",
+          display_label: "proactive suggestion",
+          safe_summary: "Review an in-app afternoon check-in idea; it is not sent.",
+          filter_keys: ["all", "session", "proactive"],
+          status_badges: [{ label: "Session candidate needs review", tone: "review" }],
+          candidate_id: "session_candidate_proactive_001",
+          candidate_kind: "proactive_suggestion",
+          originating_turn_id: "turn_002",
+          source_surface: "companion_session",
+          review_required: true,
+          preview_only: true,
+          changes_state: false,
+          automatic_apply: false,
+          sends_messages: false,
+          runtime_ready: false
+        },
+        {
+          schema_version: "review_workspace_session_candidate_card_v1",
+          card_kind: "session_candidate_review",
+          title: "Session candidate review",
+          display_label: "life stream draft",
+          safe_summary: "Review an imagined rain-bookstore life-stream draft labeled as fiction.",
+          filter_keys: ["all", "session", "life"],
+          status_badges: [{ label: "Session candidate needs review", tone: "review" }],
+          candidate_id: "session_candidate_life_001",
+          candidate_kind: "life_stream_draft",
+          originating_turn_id: "turn_004",
+          source_surface: "companion_session",
+          review_required: true,
+          preview_only: true,
+          changes_state: false,
+          automatic_apply: false,
+          sends_messages: false,
+          runtime_ready: false
+        }
       ]
     }
   };
@@ -571,9 +650,13 @@
     apply_audit_manifest_entry: "Apply audit record",
     local_apply_audited: "Local apply audited",
     memory_lifecycle: "Memory lifecycle",
+    memory_candidate: "Memory candidate",
     needs_review: "Needs review",
     persona_growth: "Persona growth",
     persona_drift: "Persona drift",
+    proactive_suggestion: "Proactive suggestion",
+    life_stream_draft: "Life stream draft",
+    session_candidate_review: "Session candidate review",
     memory_deletion_cascade: "Memory review item",
     persona_growth_patch: "Persona growth patch",
     synthetic_content: "Synthetic content",
@@ -889,7 +972,8 @@
     const cards = (review.cards || [])
       .concat(review.manual_apply_previews || [])
       .concat(review.apply_risk_reviews || [])
-      .concat(review.apply_audit_entries || []);
+      .concat(review.apply_audit_entries || [])
+      .concat(review.session_candidate_cards || []);
     if (filterNode) {
       filterNode.innerHTML = "";
       (review.filter_tabs || []).forEach(function (tab) {
@@ -923,7 +1007,8 @@
     const cardNode = document.createElement("div");
     cardNode.className = "item review-card"
       + (card.card_kind === "apply_risk_review" ? " apply-risk-card" : "")
-      + (card.card_kind === "apply_audit_manifest_entry" ? " apply-audit-card" : "");
+      + (card.card_kind === "apply_audit_manifest_entry" ? " apply-audit-card" : "")
+      + (card.card_kind === "session_candidate_review" ? " session-candidate-review-card" : "");
 
     const title = document.createElement("div");
     title.className = "item-title";
@@ -959,6 +1044,7 @@
     appendReviewPreviewDetails(cardNode, card);
     appendApplyRiskDetails(cardNode, card);
     appendApplyAuditDetails(cardNode, card);
+    appendSessionCandidateReviewDetails(cardNode, card);
     return cardNode;
   }
 
@@ -1027,6 +1113,17 @@
     appendReviewDetailList(cardNode, "Rollback refs", objectPairs(card.rollback_refs), function (pair) {
       return pair.key + ": " + pair.value;
     });
+  }
+
+  function appendSessionCandidateReviewDetails(cardNode, card) {
+    if (card.card_kind !== "session_candidate_review") {
+      return;
+    }
+    appendReviewMeta(cardNode, "Candidate: " + friendlyLabel(card.candidate_kind));
+    appendReviewMeta(cardNode, "Source: " + friendlyLabel(card.source_surface));
+    appendReviewMeta(cardNode, "Origin turn: " + card.originating_turn_id);
+    appendReviewMeta(cardNode, "Automatic apply: " + String(card.automatic_apply === true));
+    appendReviewMeta(cardNode, "Sends messages: " + String(card.sends_messages === true));
   }
 
   function objectPairs(value) {

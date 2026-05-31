@@ -570,6 +570,17 @@ class TextFirstWebDemoAdapter:
         payload["manual_apply_previews"] = _manual_apply_preview_payloads(persona_impact)
         payload["apply_risk_reviews"] = _apply_risk_review_payloads(persona_impact)
         payload["apply_audit_entries"] = _apply_audit_manifest_payloads()
+        session_candidate_cards = _session_candidate_review_cards(
+            self._companion_session_payload()
+        )
+        payload["session_candidate_cards"] = session_candidate_cards
+        payload["filter_tabs"].append(
+            {
+                "key": "session",
+                "label": "Session",
+                "count": len(session_candidate_cards),
+            }
+        )
         return payload
 
     @staticmethod
@@ -1080,6 +1091,61 @@ def _safe_apply_audit_manifest_card(
         "changes_state": False,
         "runtime_ready": False,
     }
+
+
+def _session_candidate_review_cards(session: dict[str, Any]) -> list[dict[str, Any]]:
+    cards: list[dict[str, Any]] = []
+    for candidate in session.get("post_turn_candidates", []):
+        candidate_kind = str(candidate.get("candidate_kind", "session_candidate"))
+        cards.append(
+            {
+                "schema_version": "review_workspace_session_candidate_card_v1",
+                "card_kind": "session_candidate_review",
+                "title": "Session candidate review",
+                "display_label": candidate_kind.replace("_", " "),
+                "safe_summary": candidate.get("safe_summary", ""),
+                "filter_keys": [
+                    "all",
+                    "session",
+                    _session_candidate_filter_key(candidate_kind),
+                ],
+                "status_badges": [
+                    {
+                        "label": "Session candidate needs review",
+                        "tone": "review",
+                        "issue_codes": [],
+                        "blocking_issue_codes": [],
+                        "review_required": True,
+                        "preview_only": True,
+                        "changes_state": False,
+                        "runtime_ready": False,
+                    }
+                ],
+                "candidate_id": candidate.get("candidate_id", ""),
+                "candidate_kind": candidate_kind,
+                "originating_turn_id": candidate.get("originating_turn_id", ""),
+                "source_surface": "companion_session",
+                "review_required": True,
+                "preview_only": True,
+                "changes_state": False,
+                "automatic_apply": False,
+                "sends_messages": False,
+                "runtime_ready": False,
+            }
+        )
+    return cards
+
+
+def _session_candidate_filter_key(candidate_kind: str) -> str:
+    if candidate_kind.startswith("memory"):
+        return "memory"
+    if candidate_kind.startswith("persona"):
+        return "persona"
+    if candidate_kind.startswith("proactive"):
+        return "proactive"
+    if candidate_kind.startswith("life"):
+        return "life"
+    return "session"
 
 
 def _safe_apply_risk_review_card(

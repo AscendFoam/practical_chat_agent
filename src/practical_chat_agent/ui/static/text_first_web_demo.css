@@ -364,6 +364,10 @@ h2 {
   border-left: 4px solid var(--accent);
 }
 
+.session-candidate-review-card {
+  border-left: 4px solid #6b7fd7;
+}
+
 .status-badges {
   display: flex;
   flex-wrap: wrap;
