@@ -45,6 +45,7 @@ The adapter calls `ReviewWorkspacePresentationAdapter.build_panel(...)`, then
 projects the panel into a UI-safe dictionary with:
 
 - `schema_version`
+- `projection_policy=server_safe_no_internal_ids_or_executor_fields_v1`
 - `filter_tabs`
 - `cards`
 - `review_required`
@@ -79,9 +80,10 @@ Status badges contain labels, tones, issue codes, blocker codes, and the same
 review-only/no-state-change flags.
 
 The server-safe projection intentionally omits internal review queue fields and
-write/apply executor flags from the public demo payload. It preserves the
-review-only state through `review_required`, `preview_only`, `changes_state`,
-and `runtime_ready`.
+write/apply executor flags from the public demo payload. Its projection policy
+string avoids sensitive internal-field terms so payload-wide forbidden-substring
+tests remain strict. It preserves the review-only state through
+`review_required`, `preview_only`, `changes_state`, and `runtime_ready`.
 
 ## Data Assumptions
 
@@ -140,6 +142,9 @@ Regression tests also run:
 Covered behavior:
 
 - adapter emits a synthetic `review_workspace` section;
+- payload includes the explicit server-safe projection policy;
+- internal presentation records may carry review queue refs while server-safe
+  payloads strip internal ids and executor/write fields;
 - local server JSON includes review workspace fields;
 - embedded HTML includes server-provided review workspace payload;
 - static JS keeps the safe fallback fixture;

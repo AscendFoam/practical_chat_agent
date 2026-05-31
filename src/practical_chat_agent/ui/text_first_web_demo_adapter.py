@@ -472,6 +472,7 @@ def _safe_review_workspace_panel(
 ) -> dict[str, Any]:
     return {
         "schema_version": panel.schema_version,
+        "projection_policy": "server_safe_no_internal_ids_or_executor_fields_v1",
         "filter_tabs": list(panel.filter_tabs),
         "cards": [_safe_review_workspace_card(card) for card in panel.cards],
         "review_required": panel.review_required,

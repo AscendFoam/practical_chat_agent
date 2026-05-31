@@ -11,6 +11,7 @@ import json
 from pathlib import Path
 
 from practical_chat_agent.ui.text_first_web_demo_adapter import TextFirstWebDemoAdapter
+from practical_chat_agent.ui.review_workspace_adapter import ReviewWorkspacePresentationAdapter
 from practical_chat_agent.ui.text_first_web_demo_local_server import (
     TextFirstWebDemoLocalServer,
 )
@@ -27,6 +28,7 @@ def test_adapter_emits_review_workspace_section_from_presentation_records() -> N
 
     review = payload["review_workspace"]
     assert review["schema_version"] == "review_workspace_presentation_panel_v1"
+    assert review["projection_policy"] == "server_safe_no_internal_ids_or_executor_fields_v1"
     assert [tab["key"] for tab in review["filter_tabs"]] == [
         "all",
         "blocked",
@@ -55,6 +57,35 @@ def test_adapter_emits_review_workspace_section_from_presentation_records() -> N
     assert all(card["review_required"] is True for card in cards)
     assert all(card["preview_only"] is True for card in cards)
     assert all(card["changes_state"] is False for card in cards)
+
+
+def test_internal_presentation_queue_refs_are_stripped_from_server_safe_projection() -> None:
+    (
+        memory_bundle,
+        persona_bundle,
+        memory_impact,
+        persona_impact,
+        export_manifest,
+    ) = TextFirstWebDemoAdapter._review_workspace_records(user_id="user_synthetic")
+    internal_panel = ReviewWorkspacePresentationAdapter().build_panel(
+        bundles=[memory_bundle, persona_bundle],
+        impact_previews=[memory_impact, persona_impact],
+        export_manifest=export_manifest,
+    )
+
+    assert any(card.queue_item_id for card in internal_panel.cards)
+
+    review = _payload()["review_workspace"]
+    serialized = json.dumps(review, ensure_ascii=False).lower()
+
+    for internal_only in (
+        "queue",
+        "queue_item_id",
+        "applies_changes",
+        "writes_memory_store",
+        "writes_persona_version",
+    ):
+        assert internal_only not in serialized
 
 
 def test_local_server_payload_includes_review_workspace_fields() -> None:
@@ -121,6 +152,10 @@ def test_review_workspace_payload_has_no_private_provider_outbound_media_or_inte
         "platform",
         "webhook",
         "queue",
+        "queue_item_id",
+        "applies_changes",
+        "writes_memory_store",
+        "writes_persona_version",
         "apply_decision",
         "mutate_store",
         "write_persona_version",

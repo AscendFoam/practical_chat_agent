@@ -9409,3 +9409,61 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - Browser visual QA remains blocked by local navigation policy in this
     environment.
   - Server-safe projection boundary needs stronger focused tests in T394.
+
+## T394 Worker Completion Record
+
+- T394 is the Review Workspace Projection Boundary Tests task.
+- Worker must not mark T394 complete in `docs/04_task_board.md`; T394 awaits
+  adversarial projection-boundary review for internal identifier leaks,
+  non-apply safety, synthetic-only payloads, and documentation accuracy.
+- Files changed:
+  - `src/practical_chat_agent/ui/text_first_web_demo_adapter.py`
+  - `tests/test_review_workspace_local_server_payload.py`
+  - `docs/data_contracts/review_workspace_local_server_payload_contract.md`
+  - `docs/tasks/M30_review_workspace_hardening/T395_local_visual_qa_fallback.md`
+  - `docs/worker_summary/T394_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD record:
+  - RED:
+    `$env:PYTHONPATH='src'; pytest tests\test_review_workspace_local_server_payload.py -q -o cache_dir=artifacts\t394_pytest_cache --basetemp=artifacts\t394_pytest_basetemp`
+    failed with `1 failed, 6 passed` because `projection_policy` was absent.
+  - GREEN:
+    after implementation and policy-string correction, focused adapter/server
+    tests passed with `19 passed`.
+- Implementation result:
+  - Added tests proving internal presentation records carry internal review
+    refs while server-safe payloads strip internal ids and executor/write
+    fields.
+  - Added `projection_policy=server_safe_no_internal_ids_or_executor_fields_v1`
+    to served review workspace payloads.
+  - Extended forbidden-field tests to cover internal ids and executor/write
+    fields.
+- T395 next task package:
+  - Created
+    `docs/tasks/M30_review_workspace_hardening/T395_local_visual_qa_fallback.md`.
+  - T395 is scoped to a deterministic local visual QA fallback.
+- Verification status:
+  - py_compile: passed.
+  - focused adapter/server pytest: passed, `19 passed`.
+  - final `git diff --check`: passed with CRLF warnings only.
+- Explicit non-actions:
+  - No static layout change, local server route, private data reader, source
+    ingestion from real logs, extraction, embedding, vector search, retrieval
+    ranking, similarity scoring, model-provider call, PersonaCard synthesis,
+    final reply generation, proactive candidate, scheduler, queue persistence,
+    webhook, token, platform adapter, outbound messaging, voice/avatar
+    runtime, media generation, package-manager dependency, or task-board edit
+    was added.
+  - No review decision apply path, memory store mutation, PersonaCard
+    mutation, PersonaVersionStore write, deletion executor, retrieval
+    enablement, or provider-backed payload was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - Browser visual QA remains blocked by local navigation policy in this
+    environment.
+  - T395 still needs a reproducible local visual QA fallback.
+  - Manual apply preview remains unscoped until T396.
