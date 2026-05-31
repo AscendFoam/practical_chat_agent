@@ -9979,3 +9979,47 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - Approval decisions remain non-executable.
   - Browser screenshot QA remains unavailable in this environment.
   - No future apply executor exists.
+
+## T405 Reviewer Completion Record
+
+- T405 is the M32 Milestone Review task.
+- Verdict: `PASS_WITH_WARNINGS`.
+- Files changed:
+  - `docs/review/M32_review.md`
+  - `docs/worker_summary/T405_worker_summary.md`
+  - `docs/07_handoff.md`
+- Reviewed:
+  - M32 scope, apply executor risk records, approval gate, read-only UI panel,
+    tests, contracts, and handoff.
+- Findings:
+  - No remaining blocking issues found.
+  - Approval outcomes are not executable authority.
+  - Review workspace apply risk UI remains synthetic/local-only.
+  - T405 initially found a T404 served-payload projection drift; commit
+    `ff2c474` repaired it before final review.
+  - Browser screenshot QA remains unavailable in this environment.
+- Verification status:
+  - py_compile: passed.
+  - M32 focused pytest: passed, `36 passed`.
+  - T404 repair regression: passed, `5 passed`.
+  - forbidden-method scan: no runtime method definitions found.
+  - action-control scan: no static action-control hits found.
+  - forbidden-field scan: hits confined to internal synthetic queue
+    construction, non-executing internal risk schemas, and safety-test
+    forbidden-term lists; served payload tests verify stripping.
+  - `git diff --check`: passed with CRLF warnings only.
+- Explicit non-actions:
+  - No code, tests, task-board entries, source readers, private data
+    ingestion, model-provider calls, apply executors, memory/persona mutation
+    paths, proactive candidates, platform integration, outbound messaging,
+    voice/avatar runtime, generated media, package-manager dependency, or
+    production persistence was added by T405.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Recommendation:
+  - Close M32 as `PASS_WITH_WARNINGS`.
+  - Next milestone may begin a narrowly scoped apply-executor design preflight
+    with fresh consent, rollback, audit, and projection gates.
