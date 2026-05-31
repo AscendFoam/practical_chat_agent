@@ -7789,3 +7789,57 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
     similarity scoring, persona synthesis, or implementation tests exist.
   - T364 memory retrieval/consolidation refresh and M25 review remain future
     work.
+
+## T364 Worker Completion Record
+
+- T364 is the Memory Retrieval Consolidation Refresh task.
+- Worker must not mark T364 as complete in `docs/04_task_board.md`; T364 awaits
+  adversarial memory-architecture, privacy, persona-safety, distillation-safety,
+  and product-safety review and Captain judgment.
+- Files changed:
+  - `docs/research/memory_retrieval_consolidation_refresh.md`
+  - `docs/data_contracts/memory_retrieval_consolidation_refresh_contract.md`
+  - `docs/tasks/M25_memory_persona_growth/T365_m25_milestone_review.md`
+  - `docs/worker_summary/T364_worker_summary.md`
+  - `docs/07_handoff.md`
+- Refresh result:
+  - Aligned existing MemoryEvent, lifecycle, consolidation, retrieval bundle,
+    viewer, and text-first chat memory contracts with the M25 architecture.
+  - Documented consolidation requirements for type/truth separation,
+    contradiction, supersession, consent withdrawal, deletion cascade, and
+    imagined-memory isolation.
+  - Documented retrieval requirements for purpose, consent, lifecycle,
+    permission, review-required exclusion, imagined/factual separation,
+    selected/excluded ids, exclusion reasons, and safety warnings.
+  - Documented explanation requirements for viewer, chat review, retrieval,
+    persona growth, and distillation review surfaces.
+- Contract result:
+  - Created
+    `docs/data_contracts/memory_retrieval_consolidation_refresh_contract.md`.
+  - Marked `MemoryContradictionCandidate`, `MemorySupersessionCandidate`,
+    `MemoryDeletionCascadePlan`, `MemoryExplanationTrace`, and
+    `PersonaGrowthEvidenceBundle` as future contract candidates, not
+    implemented code.
+  - Defined consolidation, retrieval bundle, explanation surface, consent
+    withdrawal, persona-growth evidence, distillation-readiness, forbidden
+    field, and later implementation acceptance requirements.
+- T365 next task package:
+  - Created `docs/tasks/M25_memory_persona_growth/T365_m25_milestone_review.md`.
+  - T365 is scoped to M25 milestone review and M26 scope creation.
+- Verification status:
+  - `git diff --check`: passed with Windows line-ending conversion warning for
+    `docs/07_handoff.md`.
+- Explicit non-actions:
+  - No code, tests, Browser rerun, backend route, model-provider call, final
+    reply generation, private data processing, persistence, voice/avatar
+    runtime, media generation, external network asset, package manager,
+    platform adapter, outbound messaging, screenshot artifact, or task-board
+    edit was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - T364 is documentation only; no new implementation tests exist.
+  - T365 M25 review and M26 implementation-foundation scope remain future work.
