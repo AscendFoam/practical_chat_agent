@@ -10175,3 +10175,60 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - Apply audit records are not yet combined into a single manifest.
   - No review workspace displays completed apply audit records yet.
   - Automatic apply remains unauthorized.
+
+## T409 Worker Completion Record
+
+- T409 is the Apply Executor Audit Manifest task.
+- Worker must not mark T409 complete in `docs/04_task_board.md`; T409 awaits
+  adversarial auditability review for rollback evidence, privacy, local-only
+  boundaries, deterministic serialization, and no platform/provider surface
+  expansion.
+- Files changed:
+  - `src/practical_chat_agent/services/apply_executor_audit_manifest.py`
+  - `tests/test_apply_executor_audit_manifest.py`
+  - `docs/data_contracts/apply_executor_audit_manifest_contract.md`
+  - `docs/tasks/M33_controlled_apply_executor/T410_review_workspace_apply_audit_panel.md`
+  - `docs/worker_summary/T409_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD record:
+  - RED:
+    `$env:PYTHONPATH='src'; pytest tests\test_apply_executor_audit_manifest.py -q -o cache_dir=artifacts\t409_pytest_cache --basetemp=artifacts\t409_pytest_basetemp`
+    failed with `5 failed` because
+    `apply_executor_audit_manifest.py` did not exist.
+  - GREEN:
+    py_compile passed; focused tests passed with `5 passed`.
+- Implementation result:
+  - Added a local apply executor audit manifest entry and manifest record.
+  - Added a builder that accepts persona growth and memory lifecycle apply
+    audits and rejects unsupported schemas.
+  - Required confirmed final confirmation, local-only flags, no provider calls,
+    no outbound sends, and rollback references.
+  - Preserved gate ids, reviewer id, source artifact id, changed persona
+    fields, affected memory ids, rollback refs, and applied refs.
+- T410 next task package:
+  - Created
+    `docs/tasks/M33_controlled_apply_executor/T410_review_workspace_apply_audit_panel.md`.
+  - T410 is scoped to showing completed apply audit entries in the review
+    workspace.
+- Verification status:
+  - py_compile: passed.
+  - focused pytest: passed, `5 passed`.
+  - final combined pytest: passed, `17 passed`.
+  - `git diff --check`: passed with CRLF warnings only.
+- Explicit non-actions:
+  - No new apply execution, persona version mutation, memory lifecycle
+    mutation, private data reader, source ingestion from real logs, extraction,
+    embedding, vector search, retrieval ranking, similarity scoring,
+    model-provider call, PersonaCard synthesis, final reply generation,
+    proactive candidate, scheduler, queue persistence, webhook, token,
+    platform adapter, outbound messaging, voice/avatar runtime, media
+    generation, package-manager dependency, or task-board edit was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - The audit manifest is local-only and caller-supplied-audit-only.
+  - No review workspace displays completed apply audit records yet.
+  - Automatic apply remains unauthorized.
