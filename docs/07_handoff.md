@@ -6734,3 +6734,43 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - M21 is still local state-contract work, not a usable browser demo.
   - M22 voice/avatar work must start with research, consent, and labeling
     contracts only.
+
+## T330 Worker Completion Record
+
+- T330 is the Voice Technology Survey task for M22.
+- Worker must not mark T330 as complete in `docs/04_task_board.md`; T330 awaits
+  adversarial voice/privacy/product-policy review and Captain judgment.
+- Files changed:
+  - `docs/research/voice_technology_survey.md`
+  - `docs/tasks/M22_voice_and_avatar_exploration/T331_voice_consent_data_model.md`
+  - `docs/worker_summary/T330_worker_summary.md`
+  - `docs/07_handoff.md`
+- Survey result:
+  - Recommends non-real synthetic voices only for the first future voice route.
+  - Keeps real-person voice cloning, deceased-person simulation,
+    public-figure likeness, uploaded voice samples, microphone capture, voice
+    conversion, voice emotion inference, proactive voice outreach, and
+    unlabeled audio blocked.
+  - Requires separate `voice_avatar` consent, visible synthetic-audio labels,
+    metadata labels before future copy/download/export/share, and
+    crisis/dependency blocks before runtime voice work.
+- T331 next task package:
+  - Created
+    `docs/tasks/M22_voice_and_avatar_exploration/T331_voice_consent_data_model.md`.
+  - T331 is scoped to local voice consent and labeling data model work.
+- Verification status:
+  - `git diff --check`: passed with Windows line-ending conversion warnings.
+- Explicit non-actions:
+  - No model-provider call, TTS, ASR, voice cloning, voice conversion,
+    microphone capture, audio upload, audio generation, audio processing,
+    benchmark execution, UI, avatar/Live2D behavior, platform adapter, outbound
+    messaging, or task-board edit was added.
+  - No legal advice, compliance completion, biometric compliance,
+    synthetic-media compliance, crisis-safety sufficiency, app-store approval,
+    launch approval, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - T330 is a dated research snapshot; provider docs and platform policies can
+    change.
+  - No voice runtime, benchmark, UI, or user study has been implemented.
