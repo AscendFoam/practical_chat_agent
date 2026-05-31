@@ -9236,3 +9236,73 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - No local server payload integration exists yet.
   - No apply executor or real-data import/de-identification quality evaluation
     exists.
+
+## T391 Worker Completion Record
+
+- T391 is the Review Workspace Local Server Payload task.
+- Worker must not mark T391 complete in `docs/04_task_board.md`; T391 awaits
+  adversarial local server payload review for privacy, non-apply safety,
+  synthetic-only data, static/server contract fit, product-safety, and
+  documentation accuracy.
+- Files changed:
+  - `src/practical_chat_agent/ui/text_first_web_demo_adapter.py`
+  - `tests/test_review_workspace_local_server_payload.py`
+  - `docs/data_contracts/review_workspace_local_server_payload_contract.md`
+  - `docs/tasks/M29_review_workspace_ui/T392_m29_milestone_review.md`
+  - `docs/worker_summary/T391_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD record:
+  - RED:
+    `$env:PYTHONPATH='src'; pytest tests\test_review_workspace_local_server_payload.py -q -o cache_dir=artifacts\t391_pytest_cache --basetemp=artifacts\t391_pytest_basetemp`
+    failed with `3 failed, 3 passed` because the adapter and server did not
+    expose a `review_workspace` payload.
+  - GREEN:
+    focused adapter/server/static command passed with `23 passed` after
+    adding adapter-backed review workspace payloads.
+- Implementation result:
+  - Added `review_workspace` to `TextFirstWebDemoState`.
+  - Added synthetic review workspace record assembly in
+    `TextFirstWebDemoAdapter`.
+  - Reused the T389 presentation adapter and safe export/impact preview
+    services.
+  - Projected the presentation panel into a server-safe UI payload that omits
+    internal queue fields and executor/write fields.
+  - Verified `/demo-state.json` and embedded HTML include the server-provided
+    review workspace payload.
+  - Kept the static JS fallback fixture intact for absent server payloads.
+- Contract result:
+  - Created
+    `docs/data_contracts/review_workspace_local_server_payload_contract.md`.
+  - Documented payload behavior, data assumptions, forbidden fields, tests,
+    verification, Browser QA limitation, non-actions, and residual risks.
+- T392 next task package:
+  - Created `docs/tasks/M29_review_workspace_ui/T392_m29_milestone_review.md`.
+  - T392 is scoped to adversarial M29 milestone review.
+- Verification status:
+  - py_compile: passed.
+  - focused adapter/server/static pytest: passed, `23 passed`.
+  - full final pytest: passed, `23 passed`.
+  - `git diff --check`: passed with CRLF warnings only.
+- Explicit non-actions:
+  - No private data reader, source ingestion from real logs, extraction,
+    embedding, vector search, retrieval ranking, similarity scoring,
+    model-provider call, PersonaCard synthesis, final reply generation,
+    proactive candidate, new local server route, scheduler, queue persistence,
+    webhook, token, platform adapter, outbound messaging, voice/avatar
+    runtime, media generation, package-manager dependency, or task-board edit
+    was added.
+  - No review decision apply path, memory store mutation, PersonaCard
+    mutation, PersonaVersionStore write, deletion executor, retrieval
+    enablement, or provider-backed payload was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - Review workspace payloads are synthetic local demo payloads only.
+  - The server-safe projection trusts already-safe M28/T389 records.
+  - Browser visual QA remains blocked by local navigation policy in this
+    environment.
+  - No apply executor or real-data import/de-identification quality evaluation
+    exists.
