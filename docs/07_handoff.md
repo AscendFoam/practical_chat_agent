@@ -8516,3 +8516,75 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
 - Remaining risks:
   - Dry-run plans are local preview records only; no UI or persistence exists.
   - T380 still needs synthetic distillation review readiness aggregation.
+
+## T380 Worker Completion Record
+
+- T380 is the Distillation Review Readiness Aggregator task.
+- Worker must not mark T380 as complete in `docs/04_task_board.md`; T380
+  awaits adversarial distillation-safety, clone-risk, privacy, review queue,
+  product-safety, and documentation-accuracy review.
+- Files changed:
+  - `src/practical_chat_agent/services/distillation_review_readiness.py`
+  - `tests/test_distillation_review_readiness.py`
+  - `docs/data_contracts/distillation_review_readiness_contract.md`
+  - `docs/tasks/M27_review_queue_dry_run_apply/T381_m27_milestone_review.md`
+  - `docs/worker_summary/T380_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD record:
+  - RED:
+    `$env:PYTHONPATH='src'; pytest tests\test_distillation_review_readiness.py -q -o cache_dir=artifacts\t380_pytest_cache --basetemp=artifacts\t380_pytest_basetemp`
+    failed with `7 failed` because
+    `practical_chat_agent.services.distillation_review_readiness` did not
+    exist.
+  - GREEN:
+    the same focused test command passed with `7 passed` after implementing
+    `distillation_review_readiness.py`.
+- Implementation result:
+  - Added local Pydantic records for distillation readiness issues and
+    summaries.
+  - Added `DistillationReviewReadinessService` helper for synthetic
+    distillation manifests, de-identified style features, and optional review
+    queue item refs.
+  - Added blockers for missing or withdrawn persona-distillation consent,
+    clone-risk block, manifest blocking reasons, non-synthetic source
+    categories, missing features, retained source text, blocked features,
+    feature mismatch, and feature blocking reasons.
+  - Kept summaries review-required, non-runtime-ready, non-mutating, and
+    source-text-free for valid records.
+- Contract result:
+  - Created
+    `docs/data_contracts/distillation_review_readiness_contract.md`.
+  - Documented readiness records, issue codes, invariants, forbidden fields,
+    tests, verification, non-actions, and residual risks.
+- T381 next task package:
+  - Created
+    `docs/tasks/M27_review_queue_dry_run_apply/T381_m27_milestone_review.md`.
+  - T381 is scoped to adversarial M27 milestone review without source/test
+    edits or task-board mutation.
+- Verification status:
+  - `python -m py_compile src\practical_chat_agent\services\distillation_review_readiness.py`:
+    passed.
+  - focused pytest with distillation readiness, synthetic distillation input,
+    and review queue tests: passed, `32 passed`.
+  - `git diff --check`: passed with Windows line-ending conversion warning for
+    `docs/07_handoff.md`.
+- Explicit non-actions:
+  - No private data reader, source ingestion from real logs, extraction,
+    embedding, vector search, retrieval ranking, similarity scoring,
+    model-provider call, PersonaCard synthesis, final reply generation,
+    proactive candidate, persistence expansion, route, CLI, scheduler, queue
+    persistence, webhook, token, platform adapter, outbound messaging,
+    voice/avatar runtime, media generation, Browser artifact, package-manager
+    dependency, or task-board edit was added.
+  - No review decision apply path, memory store mutation, PersonaCard
+    mutation, PersonaVersionStore write, deletion executor, or retrieval
+    enablement was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - Readiness summaries are local review records only; no UI or persistence
+    exists.
+  - T381 still needs M27 milestone review.
