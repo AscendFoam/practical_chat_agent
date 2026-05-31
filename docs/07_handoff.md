@@ -10488,3 +10488,56 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - Commercial positioning is synthetic and unvalidated.
   - Responsive hardening still needs a dedicated pass.
   - No production monetization authorization is claimed.
+
+## T415 Worker Completion Record
+
+- T415 is the Integrated Demo Responsive Hardening task.
+- Worker must not mark T415 complete in `docs/04_task_board.md`; T415 awaits
+  adversarial responsive UI review for text fit, scanability, accessible static
+  structure, and no provider/outbound/media surface expansion.
+- Files changed:
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.css`
+  - `tests/test_integrated_demo_responsive_hardening.py`
+  - `docs/data_contracts/integrated_demo_responsive_hardening_contract.md`
+  - `docs/tasks/M34_integrated_companion_demo/T416_m34_milestone_review.md`
+  - `docs/worker_summary/T415_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD record:
+  - RED:
+    `$env:PYTHONPATH='src'; pytest tests\test_integrated_demo_responsive_hardening.py -q -o cache_dir=artifacts\t415_pytest_cache --basetemp=artifacts\t415_pytest_basetemp`
+    failed with `1 failed, 3 passed` because the new panels did not have
+    mobile-specific CSS constraints.
+  - GREEN:
+    focused tests passed with `4 passed`.
+- Implementation result:
+  - Added `min-width: 0` to `.item`.
+  - Added mobile padding constraints for integrated scenario and
+    trust/commercial sections.
+  - Added mobile single-column grid constraints for scenario, commercial, and
+    review grids.
+- T416 next task package:
+  - Created
+    `docs/tasks/M34_integrated_companion_demo/T416_m34_milestone_review.md`.
+  - T416 is scoped to adversarial M34 milestone review.
+- Verification status:
+  - focused pytest: passed, `4 passed`.
+  - final combined pytest: passed, `17 passed`.
+  - browser QA: passed at 642px viewport with single-column scenario and
+    trust/commercial grids, no horizontal overflow, and readable trust panel.
+  - `git diff --check`: passed with CRLF warnings only.
+- Explicit non-actions:
+  - No payload schema change, runtime companion behavior, new apply execution,
+    persona version mutation, memory lifecycle mutation, private data reader,
+    source ingestion from real logs, extraction, embedding, vector search,
+    retrieval ranking, similarity scoring, model-provider call, final reply
+    generation, proactive candidate, scheduler, queue persistence, webhook,
+    token, external adapter, outbound messaging, voice/avatar runtime, media
+    generation, package-manager dependency, or task-board edit was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - Browser QA was limited to the available narrow viewport.
+  - M34 milestone review remains open.

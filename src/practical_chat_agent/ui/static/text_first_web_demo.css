@@ -273,6 +273,7 @@ h2 {
 
 .item {
   border: 1px solid var(--line);
+  min-width: 0;
   padding: 12px;
   background: #fcfcfd;
   overflow-wrap: anywhere;
@@ -391,5 +392,17 @@ h2 {
 
   .scenario-controls {
     grid-template-columns: 1fr;
+  }
+
+  .scenario-spine,
+  .trust-commercial {
+    padding: 14px;
+  }
+
+  .scenario-promise-grid,
+  .scenario-spine-grid,
+  .trust-commercial-grid,
+  .review-grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
