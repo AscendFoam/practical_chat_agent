@@ -7476,3 +7476,47 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - Formal Browser QA, screen-reader validation, high-contrast validation, zoom
     validation, localization, RTL, and extreme-payload testing remain for later
     tasks.
+
+## T354 Worker Completion Record
+
+- T354 is the Local Run Browser QA task for M24.
+- Worker must not mark T354 as complete in `docs/04_task_board.md`; T354 awaits
+  adversarial frontend, accessibility, and product/safety UX review and Captain
+  judgment.
+- Files changed:
+  - `docs/qa/local_run_browser_qa.md`
+  - `docs/tasks/M24_demo_hardening_and_local_backend/T355_m24_milestone_review.md`
+  - `docs/worker_summary/T354_worker_summary.md`
+  - `docs/07_handoff.md`
+- QA result:
+  - Used the T351 local server helper at `http://127.0.0.1:8769/`.
+  - Checked desktop `1280x720` and mobile `390x844`.
+  - Verified all seven scenarios select expected panels.
+  - Verified active tab `aria-selected=true` and active scenario
+    `aria-pressed=true`.
+  - Verified expected panel visibility, AI identity, friendly labels, proactive
+    no-send label, voice-off label, and avatar-locked label.
+  - Found no page-level horizontal overflow in tested viewports.
+  - Captured transient Browser screenshots and stopped the temporary preview
+    server after verification.
+  - Recorded inconclusive automated keyboard focus traversal as a residual risk.
+- T355 next task package:
+  - Created
+    `docs/tasks/M24_demo_hardening_and_local_backend/T355_m24_milestone_review.md`.
+  - T355 is scoped to M24 milestone review and M25 scope creation.
+- Verification status:
+  - `git diff --check`: passed with Windows line-ending conversion warnings.
+- Explicit non-actions:
+  - No code, tests, static asset edit, model-provider call, final reply
+    generation, private data processing, voice/avatar runtime, media
+    generation, external network asset, package manager, platform adapter,
+    outbound messaging, screenshot artifact, or task-board edit was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - Real manual keyboard traversal, arrow-key tab navigation, screen-reader,
+    high-contrast, zoom, localization, RTL, and extreme-payload testing remain
+    unverified.
