@@ -36,6 +36,55 @@ The demo should better communicate the target experience:
 - Add tests that ensure no private/provider/platform/outbound/media expansion.
 - Keep Browser QA as a final visual check for meaningful UI changes.
 
+## Integrated Scenario Spine Requirements
+
+The first code-facing M34 task should add an `integrated_scenario` payload to
+the local web demo state. The payload should be server-safe and synthetic, with
+fields such as:
+
+- `scenario_title`: short reviewer-facing title;
+- `persona_promise`: what kind of companion experience the synthetic persona
+  is demonstrating;
+- `memory_promise`: how continuity is grounded in reviewed memory rather than
+  hidden raw logs;
+- `review_promise`: how review gates and rollback evidence protect user
+  control;
+- `proactive_promise`: how proactive suggestions remain consented and
+  review-gated;
+- `life_stream_promise`: how imagined content is labeled and separated from
+  real-world claims;
+- `voice_avatar_boundary`: why voice/avatar is currently locked or review-only;
+- `commercial_positioning`: trust-first monetization framing;
+- `readiness_summary`: local prototype readiness and remaining gaps;
+- `scenario_steps`: ordered cards linking to the existing demo sections.
+
+The static UI should add an integrated scenario panel or section that lets a
+reviewer scan this spine before diving into individual tabs. The panel should
+not become a marketing landing page; it should remain an operational product
+review surface.
+
+## Commercial Positioning Requirements
+
+Commercial framing should be explicit but bounded:
+
+- acceptable: subscription tiers for memory depth, persona customization,
+  review tooling, privacy controls, and premium synthetic content workflows;
+- acceptable: enterprise/internal coaching adaptation as a separate governed
+  product surface;
+- not acceptable: dependency pressure, guilt-based retention, paywalled
+  emotional crisis handling, impersonation claims, real-person replacement
+  claims, or hidden monetization of private chat content.
+
+## Browser QA Expectations
+
+For code-facing M34 UI tasks, final verification should include:
+
+- focused pytest coverage;
+- local web demo regression tests when static assets change;
+- Browser QA of the changed local page through a localhost preview;
+- confirmation that text fits, the changed panel is visible, and no new
+  private/provider/outbound/media controls appear.
+
 ## Out Of Scope
 
 - Reading `private/chat_history/`, `private/distilled/`, or private artifacts.
