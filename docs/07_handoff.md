@@ -8639,3 +8639,54 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - Real private import/de-identification, provider-backed extraction,
     proactive messaging, voice/avatar runtime, platform delivery, and
     monetization remain future separately scoped work.
+
+## T382 Worker Completion Record
+
+- T382 is the M28 Local Review Workspace Scope task.
+- Worker must not mark T382 as complete in `docs/04_task_board.md`; T382
+  awaits adversarial product-scope, review-only semantics, privacy, dry-run
+  safety, and documentation-accuracy review.
+- Files changed:
+  - `docs/product/m28_local_review_workspace_scope.md`
+  - `docs/tasks/M28_local_review_workspace/T382_m28_scope.md`
+  - `docs/tasks/M28_local_review_workspace/T383_review_workspace_bindings.md`
+  - `docs/worker_summary/T382_worker_summary.md`
+  - `docs/07_handoff.md`
+- Scope result:
+  - Defined M28 as a local deterministic review workspace foundation after
+    M27.
+  - Carried forward M27 warnings into explicit M28 entry constraints.
+  - Scoped implementation to binding records, local snapshots, decision impact
+    previews, safe export manifests, and milestone review.
+  - Kept real apply executors, private import/de-identification,
+    provider-backed extraction, proactive messaging, voice/avatar runtime,
+    media generation, platform delivery, and monetization out of scope.
+- T383 next task package:
+  - Created
+    `docs/tasks/M28_local_review_workspace/T383_review_workspace_bindings.md`.
+  - T383 is scoped to local review workspace binding records without applying
+    decisions, mutating stores, or persisting data.
+- Verification status:
+  - `git diff --check`: passed with Windows line-ending conversion warning for
+    `docs/07_handoff.md`.
+- Explicit non-actions:
+  - No Python source code or tests were changed in T382.
+  - No private data reader, source ingestion from real logs, extraction,
+    embedding, vector search, retrieval ranking, similarity scoring,
+    model-provider call, PersonaCard synthesis, final reply generation,
+    proactive candidate, persistence expansion, route, CLI, scheduler, queue,
+    webhook, token, platform adapter, outbound messaging, voice/avatar runtime,
+    media generation, Browser artifact, package-manager dependency, or
+    task-board edit was added.
+  - No review decision apply path, memory store mutation, PersonaCard
+    mutation, PersonaVersionStore write, deletion executor, or retrieval
+    enablement was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - T383 still needs executable binding records and tests.
+  - M28 does not yet have a snapshot store, decision impact preview, safe
+    export manifest, UI, persistence, or apply executor.
