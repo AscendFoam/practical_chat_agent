@@ -7731,3 +7731,61 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
     exists yet.
   - Synthetic distillation input contracts, memory retrieval/consolidation
     refresh, and M25 review remain future work.
+
+## T363 Worker Completion Record
+
+- T363 is the Synthetic Distillation Input Contract task.
+- Worker must not mark T363 as complete in `docs/04_task_board.md`; T363 awaits
+  adversarial privacy, de-identification, real-person likeness, product-safety,
+  and memory-architecture review and Captain judgment.
+- Files changed:
+  - `docs/product/synthetic_distillation_input_policy.md`
+  - `docs/data_contracts/synthetic_distillation_input_contract.md`
+  - `docs/tasks/M25_memory_persona_growth/T364_memory_retrieval_consolidation_refresh.md`
+  - `docs/worker_summary/T363_worker_summary.md`
+  - `docs/07_handoff.md`
+- Product policy result:
+  - Defined the safe target as de-identified abstract style inspiration into a
+    new fictional AI persona.
+  - Defined blocked targets for real-person clone, public figure, ex-partner,
+    family member, deceased person, minor, voice/face likeness, hidden
+    impersonation, and platform sending.
+  - Documented consent, speaker mapping, third-party minimization, redaction,
+    source-ref, clone-risk, similarity-warning, disclosure, and synthetic
+    fixture principles.
+- Contract result:
+  - Created `docs/data_contracts/synthetic_distillation_input_contract.md`.
+  - Marked `SyntheticDistillationInputManifest`,
+    `SyntheticDistillationSourceSegment`, `SyntheticSpeakerAlias`,
+    `DistillationConsentRef`, `DistillationRedactionRef`,
+    `DeidentifiedStyleFeatureCandidate`, `CloneRiskDecision`, and
+    `FictionalPersonaSynthesisInput` as future contract candidates, not
+    implemented code.
+  - Defined allowed feature families, blocked feature families, clone-risk
+    flags, segment rules, speaker mapping rules, consent rules, redaction
+    rules, output invariants, forbidden fields, and later implementation
+    acceptance criteria.
+- T364 next task package:
+  - Created
+    `docs/tasks/M25_memory_persona_growth/T364_memory_retrieval_consolidation_refresh.md`.
+  - T364 is scoped to memory retrieval, consolidation, and explanation contract
+    refresh before M25 review.
+- Verification status:
+  - `git diff --check`: passed with Windows line-ending conversion warning for
+    `docs/07_handoff.md`.
+- Explicit non-actions:
+  - No code, tests, Browser rerun, backend route, model-provider call, final
+    reply generation, private data processing, persistence, voice/avatar
+    runtime, media generation, external network asset, package manager,
+    platform adapter, outbound messaging, screenshot artifact, or task-board
+    edit was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - T363 is policy/contract documentation only; no extraction, source reader,
+    similarity scoring, persona synthesis, or implementation tests exist.
+  - T364 memory retrieval/consolidation refresh and M25 review remain future
+    work.
