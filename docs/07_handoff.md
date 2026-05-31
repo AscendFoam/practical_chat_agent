@@ -4673,7 +4673,8 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
     passed, 10 tests.
   - `pytest tests\test_persona_card_schema.py tests\test_persona_compiler.py -q -o cache_dir=artifacts\t251_pytest_cache_final --basetemp=artifacts\t251_pytest_basetemp_final`:
     passed, 23 tests.
-  - `git diff --check`: passed.
+  - `git diff --check`: passed with Windows line-ending conversion warning for
+    `docs/07_handoff.md`.
 - Explicit non-actions:
   - No LLM call, model provider, external API, browser automation, network
     service, private chat-log read, style extraction, similarity scoring,
@@ -4728,7 +4729,8 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
     passed, 7 tests.
   - `pytest tests\test_deidentification_guard.py tests\test_persona_compiler.py -q -o cache_dir=artifacts\t252_pytest_cache_min --basetemp=artifacts\t252_pytest_basetemp_min`:
     passed, 17 tests.
-  - `git diff --check`: passed.
+  - `git diff --check`: passed with Windows line-ending conversion warning for
+    `docs/07_handoff.md`.
 - Explicit non-actions:
   - No private chat-log read, private corpus access, real deidentification
     quality claim, similarity scoring, LLM call, embedding, PersonaCard
@@ -8588,3 +8590,52 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - Readiness summaries are local review records only; no UI or persistence
     exists.
   - T381 still needs M27 milestone review.
+
+## T381 Reviewer Completion Record
+
+- T381 is the M27 Milestone Review task.
+- Reviewer must not mark M27 or T381 as complete in `docs/04_task_board.md`.
+- Files changed:
+  - `docs/review/M27_review.md`
+  - `docs/worker_summary/T381_worker_summary.md`
+  - `docs/07_handoff.md`
+- Review outcome:
+  - Verdict: `PASS_WITH_WARNINGS`.
+  - No blocking or high-severity issues were found.
+  - Warnings documented:
+    - M27 artifacts remain local records only; no UI, persistence, or apply
+      executor exists.
+    - Distillation readiness preserves supplied review queue refs without
+      matching them to candidate ids.
+    - Dry-run plans preview effects but do not validate external cache/index
+      cascade coverage.
+- Verification status:
+  - focused pytest with review queue, memory lifecycle dry-run, persona growth
+    dry-run, and distillation readiness tests: passed, `24 passed`.
+  - `git diff --check`: passed.
+  - read-only forbidden-surface scans: no M27 source runtime/provider/media
+    method definitions or network/provider invocations found; forbidden fields
+    only appeared in safety-boundary tests.
+- Explicit non-actions:
+  - No source files or tests were modified by T381.
+  - No private data reader, source ingestion from real logs, extraction,
+    embedding, vector search, retrieval ranking, similarity scoring,
+    model-provider call, PersonaCard synthesis, final reply generation,
+    proactive candidate, persistence expansion, route, CLI, scheduler, queue
+    persistence, webhook, token, platform adapter, outbound messaging,
+    voice/avatar runtime, media generation, Browser artifact, package-manager
+    dependency, or task-board edit was added.
+  - No review decision apply path, memory store mutation, PersonaCard
+    mutation, PersonaVersionStore write, deletion executor, or retrieval
+    enablement was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - No user-facing review UI or persistence exists.
+  - No apply executor exists for memory lifecycle or persona growth.
+  - Real private import/de-identification, provider-backed extraction,
+    proactive messaging, voice/avatar runtime, platform delivery, and
+    monetization remain future separately scoped work.
