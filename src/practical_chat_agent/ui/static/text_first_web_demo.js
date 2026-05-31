@@ -100,6 +100,156 @@
         "User trust has priority over engagement tricks."
       ]
     },
+    companion_session: {
+      schema_version: "local_companion_session_v1",
+      session_title: "Synthetic evening check-in loop",
+      session_summary: "Deterministic local session showing reviewed memory continuity, persona cues, and review-only follow-up candidates.",
+      persona_snapshot: {
+        persona_id: "persona_synthetic",
+        display_name: "Lin Qi",
+        ai_identity_disclosure: "AI-generated synthetic companion.",
+        stable_traits: ["calm", "concise", "dry humor", "independent boundaries"],
+        real_person_claim: false
+      },
+      persona_cues: [
+        {
+          cue_id: "cue_001",
+          label: "Concise warmth",
+          safe_summary: "Reply briefly while staying warm."
+        },
+        {
+          cue_id: "cue_002",
+          label: "Fiction boundary",
+          safe_summary: "Separate imagined companion content from real-world claims."
+        }
+      ],
+      memory_recalls: [
+        {
+          recall_id: "recall_001",
+          memory_kind: "factual",
+          truth_status: "evidence_backed",
+          reviewed_summary: "User prefers concise check-ins.",
+          source_label: "synthetic_reviewed_memory",
+          raw_source_available: false
+        },
+        {
+          recall_id: "recall_002",
+          memory_kind: "imagined",
+          truth_status: "imagined",
+          reviewed_summary: "Fictional companion setting: a quiet bookstore while it rains.",
+          source_label: "synthetic_imagined_memory",
+          raw_source_available: false
+        }
+      ],
+      safety_notes: [
+        {
+          safety_note_id: "safety_001",
+          safe_summary: "Keep the reply low-pressure and concise."
+        },
+        {
+          safety_note_id: "safety_002",
+          safe_summary: "Require review before any imagined life-stream draft is used."
+        }
+      ],
+      turns: [
+        {
+          turn_id: "turn_001",
+          speaker: "user",
+          safe_text: "Could you keep tonight short? I am tired but want a tiny plan for tomorrow.",
+          used_memory_recall_ids: [],
+          used_persona_cue_ids: [],
+          safety_note_ids: ["safety_001"],
+          review_trace: "Synthetic user turn; no source import.",
+          generated_by: "deterministic_synthetic_fixture"
+        },
+        {
+          turn_id: "turn_002",
+          speaker: "companion",
+          safe_text: "Short version: water, one line for tomorrow, then stop. You usually like concise check-ins, so I will not crowd you.",
+          used_memory_recall_ids: ["recall_001"],
+          used_persona_cue_ids: ["cue_001"],
+          safety_note_ids: ["safety_001"],
+          review_trace: "Uses reviewed preference memory and concise persona cue.",
+          generated_by: "deterministic_synthetic_fixture"
+        },
+        {
+          turn_id: "turn_003",
+          speaker: "user",
+          safe_text: "That helps. I also liked the rain bookstore mood from the fictional notes.",
+          used_memory_recall_ids: [],
+          used_persona_cue_ids: [],
+          safety_note_ids: ["safety_002"],
+          review_trace: "Synthetic user turn requesting imagined content boundary.",
+          generated_by: "deterministic_synthetic_fixture"
+        },
+        {
+          turn_id: "turn_004",
+          speaker: "companion",
+          safe_text: "We can keep that as fiction: a quiet bookstore, rain outside, and no claim that it happened in your day.",
+          used_memory_recall_ids: ["recall_002"],
+          used_persona_cue_ids: ["cue_002"],
+          safety_note_ids: ["safety_002"],
+          review_trace: "Uses imagined memory only as labeled fiction.",
+          generated_by: "deterministic_synthetic_fixture"
+        }
+      ],
+      post_turn_candidates: [
+        {
+          candidate_id: "session_candidate_memory_001",
+          candidate_kind: "memory_candidate",
+          originating_turn_id: "turn_002",
+          safe_summary: "Review whether short evening planning should become a low-sensitivity preference.",
+          review_required: true,
+          preview_only: true,
+          changes_state: false,
+          automatic_apply: false,
+          sends_messages: false
+        },
+        {
+          candidate_id: "session_candidate_persona_001",
+          candidate_kind: "persona_growth_patch",
+          originating_turn_id: "turn_002",
+          safe_summary: "Review a small persona bias toward concise evening replies.",
+          review_required: true,
+          preview_only: true,
+          changes_state: false,
+          automatic_apply: false,
+          sends_messages: false
+        },
+        {
+          candidate_id: "session_candidate_proactive_001",
+          candidate_kind: "proactive_suggestion",
+          originating_turn_id: "turn_002",
+          safe_summary: "Review an in-app afternoon check-in idea; it is not sent.",
+          review_required: true,
+          preview_only: true,
+          changes_state: false,
+          automatic_apply: false,
+          sends_messages: false
+        },
+        {
+          candidate_id: "session_candidate_life_001",
+          candidate_kind: "life_stream_draft",
+          originating_turn_id: "turn_004",
+          safe_summary: "Review an imagined rain-bookstore life-stream draft labeled as fiction.",
+          review_required: true,
+          preview_only: true,
+          changes_state: false,
+          automatic_apply: false,
+          sends_messages: false
+        }
+      ],
+      non_execution_flags: {
+        local_only: true,
+        synthetic_fixture: true,
+        calls_provider: false,
+        uses_private_source: false,
+        writes_runtime_store: false,
+        automatic_apply: false,
+        sends_messages: false,
+        media_runtime_enabled: false
+      }
+    },
     onboarding: {
       ai_identity_disclosure_text: "AI-generated synthetic companion. Review required."
     },
@@ -565,10 +715,12 @@
     const review = data.review_workspace || { filter_tabs: [], cards: [] };
     const integratedScenario = data.integrated_scenario || {};
     const trustCommercial = data.trust_commercial || {};
+    const companionSession = data.companion_session || fallbackState.companion_session || {};
 
     text("#identity-strip", data.onboarding.ai_identity_disclosure_text);
     drawIntegratedScenario(integratedScenario);
     drawTrustCommercial(trustCommercial);
+    drawCompanionSession(companionSession);
     text("#chat-state", friendlyLabel(chat.screen));
     text("#chat-summary", "Persona: " + (chat.persona_summary.display_name || persona.display_name || "Synthetic"));
     items("#chat-memory-list", chat.memory_explanations, function (item) {
@@ -654,6 +806,82 @@
     items("#readiness-gap-list", value.readiness_gaps || [], function (item) {
       return "<div class='item-title'>" + item + "</div>";
     });
+  }
+
+  function drawCompanionSession(session) {
+    const memoryById = sessionRecordsById(session.memory_recalls || [], "recall_id");
+    const cueById = sessionRecordsById(session.persona_cues || [], "cue_id");
+    const safetyById = sessionRecordsById(session.safety_notes || [], "safety_note_id");
+    const flags = session.non_execution_flags || {};
+
+    text("#session-title", session.session_title || "Synthetic companion session");
+    text("#session-schema", friendlyLabel(session.schema_version || "local"));
+    text("#session-summary", session.session_summary || "");
+    text("#session-non-execution", nonExecutionText(flags));
+
+    items("#session-turn-list", session.turns || [], function (turn) {
+      return appendSessionTurn(turn, memoryById, cueById, safetyById);
+    });
+    labels("#session-memory-list", (session.memory_recalls || []).map(function (recall) {
+      return (recall.reviewed_summary || recall.recall_id) + " / " + friendlyLabel(recall.truth_status);
+    }));
+    labels("#session-persona-cue-list", (session.persona_cues || []).map(function (cue) {
+      return cue.label || cue.cue_id;
+    }));
+    items("#session-safety-list", session.safety_notes || [], function (note) {
+      return "<div class='item-title'>" + (note.safe_summary || friendlyLabel(note.safety_note_id)) + "</div>";
+    });
+    items("#session-candidate-list", session.post_turn_candidates || [], function (candidate) {
+      return "<div class='item-title'>" + friendlyLabel(candidate.candidate_kind) + "</div>"
+        + "<div>" + (candidate.safe_summary || "") + "</div>"
+        + "<div class='item-meta'>Review required: " + String(candidate.review_required === true)
+        + " / Preview only: " + String(candidate.preview_only === true)
+        + " / Sends messages: " + String(candidate.sends_messages === true)
+        + "</div>";
+    });
+  }
+
+  function appendSessionTurn(turn, memoryById, cueById, safetyById) {
+    return "<div class='session-turn-head'>"
+      + "<span class='tag'>" + friendlyLabel(turn.speaker) + "</span>"
+      + "<span class='item-meta'>" + turn.turn_id + "</span>"
+      + "</div>"
+      + "<div class='session-turn-text'>" + (turn.safe_text || "") + "</div>"
+      + "<div class='session-chip-row'>"
+      + sessionRefsText("Memory", turn.used_memory_recall_ids, memoryById, "reviewed_summary")
+      + sessionRefsText("Persona", turn.used_persona_cue_ids, cueById, "label")
+      + sessionRefsText("Safety", turn.safety_note_ids, safetyById, "safe_summary")
+      + "</div>"
+      + "<div class='item-meta'>" + (turn.review_trace || "") + "</div>";
+  }
+
+  function sessionRecordsById(records, key) {
+    const result = {};
+    records.forEach(function (record) {
+      result[record[key]] = record;
+    });
+    return result;
+  }
+
+  function sessionRefsText(label, ids, byId, field) {
+    const values = (ids || []).map(function (id) {
+      const record = byId[id] || {};
+      return record[field] || friendlyLabel(id);
+    });
+    return values.length
+      ? "<span class='label'>" + label + ": " + values.join(" / ") + "</span>"
+      : "";
+  }
+
+  function nonExecutionText(flags) {
+    const labels = [
+      flags.local_only === true ? "local only" : "",
+      flags.synthetic_fixture === true ? "synthetic fixture" : "",
+      flags.calls_provider === false ? "no provider" : "",
+      flags.sends_messages === false ? "no outbound" : "",
+      flags.media_runtime_enabled === false ? "no media runtime" : ""
+    ].filter(Boolean);
+    return labels.length ? labels.join(" / ") : "preview only";
   }
 
   function drawReviewWorkspace(review) {

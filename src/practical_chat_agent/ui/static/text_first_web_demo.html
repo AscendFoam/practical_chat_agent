@@ -87,6 +87,36 @@
         </div>
       </section>
 
+      <section id="companion-session" class="companion-session" aria-label="Companion session loop">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Session loop</p>
+            <h2 id="session-title">Synthetic evening check-in loop</h2>
+          </div>
+          <span id="session-schema" class="tag">local companion session</span>
+        </div>
+        <p id="session-summary" class="lead"></p>
+        <div class="session-layout">
+          <div>
+            <p class="eyebrow">Turns</p>
+            <div id="session-turn-list" class="item-list session-turn-list"></div>
+          </div>
+          <aside class="session-context" aria-label="Session context">
+            <p class="eyebrow">Memory recalls</p>
+            <div id="session-memory-list" class="label-row session-chip-row"></div>
+            <p class="eyebrow">Persona cues</p>
+            <div id="session-persona-cue-list" class="label-row session-chip-row"></div>
+            <p class="eyebrow">Safety notes</p>
+            <div id="session-safety-list" class="item-list session-safety-list"></div>
+          </aside>
+        </div>
+        <div class="panel-head session-candidate-head">
+          <h3>Post-turn review candidates</h3>
+          <span id="session-non-execution" class="tag">preview only</span>
+        </div>
+        <div id="session-candidate-list" class="item-list session-candidate-grid"></div>
+      </section>
+
       <section id="chat-panel" class="panel is-active" data-panel="chat" role="tabpanel" aria-labelledby="tab-chat" aria-hidden="false">
         <div class="panel-head">
           <h2>Chat Review</h2>

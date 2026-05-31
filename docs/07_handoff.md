@@ -10681,3 +10681,68 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - The session loop is payload-only until T419 renders it.
   - The payload is deterministic and synthetic; it does not prove model quality,
     real distillation quality, or production runtime behavior.
+
+## T419 Worker Completion Record
+
+- T419 is the Static Companion Session Loop task.
+- Worker must not mark T419 complete in `docs/04_task_board.md`; T419 awaits
+  adversarial static UI review for companion-session readability,
+  non-execution boundaries, responsive layout, and no provider/outbound/media
+  surface expansion.
+- Files changed:
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.html`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.js`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.css`
+  - `tests/test_static_companion_session_loop.py`
+  - `tests/test_text_first_web_demo_static.py`
+  - `tests/test_text_first_web_demo_state_switching.py`
+  - `docs/data_contracts/static_companion_session_loop_contract.md`
+  - `docs/tasks/M35_next_iteration/T420_session_review_candidate_linkage.md`
+  - `docs/worker_summary/T419_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD record:
+  - RED:
+    `$env:PYTHONPATH='src'; pytest tests\test_static_companion_session_loop.py -q -o cache_dir=artifacts\t419_pytest_cache --basetemp=artifacts\t419_pytest_basetemp`
+    failed with `3 failed, 2 passed` because the companion session section,
+    renderer, and CSS rules did not exist.
+  - GREEN:
+    focused tests passed with `5 passed`.
+- Implementation result:
+  - Added static `#companion-session` rendering for session turns, memory
+    recalls, persona cues, safety notes, post-turn candidates, and
+    non-execution status.
+  - Added fallback `companion_session` data for static file preview.
+  - Added responsive CSS for the session loop.
+  - Narrowed static forbidden-surface tests so explicit false fields such as
+    `sends_messages: false` are allowed while dangerous enabled states remain
+    blocked.
+- T420 next task package:
+  - Created
+    `docs/tasks/M35_next_iteration/T420_session_review_candidate_linkage.md`.
+  - T420 is scoped to linking post-session candidates into the review workspace
+    surface without automatic apply or sending.
+- Verification status:
+  - focused pytest: passed, `5 passed`.
+  - final combined pytest: passed, `30 passed`.
+  - Browser QA: passed through localhost at 642px viewport with 4 turns, 2
+    memory chips, 2 persona cue chips, 2 safety notes, 4 candidates, no
+    forbidden action controls, and no horizontal overflow.
+  - `git diff --check`: passed with CRLF warnings only.
+- Explicit non-actions:
+  - No adapter payload changes, package dependencies, source readers,
+    model-provider calls, embeddings, vector search, semantic ranking,
+    similarity scoring, fine-tuning, runtime store writes, PersonaCard
+    synthesis, platform adapters, schedulers, queues, webhooks, tokens,
+    recipient ids, delivery state, outbound messaging, automatic outreach,
+    voice/avatar runtime, media generation, payment processing, or task-board
+    edit was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - Session candidates are visible in the session panel but are not yet linked
+    into the review workspace surface.
+  - T420 is needed to connect the session loop to review-first candidate
+    governance.
