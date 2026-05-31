@@ -10807,3 +10807,57 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - Review linkage is still local and synthetic.
   - T421 should harden responsive layout and Browser QA for the session loop and
     session candidate review cards.
+
+## T421 Worker Completion Record
+
+- T421 is the Session Loop Responsive Hardening task.
+- Worker must not mark T421 complete in `docs/04_task_board.md`; T421 awaits
+  adversarial responsive UI review and then M35 milestone review in T422.
+- Files changed:
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.css`
+  - `tests/test_session_loop_responsive_hardening.py`
+  - `docs/data_contracts/session_loop_responsive_hardening_contract.md`
+  - `docs/tasks/M35_next_iteration/T422_m35_milestone_review.md`
+  - `docs/worker_summary/T421_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD record:
+  - RED:
+    `$env:PYTHONPATH='src'; pytest tests\test_session_loop_responsive_hardening.py -q -o cache_dir=artifacts\t421_pytest_cache --basetemp=artifacts\t421_pytest_basetemp`
+    failed with `1 failed, 3 passed` because session/review card wrapping rules
+    were not present.
+  - GREEN:
+    focused tests passed with `4 passed`.
+- Implementation result:
+  - Added shared wrapping constraints for session turn cards, session candidate
+    review cards, and review workspace cards.
+  - Added mobile alignment constraints for session turn headers, status badges,
+    and session chip rows.
+  - Created T422 as the M35 milestone review task.
+- T422 next task package:
+  - Created `docs/tasks/M35_next_iteration/T422_m35_milestone_review.md`.
+  - T422 is scoped to adversarial M35 milestone review.
+- Verification status:
+  - focused pytest: passed, `4 passed`.
+  - final combined pytest: passed, `18 passed`.
+  - Browser QA: passed through localhost at the available 642px viewport with a
+    single-column session loop, 4 turn cards, 4 candidate cards, 6 chip rows, 4
+    session review cards, 2 apply audit cards, no forbidden action controls, and
+    no horizontal overflow. Desktop behavior was covered by CSS/static tests
+    because Browser viewport control was unavailable.
+  - `git diff --check`: passed with CRLF warnings only.
+- Explicit non-actions:
+  - No adapter payload changes, package dependencies, source readers,
+    model-provider calls, embeddings, vector search, semantic ranking,
+    similarity scoring, fine-tuning, runtime store writes, PersonaCard
+    synthesis, platform adapters, schedulers, queues, webhooks, tokens,
+    recipient ids, delivery state, outbound messaging, automatic outreach,
+    voice/avatar runtime, media generation, payment processing, or task-board
+    edit was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - M35 still needs adversarial milestone review in T422.
+  - Session loop and review linkage remain local synthetic demo surfaces.
