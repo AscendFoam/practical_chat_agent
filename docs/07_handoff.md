@@ -9732,3 +9732,42 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - Eligibility remains non-executable.
   - No future apply executor exists.
   - Browser screenshot QA remains environment-blocked.
+
+## T400 Reviewer Completion Record
+
+- T400 is the M31 Milestone Review task.
+- Verdict: `PASS_WITH_WARNINGS`.
+- Files changed:
+  - `docs/review/M31_review.md`
+  - `docs/worker_summary/T400_worker_summary.md`
+  - `docs/07_handoff.md`
+- Reviewed:
+  - M31 scope, manual apply preview records, eligibility gate, read-only UI
+    panel, tests, contracts, and handoff.
+- Findings:
+  - No blocking issues found.
+  - Manual apply preview eligibility is not executable authority.
+  - Review workspace apply preview UI remains synthetic/local-only.
+  - Browser screenshot QA remains unavailable in this environment.
+- Verification status:
+  - py_compile: passed.
+  - M31 focused pytest: passed, `28 passed`.
+  - forbidden-field scan: hits confined to safety-test forbidden-term lists.
+  - forbidden-method scan: no runtime method definitions found.
+  - action-control scan: hits confined to safety-test forbidden-term lists.
+  - `git diff --check`: passed with CRLF warnings only.
+- Explicit non-actions:
+  - No code, tests, task-board entries, source readers, private data
+    ingestion, model-provider calls, apply executors, memory/persona mutation
+    paths, proactive candidates, platform integration, outbound messaging,
+    voice/avatar runtime, generated media, package-manager dependency, or
+    production persistence was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Recommendation:
+  - Close M31 as `PASS_WITH_WARNINGS`.
+  - Next milestone should define executor-risk assessment and approval gates
+    before any mutation executor is considered.
