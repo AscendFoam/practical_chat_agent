@@ -9771,3 +9771,37 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - Close M31 as `PASS_WITH_WARNINGS`.
   - Next milestone should define executor-risk assessment and approval gates
     before any mutation executor is considered.
+
+## T401 Worker Completion Record
+
+- T401 is the Apply Executor Risk Scope task.
+- Worker must not mark T401 complete in `docs/04_task_board.md`; T401 awaits
+  adversarial product/safety scope review for executor-risk boundaries,
+  non-execution guarantees, privacy, and documentation accuracy.
+- Files changed:
+  - `docs/product/m32_apply_executor_risk_scope.md`
+  - `docs/tasks/M32_apply_executor_risk/T402_apply_executor_risk_records.md`
+  - `docs/worker_summary/T401_worker_summary.md`
+  - `docs/07_handoff.md`
+- Work completed:
+  - Created M32 apply executor risk scope.
+  - Defined a non-executing boundary before any future mutation executor.
+  - Created T402 for apply executor risk records.
+- Verification status:
+  - `git diff --check`: passed with CRLF warnings only.
+- Explicit non-actions:
+  - No code, tests, private data reader, source ingestion from real logs,
+    extraction, embedding, vector search, retrieval ranking, similarity
+    scoring, model-provider call, PersonaCard synthesis, final reply
+    generation, proactive candidate, scheduler, queue persistence, webhook,
+    token, platform adapter, outbound messaging, voice/avatar runtime, media
+    generation, package-manager dependency, task-board edit, apply executor,
+    or mutation path was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - M32 is still non-executing.
+  - Any future mutation executor remains high-risk and separately scoped.
