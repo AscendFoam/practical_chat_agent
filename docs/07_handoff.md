@@ -6912,3 +6912,44 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
     platform policies can change.
   - No avatar runtime, web UI, user study, media generation, provider review, or
     legal review has been completed.
+
+## T334 Worker Completion Record
+
+- T334 is the M22 Milestone Review task.
+- Worker must not mark T334 as complete in `docs/04_task_board.md`; T334 awaits
+  adversarial milestone review and Captain judgment.
+- Files changed:
+  - `docs/review/M22_review.md`
+  - `docs/tasks/M23_integrated_text_first_web_demo/T340_web_demo_scope.md`
+  - `docs/worker_summary/T334_worker_summary.md`
+  - `docs/07_handoff.md`
+- Gate recommendation:
+  - PASS_WITH_WARNINGS for entering M23 integrated text-first web demo work.
+- Review basis:
+  - T330 voice technology survey.
+  - T331 voice consent data model and tests.
+  - T332 ASR/TTS latency benchmark plan.
+  - T333 avatar interaction survey.
+- T340 next task package:
+  - Created
+    `docs/tasks/M23_integrated_text_first_web_demo/T340_web_demo_scope.md`.
+  - T340 is scoped to text-first web demo planning.
+- Verification status:
+  - `pytest tests\test_voice_consent_data_model.py tests\test_consent_center_data_model.py tests\test_aigc_labeling_plan_contract.py tests\test_crisis_dependency_policy.py -q -o cache_dir=artifacts\t334_pytest_cache --basetemp=artifacts\t334_pytest_basetemp`:
+    passed, 25 tests.
+  - `git diff --check`: passed with Windows line-ending conversion warnings.
+- Explicit non-actions:
+  - No code, tests, UI implementation, browser automation, model-provider call,
+    voice/avatar runtime, media generation, private data processing, platform
+    adapter, outbound messaging, or task-board edit was added.
+  - No legal advice, compliance completion, biometric compliance,
+    synthetic-media compliance, crisis-safety sufficiency, app-store approval,
+    launch approval, user-study validation, or regulator acceptance was
+    claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - M22 is still research and local state-contract work, not a usable web demo.
+  - Voice/avatar runtime remains blocked.
+  - M23 needs an integrated text-first UI before voice/avatar work should
+    resume.
