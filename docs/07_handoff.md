@@ -6828,3 +6828,43 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
 - Remaining risks:
   - T331 is a local data model only; no voice runtime, benchmark, UI, provider
     review, legal review, or user study has been completed.
+
+## T332 Worker Completion Record
+
+- T332 is the ASR/TTS Latency Benchmark Plan task for M22.
+- Worker must not mark T332 as complete in `docs/04_task_board.md`; T332 awaits
+  adversarial voice/privacy/product-policy review and Captain judgment.
+- Files changed:
+  - `docs/research/asr_tts_latency_benchmark_plan.md`
+  - `docs/tasks/M22_voice_and_avatar_exploration/T333_avatar_interaction_survey.md`
+  - `docs/worker_summary/T332_worker_summary.md`
+  - `docs/07_handoff.md`
+- Plan result:
+  - Defines Phase 0 as plan-only and keeps runtime benchmarking out of scope.
+  - Requires future ASR/TTS work to use synthetic text fixtures, active
+    `voice_avatar` consent, non-real synthetic voice routes, AIGC audio labels,
+    metadata-label prerequisites, provider retention review, and
+    crisis/dependency voice blocks before runtime benchmarking.
+  - Defines future ASR metrics, TTS metrics, latency target bands, quality
+    review notes, logging/retention boundaries, and provider comparison
+    dimensions without selecting a provider.
+- T333 next task package:
+  - Created
+    `docs/tasks/M22_voice_and_avatar_exploration/T333_avatar_interaction_survey.md`.
+  - T333 is scoped to avatar/Live2D interaction research.
+- Verification status:
+  - `git diff --check`: passed with Windows line-ending conversion warnings.
+- Explicit non-actions:
+  - No code, tests, provider call, TTS, ASR, voice cloning, voice conversion,
+    microphone capture, audio upload, audio generation, audio fixture creation,
+    audio processing, benchmark execution, UI, avatar/Live2D behavior, platform
+    adapter, outbound messaging, or task-board edit was added.
+  - No legal advice, compliance completion, biometric compliance,
+    synthetic-media compliance, crisis-safety sufficiency, app-store approval,
+    launch approval, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - T332 is a benchmark plan only; no latency or quality measurements exist.
+  - Provider docs, costs, retention behavior, and platform policies can change
+    before runtime benchmarking.
