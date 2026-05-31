@@ -8000,3 +8000,71 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - Candidate records do not execute deletion, supersession, correction, or
     consent cascade actions.
   - Persona growth patch records are not implemented yet.
+
+## T372 Worker Completion Record
+
+- T372 is the Persona Growth Candidate Models task.
+- Worker must not mark T372 as complete in `docs/04_task_board.md`; T372 awaits
+  adversarial persona-safety, memory-governance, dependency-risk, privacy,
+  real-person likeness, and product-safety review and Captain judgment.
+- Files changed:
+  - `src/practical_chat_agent/services/persona_growth.py`
+  - `tests/test_persona_growth_candidates.py`
+  - `docs/data_contracts/persona_growth_candidate_implementation_contract.md`
+  - `docs/tasks/M26_memory_persona_implementation/T373_synthetic_distillation_input_models.md`
+  - `docs/worker_summary/T372_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD record:
+  - RED:
+    `$env:PYTHONPATH='src'; pytest tests\test_persona_growth_candidates.py -q -o cache_dir=artifacts\t372_pytest_cache --basetemp=artifacts\t372_pytest_basetemp`
+    failed with `15 failed` because
+    `practical_chat_agent.services.persona_growth` did not exist.
+  - GREEN:
+    the same focused test command passed with `15 passed` after implementing
+    `persona_growth.py`.
+- Implementation result:
+  - Added local Pydantic records for persona growth field changes, patch
+    candidates, patch reviews, and journal entries.
+  - Kept growth records review-first, auto-apply disabled, non-mutating, and
+    free of provider, outbound, platform, voice/avatar, media, and private
+    transcript fields.
+  - Added validation for frozen fields, mutable field allowlist, single delta
+    caps, weekly delta caps, jealousy non-increase, blocking labels,
+    extra-field rejection, and no version writes.
+- Contract result:
+  - Created
+    `docs/data_contracts/persona_growth_candidate_implementation_contract.md`.
+  - Documented implemented records, invariants, mutable fields, blocking labels,
+    forbidden fields, verification, non-actions, and residual risks.
+- T373 next task package:
+  - Created
+    `docs/tasks/M26_memory_persona_implementation/T373_synthetic_distillation_input_models.md`.
+  - T373 is scoped to implement local synthetic distillation input candidate
+    records and tests without private data, provider calls, runtime synthesis,
+    outbound messaging, voice/avatar runtime, media generation, or real-person
+    recreation.
+- Verification status:
+  - `python -m py_compile src\practical_chat_agent\services\persona_growth.py`:
+    passed.
+  - focused pytest with persona growth, memory governance, PersonaCard, persona
+    review, and version-store tests: passed, `51 passed`.
+  - `git diff --check`: passed with Windows line-ending conversion warning for
+    `docs/07_handoff.md`.
+- Explicit non-actions:
+  - No private data reader, source ingestion, extraction, embedding, vector
+    search, retrieval ranking, similarity scoring, model-provider call,
+    PersonaCard mutation, PersonaVersionStore write, final reply generation,
+    proactive candidate, persistence expansion, route, CLI, scheduler, queue,
+    webhook, token, platform adapter, outbound messaging, voice/avatar runtime,
+    media generation, Browser artifact, package-manager dependency, or
+    task-board edit was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - Persona growth records are candidate/review/journal records only; no apply
+    path or user-facing UI exists.
+  - Synthetic distillation input records and retrieval/explanation integration
+    remain future M26 work.
