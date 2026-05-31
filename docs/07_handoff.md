@@ -7939,3 +7939,64 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - M26 implementation has not started yet.
   - T371 still needs to implement memory governance candidate records and
     tests before persona growth or distillation implementation expands.
+
+## T371 Worker Completion Record
+
+- T371 is the Memory Governance Candidate Models task.
+- Worker must not mark T371 as complete in `docs/04_task_board.md`; T371 awaits
+  adversarial memory-architecture, privacy, lifecycle, persona-safety,
+  dependency-risk, and product-safety review and Captain judgment.
+- Files changed:
+  - `src/practical_chat_agent/services/memory_governance.py`
+  - `tests/test_memory_governance_candidates.py`
+  - `docs/data_contracts/memory_governance_candidate_contract.md`
+  - `docs/tasks/M26_memory_persona_implementation/T372_persona_growth_candidate_models.md`
+  - `docs/worker_summary/T371_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD record:
+  - RED:
+    `$env:PYTHONPATH='src'; pytest tests\test_memory_governance_candidates.py -q -o cache_dir=artifacts\t371_pytest_cache --basetemp=artifacts\t371_pytest_basetemp`
+    failed with `9 failed` because
+    `practical_chat_agent.services.memory_governance` did not exist.
+  - GREEN:
+    the same focused test command passed with `9 passed` after implementing
+    `memory_governance.py`.
+- Implementation result:
+  - Added local Pydantic candidate records for contradiction, supersession,
+    deletion cascade, explanation trace, and persona-growth evidence bundles.
+  - Kept candidates review-first, extra-field-forbid, non-mutating, and free of
+    provider, outbound, platform, voice/avatar, media, and private transcript
+    fields.
+  - Added helpers for safe synthetic construction from `MemoryEvent` records.
+- Contract result:
+  - Created `docs/data_contracts/memory_governance_candidate_contract.md`.
+  - Documented implemented records, invariants, forbidden fields, verification,
+    non-actions, and residual risks.
+- T372 next task package:
+  - Created
+    `docs/tasks/M26_memory_persona_implementation/T372_persona_growth_candidate_models.md`.
+  - T372 is scoped to implement local synthetic persona-growth candidate
+    records and tests without runtime persona mutation or auto-apply.
+- Verification status:
+  - `python -m py_compile src\practical_chat_agent\services\memory_governance.py`:
+    passed.
+  - focused pytest with memory governance, memory event, and memory
+    consolidation tests: passed, `25 passed`.
+  - `git diff --check`: passed with Windows line-ending conversion warning for
+    `docs/07_handoff.md`.
+- Explicit non-actions:
+  - No private data reader, source ingestion, extraction, embedding, vector
+    search, retrieval ranking, similarity scoring, model-provider call, final
+    reply generation, runtime memory mutation, persona mutation, persistence
+    expansion, route, CLI, scheduler, queue, webhook, token, platform adapter,
+    outbound messaging, voice/avatar runtime, media generation, Browser
+    artifact, package-manager dependency, or task-board edit was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - Candidate records do not execute deletion, supersession, correction, or
+    consent cascade actions.
+  - Persona growth patch records are not implemented yet.
