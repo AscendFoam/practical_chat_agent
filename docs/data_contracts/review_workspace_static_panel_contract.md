@@ -37,7 +37,8 @@ JavaScript additions:
 - `fallbackState.review_workspace`
 - `reviewToneClasses`
 - `drawReviewWorkspace(review)`
-- `reviewCounts(counts)`
+- `appendReviewWorkspaceCard(card)`
+- `appendReviewMeta(parent, value, extraClass)`
 - `reviewCountsPlain(counts)`
 
 CSS additions:
@@ -54,6 +55,15 @@ CSS additions:
 - `.status-badge.tone-info`
 - `.review-counts`
 - `.review-summary`
+
+M30/T393 hardening:
+
+- review workspace card payload fields are rendered through DOM nodes and
+  `textContent`;
+- `drawReviewWorkspace` no longer sends review card payload fields through the
+  generic string/`innerHTML` item renderer;
+- the generic item renderer remains used by older synthetic-only demo panels,
+  but not by review workspace cards.
 
 ## Data Assumptions
 
@@ -86,6 +96,7 @@ media paths.
 - The panel preserves preview-only/no-state-change copy.
 - The panel is reachable through an accessible tab relationship.
 - The panel uses stable wrapping styles and responsive grid behavior.
+- Review card payload fields are treated as text, not trusted markup.
 
 ## Forbidden Fields And Controls
 
@@ -127,7 +138,9 @@ Covered behavior:
 - JS fixture data contains review workspace cards and filter tabs;
 - blocked and eligible states are renderable;
 - forbidden private/provider/outbound/media fields are absent;
-- the panel exposes no action controls.
+- the panel exposes no action controls;
+- review workspace cards use a DOM/text-node rendering path for payload
+  fields.
 
 Regression tests also run:
 
@@ -191,3 +204,5 @@ T390 does not implement:
   exists.
 - T391 still needs local server payload integration if the demo should serve
   the T389 adapter output dynamically.
+- Other static demo sections still use the older synthetic-only string item
+  renderer; T393 hardens only review workspace cards.

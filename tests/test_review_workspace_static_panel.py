@@ -98,3 +98,13 @@ def test_review_workspace_panel_exposes_no_action_controls() -> None:
     ):
         assert blocked_control not in html
         assert blocked_control not in js
+
+
+def test_review_workspace_renderer_uses_dom_text_nodes_for_payload_fields() -> None:
+    js = _read("js")
+
+    assert "function appendReviewWorkspaceCard" in js
+    assert "listNode.appendChild(appendReviewWorkspaceCard(card));" in js
+    assert 'items("#review-workspace-list"' not in js
+    assert "summary.textContent = card.safe_summary || \"\";" in js
+    assert "title.textContent = card.title || \"Review item\";" in js

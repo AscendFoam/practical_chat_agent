@@ -391,20 +391,13 @@
       });
     }
 
-    items("#review-workspace-list", cards, function (card) {
-      const badges = (card.status_badges || []).map(function (badge) {
-        const toneClass = reviewToneClasses[badge.tone] || reviewToneClasses.review;
-        return "<span class='status-badge " + toneClass + "'>" + (badge.label || "Review") + "</span>";
-      }).join("");
-      const blockers = card.blocking_issue_codes && card.blocking_issue_codes.length
-        ? "<div class='item-meta'>Blockers: " + friendlyList(card.blocking_issue_codes) + "</div>"
-        : "<div class='item-meta'>Preview only / No state changes</div>";
-      const reasons = card.reason_labels && card.reason_labels.length
-        ? "<div class='item-meta'>Reasons: " + friendlyList(card.reason_labels) + "</div>"
-        : "";
-      const counts = card.counts ? reviewCounts(card.counts) : "";
-      return "<div class='review-card'><div class='item-title'>" + (card.title || "Review item") + "</div><div class='status-badges'>" + badges + "</div><div>" + (card.safe_summary || "") + "</div>" + blockers + reasons + counts + "</div>";
-    });
+    const listNode = one("#review-workspace-list");
+    if (listNode) {
+      listNode.innerHTML = "";
+      cards.forEach(function (card) {
+        listNode.appendChild(appendReviewWorkspaceCard(card));
+      });
+    }
 
     const exportCard = cards.find(function (card) {
       return card.card_kind === "export_summary";
@@ -417,11 +410,49 @@
     );
   }
 
-  function reviewCounts(counts) {
-    const entries = Object.keys(counts || {}).sort().map(function (key) {
-      return friendlyLabel(key) + ": " + counts[key];
+  function appendReviewWorkspaceCard(card) {
+    const cardNode = document.createElement("div");
+    cardNode.className = "item review-card";
+
+    const title = document.createElement("div");
+    title.className = "item-title";
+    title.textContent = card.title || "Review item";
+    cardNode.appendChild(title);
+
+    const badgeRow = document.createElement("div");
+    badgeRow.className = "status-badges";
+    (card.status_badges || []).forEach(function (badge) {
+      const badgeNode = document.createElement("span");
+      badgeNode.className = "status-badge " + (reviewToneClasses[badge.tone] || reviewToneClasses.review);
+      badgeNode.textContent = badge.label || "Review";
+      badgeRow.appendChild(badgeNode);
     });
-    return entries.length ? "<div class='item-meta review-counts'>" + entries.join(" / ") + "</div>" : "";
+    cardNode.appendChild(badgeRow);
+
+    const summary = document.createElement("div");
+    summary.textContent = card.safe_summary || "";
+    cardNode.appendChild(summary);
+
+    appendReviewMeta(
+      cardNode,
+      card.blocking_issue_codes && card.blocking_issue_codes.length
+        ? "Blockers: " + friendlyList(card.blocking_issue_codes)
+        : "Preview only / No state changes"
+    );
+    if (card.reason_labels && card.reason_labels.length) {
+      appendReviewMeta(cardNode, "Reasons: " + friendlyList(card.reason_labels));
+    }
+    if (card.counts) {
+      appendReviewMeta(cardNode, reviewCountsPlain(card.counts), "review-counts");
+    }
+    return cardNode;
+  }
+
+  function appendReviewMeta(parent, value, extraClass) {
+    const meta = document.createElement("div");
+    meta.className = "item-meta" + (extraClass ? " " + extraClass : "");
+    meta.textContent = value;
+    parent.appendChild(meta);
   }
 
   function reviewCountsPlain(counts) {
