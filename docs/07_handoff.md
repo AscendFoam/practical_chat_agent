@@ -7158,3 +7158,52 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
 - Remaining risks:
   - T343 adds local scenario switching only; formal desktop/mobile visual QA is
     left for T344.
+
+## T344 Worker Completion Record
+
+- T344 is the Web Demo Visual QA task for M23.
+- Worker must not mark T344 as complete in `docs/04_task_board.md`; T344 awaits
+  adversarial product/safety UX and frontend review and Captain judgment.
+- Files changed:
+  - `docs/qa/web_demo_visual_qa.md`
+  - `docs/tasks/M23_integrated_text_first_web_demo/T345_web_demo_walkthrough.md`
+  - `docs/worker_summary/T344_worker_summary.md`
+  - `docs/07_handoff.md`
+- QA result:
+  - Used a temporary localhost static server for
+    `src/practical_chat_agent/ui/static`.
+  - Verified `http://127.0.0.1:8767/` in the Browser plugin.
+  - Checked desktop `1280x720` and mobile `390x844`.
+  - Captured transient screenshots during Browser verification.
+  - Verified seven tabs, seven panels, and seven scenario buttons.
+  - Verified Safe review default state, Dependency scenario, and Voice / Avatar
+    scenario.
+  - Verified AI-generated synthetic identity label remained visible.
+  - Verified voice rows remained `voice enabled: false` and avatar remained
+    `locked_research_only`.
+  - Found no page-level horizontal overflow or inspected text-overflow issues
+    in the tested viewports.
+  - Stopped the temporary server and reset viewport overrides after
+    verification.
+- T345 next task package:
+  - Created
+    `docs/tasks/M23_integrated_text_first_web_demo/T345_web_demo_walkthrough.md`.
+  - T345 is scoped to a user-facing walkthrough and lightweight study protocol
+    update.
+- Verification status:
+  - `git diff --check`: passed with Windows line-ending conversion warnings.
+- Explicit non-actions:
+  - No frontend code, tests, backend routes, model-provider call, final reply
+    generation, private data processing, voice/avatar runtime, media generation,
+    external network asset, package manager, platform adapter, outbound
+    messaging, or task-board edit was added.
+  - No screenshot artifact was committed because T344 allowed files did not
+    include image artifacts.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - T344 covers representative desktop/mobile visual QA only. Keyboard-only
+    navigation, accessibility tooling, zoom levels, dark mode, localization,
+    and extreme payload lengths remain untested.
