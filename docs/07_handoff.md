@@ -6993,3 +6993,54 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - T340 is a scope document only; no demo payload or UI exists yet.
   - T341 must prove the demo can be assembled from existing contracts without
     hiding labels or introducing runtime behavior.
+
+## T341 Worker Completion Record
+
+- T341 is the Web Demo State Adapter task for M23.
+- Worker must not mark T341 as complete in `docs/04_task_board.md`; T341 awaits
+  adversarial product/safety UX review and Captain judgment.
+- Files changed:
+  - `src/practical_chat_agent/ui/text_first_web_demo_adapter.py`
+  - `tests/test_text_first_web_demo_adapter.py`
+  - `docs/data_contracts/text_first_web_demo_state_contract.md`
+  - `docs/tasks/M23_integrated_text_first_web_demo/T342_static_web_demo_shell.md`
+  - `docs/worker_summary/T341_worker_summary.md`
+  - `docs/07_handoff.md`
+- Implementation result:
+  - Adds `TextFirstWebDemoState` and `TextFirstWebDemoAdapter`.
+  - Returns one JSON-serializable synthetic demo payload with onboarding,
+    persona, chat_memory, life_stream, proactive, controls, voice, and avatar
+    sections.
+  - Reuses existing text-first prototypes and safety/consent/labeling models.
+  - Includes blocked real-person clone, crisis-blocked chat, dependency-blocked
+    proactive, voice disabled/review/blocked, and avatar locked states.
+  - Keeps voice and avatar not enabled.
+- T342 next task package:
+  - Created
+    `docs/tasks/M23_integrated_text_first_web_demo/T342_static_web_demo_shell.md`.
+  - T342 is scoped to the static web demo shell.
+- TDD evidence:
+  - RED `pytest tests\test_text_first_web_demo_adapter.py -q -o cache_dir=artifacts\t341_pytest_cache_red --basetemp=artifacts\t341_pytest_basetemp_red`:
+    failed as expected because `practical_chat_agent.ui.text_first_web_demo_adapter`
+    did not exist.
+  - GREEN `pytest tests\test_text_first_web_demo_adapter.py -q -o cache_dir=artifacts\t341_pytest_cache_green --basetemp=artifacts\t341_pytest_basetemp_green`:
+    passed, 6 tests.
+- Verification status:
+  - `python -m py_compile src\practical_chat_agent\ui\text_first_web_demo_adapter.py`:
+    passed.
+  - `pytest tests\test_text_first_web_demo_adapter.py tests\test_text_first_onboarding_prototype.py tests\test_text_first_chat_memory_prototype.py tests\test_text_first_life_stream_prototype.py tests\test_text_first_proactive_settings_prototype.py tests\test_voice_consent_data_model.py -q -o cache_dir=artifacts\t341_pytest_cache --basetemp=artifacts\t341_pytest_basetemp`:
+    passed, 43 tests.
+  - `git diff --check`: passed with Windows line-ending conversion warnings.
+- Explicit non-actions:
+  - No frontend UI, browser demo, dev server, model-provider call, final reply
+    generation, private data processing, voice/avatar runtime, media
+    generation, platform adapter, outbound messaging, or task-board edit was
+    added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - T341 creates payload assembly only; no browser UI exists yet.
+  - T342 must render the payload without hiding labels, adding external network
+    assets, or implying runtime voice/avatar behavior.
