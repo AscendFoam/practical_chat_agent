@@ -9167,3 +9167,72 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - No static review panel exists yet.
   - No apply executor or real-data import/de-identification quality evaluation
     exists.
+
+## T390 Worker Completion Record
+
+- T390 is the Review Workspace Static Panel task.
+- Worker must not mark T390 complete in `docs/04_task_board.md`; T390 awaits
+  adversarial static UI review for privacy, non-apply safety, accessibility,
+  responsive layout, product-safety, and documentation accuracy.
+- Files changed:
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.html`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.css`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.js`
+  - `tests/test_review_workspace_static_panel.py`
+  - `docs/data_contracts/review_workspace_static_panel_contract.md`
+  - `docs/tasks/M29_review_workspace_ui/T391_review_workspace_local_server_payload.md`
+  - `docs/worker_summary/T390_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD record:
+  - RED:
+    `$env:PYTHONPATH='src'; pytest tests\test_review_workspace_static_panel.py -q -o cache_dir=artifacts\t390_pytest_cache --basetemp=artifacts\t390_pytest_basetemp`
+    failed with `3 failed, 2 passed` because the static assets did not include
+    the review workspace tab, fixture, or tone styles.
+  - GREEN:
+    focused static/accessibility command passed with `14 passed` after
+    updating HTML, CSS, and JS.
+- Implementation result:
+  - Added static Review tab and `#review-panel`.
+  - Added synthetic `review_workspace` fallback fixture.
+  - Added rendering for review filters, cards, status badges, blocker codes,
+    decision outcomes, and safe export counts.
+  - Added CSS for filter chips, review cards, and status badge tones.
+  - Kept the panel local, synthetic, preview-only, and without action controls.
+- Contract result:
+  - Created `docs/data_contracts/review_workspace_static_panel_contract.md`.
+  - Documented static panel behavior, data assumptions, forbidden fields,
+    tests, verification, non-actions, Browser QA blocker, and residual risks.
+- T391 next task package:
+  - Created
+    `docs/tasks/M29_review_workspace_ui/T391_review_workspace_local_server_payload.md`.
+  - T391 is scoped to synthetic local server payload integration without
+    private reads, provider calls, platform delivery, media/runtime behavior,
+    or apply executors.
+- Verification status:
+  - focused static/accessibility pytest: passed, `14 passed`.
+  - Browser QA: attempted, but the browser client blocked direct local file
+    navigation and local HTTP navigation; no screenshot evidence was produced.
+  - full focused pytest: passed, `14 passed`.
+  - `git diff --check`: passed with CRLF warnings only.
+- Explicit non-actions:
+  - No private data reader, source ingestion from real logs, extraction,
+    embedding, vector search, retrieval ranking, similarity scoring,
+    model-provider call, PersonaCard synthesis, final reply generation,
+    proactive candidate, local server route, scheduler, queue persistence,
+    webhook, token, platform adapter, outbound messaging, voice/avatar
+    runtime, media generation, package-manager dependency, or task-board edit
+    was added.
+  - No review decision apply path, memory store mutation, PersonaCard
+    mutation, PersonaVersionStore write, deletion executor, retrieval
+    enablement, or provider-backed payload was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - Static panel uses an embedded synthetic fixture.
+  - Browser visual QA could not be completed due to local navigation blocking.
+  - No local server payload integration exists yet.
+  - No apply executor or real-data import/de-identification quality evaluation
+    exists.

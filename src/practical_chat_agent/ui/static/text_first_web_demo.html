@@ -23,6 +23,7 @@
         <button id="tab-life" class="tab" data-tab="life" type="button" role="tab" aria-selected="false" aria-controls="life-panel">Life</button>
         <button id="tab-proactive" class="tab" data-tab="proactive" type="button" role="tab" aria-selected="false" aria-controls="proactive-panel">Proactive</button>
         <button id="tab-controls" class="tab" data-tab="controls" type="button" role="tab" aria-selected="false" aria-controls="controls-panel">Controls</button>
+        <button id="tab-review" class="tab" data-tab="review" type="button" role="tab" aria-selected="false" aria-controls="review-panel">Review</button>
         <button id="tab-voice-avatar" class="tab" data-tab="voice-avatar" type="button" role="tab" aria-selected="false" aria-controls="voice-avatar-panel">Voice / Avatar</button>
       </nav>
 
@@ -38,6 +39,7 @@
           <button class="scenario" data-scenario="dependency-proactive" type="button" aria-pressed="false">Dependency</button>
           <button class="scenario" data-scenario="life-review" type="button" aria-pressed="false">Life review</button>
           <button class="scenario" data-scenario="controls-review" type="button" aria-pressed="false">Controls</button>
+          <button class="scenario" data-scenario="review-workspace" type="button" aria-pressed="false">Review</button>
           <button class="scenario" data-scenario="voice-avatar-locked" type="button" aria-pressed="false">Voice / Avatar</button>
         </div>
       </section>
@@ -94,6 +96,17 @@
         </div>
         <div id="consent-list" class="item-list"></div>
         <div id="aigc-labels" class="label-row"></div>
+      </section>
+
+      <section id="review-panel" class="panel" data-panel="review" role="tabpanel" aria-labelledby="tab-review" hidden aria-hidden="true">
+        <div class="panel-head">
+          <h2>Review Workspace</h2>
+          <span class="tag">preview only</span>
+        </div>
+        <p class="lead">Local synthetic review items, blockers, decision outcomes, and safe export counts.</p>
+        <div id="review-filters" class="filter-row" aria-label="Review filters"></div>
+        <div id="review-workspace-list" class="item-list review-grid"></div>
+        <div id="review-export-summary" class="notice review-summary"></div>
       </section>
 
       <section id="voice-avatar-panel" class="panel" data-panel="voice-avatar" role="tabpanel" aria-labelledby="tab-voice-avatar" hidden aria-hidden="true">

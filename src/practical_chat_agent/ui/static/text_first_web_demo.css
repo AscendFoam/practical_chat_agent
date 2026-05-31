@@ -204,9 +204,30 @@ h2 {
   gap: 8px;
 }
 
+.filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.filter-chip {
+  border: 1px solid var(--line);
+  background: #f9fafb;
+  color: var(--muted);
+  padding: 5px 8px;
+  font-size: 0.84rem;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
 .item-list {
   display: grid;
   gap: 10px;
+}
+
+.review-grid {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }
 
 .item {
@@ -227,6 +248,51 @@ h2 {
   font-size: 0.9rem;
 }
 
+.review-card {
+  min-height: 168px;
+}
+
+.status-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  border: 1px solid var(--line);
+  padding: 3px 8px;
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.status-badge.tone-blocked {
+  border-color: var(--danger);
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.status-badge.tone-eligible {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.status-badge.tone-review,
+.status-badge.tone-info {
+  border-color: var(--warn);
+  background: var(--warn-soft);
+  color: var(--warn);
+}
+
+.review-counts {
+  margin-top: 8px;
+}
+
 .notice {
   border: 1px solid var(--warn);
   background: var(--warn-soft);
@@ -240,6 +306,10 @@ h2 {
   border-color: var(--danger);
   background: var(--danger-soft);
   color: var(--danger);
+}
+
+.review-summary {
+  margin-top: 12px;
 }
 
 @media (max-width: 720px) {

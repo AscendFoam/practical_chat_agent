@@ -82,10 +82,80 @@
       state: "locked_research_only",
       avatar_enabled: false,
       blocked_reasons: ["avatar_runtime_not_implemented", "real_person_likeness_blocked"]
+    },
+    review_workspace: {
+      schema_version: "review_workspace_presentation_panel_v1",
+      filter_tabs: [
+        { key: "all", label: "All", count: 3 },
+        { key: "blocked", label: "Blocked", count: 1 },
+        { key: "eligible", label: "Eligible", count: 1 },
+        { key: "memory", label: "Memory", count: 1 },
+        { key: "persona", label: "Persona", count: 1 },
+        { key: "distillation", label: "Distillation", count: 0 }
+      ],
+      cards: [
+        {
+          card_kind: "workspace_item",
+          title: "Memory review item",
+          display_label: "memory deletion cascade",
+          safe_summary: "[SYNTHETIC] Review a consent-withdrawal memory change.",
+          filter_keys: ["all", "blocked", "memory"],
+          status_badges: [{ label: "Blocked before state change", tone: "blocked" }],
+          issue_codes: ["candidate_id_mismatch"],
+          blocking_issue_codes: ["candidate_id_mismatch"],
+          reason_labels: ["consent_withdrawal"],
+          source_refs: ["synthetic_memory_ref"],
+          review_required: true,
+          preview_only: true,
+          changes_state: false
+        },
+        {
+          card_kind: "decision_impact",
+          title: "Decision impact preview",
+          display_label: "persona growth patch",
+          safe_summary: "[SYNTHETIC] Persona warmth change is ready for later manual review.",
+          filter_keys: ["all", "eligible", "persona"],
+          status_badges: [{ label: "Eligible for later manual review", tone: "eligible" }],
+          issue_codes: [],
+          blocking_issue_codes: [],
+          reason_labels: ["memory_pattern"],
+          source_refs: ["synthetic_persona_ref"],
+          preview_outcome: "future_manual_apply_eligible",
+          review_required: true,
+          preview_only: true,
+          changes_state: false
+        },
+        {
+          card_kind: "export_summary",
+          title: "Safe export summary",
+          display_label: "safe export summary",
+          safe_summary: "[SYNTHETIC] Safe export contains ids, summaries, labels, refs, and counts only.",
+          filter_keys: ["all"],
+          status_badges: [{ label: "Safe export summary", tone: "info" }],
+          issue_codes: [],
+          blocking_issue_codes: [],
+          reason_labels: [],
+          source_refs: ["synthetic_export_ref"],
+          counts: {
+            "candidate_kind:memory_deletion_cascade": 1,
+            "candidate_kind:persona_growth_patch": 1,
+            "blocker:candidate_id_mismatch": 2
+          },
+          review_required: true,
+          preview_only: true,
+          changes_state: false
+        }
+      ]
     }
   };
 
   const baseState = state();
+  const reviewToneClasses = {
+    blocked: "tone-blocked",
+    eligible: "tone-eligible",
+    review: "tone-review",
+    info: "tone-info"
+  };
   const friendlyLabels = {
     ai_generated: "AI-generated",
     avatar_runtime_not_implemented: "Avatar runtime is not implemented",
@@ -115,6 +185,12 @@
     real_person_clone_blocked: "Real-person recreation is blocked",
     real_person_likeness_blocked: "Real-person likeness is blocked",
     review_required: "Needs review",
+    review_workspace: "Review workspace",
+    blocked_before_apply: "Blocked before state change",
+    future_manual_apply_eligible: "Eligible for later manual review",
+    candidate_id_mismatch: "Candidate id mismatch",
+    memory_deletion_cascade: "Memory review item",
+    persona_growth_patch: "Persona growth patch",
     synthetic_content: "Synthetic content",
     voice_avatar: "Voice/avatar review",
     visual_capture_blocked: "Visual capture is blocked",
@@ -217,6 +293,7 @@
       "dependency-proactive": "Dependency",
       "life-review": "Life review",
       "controls-review": "Controls",
+      "review-workspace": "Review workspace",
       "voice-avatar-locked": "Voice / Avatar"
     };
     const panels = {
@@ -226,6 +303,7 @@
       "dependency-proactive": "proactive",
       "life-review": "life",
       "controls-review": "controls",
+      "review-workspace": "review",
       "voice-avatar-locked": "voice-avatar"
     };
     document.querySelectorAll(".scenario").forEach(function (item) {
@@ -249,6 +327,7 @@
     const controls = data.controls;
     const voice = data.voice;
     const avatar = data.avatar;
+    const review = data.review_workspace || { filter_tabs: [], cards: [] };
 
     text("#identity-strip", data.onboarding.ai_identity_disclosure_text);
     text("#chat-state", friendlyLabel(chat.screen));
@@ -279,6 +358,8 @@
     });
     labels("#aigc-labels", controls.aigc_label.disclosure_labels || []);
 
+    drawReviewWorkspace(review);
+
     text("#proactive-state", friendlyLabel(proactive.screen));
     text("#proactive-summary", "Consent: " + friendlyLabel(proactive.consent_status) + " / " + (proactive.outreach_allowed ? "Messages require review" : "No messages can be sent"));
     text("#proactive-blocked", "Blocked state: " + friendlyList(proactiveBlocked.safety_reasons));
@@ -295,6 +376,59 @@
     text("#persona-blocked", one("#persona-blocked").textContent);
     text("#chat-blocked", one("#chat-blocked").textContent);
     text("#avatar-state", one("#avatar-state").textContent);
+  }
+
+  function drawReviewWorkspace(review) {
+    const filterNode = one("#review-filters");
+    const cards = review.cards || [];
+    if (filterNode) {
+      filterNode.innerHTML = "";
+      (review.filter_tabs || []).forEach(function (tab) {
+        const chip = document.createElement("span");
+        chip.className = "filter-chip";
+        chip.textContent = (tab.label || friendlyLabel(tab.key)) + " (" + (tab.count || 0) + ")";
+        filterNode.appendChild(chip);
+      });
+    }
+
+    items("#review-workspace-list", cards, function (card) {
+      const badges = (card.status_badges || []).map(function (badge) {
+        const toneClass = reviewToneClasses[badge.tone] || reviewToneClasses.review;
+        return "<span class='status-badge " + toneClass + "'>" + (badge.label || "Review") + "</span>";
+      }).join("");
+      const blockers = card.blocking_issue_codes && card.blocking_issue_codes.length
+        ? "<div class='item-meta'>Blockers: " + friendlyList(card.blocking_issue_codes) + "</div>"
+        : "<div class='item-meta'>Preview only / No state changes</div>";
+      const reasons = card.reason_labels && card.reason_labels.length
+        ? "<div class='item-meta'>Reasons: " + friendlyList(card.reason_labels) + "</div>"
+        : "";
+      const counts = card.counts ? reviewCounts(card.counts) : "";
+      return "<div class='review-card'><div class='item-title'>" + (card.title || "Review item") + "</div><div class='status-badges'>" + badges + "</div><div>" + (card.safe_summary || "") + "</div>" + blockers + reasons + counts + "</div>";
+    });
+
+    const exportCard = cards.find(function (card) {
+      return card.card_kind === "export_summary";
+    });
+    text(
+      "#review-export-summary",
+      exportCard
+        ? "Safe export summary: " + reviewCountsPlain(exportCard.counts || {})
+        : "Safe export summary: local synthetic review only."
+    );
+  }
+
+  function reviewCounts(counts) {
+    const entries = Object.keys(counts || {}).sort().map(function (key) {
+      return friendlyLabel(key) + ": " + counts[key];
+    });
+    return entries.length ? "<div class='item-meta review-counts'>" + entries.join(" / ") + "</div>" : "";
+  }
+
+  function reviewCountsPlain(counts) {
+    const entries = Object.keys(counts || {}).sort().map(function (key) {
+      return friendlyLabel(key) + " " + counts[key];
+    });
+    return entries.length ? entries.join(", ") : "ids, labels, summaries, and counts only";
   }
 
   activateTabs();
