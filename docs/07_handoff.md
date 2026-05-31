@@ -7843,3 +7843,49 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
 - Remaining risks:
   - T364 is documentation only; no new implementation tests exist.
   - T365 M25 review and M26 implementation-foundation scope remain future work.
+
+## T365 Worker Completion Record
+
+- T365 is the M25 Milestone Review task.
+- Worker must not mark T365 as complete in `docs/04_task_board.md`; T365 awaits
+  adversarial memory-architecture, privacy, persona-safety,
+  distillation-safety, implementation-scope, dependency-risk, and
+  product-safety review and Captain judgment.
+- Files changed:
+  - `docs/review/M25_review.md`
+  - `docs/tasks/M26_memory_persona_implementation/T370_m26_scope.md`
+  - `docs/worker_summary/T365_worker_summary.md`
+  - `docs/07_handoff.md`
+- Review result:
+  - Created `docs/review/M25_review.md`.
+  - Recommended PASS_WITH_WARNINGS for entering M26 implementation foundation.
+  - Confirmed T360 through T364 covered M25 scope, memory architecture,
+    persona growth, synthetic distillation input, and retrieval/consolidation
+    refresh.
+  - Recorded architecture, contract, verification, safety-boundary,
+    explicit-non-action, residual-risk, and M26-entry evidence.
+- M26 entry task package:
+  - Created
+    `docs/tasks/M26_memory_persona_implementation/T370_m26_scope.md`.
+  - T370 is scoped to define a conservative M26 implementation-foundation
+    milestone that starts with local synthetic fixtures, candidate models,
+    local services, and tests.
+- Verification status:
+  - `git diff --check`: passed with Windows line-ending conversion warning for
+    `docs/07_handoff.md`.
+- Explicit non-actions:
+  - No code, tests, Browser rerun, backend route, model-provider call, final
+    reply generation, private data processing, persistence, voice/avatar
+    runtime, media generation, external network asset, package manager,
+    platform adapter, outbound messaging, screenshot artifact, or task-board
+    edit was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - M25 is documentation-only; M26 must prove the gates with local synthetic
+    code and tests before sensitive workflows expand.
+  - T370 still needs to create the detailed M26 implementation scope and the
+    first code/test task package.
