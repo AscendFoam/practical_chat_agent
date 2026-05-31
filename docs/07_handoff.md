@@ -8905,3 +8905,75 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
     executor or production authorization.
   - Safe export manifests do not exist yet.
   - T386 still needs safe local workspace export manifests.
+
+## T386 Worker Completion Record
+
+- T386 is the Review Workspace Safe Export Manifest task.
+- Worker must not mark T386 as complete in `docs/04_task_board.md`; T386
+  awaits adversarial safe export, privacy, non-apply safety, binding
+  correctness, product-safety, and documentation-accuracy review.
+- Files changed:
+  - `src/practical_chat_agent/services/review_workspace_export.py`
+  - `tests/test_review_workspace_safe_export.py`
+  - `docs/data_contracts/review_workspace_safe_export_contract.md`
+  - `docs/tasks/M28_local_review_workspace/T387_m28_milestone_review.md`
+  - `docs/worker_summary/T386_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD record:
+  - RED:
+    `$env:PYTHONPATH='src'; pytest tests\test_review_workspace_safe_export.py -q -o cache_dir=artifacts\t386_pytest_cache --basetemp=artifacts\t386_pytest_basetemp`
+    failed with `5 failed` because
+    `practical_chat_agent.services.review_workspace_export` did not exist.
+  - GREEN:
+    the same focused test command passed with `5 passed` after implementing
+    `review_workspace_export.py`.
+- Implementation result:
+  - Added `ReviewWorkspaceExportItem`,
+    `ReviewWorkspaceImpactExportItem`, `ReviewWorkspaceSafeExportManifest`,
+    and `ReviewWorkspaceSafeExportService`.
+  - Added safe manifest building from workspace bundles and optional decision
+    impact previews.
+  - Added deterministic workspace and impact item ordering.
+  - Added counts by candidate kind, artifact kind, decision outcome, and
+    blocker code.
+  - Added local JSON manifest writing with absolute-path, traversal, and
+    non-JSON suffix rejection.
+  - Kept export manifests review-required, preview-only, non-runtime-ready,
+    and non-mutating.
+- Contract result:
+  - Created `docs/data_contracts/review_workspace_safe_export_contract.md`.
+  - Documented export records, counts, ordering, path-safety invariants,
+    forbidden fields, tests, verification, non-actions, and residual risks.
+- T387 next task package:
+  - Created
+    `docs/tasks/M28_local_review_workspace/T387_m28_milestone_review.md`.
+  - T387 is scoped to adversarial M28 milestone review before later UI,
+    provider, apply, platform, media, proactive, or commercial expansion.
+- Verification status:
+  - `python -m py_compile src\practical_chat_agent\services\review_workspace_export.py`:
+    passed.
+  - focused pytest with review workspace safe export and M28 focused
+    regressions: passed, `29 passed`.
+  - `git diff --check`: passed with Windows line-ending conversion warning
+    for `docs/07_handoff.md`.
+- Explicit non-actions:
+  - No private data reader, source ingestion from real logs, extraction,
+    embedding, vector search, retrieval ranking, similarity scoring,
+    model-provider call, PersonaCard synthesis, final reply generation,
+    proactive candidate, route, CLI, scheduler, queue persistence, webhook,
+    token, platform adapter, outbound messaging, voice/avatar runtime, media
+    generation, Browser artifact, package-manager dependency, or task-board
+    edit was added.
+  - No review decision apply path, memory store mutation, PersonaCard
+    mutation, PersonaVersionStore write, deletion executor, retrieval
+    enablement, review UI, or production audit export was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - Safe export manifests are local prototype records only.
+  - Export manifests do not independently validate source candidate contents.
+  - No user-facing review UI or apply executor exists.
+  - T387 still needs adversarial M28 milestone review.
