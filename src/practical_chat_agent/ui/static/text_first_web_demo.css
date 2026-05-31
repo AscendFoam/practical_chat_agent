@@ -293,6 +293,10 @@ h2 {
   margin-top: 8px;
 }
 
+.review-detail-list {
+  line-height: 1.45;
+}
+
 .notice {
   border: 1px solid var(--warn);
   background: var(--warn-soft);

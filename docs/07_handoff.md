@@ -9676,3 +9676,59 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - Eligibility is not executable authority.
   - No UI displays these records yet.
   - No future apply executor exists.
+
+## T399 Worker Completion Record
+
+- T399 is the Review Workspace Apply Preview Panel task.
+- Worker must not mark T399 complete in `docs/04_task_board.md`; T399 awaits
+  adversarial read-only UI review for manual apply preview display, privacy,
+  non-mutation safety, accessibility, and documentation accuracy.
+- Files changed:
+  - `src/practical_chat_agent/ui/text_first_web_demo_adapter.py`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.js`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.css`
+  - `tests/test_review_workspace_apply_preview_panel.py`
+  - `docs/data_contracts/review_workspace_apply_preview_panel_contract.md`
+  - `docs/tasks/M31_manual_apply_preview/T400_m31_milestone_review.md`
+  - `docs/worker_summary/T399_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD record:
+  - RED:
+    `$env:PYTHONPATH='src'; pytest tests\test_review_workspace_apply_preview_panel.py -q -o cache_dir=artifacts\t399_pytest_cache --basetemp=artifacts\t399_pytest_basetemp`
+    failed with `2 failed, 1 passed` because `manual_apply_previews` payload
+    and renderer support were absent.
+  - GREEN:
+    py_compile passed; focused tests passed with `16 passed`.
+- Implementation result:
+  - Added synthetic manual apply preview payloads to the local demo adapter.
+  - Rendered manual apply preview details in the static review workspace
+    panel.
+  - Added `.review-detail-list` styling.
+- T400 next task package:
+  - Created `docs/tasks/M31_manual_apply_preview/T400_m31_milestone_review.md`.
+  - T400 is scoped to M31 milestone review.
+- Verification status:
+  - py_compile: passed.
+  - focused pytest: passed, `16 passed`.
+  - final py_compile: passed.
+  - final pytest: passed, `16 passed`.
+  - `git diff --check`: passed with CRLF warnings only.
+- Explicit non-actions:
+  - No apply executor, memory store write, PersonaCard mutation,
+    PersonaVersionStore write, deletion executor, retrieval index mutation,
+    private data reader, source ingestion from real logs, extraction,
+    embedding, vector search, retrieval ranking, similarity scoring,
+    model-provider call, PersonaCard synthesis, final reply generation,
+    proactive candidate, scheduler, queue persistence, webhook, token,
+    platform adapter, outbound messaging, voice/avatar runtime, media
+    generation, package-manager dependency, or task-board edit was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - The panel is still synthetic and local-only.
+  - Eligibility remains non-executable.
+  - No future apply executor exists.
+  - Browser screenshot QA remains environment-blocked.

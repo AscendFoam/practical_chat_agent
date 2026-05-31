@@ -145,6 +145,47 @@
           preview_only: true,
           changes_state: false
         }
+      ],
+      manual_apply_previews: [
+        {
+          card_kind: "manual_apply_preview",
+          title: "Manual apply preview",
+          display_label: "persona growth patch",
+          safe_summary: "[SYNTHETIC] Review the gates and rollback notes before any future manual action.",
+          filter_keys: ["all", "eligible", "persona"],
+          status_badges: [{ label: "Manual apply preview eligible", tone: "eligible" }],
+          eligibility_outcome: "eligible",
+          manual_apply_preview_eligible: true,
+          required_gates: [
+            {
+              gate_code: "human_approval",
+              label: "Human approval",
+              safe_summary: "[SYNTHETIC] Human approval is present.",
+              satisfied: true
+            },
+            {
+              gate_code: "dry_run_artifact_present",
+              label: "Dry-run artifact present",
+              safe_summary: "[SYNTHETIC] Dry-run artifact is present.",
+              satisfied: true
+            }
+          ],
+          effects: [
+            {
+              effect_kind: "persona_version_preview",
+              target_ref: "persona_synthetic",
+              safe_summary: "[SYNTHETIC] Persona warmth would be adjusted.",
+              artifact_ids: ["pgdplan_synthetic"],
+              rollback_notes: ["[SYNTHETIC] Keep previous persona version available."]
+            }
+          ],
+          rollback_notes: ["[SYNTHETIC] Keep previous persona version available."],
+          issue_codes: [],
+          blocking_issue_codes: [],
+          review_required: true,
+          preview_only: true,
+          changes_state: false
+        }
       ]
     }
   };
@@ -380,7 +421,7 @@
 
   function drawReviewWorkspace(review) {
     const filterNode = one("#review-filters");
-    const cards = review.cards || [];
+    const cards = (review.cards || []).concat(review.manual_apply_previews || []);
     if (filterNode) {
       filterNode.innerHTML = "";
       (review.filter_tabs || []).forEach(function (tab) {
@@ -445,7 +486,33 @@
     if (card.counts) {
       appendReviewMeta(cardNode, reviewCountsPlain(card.counts), "review-counts");
     }
+    appendReviewPreviewDetails(cardNode, card);
     return cardNode;
+  }
+
+  function appendReviewPreviewDetails(cardNode, card) {
+    if (card.eligibility_outcome) {
+      appendReviewMeta(cardNode, "Eligibility: " + friendlyLabel(card.eligibility_outcome));
+    }
+    appendReviewDetailList(cardNode, "Gates", card.required_gates, function (gate) {
+      return (gate.label || friendlyLabel(gate.gate_code)) + ": " + (gate.satisfied ? "satisfied" : "blocked");
+    });
+    appendReviewDetailList(cardNode, "Effects", card.effects, function (effect) {
+      return (effect.safe_summary || friendlyLabel(effect.effect_kind));
+    });
+    appendReviewDetailList(cardNode, "Rollback", card.rollback_notes, function (note) {
+      return note;
+    });
+  }
+
+  function appendReviewDetailList(parent, label, values, mapper) {
+    if (!values || !values.length) {
+      return;
+    }
+    const detail = document.createElement("div");
+    detail.className = "item-meta review-detail-list";
+    detail.textContent = label + ": " + values.map(mapper).join(" / ");
+    parent.appendChild(detail);
   }
 
   function appendReviewMeta(parent, value, extraClass) {

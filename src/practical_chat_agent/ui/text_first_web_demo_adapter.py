@@ -25,6 +25,15 @@ from practical_chat_agent.services.companion_safety_policy import (
     CompanionSafetySignal,
 )
 from practical_chat_agent.services.dialogue_context_planner import DialogueContextPlan
+from practical_chat_agent.services.manual_apply_eligibility_gate import (
+    ManualApplyEligibilityDecision,
+    ManualApplyEligibilityGate,
+)
+from practical_chat_agent.services.manual_apply_preview import (
+    ManualApplyPreviewEffect,
+    ManualApplyPreviewGate,
+    ManualApplyPreviewRecord,
+)
 from practical_chat_agent.services.review_decision_impact_preview import (
     ReviewDecisionImpactPreview,
     ReviewDecisionImpactPreviewService,
@@ -253,7 +262,9 @@ class TextFirstWebDemoAdapter:
             impact_previews=[persona_impact, memory_impact],
             export_manifest=export_manifest,
         )
-        return _safe_review_workspace_panel(panel)
+        payload = _safe_review_workspace_panel(panel)
+        payload["manual_apply_previews"] = _manual_apply_preview_payloads(persona_impact)
+        return payload
 
     @staticmethod
     def _review_workspace_records(
@@ -535,3 +546,93 @@ def _review_workspace_display_label(value: str) -> str:
         "blocked before apply": "blocked before state change",
     }
     return replacements.get(value, value)
+
+
+def _manual_apply_preview_payloads(
+    impact_preview: ReviewDecisionImpactPreview,
+) -> list[dict[str, Any]]:
+    record = ManualApplyPreviewRecord.from_impact_preview(
+        impact_preview,
+        required_gates=[
+            ManualApplyPreviewGate(
+                gate_code="human_approval",
+                label="Human approval",
+                safe_summary="[SYNTHETIC] Human approval is present.",
+                satisfied=True,
+            ),
+            ManualApplyPreviewGate(
+                gate_code="dry_run_artifact_present",
+                label="Dry-run artifact present",
+                safe_summary="[SYNTHETIC] Dry-run artifact is present.",
+                satisfied=True,
+            ),
+        ],
+        effects=[
+            ManualApplyPreviewEffect(
+                effect_kind="persona_version_preview",
+                target_ref="persona_synthetic",
+                safe_summary="[SYNTHETIC] Persona warmth would be adjusted.",
+                artifact_ids=["pgdplan_webdemo_persona"],
+                rollback_notes=["[SYNTHETIC] Keep previous persona version available."],
+            )
+        ],
+        rollback_notes=["[SYNTHETIC] Keep previous persona version available."],
+    )
+    decision = ManualApplyEligibilityGate().evaluate(record)
+    return [_safe_manual_apply_preview_card(record, decision)]
+
+
+def _safe_manual_apply_preview_card(
+    record: ManualApplyPreviewRecord,
+    decision: ManualApplyEligibilityDecision,
+) -> dict[str, Any]:
+    tone = "eligible" if decision.eligibility_outcome == "eligible" else "blocked"
+    return {
+        "schema_version": "review_workspace_manual_apply_preview_card_v1",
+        "card_kind": "manual_apply_preview",
+        "title": "Manual apply preview",
+        "display_label": record.candidate_kind.replace("_", " "),
+        "safe_summary": record.safe_summary,
+        "filter_keys": ["all", "eligible", "persona"],
+        "status_badges": [
+            {
+                "label": f"Manual apply preview {decision.eligibility_outcome}",
+                "tone": tone,
+                "issue_codes": list(decision.issue_codes),
+                "blocking_issue_codes": list(decision.blocking_issue_codes),
+                "review_required": True,
+                "preview_only": True,
+                "changes_state": False,
+                "runtime_ready": False,
+            }
+        ],
+        "eligibility_outcome": decision.eligibility_outcome,
+        "manual_apply_preview_eligible": record.manual_apply_preview_eligible,
+        "required_gates": [
+            {
+                "gate_code": gate.gate_code,
+                "label": gate.label,
+                "safe_summary": gate.safe_summary,
+                "satisfied": gate.satisfied,
+                "blocking_issue_codes": list(gate.blocking_issue_codes),
+            }
+            for gate in record.required_gates
+        ],
+        "effects": [
+            {
+                "effect_kind": effect.effect_kind,
+                "target_ref": effect.target_ref,
+                "safe_summary": effect.safe_summary,
+                "artifact_ids": list(effect.artifact_ids),
+                "rollback_notes": list(effect.rollback_notes),
+            }
+            for effect in record.effects
+        ],
+        "rollback_notes": list(record.rollback_notes),
+        "issue_codes": list(decision.issue_codes),
+        "blocking_issue_codes": list(decision.blocking_issue_codes),
+        "review_required": True,
+        "preview_only": True,
+        "changes_state": False,
+        "runtime_ready": False,
+    }
