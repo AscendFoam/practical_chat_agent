@@ -7671,3 +7671,63 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - Persona growth patch policy, synthetic distillation input contracts,
     deletion cascade details, quarantine records, and retrieval/consolidation
     implementation tests remain future M25 work.
+
+## T362 Worker Completion Record
+
+- T362 is the Persona Growth Policy task.
+- Worker must not mark T362 as complete in `docs/04_task_board.md`; T362 awaits
+  adversarial persona-safety, memory-architecture, privacy, product-safety, and
+  dependency-risk review and Captain judgment.
+- Files changed:
+  - `docs/product/persona_growth_policy.md`
+  - `docs/data_contracts/persona_growth_patch_contract.md`
+  - `docs/tasks/M25_memory_persona_growth/T363_synthetic_distillation_input_contract.md`
+  - `docs/worker_summary/T362_worker_summary.md`
+  - `docs/07_handoff.md`
+- Product policy result:
+  - Defined persona growth as stable core plus short-term state plus reviewed
+    growth journal.
+  - Marked identity/source/safety fields as frozen for autonomous growth.
+  - Identified long-term mutable fields such as selected traits, speech style,
+    emotion model, relationship model, and fictional virtual-history fields.
+  - Separated short-term mood from long-term PersonaCard growth.
+  - Separated relationship state from persona state.
+  - Defined allowed growth triggers from user preference, correction, approved
+    memory, relationship signals, reviewer notes, and manual edits.
+  - Defined blocked/review-required triggers for crisis, dependency, real-person
+    similarity, grief, ex-partner, family-member, public-figure, jealousy,
+    exclusivity, isolation, paid intimacy escalation, proactive outreach, and
+    voice/avatar likeness.
+- Contract result:
+  - Created `docs/data_contracts/persona_growth_patch_contract.md`.
+  - Marked `PersonaGrowthFieldChange`, `PersonaGrowthPatchCandidate`,
+    `PersonaGrowthPatchReview`, and `PersonaGrowthJournalEntry` as future
+    contract candidates, not implemented code.
+  - Defined patch lifecycle, frozen/mutable field sets, evidence requirements,
+    safety labels, review requirements, version-store interaction, consent
+    requirements, forbidden fields, and later implementation acceptance
+    criteria.
+- T363 next task package:
+  - Created
+    `docs/tasks/M25_memory_persona_growth/T363_synthetic_distillation_input_contract.md`.
+  - T363 is scoped to synthetic-only distillation input and de-identification
+    planning.
+- Verification status:
+  - `git diff --check`: passed with Windows line-ending conversion warning for
+    `docs/07_handoff.md`.
+- Explicit non-actions:
+  - No code, tests, Browser rerun, backend route, model-provider call, final
+    reply generation, private data processing, persistence, voice/avatar
+    runtime, media generation, external network asset, package manager,
+    platform adapter, outbound messaging, screenshot artifact, or task-board
+    edit was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - T362 is policy/contract documentation only; no growth patch implementation
+    exists yet.
+  - Synthetic distillation input contracts, memory retrieval/consolidation
+    refresh, and M25 review remain future work.
