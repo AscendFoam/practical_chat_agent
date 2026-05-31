@@ -51,6 +51,17 @@ preserving explicit boundaries:
   provider/outbound/media/private-data surfaces.
 - Continue Browser QA for meaningful UI changes.
 
+## Implementation Slicing
+
+M35 should split payload and UI work. The first code-facing task should add
+only the deterministic session payload and tests. A follow-up task should render
+that payload in the static web demo after the contract is stable.
+
+This split is intentional: the session loop is the first M35 surface that
+resembles an actual companion interaction, so the contract should prove the
+non-execution and synthetic-only boundaries before UI polish adds more display
+surface.
+
 ## Out Of Scope
 
 - Reading `private/chat_history/`, `private/distilled/`, or private artifacts.
@@ -70,26 +81,94 @@ preserving explicit boundaries:
 ## Companion Session Requirements
 
 The first implementation-facing slice should introduce a session spine with
-fields such as:
+the key `companion_session` on `TextFirstWebDemoState`.
 
+Required top-level fields:
+
+- `schema_version`: `local_companion_session_v1`;
 - `session_title`: reviewer-facing title;
+- `session_summary`: concise explanation of the synthetic scenario;
+- `persona_snapshot`: fictional persona identity and stable traits used in the
+  session;
 - `turns`: ordered user/companion turns with safe synthetic text;
 - `persona_cues`: current persona traits used in the replies;
 - `memory_recalls`: reviewed memory summaries referenced by the replies;
 - `safety_notes`: visible constraints that shaped the session;
-- `post_turn_candidates`: memory/persona/proactive candidates generated for
-  review after the session;
+- `post_turn_candidates`: memory/persona/proactive/life-stream candidates
+  generated for review after the session;
+- `non_execution_flags`: explicit local-only flags.
+
+Required turn fields:
+
+- `turn_id`;
+- `speaker`: `user` or `companion`;
+- `safe_text`;
+- `used_memory_recall_ids`;
+- `used_persona_cue_ids`;
+- `safety_note_ids`;
+- `review_trace`;
+- `generated_by`: `deterministic_synthetic_fixture`.
+
+Required memory recall fields:
+
+- `recall_id`;
+- `memory_kind`: factual, relational, procedural, or imagined;
+- `truth_status`;
+- `reviewed_summary`;
+- `source_label`: synthetic source label only;
+- `raw_source_available`: always false.
+
+Required post-turn candidate fields:
+
+- `candidate_id`;
+- `candidate_kind`: memory_candidate, persona_growth_patch,
+  proactive_suggestion, or life_stream_draft;
+- `originating_turn_id`;
+- `safe_summary`;
 - `review_required`: always true;
+- `preview_only`: always true;
+- `changes_state`: always false;
+- `automatic_apply`: always false;
+- `sends_messages`: always false.
+
+Required non-execution flags:
+
 - `local_only`: always true;
+- `synthetic_fixture`: always true;
 - `calls_provider`: always false;
-- `sends_messages`: always false;
 - `uses_private_source`: always false;
+- `writes_runtime_store`: always false;
+- `automatic_apply`: always false;
+- `sends_messages`: always false;
 - `media_runtime_enabled`: always false.
 
-The UI should make it easy to scan the session as a product experience: what
-the user said, how the companion responded, which memory/persona cues were
-used, what review candidates were produced, and why none of those candidates
-have been automatically applied or sent.
+## Static UI Requirements
+
+The session loop UI should be implemented after the payload task. It should make
+it easy to scan the session as a product experience:
+
+- show what the user said and how the companion responded;
+- show which memory/persona cues shaped each reply;
+- show visible safety notes for constrained turns;
+- show post-session candidates as review cards or linked review summaries;
+- keep proactive suggestions visibly unsent;
+- keep life-stream drafts labeled as imagined;
+- keep voice/avatar represented only as locked or non-executing boundaries;
+- avoid action buttons for sending, scheduling, provider calls, platform
+  connection, media generation, or automatic apply.
+
+## Browser QA Expectations
+
+Any M35 task that changes static HTML, JS, or CSS should run Browser QA through
+a localhost preview after tests pass. The check should verify:
+
+- the session loop is visible and readable;
+- text wraps without horizontal overflow on the tested viewport;
+- review candidates remain visible as non-executing surfaces;
+- no provider, outbound, scheduling, platform, voice/avatar runtime, or media
+  controls appear.
+
+Payload-only tasks do not need Browser QA unless they also touch static assets.
 
 ## Expected User Value
 
@@ -106,7 +185,7 @@ believable companion experience:
 
 1. T417: refine this next-iteration scope into concrete local session payload
    and UI requirements.
-2. T418: add the local companion session simulator payload.
+2. T418: add the local companion session simulator payload and contract tests.
 3. T419: render the session loop in the static web demo.
 4. T420: add post-session review candidate linkage and static safety checks.
 5. T421: run responsive/browser hardening for the session loop.

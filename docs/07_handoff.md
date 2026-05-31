@@ -10583,3 +10583,44 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
     session.
   - No production runtime, provider-backed chat, platform delivery, real
     distillation, voice/avatar, or generated media behavior is authorized.
+
+## T417 Worker Completion Record
+
+- T417 is the M35 Next Iteration Scope task.
+- Worker must not mark T417 complete in `docs/04_task_board.md`; T417 awaits
+  product-scope review for session-loop clarity and readiness for T418.
+- Files changed:
+  - `docs/product/m35_next_iteration_scope.md`
+  - `docs/tasks/M35_next_iteration/T418_local_companion_session_simulator.md`
+  - `docs/worker_summary/T417_worker_summary.md`
+  - `docs/07_handoff.md`
+- Work completed:
+  - Refined M35 as a deterministic local synthetic companion session-loop
+    milestone.
+  - Split implementation into a payload-first T418 and later static UI work.
+  - Added concrete `companion_session` payload, turn, memory recall,
+    post-turn candidate, non-execution flag, static UI, and Browser QA
+    expectations.
+  - Created T418 as the first code-facing M35 task.
+- T418 next task package:
+  - Created
+    `docs/tasks/M35_next_iteration/T418_local_companion_session_simulator.md`.
+  - T418 is scoped to adding the local synthetic companion session payload and
+    contract tests only.
+- Verification status:
+  - `git diff --check`: passed with CRLF warnings only.
+- Explicit non-actions:
+  - No code, tests, package dependencies, source readers, model-provider calls,
+    embeddings, vector search, semantic ranking, similarity scoring,
+    fine-tuning, runtime store writes, PersonaCard synthesis, platform
+    adapters, schedulers, queues, webhooks, tokens, recipient ids, delivery
+    state, outbound messaging, automatic outreach, voice/avatar runtime, media
+    generation, payment processing, or task-board edit was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - M35 still needs code implementation starting with T418.
+  - The session-loop UI remains future work until T419.
