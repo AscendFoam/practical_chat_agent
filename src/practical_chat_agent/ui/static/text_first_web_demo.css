@@ -191,6 +191,21 @@ h2 {
   padding-left: 10px;
 }
 
+.trust-commercial {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  margin-bottom: 16px;
+  padding: 18px;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.trust-commercial-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
 .panel[hidden] {
   display: none;
 }

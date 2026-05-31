@@ -64,6 +64,42 @@
         }
       ]
     },
+    trust_commercial: {
+      schema_version: "trust_commercial_positioning_v1",
+      pricing_hypotheses: [
+        "Core subscription: deeper reviewed memory and persona customization.",
+        "Pro tier: advanced review workspace and portable exports.",
+        "Creator tier: synthetic life-stream drafts with visible labels."
+      ],
+      value_pillars: [
+        "Believable continuity through reviewed memory.",
+        "User-shaped persona without real-person claims.",
+        "Visible controls for consent, labels, rollback, and export.",
+        "Low-pressure proactive ideas that remain review-gated."
+      ],
+      trust_controls: [
+        "AI identity disclosure stays visible.",
+        "Memory changes keep rollback audit refs.",
+        "Voice and avatar remain locked until policy is ready.",
+        "Commercial value cannot hide safety boundaries."
+      ],
+      unacceptable_patterns: [
+        "guilt-based retention",
+        "impersonation claims",
+        "crisis paywalls",
+        "hidden private-data use"
+      ],
+      readiness_gaps: [
+        "Production auth is not implemented.",
+        "Payment and billing policy is not implemented.",
+        "Real user study evidence is not available."
+      ],
+      safety_notes: [
+        "Crisis support is not a monetized companion feature.",
+        "Real-person likeness remains blocked.",
+        "User trust has priority over engagement tricks."
+      ]
+    },
     onboarding: {
       ai_identity_disclosure_text: "AI-generated synthetic companion. Review required."
     },
@@ -528,9 +564,11 @@
     const avatar = data.avatar;
     const review = data.review_workspace || { filter_tabs: [], cards: [] };
     const integratedScenario = data.integrated_scenario || {};
+    const trustCommercial = data.trust_commercial || {};
 
     text("#identity-strip", data.onboarding.ai_identity_disclosure_text);
     drawIntegratedScenario(integratedScenario);
+    drawTrustCommercial(trustCommercial);
     text("#chat-state", friendlyLabel(chat.screen));
     text("#chat-summary", "Persona: " + (chat.persona_summary.display_name || persona.display_name || "Synthetic"));
     items("#chat-memory-list", chat.memory_explanations, function (item) {
@@ -601,6 +639,21 @@
       addons.length ? "Options: " + addons.join(", ") : "",
       value.trust_rule || ""
     ].filter(Boolean).join(" ");
+  }
+
+  function drawTrustCommercial(value) {
+    items("#trust-pricing-list", value.pricing_hypotheses || [], function (item) {
+      return "<div class='item-title'>" + item + "</div>";
+    });
+    items("#trust-control-list", value.trust_controls || [], function (item) {
+      return "<div class='item-title'>" + item + "</div>";
+    });
+    items("#unacceptable-pattern-list", value.unacceptable_patterns || [], function (item) {
+      return "<div class='item-title'>" + item + "</div>";
+    });
+    items("#readiness-gap-list", value.readiness_gaps || [], function (item) {
+      return "<div class='item-title'>" + item + "</div>";
+    });
   }
 
   function drawReviewWorkspace(review) {

@@ -109,6 +109,7 @@ class TextFirstWebDemoState(BaseModel):
     demo_id: str = Field(default_factory=lambda: new_id("webdemo"))
     user_id: str = Field(..., min_length=1)
     integrated_scenario: dict[str, Any]
+    trust_commercial: dict[str, Any]
     onboarding: dict[str, Any]
     persona: dict[str, Any]
     chat_memory: dict[str, Any]
@@ -243,6 +244,7 @@ class TextFirstWebDemoAdapter:
         return TextFirstWebDemoState(
             user_id=user_id,
             integrated_scenario=self._integrated_scenario_payload(),
+            trust_commercial=self._trust_commercial_payload(),
             onboarding=_dump(initial_state),
             persona={
                 "safe_persona_state": _dump(safe_persona_state),
@@ -340,6 +342,45 @@ class TextFirstWebDemoAdapter:
                     "section_key": "voice-avatar",
                     "safe_summary": "Keep voice and avatar locked until future consent and likeness review.",
                 },
+            ],
+        }
+
+    @staticmethod
+    def _trust_commercial_payload() -> dict[str, Any]:
+        return {
+            "schema_version": "trust_commercial_positioning_v1",
+            "pricing_hypotheses": [
+                "Core subscription: deeper reviewed memory and persona customization.",
+                "Pro tier: advanced review workspace and portable exports.",
+                "Creator tier: synthetic life-stream drafts with visible labels.",
+            ],
+            "value_pillars": [
+                "Believable continuity through reviewed memory.",
+                "User-shaped persona without real-person claims.",
+                "Visible controls for consent, labels, rollback, and export.",
+                "Low-pressure proactive ideas that remain review-gated.",
+            ],
+            "trust_controls": [
+                "AI identity disclosure stays visible.",
+                "Memory changes keep rollback audit refs.",
+                "Voice and avatar remain locked until policy is ready.",
+                "Commercial value cannot hide safety boundaries.",
+            ],
+            "unacceptable_patterns": [
+                "guilt-based retention",
+                "impersonation claims",
+                "crisis paywalls",
+                "hidden private-data use",
+            ],
+            "readiness_gaps": [
+                "Production auth is not implemented.",
+                "Payment and billing policy is not implemented.",
+                "Real user study evidence is not available.",
+            ],
+            "safety_notes": [
+                "Crisis support is not a monetized companion feature.",
+                "Real-person likeness remains blocked.",
+                "User trust has priority over engagement tricks.",
             ],
         }
 

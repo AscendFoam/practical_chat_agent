@@ -10430,3 +10430,61 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - Scenario spine is synthetic and local-only.
   - The trust/commercial surface still needs a dedicated panel.
   - A dedicated trust/commercial panel is not implemented yet.
+
+## T414 Worker Completion Record
+
+- T414 is the Trust Commercial Positioning Panel task.
+- Worker must not mark T414 complete in `docs/04_task_board.md`; T414 awaits
+  adversarial product-commercial review for trust framing, monetization safety,
+  local-only boundaries, and no provider/outbound/media surface expansion.
+- Files changed:
+  - `src/practical_chat_agent/ui/text_first_web_demo_adapter.py`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.html`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.js`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.css`
+  - `tests/test_trust_commercial_positioning_panel.py`
+  - `docs/data_contracts/trust_commercial_positioning_panel_contract.md`
+  - `docs/tasks/M34_integrated_companion_demo/T415_integrated_demo_responsive_hardening.md`
+  - `docs/worker_summary/T414_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD record:
+  - RED:
+    `$env:PYTHONPATH='src'; pytest tests\test_trust_commercial_positioning_panel.py -q -o cache_dir=artifacts\t414_pytest_cache --basetemp=artifacts\t414_pytest_basetemp`
+    failed with `3 failed, 1 passed` because `trust_commercial` and static
+    trust/commercial panel hooks did not exist.
+  - GREEN:
+    py_compile passed; focused tests passed with `4 passed`.
+- Implementation result:
+  - Added `trust_commercial` to `TextFirstWebDemoState`.
+  - Added synthetic pricing hypotheses, value pillars, trust controls,
+    unacceptable monetization patterns, readiness gaps, and safety notes.
+  - Added and rendered a static trust/commercial panel.
+- T415 next task package:
+  - Created
+    `docs/tasks/M34_integrated_companion_demo/T415_integrated_demo_responsive_hardening.md`.
+  - T415 is scoped to responsive hardening for the integrated demo.
+- Verification status:
+  - py_compile: passed.
+  - focused pytest: passed, `4 passed`.
+  - final combined pytest: passed, `20 passed`.
+  - expanded local web demo regression: passed, `32 passed`.
+  - browser QA: passed with trust/commercial panel rendered, 3 pricing items,
+    4 trust controls, 4 unacceptable patterns, and 3 readiness gaps.
+  - `git diff --check`: passed with CRLF warnings only.
+- Explicit non-actions:
+  - No payment processing, billing, runtime companion behavior, new apply
+    execution, persona version mutation, memory lifecycle mutation, private
+    data reader, source ingestion from real logs, extraction, embedding, vector
+    search, retrieval ranking, similarity scoring, model-provider call, final
+    reply generation, proactive candidate, scheduler, queue persistence,
+    webhook, token, external adapter, outbound messaging, voice/avatar runtime,
+    media generation, package-manager dependency, or task-board edit was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - Commercial positioning is synthetic and unvalidated.
+  - Responsive hardening still needs a dedicated pass.
+  - No production monetization authorization is claimed.
