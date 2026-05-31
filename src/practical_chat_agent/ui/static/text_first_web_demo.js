@@ -2,6 +2,68 @@
   const fallbackState = {
     schema_version: "text_first_web_demo_state_v1",
     user_id: "user_synthetic",
+    integrated_scenario: {
+      schema_version: "integrated_demo_scenario_spine_v1",
+      scenario_title: "Controlled companion review path",
+      persona_promise: "A fictional AI companion can be shaped by explicit user intent while staying labeled as synthetic.",
+      memory_promise: "Continuity comes from reviewed memory summaries, not hidden raw logs.",
+      review_promise: "Sensitive changes pass through review cards, dry-run previews, and rollback evidence.",
+      proactive_promise: "Proactive ideas stay consented, low-pressure, and review-gated.",
+      life_stream_promise: "Life-stream content is imagined, labeled, and separated from real-world claims.",
+      voice_avatar_boundary: "Voice and avatar remain locked until consent, labeling, and likeness rules are ready.",
+      commercial_positioning: {
+        primary_model: "Subscription for deeper memory review, persona customization, and privacy controls.",
+        premium_addons: [
+          "advanced review workspace",
+          "synthetic life-stream drafts",
+          "portable export controls"
+        ],
+        trust_rule: "Revenue should grow through useful control, not emotional pressure."
+      },
+      readiness_summary: "Local prototype: coherent review path is visible; production auth, real integrations, and launch review remain open.",
+      scenario_steps: [
+        {
+          step_label: "Shape the companion",
+          section_key: "persona",
+          safe_summary: "Start from a fictional persona request with clear AI disclosure."
+        },
+        {
+          step_label: "Ground the chat",
+          section_key: "chat",
+          safe_summary: "Use reviewed memory context while keeping safety blocks visible."
+        },
+        {
+          step_label: "Inspect memory",
+          section_key: "memory",
+          safe_summary: "Separate factual and imagined memory before it affects the companion."
+        },
+        {
+          step_label: "Review changes",
+          section_key: "review",
+          safe_summary: "Check dry-run previews, apply risk, and audit rollback refs."
+        },
+        {
+          step_label: "Tune proactive ideas",
+          section_key: "proactive",
+          safe_summary: "Keep suggestions consented and blocked when dependency risk appears."
+        },
+        {
+          step_label: "Preview imagined life",
+          section_key: "life",
+          safe_summary: "Show synthetic life-stream drafts with visible labels."
+        },
+        {
+          step_label: "Verify controls",
+          section_key: "controls",
+          safe_summary: "Expose consent, labels, and export controls as product primitives."
+        },
+        {
+          step_label: "Hold voice and avatar",
+          section_key: "voice-avatar",
+          safe_summary: "Keep voice and avatar locked until future consent and likeness review."
+        }
+      ]
+    },
     onboarding: {
       ai_identity_disclosure_text: "AI-generated synthetic companion. Review required."
     },
@@ -465,8 +527,10 @@
     const voice = data.voice;
     const avatar = data.avatar;
     const review = data.review_workspace || { filter_tabs: [], cards: [] };
+    const integratedScenario = data.integrated_scenario || {};
 
     text("#identity-strip", data.onboarding.ai_identity_disclosure_text);
+    drawIntegratedScenario(integratedScenario);
     text("#chat-state", friendlyLabel(chat.screen));
     text("#chat-summary", "Persona: " + (chat.persona_summary.display_name || persona.display_name || "Synthetic"));
     items("#chat-memory-list", chat.memory_explanations, function (item) {
@@ -513,6 +577,30 @@
     text("#persona-blocked", one("#persona-blocked").textContent);
     text("#chat-blocked", one("#chat-blocked").textContent);
     text("#avatar-state", one("#avatar-state").textContent);
+  }
+
+  function drawIntegratedScenario(scenario) {
+    text("#scenario-title", scenario.scenario_title || "Controlled companion review path");
+    text("#scenario-persona-promise", scenario.persona_promise || "");
+    text("#scenario-memory-promise", scenario.memory_promise || "");
+    text("#scenario-review-promise", scenario.review_promise || "");
+    text("#scenario-proactive-promise", scenario.proactive_promise || "");
+    text("#scenario-life-promise", scenario.life_stream_promise || "");
+    text("#scenario-voice-boundary", scenario.voice_avatar_boundary || "");
+    items("#scenario-spine-list", scenario.scenario_steps || [], function (step) {
+      return "<div class='item-title'>" + step.step_label + "</div><div class='item-meta'>" + friendlyLabel(step.section_key) + "</div><div>" + step.safe_summary + "</div>";
+    });
+    text("#scenario-readiness", scenario.readiness_summary || "");
+    text("#scenario-commercial", commercialPositioningText(scenario.commercial_positioning || {}));
+  }
+
+  function commercialPositioningText(value) {
+    const addons = value.premium_addons || [];
+    return [
+      value.primary_model || "",
+      addons.length ? "Options: " + addons.join(", ") : "",
+      value.trust_rule || ""
+    ].filter(Boolean).join(" ");
   }
 
   function drawReviewWorkspace(review) {

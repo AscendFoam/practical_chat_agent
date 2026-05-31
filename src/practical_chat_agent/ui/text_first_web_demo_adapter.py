@@ -108,6 +108,7 @@ class TextFirstWebDemoState(BaseModel):
     schema_version: str = "text_first_web_demo_state_v1"
     demo_id: str = Field(default_factory=lambda: new_id("webdemo"))
     user_id: str = Field(..., min_length=1)
+    integrated_scenario: dict[str, Any]
     onboarding: dict[str, Any]
     persona: dict[str, Any]
     chat_memory: dict[str, Any]
@@ -241,6 +242,7 @@ class TextFirstWebDemoAdapter:
 
         return TextFirstWebDemoState(
             user_id=user_id,
+            integrated_scenario=self._integrated_scenario_payload(),
             onboarding=_dump(initial_state),
             persona={
                 "safe_persona_state": _dump(safe_persona_state),
@@ -275,6 +277,71 @@ class TextFirstWebDemoAdapter:
             avatar=self._avatar_locked_state(user_id=user_id),
             review_workspace=self._review_workspace_payload(user_id=user_id),
         )
+
+    @staticmethod
+    def _integrated_scenario_payload() -> dict[str, Any]:
+        return {
+            "schema_version": "integrated_demo_scenario_spine_v1",
+            "scenario_title": "Controlled companion review path",
+            "persona_promise": "A fictional AI companion can be shaped by explicit user intent while staying labeled as synthetic.",
+            "memory_promise": "Continuity comes from reviewed memory summaries, not hidden raw logs.",
+            "review_promise": "Sensitive changes pass through review cards, dry-run previews, and rollback evidence.",
+            "proactive_promise": "Proactive ideas stay consented, low-pressure, and review-gated.",
+            "life_stream_promise": "Life-stream content is imagined, labeled, and separated from real-world claims.",
+            "voice_avatar_boundary": "Voice and avatar remain locked until consent, labeling, and likeness rules are ready.",
+            "commercial_positioning": {
+                "primary_model": "Subscription for deeper memory review, persona customization, and privacy controls.",
+                "premium_addons": [
+                    "advanced review workspace",
+                    "synthetic life-stream drafts",
+                    "portable export controls",
+                ],
+                "trust_rule": "Revenue should grow through useful control, not emotional pressure.",
+            },
+            "readiness_summary": "Local prototype: coherent review path is visible; production auth, real integrations, and launch review remain open.",
+            "scenario_steps": [
+                {
+                    "step_label": "Shape the companion",
+                    "section_key": "persona",
+                    "safe_summary": "Start from a fictional persona request with clear AI disclosure.",
+                },
+                {
+                    "step_label": "Ground the chat",
+                    "section_key": "chat",
+                    "safe_summary": "Use reviewed memory context while keeping safety blocks visible.",
+                },
+                {
+                    "step_label": "Inspect memory",
+                    "section_key": "memory",
+                    "safe_summary": "Separate factual and imagined memory before it affects the companion.",
+                },
+                {
+                    "step_label": "Review changes",
+                    "section_key": "review",
+                    "safe_summary": "Check dry-run previews, apply risk, and audit rollback refs.",
+                },
+                {
+                    "step_label": "Tune proactive ideas",
+                    "section_key": "proactive",
+                    "safe_summary": "Keep suggestions consented and blocked when dependency risk appears.",
+                },
+                {
+                    "step_label": "Preview imagined life",
+                    "section_key": "life",
+                    "safe_summary": "Show synthetic life-stream drafts with visible labels.",
+                },
+                {
+                    "step_label": "Verify controls",
+                    "section_key": "controls",
+                    "safe_summary": "Expose consent, labels, and export controls as product primitives.",
+                },
+                {
+                    "step_label": "Hold voice and avatar",
+                    "section_key": "voice-avatar",
+                    "safe_summary": "Keep voice and avatar locked until future consent and likeness review.",
+                },
+            ],
+        }
 
     def _review_workspace_payload(self, *, user_id: str) -> dict[str, Any]:
         (

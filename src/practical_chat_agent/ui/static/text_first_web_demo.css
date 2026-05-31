@@ -165,6 +165,32 @@ h2 {
   display: block;
 }
 
+.scenario-spine {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  margin-bottom: 16px;
+  padding: 18px;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.scenario-promise-grid,
+.scenario-spine-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.scenario-promise-grid {
+  margin-bottom: 12px;
+}
+
+.scenario-note {
+  border-left: 3px solid var(--accent);
+  color: var(--muted);
+  padding-left: 10px;
+}
+
 .panel[hidden] {
   display: none;
 }
