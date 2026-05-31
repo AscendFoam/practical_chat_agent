@@ -7292,3 +7292,41 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - M23 is still a local static demo milestone. M24 must harden local serving,
     generated payload wiring, accessibility, keyboard behavior, friendly labels,
     and broader layout QA before broader review.
+
+## T350 Worker Completion Record
+
+- T350 is the M24 Scope task.
+- Worker must not mark T350 as complete in `docs/04_task_board.md`; T350 awaits
+  adversarial product/safety UX and architecture review and Captain judgment.
+- Files changed:
+  - `docs/product/m24_demo_hardening_scope.md`
+  - `docs/tasks/M24_demo_hardening_and_local_backend/T351_local_demo_server.md`
+  - `docs/worker_summary/T350_worker_summary.md`
+  - `docs/07_handoff.md`
+- Scope result:
+  - Scoped M24 as local demo hardening and local backend work.
+  - Recommended a stable local run path with adapter-generated synthetic state.
+  - Prioritized friendly labels, keyboard/accessibility hardening, and
+    desktop/mobile QA.
+  - Preserved voice/avatar locked state and proactive non-sending state.
+  - Kept private data, model providers, generated media, platform delivery,
+    automatic outreach, and launch claims out of scope.
+- T351 next task package:
+  - Created
+    `docs/tasks/M24_demo_hardening_and_local_backend/T351_local_demo_server.md`.
+  - T351 is scoped to a dependency-free local server helper, tests, and data
+    contract.
+- Verification status:
+  - `git diff --check`: passed with Windows line-ending conversion warnings.
+- Explicit non-actions:
+  - No code, tests, browser rerun, backend route, model-provider call, final
+    reply generation, private data processing, voice/avatar runtime, media
+    generation, external network asset, package manager, platform adapter,
+    outbound messaging, screenshot artifact, or task-board edit was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - T350 is scope only. T351 must implement the first M24 code path and tests.
