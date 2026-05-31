@@ -6868,3 +6868,47 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - T332 is a benchmark plan only; no latency or quality measurements exist.
   - Provider docs, costs, retention behavior, and platform policies can change
     before runtime benchmarking.
+
+## T333 Worker Completion Record
+
+- T333 is the Avatar Interaction Survey task for M22.
+- Worker must not mark T333 as complete in `docs/04_task_board.md`; T333 awaits
+  adversarial avatar/privacy/product-policy review and Captain judgment.
+- Files changed:
+  - `docs/research/avatar_interaction_survey.md`
+  - `docs/tasks/M22_voice_and_avatar_exploration/T334_m22_milestone_review.md`
+  - `docs/worker_summary/T333_worker_summary.md`
+  - `docs/07_handoff.md`
+- Survey result:
+  - Recommends static fictional portrait first and simple low-realism
+    sprite/CSS/canvas animation before Live2D.
+  - Defers Live2D and 3D VRM/glTF behind license, consent, labeling, and safety
+    review.
+  - Defers third-party avatar creators behind vendor/privacy/asset-rights
+    review.
+  - Keeps camera capture, face landmark tracking, generated talking-head video,
+    and real-person/deceased-person/public-figure/family/ex-partner likeness
+    blocked.
+  - Preserves text-first UI, persistent AI/synthetic labels, pause/hide
+    controls, and no fake video-call posture as future demo requirements.
+- T334 next task package:
+  - Created
+    `docs/tasks/M22_voice_and_avatar_exploration/T334_m22_milestone_review.md`.
+  - T334 is scoped to M22 milestone review and M23 text-first web demo entry.
+- Verification status:
+  - `git diff --check`: passed with Windows line-ending conversion warnings.
+- Explicit non-actions:
+  - No code, tests, provider call, generated image/video, face clone, avatar
+    runtime, Live2D runtime, camera capture, face tracking, audio/video
+    processing, UI, browser demo, platform adapter, outbound messaging, or
+    task-board edit was added.
+  - No legal advice, compliance completion, biometric compliance,
+    synthetic-media compliance, crisis-safety sufficiency, app-store approval,
+    launch approval, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - T333 is a dated research snapshot; SDK licenses, provider docs, and
+    platform policies can change.
+  - No avatar runtime, web UI, user study, media generation, provider review, or
+    legal review has been completed.
