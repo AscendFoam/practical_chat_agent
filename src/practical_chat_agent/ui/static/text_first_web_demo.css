@@ -77,6 +77,8 @@ h2 {
   padding: 8px 10px;
   font-size: 0.9rem;
   max-width: 360px;
+  overflow-wrap: anywhere;
+  word-break: normal;
 }
 
 .tabs {
@@ -92,7 +94,9 @@ h2 {
   color: var(--ink);
   padding: 8px 12px;
   cursor: pointer;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: normal;
 }
 
 .tab:focus-visible {
@@ -133,6 +137,8 @@ h2 {
   color: var(--ink);
   padding: 7px 10px;
   cursor: pointer;
+  overflow-wrap: anywhere;
+  word-break: normal;
 }
 
 .scenario:focus-visible {
@@ -151,10 +157,16 @@ h2 {
   background: var(--panel);
   border: 1px solid var(--line);
   padding: 18px;
+  overflow-wrap: anywhere;
+  word-break: normal;
 }
 
 .panel.is-active {
   display: block;
+}
+
+.panel[hidden] {
+  display: none;
 }
 
 .panel-head {
@@ -182,6 +194,8 @@ h2 {
   background: #f9fafb;
   color: var(--muted);
   font-size: 0.82rem;
+  overflow-wrap: anywhere;
+  word-break: normal;
 }
 
 .label-row {
@@ -199,6 +213,8 @@ h2 {
   border: 1px solid var(--line);
   padding: 12px;
   background: #fcfcfd;
+  overflow-wrap: anywhere;
+  word-break: normal;
 }
 
 .item-title {
@@ -216,6 +232,8 @@ h2 {
   background: var(--warn-soft);
   color: var(--warn);
   padding: 12px;
+  overflow-wrap: anywhere;
+  word-break: normal;
 }
 
 .notice.danger {

@@ -7418,3 +7418,61 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
     content was read, quoted, summarized, or committed.
 - Remaining risks:
   - T352 is contract-only. T353 must implement the UI changes and tests.
+
+## T353 Worker Completion Record
+
+- T353 is the Keyboard Responsive UI Hardening task for M24.
+- Worker must not mark T353 as complete in `docs/04_task_board.md`; T353 awaits
+  adversarial frontend, accessibility, and product/safety UX review and Captain
+  judgment.
+- Files changed:
+  - `tests/test_text_first_web_demo_accessibility.py`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.html`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.css`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.js`
+  - `docs/tasks/M24_demo_hardening_and_local_backend/T354_local_run_browser_qa.md`
+  - `docs/worker_summary/T353_worker_summary.md`
+  - `docs/07_handoff.md`
+- Implementation result:
+  - Added tablist/tab/tabpanel semantics.
+  - Added `aria-selected`, `aria-controls`, `aria-labelledby`, `hidden`, and
+    `aria-hidden` handling.
+  - Added scenario `aria-pressed` handling.
+  - Added friendly label mapping for visible technical states.
+  - Preserved AI identity, proactive no-send, voice-off, and avatar-locked
+    surfaces.
+  - Added long-label wrapping rules.
+- T354 next task package:
+  - Created
+    `docs/tasks/M24_demo_hardening_and_local_backend/T354_local_run_browser_qa.md`.
+  - T354 is scoped to formal Browser QA of the local run path and hardened UI.
+- TDD evidence:
+  - RED `pytest tests\test_text_first_web_demo_accessibility.py -q -o cache_dir=artifacts\t353_pytest_cache_red --basetemp=artifacts\t353_pytest_basetemp_red`:
+    failed as expected with 4 failures.
+  - GREEN `pytest tests\test_text_first_web_demo_accessibility.py tests\test_text_first_web_demo_state_switching.py tests\test_text_first_web_demo_static.py tests\test_text_first_web_demo_local_server.py tests\test_text_first_web_demo_adapter.py -q -o cache_dir=artifacts\t353_pytest_cache_green2 --basetemp=artifacts\t353_pytest_basetemp_green2`:
+    passed, 25 tests.
+- Browser verification:
+  - Used T351 local server path at `http://127.0.0.1:8768/`.
+  - Checked desktop `1280x720` and mobile `390x844`.
+  - Verified active tab/panel/scenario ARIA state, Dependency scenario,
+    Voice / Avatar scenario, AI identity visibility, no-send label, voice-off
+    label, avatar-locked label, and no horizontal overflow.
+  - Stopped the temporary preview server after verification.
+- Verification status:
+  - `pytest tests\test_text_first_web_demo_accessibility.py tests\test_text_first_web_demo_state_switching.py tests\test_text_first_web_demo_static.py tests\test_text_first_web_demo_local_server.py tests\test_text_first_web_demo_adapter.py -q -o cache_dir=artifacts\t353_pytest_cache --basetemp=artifacts\t353_pytest_basetemp`:
+    passed, 25 tests.
+  - `git diff --check`: passed with Windows line-ending conversion warnings.
+- Explicit non-actions:
+  - No Python backend change, package-manager dependency, model-provider call,
+    final reply generation, private data processing, voice/avatar runtime,
+    media generation, external network asset, platform adapter, outbound
+    messaging, screenshot artifact, or task-board edit was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - Formal Browser QA, screen-reader validation, high-contrast validation, zoom
+    validation, localization, RTL, and extreme-payload testing remain for later
+    tasks.

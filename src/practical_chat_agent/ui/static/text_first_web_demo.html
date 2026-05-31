@@ -16,14 +16,14 @@
         <div id="identity-strip" class="status-strip">AI-generated synthetic companion. Review required.</div>
       </header>
 
-      <nav class="tabs" aria-label="Demo sections">
-        <button class="tab is-active" data-tab="chat" type="button">Chat</button>
-        <button class="tab" data-tab="persona" type="button">Persona</button>
-        <button class="tab" data-tab="memory" type="button">Memory</button>
-        <button class="tab" data-tab="life" type="button">Life</button>
-        <button class="tab" data-tab="proactive" type="button">Proactive</button>
-        <button class="tab" data-tab="controls" type="button">Controls</button>
-        <button class="tab" data-tab="voice-avatar" type="button">Voice / Avatar</button>
+      <nav class="tabs" aria-label="Demo sections" role="tablist">
+        <button id="tab-chat" class="tab is-active" data-tab="chat" type="button" role="tab" aria-selected="true" aria-controls="chat-panel">Chat</button>
+        <button id="tab-persona" class="tab" data-tab="persona" type="button" role="tab" aria-selected="false" aria-controls="persona-panel">Persona</button>
+        <button id="tab-memory" class="tab" data-tab="memory" type="button" role="tab" aria-selected="false" aria-controls="memory-panel">Memory</button>
+        <button id="tab-life" class="tab" data-tab="life" type="button" role="tab" aria-selected="false" aria-controls="life-panel">Life</button>
+        <button id="tab-proactive" class="tab" data-tab="proactive" type="button" role="tab" aria-selected="false" aria-controls="proactive-panel">Proactive</button>
+        <button id="tab-controls" class="tab" data-tab="controls" type="button" role="tab" aria-selected="false" aria-controls="controls-panel">Controls</button>
+        <button id="tab-voice-avatar" class="tab" data-tab="voice-avatar" type="button" role="tab" aria-selected="false" aria-controls="voice-avatar-panel">Voice / Avatar</button>
       </nav>
 
       <section id="scenario-controls" class="scenario-controls" aria-label="Scenario controls">
@@ -32,17 +32,17 @@
           <div id="scenario-status" class="scenario-status">Safe review</div>
         </div>
         <div class="scenario-buttons">
-          <button class="scenario is-active" data-scenario="safe-review" type="button">Safe review</button>
-          <button class="scenario" data-scenario="blocked-persona" type="button">Blocked persona</button>
-          <button class="scenario" data-scenario="crisis-chat" type="button">Crisis chat</button>
-          <button class="scenario" data-scenario="dependency-proactive" type="button">Dependency</button>
-          <button class="scenario" data-scenario="life-review" type="button">Life review</button>
-          <button class="scenario" data-scenario="controls-review" type="button">Controls</button>
-          <button class="scenario" data-scenario="voice-avatar-locked" type="button">Voice / Avatar</button>
+          <button class="scenario is-active" data-scenario="safe-review" type="button" aria-pressed="true">Safe review</button>
+          <button class="scenario" data-scenario="blocked-persona" type="button" aria-pressed="false">Blocked persona</button>
+          <button class="scenario" data-scenario="crisis-chat" type="button" aria-pressed="false">Crisis chat</button>
+          <button class="scenario" data-scenario="dependency-proactive" type="button" aria-pressed="false">Dependency</button>
+          <button class="scenario" data-scenario="life-review" type="button" aria-pressed="false">Life review</button>
+          <button class="scenario" data-scenario="controls-review" type="button" aria-pressed="false">Controls</button>
+          <button class="scenario" data-scenario="voice-avatar-locked" type="button" aria-pressed="false">Voice / Avatar</button>
         </div>
       </section>
 
-      <section id="chat-panel" class="panel is-active" data-panel="chat">
+      <section id="chat-panel" class="panel is-active" data-panel="chat" role="tabpanel" aria-labelledby="tab-chat" aria-hidden="false">
         <div class="panel-head">
           <h2>Chat Review</h2>
           <span id="chat-state" class="tag">review</span>
@@ -52,7 +52,7 @@
         <div id="chat-blocked" class="notice"></div>
       </section>
 
-      <section id="persona-panel" class="panel" data-panel="persona">
+      <section id="persona-panel" class="panel" data-panel="persona" role="tabpanel" aria-labelledby="tab-persona" hidden aria-hidden="true">
         <div class="panel-head">
           <h2>Persona</h2>
           <span id="persona-state" class="tag">draft</span>
@@ -62,7 +62,7 @@
         <div id="persona-blocked" class="notice"></div>
       </section>
 
-      <section id="memory-panel" class="panel" data-panel="memory">
+      <section id="memory-panel" class="panel" data-panel="memory" role="tabpanel" aria-labelledby="tab-memory" hidden aria-hidden="true">
         <div class="panel-head">
           <h2>Memory</h2>
           <span class="tag">explainable</span>
@@ -70,7 +70,7 @@
         <div id="memory-list" class="item-list"></div>
       </section>
 
-      <section id="life-panel" class="panel" data-panel="life">
+      <section id="life-panel" class="panel" data-panel="life" role="tabpanel" aria-labelledby="tab-life" hidden aria-hidden="true">
         <div class="panel-head">
           <h2>Life Stream</h2>
           <span class="tag">imagined</span>
@@ -78,7 +78,7 @@
         <div id="life-list" class="item-list"></div>
       </section>
 
-      <section id="proactive-panel" class="panel" data-panel="proactive">
+      <section id="proactive-panel" class="panel" data-panel="proactive" role="tabpanel" aria-labelledby="tab-proactive" hidden aria-hidden="true">
         <div class="panel-head">
           <h2>Proactive</h2>
           <span id="proactive-state" class="tag">review</span>
@@ -87,7 +87,7 @@
         <div id="proactive-blocked" class="notice"></div>
       </section>
 
-      <section id="controls-panel" class="panel" data-panel="controls">
+      <section id="controls-panel" class="panel" data-panel="controls" role="tabpanel" aria-labelledby="tab-controls" hidden aria-hidden="true">
         <div class="panel-head">
           <h2>Controls</h2>
           <span class="tag">local review</span>
@@ -96,7 +96,7 @@
         <div id="aigc-labels" class="label-row"></div>
       </section>
 
-      <section id="voice-avatar-panel" class="panel" data-panel="voice-avatar">
+      <section id="voice-avatar-panel" class="panel" data-panel="voice-avatar" role="tabpanel" aria-labelledby="tab-voice-avatar" hidden aria-hidden="true">
         <div class="panel-head">
           <h2>Voice / Avatar</h2>
           <span class="tag">locked</span>

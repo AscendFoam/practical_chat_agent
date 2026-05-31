@@ -86,6 +86,40 @@
   };
 
   const baseState = state();
+  const friendlyLabels = {
+    ai_generated: "AI-generated",
+    avatar_runtime_not_implemented: "Avatar runtime is not implemented",
+    blocked: "Blocked",
+    candidate: "Candidate persona",
+    chat_blocked: "Chat blocked for review",
+    chat_review: "Chat review",
+    crisis_safety_review_required: "Crisis safety review required",
+    disabled: "Off",
+    evidence_backed: "Evidence-backed",
+    dependency_deescalation_required: "Dependency de-escalation required",
+    enabled: "Enabled",
+    factual: "Factual",
+    fictional_ai_persona: "Fictional AI persona",
+    human_support_redirect_required: "Human support redirect required",
+    imagined: "Imagined",
+    imagined_ai_generated_content: "Imagined AI-generated content",
+    imagined_content: "Imagined content",
+    implicit_metadata_label_required: "Metadata label required",
+    locked_research_only: "Avatar locked for research review",
+    memory: "Memory",
+    not_real_world_activity: "Not real-world activity",
+    proactive_blocked: "Proactive outreach blocked",
+    proactive_enabled_review: "Proactive settings review",
+    proactive_messaging: "Proactive review",
+    proactive_outreach_blocked: "Proactive outreach is blocked",
+    real_person_clone_blocked: "Real-person recreation is blocked",
+    real_person_likeness_blocked: "Real-person likeness is blocked",
+    review_required: "Needs review",
+    synthetic_content: "Synthetic content",
+    voice_avatar: "Voice/avatar review",
+    visual_capture_blocked: "Visual capture is blocked",
+    aigc_export_share: "AIGC export/share review"
+  };
 
   function state() {
     return window.TEXT_FIRST_WEB_DEMO_STATE || fallbackState;
@@ -106,6 +140,15 @@
     }
   }
 
+  function friendlyLabel(value) {
+    const key = String(value || "");
+    return friendlyLabels[key] || key.replace(/_/g, " ");
+  }
+
+  function friendlyList(values) {
+    return (values || []).map(friendlyLabel).join(", ");
+  }
+
   function labels(containerSelector, values) {
     const node = one(containerSelector);
     if (!node) {
@@ -115,7 +158,7 @@
     (values || []).forEach(function (value) {
       const span = document.createElement("span");
       span.className = "label";
-      span.textContent = value;
+      span.textContent = friendlyLabel(value);
       node.appendChild(span);
     });
   }
@@ -138,22 +181,22 @@
     document.querySelectorAll(".tab").forEach(function (tab) {
       tab.addEventListener("click", function () {
         const target = tab.getAttribute("data-tab");
-        document.querySelectorAll(".tab").forEach(function (item) {
-          item.classList.toggle("is-active", item === tab);
-        });
-        document.querySelectorAll(".panel").forEach(function (panel) {
-          panel.classList.toggle("is-active", panel.getAttribute("data-panel") === target);
-        });
+        activatePanel(target);
       });
     });
   }
 
   function activatePanel(target) {
     document.querySelectorAll(".tab").forEach(function (item) {
-      item.classList.toggle("is-active", item.getAttribute("data-tab") === target);
+      const isActive = item.getAttribute("data-tab") === target;
+      item.classList.toggle("is-active", isActive);
+      item.setAttribute("aria-selected", isActive ? "true" : "false");
     });
     document.querySelectorAll(".panel").forEach(function (panel) {
-      panel.classList.toggle("is-active", panel.getAttribute("data-panel") === target);
+      const isActive = panel.getAttribute("data-panel") === target;
+      panel.classList.toggle("is-active", isActive);
+      panel.hidden = !isActive;
+      panel.setAttribute("aria-hidden", isActive ? "false" : "true");
     });
   }
 
@@ -186,7 +229,9 @@
       "voice-avatar-locked": "voice-avatar"
     };
     document.querySelectorAll(".scenario").forEach(function (item) {
-      item.classList.toggle("is-active", item.getAttribute("data-scenario") === name);
+      const isActive = item.getAttribute("data-scenario") === name;
+      item.classList.toggle("is-active", isActive);
+      item.setAttribute("aria-pressed", isActive ? "true" : "false");
     });
     text("#scenario-status", labels[name] || labels["safe-review"]);
     activatePanel(panels[name] || "chat");
@@ -206,46 +251,46 @@
     const avatar = data.avatar;
 
     text("#identity-strip", data.onboarding.ai_identity_disclosure_text);
-    text("#chat-state", chat.screen);
+    text("#chat-state", friendlyLabel(chat.screen));
     text("#chat-summary", "Persona: " + (chat.persona_summary.display_name || persona.display_name || "Synthetic"));
     items("#chat-memory-list", chat.memory_explanations, function (item) {
-      return "<div class='item-title'>" + item.summary + "</div><div class='item-meta'>" + item.truth_status + "</div>";
+      return "<div class='item-title'>" + item.summary + "</div><div class='item-meta'>" + friendlyLabel(item.truth_status) + "</div>";
     });
-    text("#chat-blocked", "Blocked state: " + (blockedChat.safety_reasons || []).join(", "));
+    text("#chat-blocked", "Chat blocked for review: " + friendlyList(blockedChat.safety_reasons));
     one("#chat-blocked").classList.add("danger");
 
-    text("#persona-state", persona.status || "candidate");
-    text("#persona-summary", (persona.display_name || "Synthetic persona") + " / " + (persona.truth_disclosure || "fictional"));
+    text("#persona-state", friendlyLabel(persona.status || "candidate"));
+    text("#persona-summary", (persona.display_name || "Synthetic persona") + " / " + friendlyLabel(persona.truth_disclosure || "fictional"));
     labels("#persona-labels", personaLabel.disclosure_labels || []);
-    text("#persona-blocked", "Blocked persona: " + (blockedPersona.blocked_reasons || []).join(", "));
+    text("#persona-blocked", "Persona request blocked: " + friendlyList(blockedPersona.blocked_reasons));
 
     items("#memory-list", chat.memory_explanations, function (item) {
       const type = item.is_imagined ? "imagined" : "factual";
-      return "<div class='item-title'>" + item.summary + "</div><div class='item-meta'>" + type + " / " + item.truth_status + "</div>";
+      return "<div class='item-title'>" + item.summary + "</div><div class='item-meta'>" + friendlyLabel(type) + " / " + friendlyLabel(item.truth_status) + "</div>";
     });
 
     items("#life-list", data.life_stream.items, function (item) {
-      const label = item.aigc_label && item.aigc_label.disclosure_labels ? item.aigc_label.disclosure_labels.join(", ") : "";
-      return "<div class='item-title'>" + item.content_text + "</div><div class='item-meta'>" + item.truth_disclosure + " / " + label + "</div>";
+      const label = item.aigc_label && item.aigc_label.disclosure_labels ? friendlyList(item.aigc_label.disclosure_labels) : "";
+      return "<div class='item-title'>" + item.content_text + "</div><div class='item-meta'>" + friendlyLabel(item.truth_disclosure) + " / " + label + "</div>";
     });
 
     items("#consent-list", controls.consent_center.active_feature_scopes, function (item) {
-      return "<div class='item-title'>" + item + "</div><div class='item-meta'>active synthetic consent</div>";
+      return "<div class='item-title'>" + friendlyLabel(item) + "</div><div class='item-meta'>Review fixture</div>";
     });
     labels("#aigc-labels", controls.aigc_label.disclosure_labels || []);
 
-    text("#proactive-state", proactive.screen);
-    text("#proactive-summary", "Consent: " + proactive.consent_status + " / outreach allowed: " + proactive.outreach_allowed);
-    text("#proactive-blocked", "Blocked state: " + (proactiveBlocked.safety_reasons || []).join(", "));
+    text("#proactive-state", friendlyLabel(proactive.screen));
+    text("#proactive-summary", "Consent: " + friendlyLabel(proactive.consent_status) + " / " + (proactive.outreach_allowed ? "Messages require review" : "No messages can be sent"));
+    text("#proactive-blocked", "Blocked state: " + friendlyList(proactiveBlocked.safety_reasons));
 
     items("#voice-state", [
       voice.disabled_state,
       voice.review_state,
       voice.blocked_state
     ], function (item) {
-      return "<div class='item-title'>" + item.decision + "</div><div class='item-meta'>voice enabled: " + item.voice_enabled + "</div>";
+      return "<div class='item-title'>" + friendlyLabel(item.decision) + "</div><div class='item-meta'>" + (item.voice_enabled ? "Voice requires review" : "Voice is off") + "</div>";
     });
-    text("#avatar-state", "Avatar " + avatar.state + ": " + (avatar.blocked_reasons || []).join(", "));
+    text("#avatar-state", "Avatar locked for research review: " + friendlyList(avatar.blocked_reasons || [avatar.state]));
 
     text("#persona-blocked", one("#persona-blocked").textContent);
     text("#chat-blocked", one("#chat-blocked").textContent);
