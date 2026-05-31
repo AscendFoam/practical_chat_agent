@@ -10541,3 +10541,45 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
 - Remaining risks:
   - Browser QA was limited to the available narrow viewport.
   - M34 milestone review remains open.
+
+## T416 Worker Completion Record
+
+- T416 is the M34 Milestone Review task.
+- Worker must not mark T416 complete in `docs/04_task_board.md`; T416 awaits
+  review of the M34 review verdict and M35 scope handoff.
+- Files changed:
+  - `docs/review/M34_review.md`
+  - `docs/product/m35_next_iteration_scope.md`
+  - `docs/tasks/M35_next_iteration/T417_next_iteration_scope.md`
+  - `docs/worker_summary/T416_worker_summary.md`
+  - `docs/07_handoff.md`
+- Review result:
+  - M34 verdict is `PASS_WITH_WARNINGS`.
+  - No blocking defects were found in the reviewed M34 scope.
+  - Warnings are confined to synthetic/local-only limits, Browser QA viewport
+    limits, unvalidated commercial positioning, and future voice/avatar/media
+    runtime work.
+- M35 next milestone:
+  - Created `docs/product/m35_next_iteration_scope.md`.
+  - Created
+    `docs/tasks/M35_next_iteration/T417_next_iteration_scope.md`.
+- Verification status:
+  - M34 focused pytest passed, `36 passed`.
+  - `git diff --check`: passed with CRLF warnings only.
+- Explicit non-actions:
+  - No code, tests, package dependencies, source readers, model-provider calls,
+    embeddings, vector search, semantic ranking, similarity scoring,
+    fine-tuning, runtime store writes, PersonaCard synthesis, platform
+    adapters, schedulers, queues, webhooks, tokens, recipient ids, delivery
+    state, outbound messaging, automatic outreach, voice/avatar runtime, media
+    generation, payment processing, or task-board edit was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - M35 is needed to make the local demo feel more like an actual companion
+    session.
+  - No production runtime, provider-backed chat, platform delivery, real
+    distillation, voice/avatar, or generated media behavior is authorized.
