@@ -10117,3 +10117,61 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - Memory lifecycle apply is not implemented yet.
   - No review workspace displays apply audit records yet.
   - Automatic apply remains unauthorized.
+
+## T408 Worker Completion Record
+
+- T408 is the Memory Lifecycle Apply Executor task.
+- Worker must not mark T408 complete in `docs/04_task_board.md`; T408 awaits
+  adversarial local mutation review for final confirmation, memory lifecycle
+  mapping, rollback evidence, auditability, privacy, and no platform/provider
+  surface expansion.
+- Files changed:
+  - `src/practical_chat_agent/services/memory_lifecycle_apply_executor.py`
+  - `tests/test_memory_lifecycle_apply_executor.py`
+  - `docs/data_contracts/memory_lifecycle_apply_executor_contract.md`
+  - `docs/tasks/M33_controlled_apply_executor/T409_apply_executor_audit_manifest.md`
+  - `docs/worker_summary/T408_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD record:
+  - RED:
+    `$env:PYTHONPATH='src'; pytest tests\test_memory_lifecycle_apply_executor.py -q -o cache_dir=artifacts\t408_pytest_cache --basetemp=artifacts\t408_pytest_basetemp`
+    failed with `6 failed` because
+    `memory_lifecycle_apply_executor.py` did not exist.
+  - GREEN:
+    py_compile passed; focused tests passed with `6 passed`.
+- Implementation result:
+  - Added a local memory lifecycle apply request and audit record.
+  - Added an executor that requires final confirmation, approved plan,
+    eligible manual apply, ready apply approval, and matching candidate ids.
+  - Pre-validated all target memory ids before writing any lifecycle update.
+  - Mapped reviewed dry-run effects to local lifecycle states and wrote only to
+    the caller-supplied `MemoryEventStore`.
+  - Returned prior lifecycle states, new lifecycle states, rollback record ids,
+    and applied record ids.
+- T409 next task package:
+  - Created
+    `docs/tasks/M33_controlled_apply_executor/T409_apply_executor_audit_manifest.md`.
+  - T409 is scoped to a local apply executor audit manifest.
+- Verification status:
+  - py_compile: passed.
+  - focused pytest: passed, `6 passed`.
+  - final combined pytest: passed, `26 passed`.
+  - `git diff --check`: passed with CRLF warnings only.
+- Explicit non-actions:
+  - No persona version mutation, private data reader, source ingestion from
+    real logs, extraction, embedding, vector search, retrieval ranking,
+    similarity scoring, model-provider call, PersonaCard synthesis, final
+    reply generation, proactive candidate, scheduler, queue persistence,
+    webhook, token, platform adapter, outbound messaging, voice/avatar
+    runtime, media generation, package-manager dependency, or task-board edit
+    was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - Memory lifecycle apply is local-only.
+  - Apply audit records are not yet combined into a single manifest.
+  - No review workspace displays completed apply audit records yet.
+  - Automatic apply remains unauthorized.
