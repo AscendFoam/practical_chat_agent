@@ -9863,3 +9863,61 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - T403 still needs a non-executing approval gate over these records.
   - No UI displays these risk records yet.
   - No future apply executor exists.
+
+## T403 Worker Completion Record
+
+- T403 is the Apply Executor Approval Gate task.
+- Worker must not mark T403 complete in `docs/04_task_board.md`; T403 awaits
+  adversarial non-executing approval-gate review for stale-context detection,
+  non-apply safety, manual-eligibility integration, privacy, and documentation
+  accuracy.
+- Files changed:
+  - `src/practical_chat_agent/services/apply_executor_approval_gate.py`
+  - `tests/test_apply_executor_approval_gate.py`
+  - `docs/data_contracts/apply_executor_approval_gate_contract.md`
+  - `docs/tasks/M32_apply_executor_risk/T404_apply_risk_review_panel.md`
+  - `docs/worker_summary/T403_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD record:
+  - RED:
+    `$env:PYTHONPATH='src'; pytest tests\test_apply_executor_approval_gate.py -q -o cache_dir=artifacts\t403_pytest_cache --basetemp=artifacts\t403_pytest_basetemp`
+    failed with `8 failed` because `apply_executor_approval_gate.py` did not
+    exist.
+  - GREEN:
+    py_compile passed; focused tests passed with `8 passed`.
+- Implementation result:
+  - Added a non-executing approval decision record.
+  - Added an approval gate that evaluates T402 risk assessments and optional
+    T398 manual eligibility decisions.
+  - Added stale/context mismatch blockers and required-approval checks.
+  - Preserved `executor_ready=false` for every outcome.
+- T404 next task package:
+  - Created
+    `docs/tasks/M32_apply_executor_risk/T404_apply_risk_review_panel.md`.
+  - T404 is scoped to read-only apply risk cards in the local review
+    workspace.
+- Verification status:
+  - py_compile: passed.
+  - focused pytest: passed, `8 passed`.
+  - final py_compile: passed.
+  - final combined pytest: passed, `21 passed`.
+  - `git diff --check`: passed with CRLF warnings only.
+- Explicit non-actions:
+  - No apply executor, manual apply execution, memory store write, PersonaCard
+    mutation, PersonaVersionStore write, deletion executor, retrieval index
+    mutation, UI change, local server route, private data reader, source
+    ingestion from real logs, extraction, embedding, vector search, retrieval
+    ranking, similarity scoring, model-provider call, PersonaCard synthesis,
+    final reply generation, proactive candidate, scheduler, queue
+    persistence, webhook, token, platform adapter, outbound messaging,
+    voice/avatar runtime, media generation, package-manager dependency, or
+    task-board edit was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - Approval decisions are not executable authority.
+  - T404 still needs read-only UI display for risk records.
+  - No future apply executor exists.
