@@ -7378,3 +7378,43 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
 - Remaining risks:
   - Browser QA, friendly labels, keyboard behavior, accessibility semantics, and
     responsive hardening remain for later M24 tasks.
+
+## T352 Worker Completion Record
+
+- T352 is the Friendly Labels And Accessibility Contract task for M24.
+- Worker must not mark T352 as complete in `docs/04_task_board.md`; T352 awaits
+  adversarial product/safety UX, accessibility, and frontend review and Captain
+  judgment.
+- Files changed:
+  - `docs/product/web_demo_friendly_labels_accessibility.md`
+  - `docs/data_contracts/web_demo_display_accessibility_contract.md`
+  - `docs/tasks/M24_demo_hardening_and_local_backend/T353_keyboard_responsive_ui_hardening.md`
+  - `docs/worker_summary/T352_worker_summary.md`
+  - `docs/07_handoff.md`
+- Contract result:
+  - Added technical-to-friendly label mapping.
+  - Added scenario-specific copy direction.
+  - Added keyboard interaction expectations.
+  - Added tab/panel and scenario semantics contract.
+  - Added focus visibility and responsive layout expectations.
+  - Added no-runtime and no-outbound invariants.
+  - Added T353 acceptance criteria.
+- T353 next task package:
+  - Created
+    `docs/tasks/M24_demo_hardening_and_local_backend/T353_keyboard_responsive_ui_hardening.md`.
+  - T353 is scoped to static UI hardening, tests, and Browser smoke
+    verification.
+- Verification status:
+  - `git diff --check`: passed with Windows line-ending conversion warnings.
+- Explicit non-actions:
+  - No code, tests, browser rerun, backend route, model-provider call, final
+    reply generation, private data processing, voice/avatar runtime, media
+    generation, external network asset, package manager, platform adapter,
+    outbound messaging, screenshot artifact, or task-board edit was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - T352 is contract-only. T353 must implement the UI changes and tests.
