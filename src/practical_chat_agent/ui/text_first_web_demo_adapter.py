@@ -111,6 +111,7 @@ class TextFirstWebDemoState(BaseModel):
     integrated_scenario: dict[str, Any]
     trust_commercial: dict[str, Any]
     companion_session: dict[str, Any]
+    persona_distillation_workbench: dict[str, Any]
     onboarding: dict[str, Any]
     persona: dict[str, Any]
     chat_memory: dict[str, Any]
@@ -247,6 +248,7 @@ class TextFirstWebDemoAdapter:
             integrated_scenario=self._integrated_scenario_payload(),
             trust_commercial=self._trust_commercial_payload(),
             companion_session=self._companion_session_payload(),
+            persona_distillation_workbench=self._persona_distillation_workbench_payload(),
             onboarding=_dump(initial_state),
             persona={
                 "safe_persona_state": _dump(safe_persona_state),
@@ -446,6 +448,341 @@ class TextFirstWebDemoAdapter:
                 "automatic_apply": False,
                 "sends_messages": False,
                 "media_runtime_enabled": False,
+            },
+        }
+
+    @staticmethod
+    def _persona_distillation_workbench_payload() -> dict[str, Any]:
+        return {
+            "schema_version": "m36.persona_distillation_workbench.v1",
+            "workbench_title": "Synthetic persona distillation workbench",
+            "review_required": True,
+            "apply_policy": {
+                "mode": "preview_only",
+                "mutation_allowed": False,
+                "writes_persona_card": False,
+                "writes_memory_store": False,
+                "writes_review_store": False,
+            },
+            "input_modes": [
+                {
+                    "mode_id": "detailed_description",
+                    "label": "Detailed description",
+                    "description": "A fictional companion description supplied as a local fixture.",
+                    "source_policy": "synthetic_only_no_private_sources",
+                    "accepted_fixture_kind": "synthetic",
+                    "requires_review": True,
+                    "private_source_allowed": False,
+                },
+                {
+                    "mode_id": "fuzzy_seed",
+                    "label": "Fuzzy seed",
+                    "description": "A vague preference kept tentative until review.",
+                    "source_policy": "synthetic_only_no_private_sources",
+                    "accepted_fixture_kind": "synthetic",
+                    "requires_review": True,
+                    "private_source_allowed": False,
+                },
+                {
+                    "mode_id": "synthetic_dialogue_excerpt",
+                    "label": "Synthetic dialogue excerpt",
+                    "description": "An invented style example summarized as safe evidence.",
+                    "source_policy": "synthetic_only_no_private_sources",
+                    "accepted_fixture_kind": "synthetic",
+                    "requires_review": True,
+                    "private_source_allowed": False,
+                },
+                {
+                    "mode_id": "random_fictional_seed",
+                    "label": "Random fictional seed",
+                    "description": "A deterministic fictional starter persona for exploration.",
+                    "source_policy": "synthetic_only_no_private_sources",
+                    "accepted_fixture_kind": "synthetic",
+                    "requires_review": True,
+                    "private_source_allowed": False,
+                },
+            ],
+            "synthetic_inputs": [
+                {
+                    "input_id": "pdi_desc_001",
+                    "mode_id": "detailed_description",
+                    "fixture_label": "Calm night-planning companion",
+                    "safe_summary": (
+                        "Fictional persona prefers concise warmth, dry humor, "
+                        "and independent boundaries."
+                    ),
+                    "detail_level": "high",
+                    "contains_private_content": False,
+                    "real_person_reference": False,
+                    "raw_content_retained": False,
+                },
+                {
+                    "input_id": "pdi_fuzzy_001",
+                    "mode_id": "fuzzy_seed",
+                    "fixture_label": "Quiet but not distant",
+                    "safe_summary": (
+                        "Vague user preference for a companion who is steady, "
+                        "low-pressure, and not overly sweet."
+                    ),
+                    "detail_level": "low",
+                    "contains_private_content": False,
+                    "real_person_reference": False,
+                    "raw_content_retained": False,
+                },
+                {
+                    "input_id": "pdi_dialogue_001",
+                    "mode_id": "synthetic_dialogue_excerpt",
+                    "fixture_label": "Invented slow-reply example",
+                    "safe_summary": (
+                        "Invented exchange where the user asks for slower replies "
+                        "and the companion offers one small practical step."
+                    ),
+                    "detail_level": "medium",
+                    "contains_private_content": False,
+                    "real_person_reference": False,
+                    "raw_content_retained": False,
+                },
+                {
+                    "input_id": "pdi_random_001",
+                    "mode_id": "random_fictional_seed",
+                    "fixture_label": "Rain bookstore fictional seed",
+                    "safe_summary": (
+                        "Deterministic fictional seed about a quiet bookstore mood "
+                        "with reflective topics."
+                    ),
+                    "detail_level": "medium",
+                    "contains_private_content": False,
+                    "real_person_reference": False,
+                    "raw_content_retained": False,
+                },
+            ],
+            "evidence_refs": [
+                {
+                    "evidence_id": "pde_desc_tone",
+                    "source_input_id": "pdi_desc_001",
+                    "source_mode_id": "detailed_description",
+                    "source_kind": "synthetic_fixture",
+                    "safe_summary": "Description fixture supports calm concise warmth.",
+                    "raw_private_content_included": False,
+                },
+                {
+                    "evidence_id": "pde_fuzzy_pacing",
+                    "source_input_id": "pdi_fuzzy_001",
+                    "source_mode_id": "fuzzy_seed",
+                    "source_kind": "synthetic_fixture",
+                    "safe_summary": "Fuzzy seed suggests low-pressure pacing.",
+                    "raw_private_content_included": False,
+                },
+                {
+                    "evidence_id": "pde_dialogue_step",
+                    "source_input_id": "pdi_dialogue_001",
+                    "source_mode_id": "synthetic_dialogue_excerpt",
+                    "source_kind": "synthetic_fixture",
+                    "safe_summary": "Invented exchange supports one-step practical replies.",
+                    "raw_private_content_included": False,
+                },
+                {
+                    "evidence_id": "pde_random_topic",
+                    "source_input_id": "pdi_random_001",
+                    "source_mode_id": "random_fictional_seed",
+                    "source_kind": "synthetic_fixture",
+                    "safe_summary": "Fictional seed supports reflective quiet topics.",
+                    "raw_private_content_included": False,
+                },
+            ],
+            "extracted_trait_candidates": [
+                {
+                    "trait_id": "pdt_tone_001",
+                    "category": "tone",
+                    "candidate_value": "calm concise warmth",
+                    "confidence_band": "high",
+                    "evidence_ref_ids": ["pde_desc_tone"],
+                    "safe_summary": "Use warm replies without long emotional overreach.",
+                    "review_status": "needs_review",
+                    "apply_status": "preview_only",
+                    "mutation_allowed": False,
+                },
+                {
+                    "trait_id": "pdt_pacing_001",
+                    "category": "pacing",
+                    "candidate_value": "slow low-pressure pacing",
+                    "confidence_band": "medium",
+                    "evidence_ref_ids": ["pde_fuzzy_pacing", "pde_dialogue_step"],
+                    "safe_summary": "Keep replies measured and avoid crowding the user.",
+                    "review_status": "needs_review",
+                    "apply_status": "preview_only",
+                    "mutation_allowed": False,
+                },
+                {
+                    "trait_id": "pdt_attachment_001",
+                    "category": "attachment_style",
+                    "candidate_value": "steady without possessive framing",
+                    "confidence_band": "medium",
+                    "evidence_ref_ids": ["pde_fuzzy_pacing"],
+                    "safe_summary": "Stay present while preserving user independence.",
+                    "review_status": "needs_review",
+                    "apply_status": "preview_only",
+                    "mutation_allowed": False,
+                },
+                {
+                    "trait_id": "pdt_humor_001",
+                    "category": "humor_style",
+                    "candidate_value": "dry light humor",
+                    "confidence_band": "high",
+                    "evidence_ref_ids": ["pde_desc_tone"],
+                    "safe_summary": "Use small dry humor only when it fits the mood.",
+                    "review_status": "needs_review",
+                    "apply_status": "preview_only",
+                    "mutation_allowed": False,
+                },
+                {
+                    "trait_id": "pdt_boundary_001",
+                    "category": "boundary_style",
+                    "candidate_value": "explicit fiction and consent boundaries",
+                    "confidence_band": "high",
+                    "evidence_ref_ids": ["pde_desc_tone"],
+                    "safe_summary": "Maintain clear fictional identity and review gates.",
+                    "review_status": "needs_review",
+                    "apply_status": "preview_only",
+                    "mutation_allowed": False,
+                },
+                {
+                    "trait_id": "pdt_topic_001",
+                    "category": "topic_affinity",
+                    "candidate_value": "quiet reflection and small plans",
+                    "confidence_band": "medium",
+                    "evidence_ref_ids": ["pde_random_topic", "pde_dialogue_step"],
+                    "safe_summary": "Favor reflective topics and practical next steps.",
+                    "review_status": "needs_review",
+                    "apply_status": "preview_only",
+                    "mutation_allowed": False,
+                },
+                {
+                    "trait_id": "pdt_taboo_001",
+                    "category": "taboo_pattern",
+                    "candidate_value": "avoid real-person replacement claims",
+                    "confidence_band": "high",
+                    "evidence_ref_ids": ["pde_desc_tone"],
+                    "safe_summary": "Reject claims that the persona is a real person.",
+                    "review_status": "needs_review",
+                    "apply_status": "preview_only",
+                    "mutation_allowed": False,
+                },
+                {
+                    "trait_id": "pdt_memory_001",
+                    "category": "memory_use_preference",
+                    "candidate_value": "use reviewed summaries only",
+                    "confidence_band": "high",
+                    "evidence_ref_ids": ["pde_dialogue_step"],
+                    "safe_summary": "Refer only to reviewed summaries, not raw sources.",
+                    "review_status": "needs_review",
+                    "apply_status": "preview_only",
+                    "mutation_allowed": False,
+                },
+                {
+                    "trait_id": "pdt_growth_001",
+                    "category": "growth_hint",
+                    "candidate_value": "grow toward shorter evening support",
+                    "confidence_band": "low",
+                    "evidence_ref_ids": ["pde_fuzzy_pacing", "pde_dialogue_step"],
+                    "safe_summary": "Tentative future bias toward brief evening support.",
+                    "review_status": "needs_review",
+                    "apply_status": "preview_only",
+                    "mutation_allowed": False,
+                },
+            ],
+            "blocked_requests": [
+                {
+                    "blocked_request_id": "pdb_clone_001",
+                    "request_type": "real_person_clone_or_replacement",
+                    "risk_reason": "Blocks attempts to make a real-person replica.",
+                    "safe_summary": "A request to replace a real person is blocked.",
+                    "user_facing_explanation": (
+                        "This workbench can shape fictional traits, not create "
+                        "a real-person replacement."
+                    ),
+                    "source_mode_id": "detailed_description",
+                    "status": "blocked",
+                    "raw_private_content_included": False,
+                    "mutation_allowed": False,
+                },
+                {
+                    "blocked_request_id": "pdb_deception_001",
+                    "request_type": "deception_or_impersonation",
+                    "risk_reason": "Blocks requests to hide AI identity or mislead others.",
+                    "safe_summary": "A deception-oriented persona request is blocked.",
+                    "user_facing_explanation": (
+                        "The companion must remain disclosed as AI-generated "
+                        "and synthetic."
+                    ),
+                    "source_mode_id": "fuzzy_seed",
+                    "status": "blocked",
+                    "raw_private_content_included": False,
+                    "mutation_allowed": False,
+                },
+                {
+                    "blocked_request_id": "pdb_private_import_001",
+                    "request_type": "private_import_without_consent",
+                    "risk_reason": "Blocks private-source import before consent gates exist.",
+                    "safe_summary": "A private conversation import request is blocked.",
+                    "user_facing_explanation": (
+                        "This local fixture cannot use private records; a later "
+                        "milestone must define consent and source handling."
+                    ),
+                    "source_mode_id": "synthetic_dialogue_excerpt",
+                    "status": "blocked",
+                    "raw_private_content_included": False,
+                    "mutation_allowed": False,
+                },
+            ],
+            "safety_gates": [
+                {
+                    "gate_id": "synthetic_only_gate",
+                    "enabled": True,
+                    "label": "Synthetic only",
+                    "safe_summary": "Only local synthetic fixtures are accepted.",
+                },
+                {
+                    "gate_id": "clone_deception_blocker",
+                    "enabled": True,
+                    "label": "Clone and deception blocker",
+                    "safe_summary": "Real-person replicas and hidden identity claims are blocked.",
+                },
+                {
+                    "gate_id": "private_source_blocker",
+                    "enabled": True,
+                    "label": "Private source blocker",
+                    "safe_summary": "Private records are not read by this workbench.",
+                },
+                {
+                    "gate_id": "human_review_gate",
+                    "enabled": True,
+                    "label": "Human review required",
+                    "safe_summary": "Every trait candidate remains review-only.",
+                },
+                {
+                    "gate_id": "non_mutation_gate",
+                    "enabled": True,
+                    "label": "No mutation",
+                    "safe_summary": "No persona, memory, or review stores are changed.",
+                },
+                {
+                    "gate_id": "outbound_blocker",
+                    "enabled": True,
+                    "label": "No outbound messaging",
+                    "safe_summary": "No messages are sent from this payload.",
+                },
+            ],
+            "non_execution_flags": {
+                "local_only": True,
+                "synthetic_fixture": True,
+                "uses_model_provider": False,
+                "reads_private_sources": False,
+                "writes_runtime_store": False,
+                "automatic_apply": False,
+                "sends_messages": False,
+                "uses_platform_adapter": False,
+                "uses_media_runtime": False,
             },
         }
 

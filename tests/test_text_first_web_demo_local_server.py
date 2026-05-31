@@ -64,6 +64,11 @@ def test_demo_state_json_route_returns_synthetic_review_payload() -> None:
     assert payload["voice"]["review_state"]["voice_enabled"] is False
     assert payload["voice"]["blocked_state"]["voice_enabled"] is False
     assert payload["avatar"]["avatar_enabled"] is False
+    assert (
+        payload["persona_distillation_workbench"]["schema_version"]
+        == "m36.persona_distillation_workbench.v1"
+    )
+    assert payload["persona_distillation_workbench"]["review_required"] is True
 
 
 def test_unknown_paths_and_path_traversal_are_rejected() -> None:
@@ -103,9 +108,14 @@ def test_local_server_responses_have_no_private_provider_media_or_outbound_surfa
         "generated_video_path",
         '"sends_messages": true',
         '"calls_provider": true',
+        '"uses_model_provider": true',
         '"uses_private_source": true',
+        '"reads_private_sources": true',
         '"writes_runtime_store": true',
+        '"automatic_apply": true',
+        '"uses_platform_adapter": true',
         '"media_runtime_enabled": true',
+        '"uses_media_runtime": true',
         "send_queue",
         "schedule",
         "delivery",

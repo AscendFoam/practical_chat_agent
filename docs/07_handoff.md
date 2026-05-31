@@ -10941,3 +10941,53 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
 - Remaining risks:
   - T424 still needs implementation and tests.
   - M36 remains synthetic-only and non-mutating.
+
+## T424 Worker Completion Record
+
+- T424 is the Persona Distillation Workbench Payload task.
+- Worker must not mark T424 complete in `docs/04_task_board.md`; T424 awaits
+  review of the adapter payload, contract tests, contract doc, and T425 task
+  package.
+- Files changed:
+  - `src/practical_chat_agent/ui/text_first_web_demo_adapter.py`
+  - `tests/test_persona_distillation_workbench_payload.py`
+  - `tests/test_text_first_web_demo_local_server.py`
+  - `docs/contracts/persona_distillation_workbench_payload.md`
+  - `docs/tasks/M36_next_iteration/T425_persona_distillation_workbench_ui.md`
+  - `docs/worker_summary/T424_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED focused pytest failed with `7 failed, 5 passed` because
+    `persona_distillation_workbench` was absent.
+  - GREEN focused pytest passed with `12 passed`.
+- Implementation result:
+  - Added `persona_distillation_workbench` to `TextFirstWebDemoState`.
+  - Added deterministic local workbench payload with four synthetic input
+    modes, synthetic inputs for each mode, safe evidence refs, nine trait
+    candidate categories, blocked clone/deception/private-import request
+    records, safety gates, and non-execution flags.
+  - Added contract tests and local server JSON coverage.
+  - Added `docs/contracts/persona_distillation_workbench_payload.md`.
+  - Created
+    `docs/tasks/M36_next_iteration/T425_persona_distillation_workbench_ui.md`.
+- Verification status:
+  - final focused pytest: passed, `12 passed`.
+  - `python -m py_compile`: passed.
+  - `git diff --check`: passed with CRLF warnings only.
+- Explicit non-actions:
+  - No static UI rendering, package dependencies, source readers,
+    model-provider calls, embeddings, vector search, semantic ranking,
+    similarity scoring, fine-tuning, runtime store writes, PersonaCard
+    synthesis, platform adapters, schedulers, queues, webhooks, tokens,
+    recipient ids, delivery state, outbound messaging, automatic outreach,
+    voice/avatar runtime, media generation, payment processing, or task-board
+    edit was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - T425 still needs static UI rendering.
+  - Workbench candidates remain deterministic synthetic previews and do not
+    feed PersonaCard, memory, review, or runtime stores.
