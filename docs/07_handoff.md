@@ -9805,3 +9805,61 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
 - Remaining risks:
   - M32 is still non-executing.
   - Any future mutation executor remains high-risk and separately scoped.
+
+## T402 Worker Completion Record
+
+- T402 is the Apply Executor Risk Records task.
+- Worker must not mark T402 complete in `docs/04_task_board.md`; T402 awaits
+  adversarial non-executing risk-record review for mutation safety, approval
+  coverage, rollback clarity, auditability, privacy, and documentation
+  accuracy.
+- Files changed:
+  - `src/practical_chat_agent/services/apply_executor_risk.py`
+  - `tests/test_apply_executor_risk_records.py`
+  - `docs/data_contracts/apply_executor_risk_contract.md`
+  - `docs/tasks/M32_apply_executor_risk/T403_apply_executor_approval_gate.md`
+  - `docs/worker_summary/T402_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD record:
+  - RED:
+    `$env:PYTHONPATH='src'; pytest tests\test_apply_executor_risk_records.py -q -o cache_dir=artifacts\t402_pytest_cache --basetemp=artifacts\t402_pytest_basetemp`
+    failed with `7 failed` because `apply_executor_risk.py` did not exist.
+  - GREEN:
+    py_compile passed; focused tests passed with `7 passed`.
+- Implementation result:
+  - Added non-executing risk factor, approval gate, rollback requirement,
+    audit requirement, and risk assessment records.
+  - Added blocker derivation for critical risk, missing approvals, uncovered
+    rollback requirements, and uncovered audit requirements.
+  - Added final recommendations while keeping `executor_ready=false`.
+  - Added validators that reject executing flags.
+- T403 next task package:
+  - Created
+    `docs/tasks/M32_apply_executor_risk/T403_apply_executor_approval_gate.md`.
+  - T403 is scoped to a deterministic non-executing approval gate.
+- Verification status:
+  - py_compile: passed.
+  - focused pytest: passed, `7 passed`.
+  - final py_compile: passed.
+  - final pytest: passed, `7 passed`.
+  - `git diff --check`: passed with CRLF warnings only.
+- Explicit non-actions:
+  - No apply executor, manual apply execution, memory store write, PersonaCard
+    mutation, PersonaVersionStore write, deletion executor, retrieval index
+    mutation, UI change, local server route, private data reader, source
+    ingestion from real logs, extraction, embedding, vector search, retrieval
+    ranking, similarity scoring, model-provider call, PersonaCard synthesis,
+    final reply generation, proactive candidate, scheduler, queue
+    persistence, webhook, token, platform adapter, outbound messaging,
+    voice/avatar runtime, media generation, package-manager dependency, or
+    task-board edit was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - Risk recommendations are not executable authority.
+  - T403 still needs a non-executing approval gate over these records.
+  - No UI displays these risk records yet.
+  - No future apply executor exists.
