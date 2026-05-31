@@ -8829,3 +8829,79 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
     preserving T383 safe bundle fields.
   - Review decisions are not previewed yet.
   - T385 still needs deterministic review decision impact previews.
+
+## T385 Worker Completion Record
+
+- T385 is the Review Decision Impact Preview task.
+- Worker must not mark T385 as complete in `docs/04_task_board.md`; T385
+  awaits adversarial review decision impact, non-apply safety, binding
+  correctness, privacy, dry-run safety, product-safety, and
+  documentation-accuracy review.
+- Files changed:
+  - `src/practical_chat_agent/services/review_decision_impact_preview.py`
+  - `tests/test_review_decision_impact_preview.py`
+  - `docs/data_contracts/review_decision_impact_preview_contract.md`
+  - `docs/tasks/M28_local_review_workspace/T386_review_workspace_safe_export.md`
+  - `docs/worker_summary/T385_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD record:
+  - RED:
+    `$env:PYTHONPATH='src'; pytest tests\test_review_decision_impact_preview.py -q -o cache_dir=artifacts\t385_pytest_cache --basetemp=artifacts\t385_pytest_basetemp`
+    failed with `10 failed` because
+    `practical_chat_agent.services.review_decision_impact_preview` did not
+    exist.
+  - GREEN:
+    the same focused test command passed with `10 passed` after implementing
+    `review_decision_impact_preview.py`.
+- Implementation result:
+  - Added `ReviewDecisionImpactIssue`,
+    `ReviewDecisionArtifactImpact`, `ReviewDecisionImpactPreview`, and
+    `ReviewDecisionImpactPreviewService`.
+  - Added deterministic matching from review queue decisions to workspace
+    candidate bindings by queue item id, candidate kind, and candidate id.
+  - Added blocker issues for missing item refs, candidate-kind mismatch, and
+    candidate-id mismatch.
+  - Carried candidate binding blockers and artifact blocker codes into preview
+    blocker state.
+  - Added non-applying outcome labels for approve, reject, freeze, and
+    request-changes decisions.
+  - Kept impact previews review-required, preview-only, non-runtime-ready, and
+    non-mutating.
+- Contract result:
+  - Created `docs/data_contracts/review_decision_impact_preview_contract.md`.
+  - Documented impact records, decision outcome mapping, binding behavior,
+    forbidden fields, tests, verification, non-actions, and residual risks.
+- T386 next task package:
+  - Created
+    `docs/tasks/M28_local_review_workspace/T386_review_workspace_safe_export.md`.
+  - T386 is scoped to safe local workspace export manifests without applying
+    decisions or exporting raw private/provider/platform/media data.
+- Verification status:
+  - `python -m py_compile src\practical_chat_agent\services\review_decision_impact_preview.py`:
+    passed.
+  - focused pytest with review decision impact previews and M28 focused
+    regressions: passed, `24 passed`.
+  - `git diff --check`: passed with Windows line-ending conversion warning
+    for `docs/07_handoff.md`.
+- Explicit non-actions:
+  - No private data reader, source ingestion from real logs, extraction,
+    embedding, vector search, retrieval ranking, similarity scoring,
+    model-provider call, PersonaCard synthesis, final reply generation,
+    proactive candidate, route, CLI, scheduler, queue persistence, webhook,
+    token, platform adapter, outbound messaging, voice/avatar runtime, media
+    generation, Browser artifact, package-manager dependency, or task-board
+    edit was added.
+  - No review decision apply path, memory store mutation, PersonaCard
+    mutation, PersonaVersionStore write, deletion executor, retrieval
+    enablement, safe export manifest, or review UI was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - Impact previews are local prototype records only.
+  - Future manual apply eligibility is a non-binding preview label, not an
+    executor or production authorization.
+  - Safe export manifests do not exist yet.
+  - T386 still needs safe local workspace export manifests.
