@@ -10901,3 +10901,43 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - M36 still needs scope refinement and implementation.
   - Real private-chat distillation remains unauthorized until a later explicit
     privacy, consent, and source-handling milestone exists.
+
+## T423 Worker Completion Record
+
+- T423 is the M36 Next Iteration Scope task.
+- Worker must not mark T423 complete in `docs/04_task_board.md`; T423 awaits
+  review of the refined M36 scope and T424 task package.
+- Files changed:
+  - `docs/product/m36_next_iteration_scope.md`
+  - `docs/tasks/M36_next_iteration/T424_persona_distillation_workbench_payload.md`
+  - `docs/worker_summary/T423_worker_summary.md`
+  - `docs/07_handoff.md`
+- Scope result:
+  - Refined M36 into a concrete local persona intake/distillation workbench
+    contract.
+  - Defined required synthetic input modes, trait candidate categories,
+    evidence refs, blocked clone/deception/private-import request records,
+    safety gates, non-execution flags, later UI expectations, and Browser QA
+    expectations.
+- T424 next task package:
+  - Created
+    `docs/tasks/M36_next_iteration/T424_persona_distillation_workbench_payload.md`.
+  - T424 is scoped to deterministic synthetic adapter payload, contract doc,
+    and tests only.
+- Verification status:
+  - `git diff --check`: passed with CRLF warnings only.
+- Explicit non-actions:
+  - No code, tests, package dependencies, source readers, model-provider calls,
+    embeddings, vector search, semantic ranking, similarity scoring,
+    fine-tuning, runtime store writes, PersonaCard synthesis, platform
+    adapters, schedulers, queues, webhooks, tokens, recipient ids, delivery
+    state, outbound messaging, automatic outreach, voice/avatar runtime, media
+    generation, payment processing, or task-board edit was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - T424 still needs implementation and tests.
+  - M36 remains synthetic-only and non-mutating.
