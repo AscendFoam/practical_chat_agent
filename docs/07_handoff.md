@@ -9095,3 +9095,75 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - No local static review panel exists yet.
   - No apply executor or real-data import/de-identification quality evaluation
     exists.
+
+## T389 Worker Completion Record
+
+- T389 is the Review Workspace Presentation Adapter task.
+- Worker must not mark T389 complete in `docs/04_task_board.md`; T389 awaits
+  adversarial presentation-adapter review for privacy, non-apply safety,
+  UI-readiness, deterministic ordering, product-safety, and documentation
+  accuracy.
+- Files changed:
+  - `src/practical_chat_agent/ui/review_workspace_adapter.py`
+  - `tests/test_review_workspace_presentation_adapter.py`
+  - `docs/data_contracts/review_workspace_presentation_contract.md`
+  - `docs/tasks/M29_review_workspace_ui/T390_review_workspace_static_panel.md`
+  - `docs/worker_summary/T389_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD record:
+  - RED:
+    `$env:PYTHONPATH='src'; pytest tests\test_review_workspace_presentation_adapter.py -q -o cache_dir=artifacts\t389_pytest_cache --basetemp=artifacts\t389_pytest_basetemp`
+    failed with `6 failed` because
+    `practical_chat_agent.ui.review_workspace_adapter` did not exist.
+  - GREEN:
+    the same focused test command passed with `6 passed` after implementing
+    `review_workspace_adapter.py`.
+- Implementation result:
+  - Added `ReviewWorkspaceStatusBadge`,
+    `ReviewWorkspacePresentationCard`, `ReviewWorkspacePresentationPanel`,
+    and `ReviewWorkspacePresentationAdapter`.
+  - Added deterministic projection from M28 workspace bundles, impact
+    previews, and safe export manifests into UI-ready cards.
+  - Added deterministic filter tabs for `all`, `blocked`, `eligible`,
+    `memory`, `persona`, and `distillation`.
+  - Added blocked-before-eligible card ordering.
+  - Kept presentation records review-required, preview-only,
+    non-runtime-ready, and non-mutating.
+- Contract result:
+  - Created `docs/data_contracts/review_workspace_presentation_contract.md`.
+  - Documented presentation records, tab/filter behavior, ordering,
+    forbidden fields, tests, verification, non-actions, and residual risks.
+- T390 next task package:
+  - Created
+    `docs/tasks/M29_review_workspace_ui/T390_review_workspace_static_panel.md`.
+  - T390 is scoped to local static review panel assets without providers,
+    private reads, platform delivery, voice/avatar runtime, media generation,
+    or apply executors.
+- Verification status:
+  - `python -m py_compile src\practical_chat_agent\ui\review_workspace_adapter.py`:
+    passed.
+  - focused pytest with review workspace presentation adapter and M28 focused
+    regressions: passed, `21 passed`.
+  - `git diff --check`: passed with Windows line-ending conversion warning
+    for `docs/07_handoff.md`.
+- Explicit non-actions:
+  - No private data reader, source ingestion from real logs, extraction,
+    embedding, vector search, retrieval ranking, similarity scoring,
+    model-provider call, PersonaCard synthesis, final reply generation,
+    proactive candidate, route, CLI, scheduler, queue persistence, webhook,
+    token, platform adapter, outbound messaging, voice/avatar runtime, media
+    generation, Browser artifact, package-manager dependency, or task-board
+    edit was added.
+  - No review decision apply path, memory store mutation, PersonaCard
+    mutation, PersonaVersionStore write, deletion executor, retrieval
+    enablement, static UI asset edit, or local server route was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - Presentation records are local UI view models only.
+  - No static review panel exists yet.
+  - No apply executor or real-data import/de-identification quality evaluation
+    exists.
