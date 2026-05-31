@@ -9043,3 +9043,55 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - Keep real private import/de-identification, provider-backed extraction,
     proactive messaging, platform delivery, voice/avatar behavior, media
     generation, and monetization behind separate task packages and reviews.
+
+## T388 Worker Completion Record
+
+- T388 is the M29 Review Workspace Presentation Scope task.
+- Worker must not mark T388 complete in `docs/04_task_board.md`; T388 awaits
+  adversarial milestone-scope review for product safety, privacy, non-apply
+  safety, UI-scope containment, and documentation accuracy.
+- Files changed:
+  - `docs/product/m29_review_workspace_ui_scope.md`
+  - `docs/tasks/M29_review_workspace_ui/T388_m29_scope.md`
+  - `docs/tasks/M29_review_workspace_ui/T389_review_workspace_presentation_adapter.md`
+  - `docs/worker_summary/T388_worker_summary.md`
+  - `docs/07_handoff.md`
+- Scope result:
+  - Opened M29 as a local review workspace presentation milestone.
+  - Kept M29 before real apply executors, real import/de-identification,
+    provider-backed extraction, proactive candidates, platform delivery,
+    voice/avatar runtime, media generation, monetization, or production
+    persistence.
+  - Defined a sequence for presentation view models, a local static review
+    panel, optional local server payload integration, and M29 milestone review.
+- T389 next task package:
+  - Created
+    `docs/tasks/M29_review_workspace_ui/T389_review_workspace_presentation_adapter.md`.
+  - T389 is scoped to safe UI-ready presentation view models without UI asset
+    edits, apply behavior, private reads, provider calls, platform delivery,
+    or media/runtime behavior.
+- Verification status:
+  - `git diff --check`: passed with Windows line-ending conversion warning
+    for `docs/07_handoff.md`.
+- Explicit non-actions:
+  - No source files or tests were modified by T388.
+  - No private data reader, source ingestion from real logs, extraction,
+    embedding, vector search, retrieval ranking, similarity scoring,
+    model-provider call, PersonaCard synthesis, final reply generation,
+    proactive candidate, route, CLI, scheduler, queue persistence, webhook,
+    token, platform adapter, outbound messaging, voice/avatar runtime, media
+    generation, Browser artifact, package-manager dependency, or task-board
+    edit was added.
+  - No review decision apply path, memory store mutation, PersonaCard
+    mutation, PersonaVersionStore write, deletion executor, or retrieval
+    enablement was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - No M29 implementation exists yet.
+  - No local static review panel exists yet.
+  - No apply executor or real-data import/de-identification quality evaluation
+    exists.
