@@ -7560,3 +7560,56 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
 - Remaining risks:
   - M25 still needs scope, memory architecture, persona growth bounds, and
     distillation consent/redaction planning before any private data handling.
+
+## T360 Worker Completion Record
+
+- T360 is the M25 Scope task.
+- Worker must not mark T360 as complete in `docs/04_task_board.md`; T360 awaits
+  adversarial product/safety UX, privacy, memory-architecture, and
+  persona-safety review and Captain judgment.
+- Files changed:
+  - `docs/product/m25_memory_persona_growth_scope.md`
+  - `docs/tasks/M25_memory_persona_growth/T361_memory_architecture_design.md`
+  - `docs/worker_summary/T360_worker_summary.md`
+  - `docs/07_handoff.md`
+- Product scope result:
+  - Defined M25 as the memory, persona growth, and distillation-readiness
+    planning milestone for the transparent text-first companion product.
+  - Reused existing MemoryEvent v2, PersonaCard, Consent Center, AIGC labeling,
+    crisis/dependency, relationship, and text-first chat memory contracts.
+  - Documented memory principles for typed truth separation, provenance,
+    confidence, sensitivity, salience, lifecycle, retrieval permission,
+    contradiction handling, consolidation, decay, forgetting, and user control.
+  - Documented persona growth principles for stable core identity, bounded
+    mutable traits, reviewable growth patches, append-only versions, rollback,
+    and anti-dependency safeguards.
+  - Documented distillation-readiness principles for synthetic fixtures,
+    de-identified style inspiration, explicit consent, redaction,
+    third-party minimization, similarity-risk warnings, and review gates.
+  - Documented safety boundaries for real-person likeness, grief, ex-partner,
+    family-member, public-figure, dependency, crisis, and minor-risk scenarios.
+- T361 next task package:
+  - Created
+    `docs/tasks/M25_memory_persona_growth/T361_memory_architecture_design.md`.
+  - T361 is scoped to memory architecture research/contract docs and T362 task
+    creation. It must not read private logs or call model providers.
+- Verification status:
+  - `git diff --check`: passed with Windows line-ending conversion warning for
+    `docs/07_handoff.md`.
+- Explicit non-actions:
+  - No code, tests, Browser rerun, backend route, model-provider call, final
+    reply generation, private data processing, persistence, voice/avatar
+    runtime, media generation, external network asset, package manager,
+    platform adapter, outbound messaging, screenshot artifact, or task-board
+    edit was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - T360 is scope-only. T361 still needs the memory architecture design and
+    contract.
+  - Consent withdrawal cascades, de-identification scoring, persona growth patch
+    schema, and memory retrieval/consolidation refresh remain for later M25
+    tasks.
