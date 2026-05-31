@@ -8320,3 +8320,67 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
 - Remaining risks:
   - T377 still needs executable review queue records and tests.
   - Dry-run apply planners remain future M27 work.
+
+## T377 Worker Completion Record
+
+- T377 is the Review Queue Candidate Models task.
+- Worker must not mark T377 as complete in `docs/04_task_board.md`; T377
+  awaits adversarial review queue, product-safety, privacy, lifecycle,
+  persona-safety, distillation-safety, and documentation-accuracy review.
+- Files changed:
+  - `src/practical_chat_agent/services/review_queue.py`
+  - `tests/test_review_queue_candidates.py`
+  - `docs/data_contracts/review_queue_candidate_contract.md`
+  - `docs/tasks/M27_review_queue_dry_run_apply/T378_memory_lifecycle_dry_run_apply.md`
+  - `docs/worker_summary/T377_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD record:
+  - RED:
+    `$env:PYTHONPATH='src'; pytest tests\test_review_queue_candidates.py -q -o cache_dir=artifacts\t377_pytest_cache --basetemp=artifacts\t377_pytest_basetemp`
+    failed with `6 failed` because
+    `practical_chat_agent.services.review_queue` did not exist.
+  - GREEN:
+    the same focused test command passed with `6 passed` after implementing
+    `review_queue.py`.
+- Implementation result:
+  - Added local Pydantic records for review queue items, snapshots, and
+    decision records.
+  - Added `ReviewQueueService` helpers to wrap M26 candidate families into
+    queue items and build priority-ordered snapshots.
+  - Kept decision records review-only and non-applying.
+  - Added validation for extra-field rejection, always-review-required items,
+    auto-apply blocking, no memory store writes, and no persona version writes.
+- Contract result:
+  - Created `docs/data_contracts/review_queue_candidate_contract.md`.
+  - Documented supported candidate families, priority behavior, forbidden
+    fields, tests, verification, non-actions, and residual risks.
+- T378 next task package:
+  - Created
+    `docs/tasks/M27_review_queue_dry_run_apply/T378_memory_lifecycle_dry_run_apply.md`.
+  - T378 is scoped to preview-only memory lifecycle dry-run apply plans without
+    mutating stores or applying decisions.
+- Verification status:
+  - `python -m py_compile src\practical_chat_agent\services\review_queue.py`:
+    passed.
+  - focused pytest with review queue, memory governance, persona growth, and
+    synthetic distillation input tests: passed, `49 passed`.
+  - `git diff --check`: passed with Windows line-ending conversion warning for
+    `docs/07_handoff.md`.
+- Explicit non-actions:
+  - No private data reader, source ingestion from real logs, extraction,
+    embedding, vector search, retrieval ranking, similarity scoring,
+    model-provider call, final reply generation, proactive candidate,
+    persistence expansion, route, CLI, scheduler, queue persistence, webhook,
+    token, platform adapter, outbound messaging, voice/avatar runtime, media
+    generation, Browser artifact, package-manager dependency, or task-board
+    edit was added.
+  - No review decision apply path, memory store mutation, PersonaCard mutation,
+    or PersonaVersionStore write was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - Review queue items are local records only; no UI or persistence exists.
+  - T378 still needs memory lifecycle dry-run apply plans.
