@@ -7250,3 +7250,45 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - T345 provides internal review protocol only. It does not run research,
     validate user comprehension, or harden accessibility, backend serving,
     generated-payload wiring, or production behavior.
+
+## T346 Worker Completion Record
+
+- T346 is the M23 Milestone Review task.
+- Worker must not mark T346 as complete in `docs/04_task_board.md`; T346 awaits
+  adversarial product/safety UX, frontend, and architecture review and Captain
+  judgment.
+- Files changed:
+  - `docs/review/M23_review.md`
+  - `docs/tasks/M24_demo_hardening_and_local_backend/T350_m24_scope.md`
+  - `docs/worker_summary/T346_worker_summary.md`
+  - `docs/07_handoff.md`
+- Review result:
+  - Added M23 gate recommendation: PASS_WITH_WARNINGS for entering M24 demo
+    hardening and local backend work.
+  - Consolidated T340 through T345 coverage.
+  - Listed implemented code, static assets, tests, product/research/QA
+    artifacts, and data contracts.
+  - Summarized T341 through T343 test evidence and T344 Browser visual QA.
+  - Assessed safety boundaries and explicit non-actions.
+  - Documented residual risks and M24 entry recommendation.
+- T350 next task package:
+  - Created
+    `docs/tasks/M24_demo_hardening_and_local_backend/T350_m24_scope.md`.
+  - T350 is scoped to M24 product scope and the next local demo server/generated
+    HTML task package.
+- Verification status:
+  - `git diff --check`: passed with Windows line-ending conversion warnings.
+- Explicit non-actions:
+  - No code, tests, browser rerun, backend route, model-provider call, final
+    reply generation, private data processing, voice/avatar runtime, media
+    generation, external network asset, package manager, platform adapter,
+    outbound messaging, screenshot artifact, or task-board edit was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - M23 is still a local static demo milestone. M24 must harden local serving,
+    generated payload wiring, accessibility, keyboard behavior, friendly labels,
+    and broader layout QA before broader review.
