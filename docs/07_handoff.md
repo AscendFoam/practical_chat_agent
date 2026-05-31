@@ -8450,3 +8450,69 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
 - Remaining risks:
   - Dry-run plans are local preview records only; no UI or persistence exists.
   - T379 still needs persona growth dry-run apply plans.
+
+## T379 Worker Completion Record
+
+- T379 is the Persona Growth Dry-Run Apply Plans task.
+- Worker must not mark T379 as complete in `docs/04_task_board.md`; T379
+  awaits adversarial persona-growth, dry-run safety, privacy, review queue,
+  product-safety, and documentation-accuracy review.
+- Files changed:
+  - `src/practical_chat_agent/services/persona_growth_dry_run.py`
+  - `tests/test_persona_growth_dry_run_apply.py`
+  - `docs/data_contracts/persona_growth_dry_run_apply_contract.md`
+  - `docs/tasks/M27_review_queue_dry_run_apply/T380_distillation_review_readiness.md`
+  - `docs/worker_summary/T379_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD record:
+  - RED:
+    `$env:PYTHONPATH='src'; pytest tests\test_persona_growth_dry_run_apply.py -q -o cache_dir=artifacts\t379_pytest_cache --basetemp=artifacts\t379_pytest_basetemp`
+    failed with `5 failed` because
+    `practical_chat_agent.services.persona_growth_dry_run` did not exist.
+  - GREEN:
+    the same focused test command passed with `5 passed` after implementing
+    `persona_growth_dry_run.py`.
+- Implementation result:
+  - Added local Pydantic records for persona growth dry-run field previews and
+    plans.
+  - Added `PersonaGrowthDryRunService` helper for persona growth patch
+    candidates.
+  - Kept review decisions as refs only and all previews preview-only.
+  - Added validation that dry-run previews/plans cannot apply changes or write
+    persona versions.
+- Contract result:
+  - Created `docs/data_contracts/persona_growth_dry_run_apply_contract.md`.
+  - Documented plan behavior, invariants, forbidden fields, tests,
+    verification, non-actions, and residual risks.
+- T380 next task package:
+  - Created
+    `docs/tasks/M27_review_queue_dry_run_apply/T380_distillation_review_readiness.md`.
+  - T380 is scoped to synthetic distillation review readiness aggregation
+    without source-text retention, provider calls, persona synthesis, or media
+    behavior.
+- Verification status:
+  - `python -m py_compile src\practical_chat_agent\services\persona_growth_dry_run.py`:
+    passed.
+  - focused pytest with persona growth dry-run, persona growth candidates, and
+    review queue tests: passed, `26 passed`.
+  - `git diff --check`: passed with Windows line-ending conversion warning for
+    `docs/07_handoff.md`.
+- Explicit non-actions:
+  - No private data reader, source ingestion from real logs, extraction,
+    embedding, vector search, retrieval ranking, similarity scoring,
+    model-provider call, final reply generation, proactive candidate,
+    persistence expansion, route, CLI, scheduler, queue persistence, webhook,
+    token, platform adapter, outbound messaging, voice/avatar runtime, media
+    generation, Browser artifact, package-manager dependency, or task-board
+    edit was added.
+  - No review decision apply path, PersonaCard mutation, PersonaVersionStore
+    write, memory store mutation, deletion executor, or retrieval enablement
+    was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - Dry-run plans are local preview records only; no UI or persistence exists.
+  - T380 still needs synthetic distillation review readiness aggregation.
