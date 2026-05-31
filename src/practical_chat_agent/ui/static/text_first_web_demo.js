@@ -219,6 +219,61 @@
           changes_state: false,
           runtime_ready: false
         }
+      ],
+      apply_audit_entries: [
+        {
+          schema_version: "review_workspace_apply_audit_card_v1",
+          card_kind: "apply_audit_manifest_entry",
+          title: "Apply audit record",
+          display_label: "persona growth",
+          safe_summary: "[SYNTHETIC] Persona growth apply was audited locally.",
+          filter_keys: ["all", "audited", "persona"],
+          status_badges: [{ label: "Local apply audited", tone: "info" }],
+          apply_type: "persona_growth",
+          apply_id: "pgapply_webdemo_persona",
+          source_artifact_kind: "persona_growth_patch",
+          source_artifact_id: "pgpatch_webdemo_persona",
+          review_decision_id: "rqdec_webdemo_persona",
+          eligibility_id: "mapelig_webdemo_persona",
+          approval_id: "aeapproval_webdemo_persona",
+          reviewer_id: "reviewer_synthetic",
+          rollback_refs: {
+            prior_version_id: "pver_webdemo_001",
+            rollback_target_version_id: "pver_webdemo_001"
+          },
+          applied_refs: { new_version_id: "pver_webdemo_002" },
+          changed_field_paths: ["style.tone", "relationship.pacing"],
+          affected_memory_ids: [],
+          review_required: true,
+          preview_only: false,
+          changes_state: false,
+          runtime_ready: false
+        },
+        {
+          schema_version: "review_workspace_apply_audit_card_v1",
+          card_kind: "apply_audit_manifest_entry",
+          title: "Apply audit record",
+          display_label: "memory lifecycle",
+          safe_summary: "[SYNTHETIC] Memory lifecycle apply was audited locally.",
+          filter_keys: ["all", "audited", "memory"],
+          status_badges: [{ label: "Local apply audited", tone: "info" }],
+          apply_type: "memory_lifecycle",
+          apply_id: "mlapply_webdemo_memory",
+          source_artifact_kind: "memory_lifecycle_plan",
+          source_artifact_id: "mldplan_webdemo_memory",
+          review_decision_id: "rqdec_webdemo_memory",
+          eligibility_id: "mapelig_webdemo_memory",
+          approval_id: "aeapproval_webdemo_memory",
+          reviewer_id: "reviewer_synthetic",
+          rollback_refs: { mev_webdemo_old: "memrec_webdemo_prior" },
+          applied_refs: { mev_webdemo_old: "memrec_webdemo_applied" },
+          changed_field_paths: [],
+          affected_memory_ids: ["mev_webdemo_old"],
+          review_required: true,
+          preview_only: false,
+          changes_state: false,
+          runtime_ready: false
+        }
       ]
     }
   };
@@ -265,7 +320,11 @@
     candidate_id_mismatch: "Candidate id mismatch",
     final_human_confirmation: "Final human confirmation",
     ready_for_separately_scoped_executor_design: "Ready for separate executor design",
+    apply_audit_manifest_entry: "Apply audit record",
+    local_apply_audited: "Local apply audited",
+    memory_lifecycle: "Memory lifecycle",
     needs_review: "Needs review",
+    persona_growth: "Persona growth",
     persona_drift: "Persona drift",
     memory_deletion_cascade: "Memory review item",
     persona_growth_patch: "Persona growth patch",
@@ -460,7 +519,8 @@
     const filterNode = one("#review-filters");
     const cards = (review.cards || [])
       .concat(review.manual_apply_previews || [])
-      .concat(review.apply_risk_reviews || []);
+      .concat(review.apply_risk_reviews || [])
+      .concat(review.apply_audit_entries || []);
     if (filterNode) {
       filterNode.innerHTML = "";
       (review.filter_tabs || []).forEach(function (tab) {
@@ -492,7 +552,9 @@
 
   function appendReviewWorkspaceCard(card) {
     const cardNode = document.createElement("div");
-    cardNode.className = "item review-card" + (card.card_kind === "apply_risk_review" ? " apply-risk-card" : "");
+    cardNode.className = "item review-card"
+      + (card.card_kind === "apply_risk_review" ? " apply-risk-card" : "")
+      + (card.card_kind === "apply_audit_manifest_entry" ? " apply-audit-card" : "");
 
     const title = document.createElement("div");
     title.className = "item-title";
@@ -527,6 +589,7 @@
     }
     appendReviewPreviewDetails(cardNode, card);
     appendApplyRiskDetails(cardNode, card);
+    appendApplyAuditDetails(cardNode, card);
     return cardNode;
   }
 
@@ -569,6 +632,37 @@
     appendReviewDetailList(cardNode, "Stale checks", card.stale_reasons, friendlyLabel);
     appendReviewDetailList(cardNode, "Risk factors", card.risk_factors, function (factor) {
       return friendlyLabel(factor.risk_code) + ": " + friendlyLabel(factor.severity);
+    });
+  }
+
+  function appendApplyAuditDetails(cardNode, card) {
+    if (card.card_kind !== "apply_audit_manifest_entry") {
+      return;
+    }
+    appendReviewMeta(cardNode, "Apply type: " + friendlyLabel(card.apply_type));
+    appendReviewMeta(cardNode, "Source: " + card.source_artifact_id);
+    appendReviewMeta(cardNode, "Reviewer: " + card.reviewer_id);
+    appendReviewDetailList(cardNode, "Gate ids", [
+      card.review_decision_id,
+      card.eligibility_id,
+      card.approval_id
+    ], function (value) {
+      return value;
+    });
+    appendReviewDetailList(cardNode, "Changed fields", card.changed_field_paths, function (value) {
+      return value;
+    });
+    appendReviewDetailList(cardNode, "Affected memories", card.affected_memory_ids, function (value) {
+      return value;
+    });
+    appendReviewDetailList(cardNode, "Rollback refs", objectPairs(card.rollback_refs), function (pair) {
+      return pair.key + ": " + pair.value;
+    });
+  }
+
+  function objectPairs(value) {
+    return Object.keys(value || {}).sort().map(function (key) {
+      return { key: key, value: value[key] };
     });
   }
 

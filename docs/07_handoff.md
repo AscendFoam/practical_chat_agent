@@ -10232,3 +10232,62 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - The audit manifest is local-only and caller-supplied-audit-only.
   - No review workspace displays completed apply audit records yet.
   - Automatic apply remains unauthorized.
+
+## T410 Worker Completion Record
+
+- T410 is the Review Workspace Apply Audit Panel task.
+- Worker must not mark T410 complete in `docs/04_task_board.md`; T410 awaits
+  adversarial review workspace projection review for audit completeness,
+  rollback visibility, privacy, static UI safety, and no platform/provider/media
+  surface expansion.
+- Files changed:
+  - `src/practical_chat_agent/ui/text_first_web_demo_adapter.py`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.js`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.css`
+  - `tests/test_review_workspace_apply_audit_panel.py`
+  - `docs/data_contracts/review_workspace_apply_audit_panel_contract.md`
+  - `docs/tasks/M33_controlled_apply_executor/T411_controlled_apply_executor_review.md`
+  - `docs/worker_summary/T410_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD record:
+  - RED:
+    `$env:PYTHONPATH='src'; pytest tests\test_review_workspace_apply_audit_panel.py -q -o cache_dir=artifacts\t410_pytest_cache --basetemp=artifacts\t410_pytest_basetemp`
+    failed with `3 failed, 1 passed` because `apply_audit_entries` and static
+    apply-audit hooks were not present.
+  - GREEN:
+    py_compile passed; focused tests passed with `4 passed`.
+- Implementation result:
+  - Added synthetic `apply_audit_entries` to the review workspace payload.
+  - Projected persona growth and memory lifecycle apply audit manifest entries
+    into server-safe review cards.
+  - Rendered apply audit cards in the static review workspace list.
+  - Displayed apply type, source artifact id, reviewer id, gate ids, changed
+    field paths, affected memory ids, and rollback references.
+- T411 next task package:
+  - Created
+    `docs/tasks/M33_controlled_apply_executor/T411_controlled_apply_executor_review.md`.
+  - T411 is scoped to adversarial M33 review.
+- Verification status:
+  - py_compile: passed.
+  - focused pytest: passed, `4 passed`.
+  - final combined pytest: passed, `9 passed`.
+  - expanded local web demo regression: passed, `28 passed`.
+  - browser QA: passed with 2 apply audit cards visible in the Review scenario.
+  - `git diff --check`: passed with CRLF warnings only.
+- Explicit non-actions:
+  - No new apply execution, persona version mutation, memory lifecycle
+    mutation, private data reader, source ingestion from real logs, extraction,
+    embedding, vector search, retrieval ranking, similarity scoring,
+    model-provider call, PersonaCard synthesis, final reply generation,
+    proactive candidate, scheduler, queue persistence, webhook, token,
+    platform adapter, outbound messaging, voice/avatar runtime, media
+    generation, package-manager dependency, or task-board edit was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - Apply audit cards are synthetic local review records only.
+  - M33 still needs adversarial review.
+  - Automatic apply remains unauthorized.

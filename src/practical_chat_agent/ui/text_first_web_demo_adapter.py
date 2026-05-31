@@ -31,6 +31,10 @@ from practical_chat_agent.services.apply_executor_approval_gate import (
 from practical_chat_agent.services.apply_executor_approval_gate import (
     ApplyExecutorApprovalGate as ApplyExecutorApprovalDecisionGate,
 )
+from practical_chat_agent.services.apply_executor_audit_manifest import (
+    ApplyExecutorAuditManifestBuilder,
+    ApplyExecutorAuditManifestEntry,
+)
 from practical_chat_agent.services.apply_executor_risk import (
     ApplyExecutorAuditRequirement,
 )
@@ -50,6 +54,12 @@ from practical_chat_agent.services.manual_apply_preview import (
     ManualApplyPreviewEffect,
     ManualApplyPreviewGate,
     ManualApplyPreviewRecord,
+)
+from practical_chat_agent.services.memory_lifecycle_apply_executor import (
+    MemoryLifecycleApplyAudit,
+)
+from practical_chat_agent.services.persona_growth_apply_executor import (
+    PersonaGrowthApplyAudit,
 )
 from practical_chat_agent.services.review_decision_impact_preview import (
     ReviewDecisionImpactPreview,
@@ -282,6 +292,7 @@ class TextFirstWebDemoAdapter:
         payload = _safe_review_workspace_panel(panel)
         payload["manual_apply_previews"] = _manual_apply_preview_payloads(persona_impact)
         payload["apply_risk_reviews"] = _apply_risk_review_payloads(persona_impact)
+        payload["apply_audit_entries"] = _apply_audit_manifest_payloads()
         return payload
 
     @staticmethod
@@ -655,6 +666,47 @@ def _apply_risk_review_payloads(
     return [_safe_apply_risk_review_card(risk_assessment, approval_decision)]
 
 
+def _apply_audit_manifest_payloads() -> list[dict[str, Any]]:
+    manifest = ApplyExecutorAuditManifestBuilder().build(
+        [
+            PersonaGrowthApplyAudit(
+                apply_id="pgapply_webdemo_persona",
+                persona_id="persona_synthetic",
+                patch_id="pgpatch_webdemo_persona",
+                plan_id="pgdplan_webdemo_persona",
+                review_decision_id="rqdec_webdemo_persona",
+                eligibility_id="mapelig_webdemo_persona",
+                approval_id="aeapproval_webdemo_persona",
+                reviewer_id="reviewer_synthetic",
+                prior_version_id="pver_webdemo_001",
+                new_version_id="pver_webdemo_002",
+                rollback_target_version_id="pver_webdemo_001",
+                changed_field_paths=["style.tone", "relationship.pacing"],
+                safe_summary="[SYNTHETIC] Persona growth apply was audited locally.",
+                created_at=datetime(2026, 5, 31, 1, 0, tzinfo=timezone.utc),
+            ),
+            MemoryLifecycleApplyAudit(
+                apply_id="mlapply_webdemo_memory",
+                plan_id="mldplan_webdemo_memory",
+                source_candidate_kind="memory_supersession",
+                source_candidate_id="memsup_webdemo_memory",
+                review_decision_id="rqdec_webdemo_memory",
+                eligibility_id="mapelig_webdemo_memory",
+                approval_id="aeapproval_webdemo_memory",
+                reviewer_id="reviewer_synthetic",
+                affected_memory_ids=["mev_webdemo_old"],
+                prior_lifecycle_states={"mev_webdemo_old": "active"},
+                new_lifecycle_states={"mev_webdemo_old": "superseded"},
+                rollback_record_ids={"mev_webdemo_old": "memrec_webdemo_prior"},
+                applied_record_ids={"mev_webdemo_old": "memrec_webdemo_applied"},
+                safe_summary="[SYNTHETIC] Memory lifecycle apply was audited locally.",
+                created_at=datetime(2026, 5, 31, 1, 1, tzinfo=timezone.utc),
+            ),
+        ]
+    )
+    return [_safe_apply_audit_manifest_card(entry) for entry in manifest.entries]
+
+
 def _safe_manual_apply_preview_card(
     record: ManualApplyPreviewRecord,
     decision: ManualApplyEligibilityDecision,
@@ -706,6 +758,48 @@ def _safe_manual_apply_preview_card(
         "blocking_issue_codes": list(decision.blocking_issue_codes),
         "review_required": True,
         "preview_only": True,
+        "changes_state": False,
+        "runtime_ready": False,
+    }
+
+
+def _safe_apply_audit_manifest_card(
+    entry: ApplyExecutorAuditManifestEntry,
+) -> dict[str, Any]:
+    surface_key = "persona" if entry.apply_type == "persona_growth" else "memory"
+    return {
+        "schema_version": "review_workspace_apply_audit_card_v1",
+        "card_kind": "apply_audit_manifest_entry",
+        "title": "Apply audit record",
+        "display_label": entry.apply_type.replace("_", " "),
+        "safe_summary": entry.safe_summary,
+        "filter_keys": ["all", "audited", surface_key],
+        "status_badges": [
+            {
+                "label": "Local apply audited",
+                "tone": "info",
+                "issue_codes": [],
+                "blocking_issue_codes": [],
+                "review_required": True,
+                "preview_only": False,
+                "changes_state": False,
+                "runtime_ready": False,
+            }
+        ],
+        "apply_type": entry.apply_type,
+        "apply_id": entry.apply_id,
+        "source_artifact_kind": entry.source_artifact_kind,
+        "source_artifact_id": entry.source_artifact_id,
+        "review_decision_id": entry.review_decision_id,
+        "eligibility_id": entry.eligibility_id,
+        "approval_id": entry.approval_id,
+        "reviewer_id": entry.reviewer_id,
+        "rollback_refs": dict(entry.rollback_refs),
+        "applied_refs": dict(entry.applied_refs),
+        "changed_field_paths": list(entry.changed_field_paths),
+        "affected_memory_ids": list(entry.affected_memory_ids),
+        "review_required": True,
+        "preview_only": False,
         "changes_state": False,
         "runtime_ready": False,
     }
