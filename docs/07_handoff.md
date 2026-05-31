@@ -10023,3 +10023,40 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - Close M32 as `PASS_WITH_WARNINGS`.
   - Next milestone may begin a narrowly scoped apply-executor design preflight
     with fresh consent, rollback, audit, and projection gates.
+
+## T406 Worker Completion Record
+
+- T406 is the Controlled Apply Executor Scope task.
+- Worker must not mark T406 complete in `docs/04_task_board.md`; T406 awaits
+  adversarial scope review for local apply boundaries, final confirmation,
+  rollback/audit expectations, privacy, and platform/provider exclusion.
+- Files changed:
+  - `docs/product/m33_controlled_apply_executor_scope.md`
+  - `docs/tasks/M33_controlled_apply_executor/T407_persona_growth_apply_executor.md`
+  - `docs/worker_summary/T406_worker_summary.md`
+  - `docs/07_handoff.md`
+- Work completed:
+  - Created M33 controlled apply executor scope.
+  - Defined local-only explicit apply boundaries.
+  - Created T407 for a persona growth apply executor over
+    `PersonaVersionStore`.
+- Verification status:
+  - `git diff --check`: passed with CRLF warnings only.
+- Explicit non-actions:
+  - No code, tests, private data reader, source ingestion from real logs,
+    extraction, embedding, vector search, retrieval ranking, similarity
+    scoring, model-provider call, PersonaCard synthesis, final reply
+    generation, proactive candidate, scheduler, queue persistence, webhook,
+    token, platform adapter, outbound messaging, voice/avatar runtime, media
+    generation, package-manager dependency, task-board edit, apply executor,
+    or mutation path was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - M33 has only been scoped.
+  - T407 still needs the first local persona growth apply executor.
+  - Future apply behavior remains high-risk and must stay local, explicit, and
+    audited.
