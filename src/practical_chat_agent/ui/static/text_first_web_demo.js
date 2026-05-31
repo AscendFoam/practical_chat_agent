@@ -186,6 +186,39 @@
           preview_only: true,
           changes_state: false
         }
+      ],
+      apply_risk_reviews: [
+        {
+          schema_version: "review_workspace_apply_risk_card_v1",
+          card_kind: "apply_risk_review",
+          title: "Apply risk review",
+          display_label: "persona growth patch",
+          safe_summary: "[SYNTHETIC] Future apply executor design can be separately scoped.",
+          filter_keys: ["all", "eligible", "persona"],
+          status_badges: [{ label: "Apply risk ready_for_separately_scoped_executor_design", tone: "eligible" }],
+          risk_recommendation: "ready_for_separately_scoped_executor_design",
+          final_outcome: "ready_for_separately_scoped_executor_design",
+          manual_eligibility_outcome: "eligible",
+          risk_factors: [
+            {
+              risk_code: "persona_drift",
+              severity: "medium",
+              safe_summary: "[SYNTHETIC] Persona drift risk is bounded by review."
+            }
+          ],
+          required_approval_gate_codes: ["final_human_confirmation"],
+          satisfied_approval_gate_codes: ["final_human_confirmation"],
+          missing_approval_gate_codes: [],
+          stale_reasons: [],
+          issue_codes: [],
+          blocking_issue_codes: [],
+          review_required: true,
+          preview_only: true,
+          risk_assessment_only: true,
+          executor_ready: false,
+          changes_state: false,
+          runtime_ready: false
+        }
       ]
     }
   };
@@ -230,6 +263,10 @@
     blocked_before_apply: "Blocked before state change",
     future_manual_apply_eligible: "Eligible for later manual review",
     candidate_id_mismatch: "Candidate id mismatch",
+    final_human_confirmation: "Final human confirmation",
+    ready_for_separately_scoped_executor_design: "Ready for separate executor design",
+    needs_review: "Needs review",
+    persona_drift: "Persona drift",
     memory_deletion_cascade: "Memory review item",
     persona_growth_patch: "Persona growth patch",
     synthetic_content: "Synthetic content",
@@ -421,7 +458,9 @@
 
   function drawReviewWorkspace(review) {
     const filterNode = one("#review-filters");
-    const cards = (review.cards || []).concat(review.manual_apply_previews || []);
+    const cards = (review.cards || [])
+      .concat(review.manual_apply_previews || [])
+      .concat(review.apply_risk_reviews || []);
     if (filterNode) {
       filterNode.innerHTML = "";
       (review.filter_tabs || []).forEach(function (tab) {
@@ -453,7 +492,7 @@
 
   function appendReviewWorkspaceCard(card) {
     const cardNode = document.createElement("div");
-    cardNode.className = "item review-card";
+    cardNode.className = "item review-card" + (card.card_kind === "apply_risk_review" ? " apply-risk-card" : "");
 
     const title = document.createElement("div");
     title.className = "item-title";
@@ -487,6 +526,7 @@
       appendReviewMeta(cardNode, reviewCountsPlain(card.counts), "review-counts");
     }
     appendReviewPreviewDetails(cardNode, card);
+    appendApplyRiskDetails(cardNode, card);
     return cardNode;
   }
 
@@ -513,6 +553,23 @@
     detail.className = "item-meta review-detail-list";
     detail.textContent = label + ": " + values.map(mapper).join(" / ");
     parent.appendChild(detail);
+  }
+
+  function appendApplyRiskDetails(cardNode, card) {
+    if (card.card_kind !== "apply_risk_review") {
+      return;
+    }
+    appendReviewMeta(cardNode, "Risk recommendation: " + friendlyLabel(card.risk_recommendation));
+    appendReviewMeta(cardNode, "Approval outcome: " + friendlyLabel(card.final_outcome));
+    appendReviewMeta(cardNode, "Manual eligibility: " + friendlyLabel(card.manual_eligibility_outcome));
+    appendReviewMeta(cardNode, "Executor ready: " + String(card.executor_ready === true));
+    appendReviewDetailList(cardNode, "Required approvals", card.required_approval_gate_codes, friendlyLabel);
+    appendReviewDetailList(cardNode, "Satisfied approvals", card.satisfied_approval_gate_codes, friendlyLabel);
+    appendReviewDetailList(cardNode, "Missing approvals", card.missing_approval_gate_codes, friendlyLabel);
+    appendReviewDetailList(cardNode, "Stale checks", card.stale_reasons, friendlyLabel);
+    appendReviewDetailList(cardNode, "Risk factors", card.risk_factors, function (factor) {
+      return friendlyLabel(factor.risk_code) + ": " + friendlyLabel(factor.severity);
+    });
   }
 
   function appendReviewMeta(parent, value, extraClass) {

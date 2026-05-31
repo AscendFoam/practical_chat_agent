@@ -25,6 +25,23 @@ from practical_chat_agent.services.companion_safety_policy import (
     CompanionSafetySignal,
 )
 from practical_chat_agent.services.dialogue_context_planner import DialogueContextPlan
+from practical_chat_agent.services.apply_executor_approval_gate import (
+    ApplyExecutorApprovalDecision,
+)
+from practical_chat_agent.services.apply_executor_approval_gate import (
+    ApplyExecutorApprovalGate as ApplyExecutorApprovalDecisionGate,
+)
+from practical_chat_agent.services.apply_executor_risk import (
+    ApplyExecutorAuditRequirement,
+)
+from practical_chat_agent.services.apply_executor_risk import (
+    ApplyExecutorApprovalGate as ApplyExecutorRiskApprovalGate,
+)
+from practical_chat_agent.services.apply_executor_risk import (
+    ApplyExecutorRiskAssessment,
+    ApplyExecutorRiskFactor,
+    ApplyExecutorRollbackRequirement,
+)
 from practical_chat_agent.services.manual_apply_eligibility_gate import (
     ManualApplyEligibilityDecision,
     ManualApplyEligibilityGate,
@@ -264,6 +281,7 @@ class TextFirstWebDemoAdapter:
         )
         payload = _safe_review_workspace_panel(panel)
         payload["manual_apply_previews"] = _manual_apply_preview_payloads(persona_impact)
+        payload["apply_risk_reviews"] = _apply_risk_review_payloads(persona_impact)
         return payload
 
     @staticmethod
@@ -551,7 +569,15 @@ def _review_workspace_display_label(value: str) -> str:
 def _manual_apply_preview_payloads(
     impact_preview: ReviewDecisionImpactPreview,
 ) -> list[dict[str, Any]]:
-    record = ManualApplyPreviewRecord.from_impact_preview(
+    record = _manual_apply_preview_record(impact_preview)
+    decision = ManualApplyEligibilityGate().evaluate(record)
+    return [_safe_manual_apply_preview_card(record, decision)]
+
+
+def _manual_apply_preview_record(
+    impact_preview: ReviewDecisionImpactPreview,
+) -> ManualApplyPreviewRecord:
+    return ManualApplyPreviewRecord.from_impact_preview(
         impact_preview,
         required_gates=[
             ManualApplyPreviewGate(
@@ -578,8 +604,55 @@ def _manual_apply_preview_payloads(
         ],
         rollback_notes=["[SYNTHETIC] Keep previous persona version available."],
     )
-    decision = ManualApplyEligibilityGate().evaluate(record)
-    return [_safe_manual_apply_preview_card(record, decision)]
+
+
+def _apply_risk_review_payloads(
+    impact_preview: ReviewDecisionImpactPreview,
+) -> list[dict[str, Any]]:
+    manual_record = _manual_apply_preview_record(impact_preview)
+    manual_decision = ManualApplyEligibilityGate().evaluate(manual_record)
+    risk_assessment = ApplyExecutorRiskAssessment(
+        preview_id=manual_record.preview_id,
+        decision_id=manual_record.decision_id,
+        candidate_kind=manual_record.candidate_kind,
+        candidate_id=manual_record.candidate_id,
+        safe_summary="[SYNTHETIC] Assess future persona apply executor risk.",
+        risk_factors=[
+            ApplyExecutorRiskFactor(
+                risk_code="persona_drift",
+                severity="medium",
+                safe_summary="[SYNTHETIC] Persona drift risk is bounded by review.",
+            )
+        ],
+        approval_gates=[
+            ApplyExecutorRiskApprovalGate(
+                gate_code="final_human_confirmation",
+                label="Final human confirmation",
+                safe_summary="[SYNTHETIC] Final confirmation is present.",
+                satisfied=True,
+            )
+        ],
+        rollback_requirements=[
+            ApplyExecutorRollbackRequirement(
+                requirement_code="previous_persona_version_available",
+                safe_summary="[SYNTHETIC] Previous persona version is available.",
+                covered=True,
+            )
+        ],
+        audit_requirements=[
+            ApplyExecutorAuditRequirement(
+                event_code="manual_apply_audit_record",
+                safe_summary="[SYNTHETIC] Audit record fields are ready.",
+                covered=True,
+            )
+        ],
+    )
+    approval_decision = ApplyExecutorApprovalDecisionGate().evaluate(
+        risk_assessment,
+        manual_eligibility=manual_decision,
+        required_approval_gate_codes=["final_human_confirmation"],
+    )
+    return [_safe_apply_risk_review_card(risk_assessment, approval_decision)]
 
 
 def _safe_manual_apply_preview_card(
@@ -633,6 +706,69 @@ def _safe_manual_apply_preview_card(
         "blocking_issue_codes": list(decision.blocking_issue_codes),
         "review_required": True,
         "preview_only": True,
+        "changes_state": False,
+        "runtime_ready": False,
+    }
+
+
+def _safe_apply_risk_review_card(
+    assessment: ApplyExecutorRiskAssessment,
+    decision: ApplyExecutorApprovalDecision,
+) -> dict[str, Any]:
+    tone = {
+        "blocked": "blocked",
+        "needs_review": "review",
+        "ready_for_separately_scoped_executor_design": "eligible",
+    }[decision.final_outcome]
+    return {
+        "schema_version": "review_workspace_apply_risk_card_v1",
+        "card_kind": "apply_risk_review",
+        "title": "Apply risk review",
+        "display_label": decision.candidate_kind.replace("_", " "),
+        "safe_summary": decision.safe_summary,
+        "filter_keys": ["all", tone, "persona"],
+        "status_badges": [
+            {
+                "label": f"Apply risk {decision.final_outcome}",
+                "tone": tone,
+                "issue_codes": list(decision.issue_codes),
+                "blocking_issue_codes": list(decision.blocking_issue_codes),
+                "review_required": True,
+                "preview_only": True,
+                "changes_state": False,
+                "runtime_ready": False,
+            }
+        ],
+        "assessment_id": assessment.assessment_id,
+        "approval_id": decision.approval_id,
+        "preview_id": decision.preview_id,
+        "decision_id": decision.decision_id,
+        "candidate_kind": decision.candidate_kind,
+        "candidate_id": decision.candidate_id,
+        "risk_recommendation": decision.risk_recommendation,
+        "final_outcome": decision.final_outcome,
+        "manual_eligibility_outcome": decision.manual_eligibility_outcome,
+        "risk_factors": [
+            {
+                "risk_code": factor.risk_code,
+                "severity": factor.severity,
+                "safe_summary": factor.safe_summary,
+            }
+            for factor in assessment.risk_factors
+        ],
+        "required_approval_gate_codes": list(decision.required_approval_gate_codes),
+        "satisfied_approval_gate_codes": list(decision.satisfied_approval_gate_codes),
+        "missing_approval_gate_codes": list(decision.missing_approval_gate_codes),
+        "stale_reasons": list(decision.stale_reasons),
+        "issue_codes": list(decision.issue_codes),
+        "blocking_issue_codes": list(decision.blocking_issue_codes),
+        "review_required": True,
+        "preview_only": True,
+        "risk_assessment_only": True,
+        "executor_ready": False,
+        "applies_changes": False,
+        "writes_memory_store": False,
+        "writes_persona_version": False,
         "changes_state": False,
         "runtime_ready": False,
     }

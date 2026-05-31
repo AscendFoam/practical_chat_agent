@@ -9921,3 +9921,61 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - Approval decisions are not executable authority.
   - T404 still needs read-only UI display for risk records.
   - No future apply executor exists.
+
+## T404 Worker Completion Record
+
+- T404 is the Apply Risk Review Panel task.
+- Worker must not mark T404 complete in `docs/04_task_board.md`; T404 awaits
+  adversarial read-only UI review for apply-risk display, non-apply safety,
+  privacy, DOM rendering safety, and documentation accuracy.
+- Files changed:
+  - `src/practical_chat_agent/ui/text_first_web_demo_adapter.py`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.js`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.css`
+  - `tests/test_review_workspace_apply_risk_panel.py`
+  - `docs/data_contracts/review_workspace_apply_risk_panel_contract.md`
+  - `docs/tasks/M32_apply_executor_risk/T405_m32_milestone_review.md`
+  - `docs/worker_summary/T404_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD record:
+  - RED:
+    `$env:PYTHONPATH='src'; pytest tests\test_review_workspace_apply_risk_panel.py -q -o cache_dir=artifacts\t404_pytest_cache --basetemp=artifacts\t404_pytest_basetemp`
+    failed with `3 failed, 2 passed` because `apply_risk_reviews` payload and
+    renderer support did not exist.
+  - GREEN:
+    py_compile passed; focused tests passed with `5 passed`.
+- Implementation result:
+  - Added synthetic read-only apply risk cards to review workspace payloads.
+  - Built cards from T402 risk assessments, T403 approval decisions, and T398
+    manual eligibility decisions.
+  - Rendered risk details through static DOM/text-node helpers.
+  - Preserved existing review cards and manual apply preview cards.
+- T405 next task package:
+  - Created `docs/tasks/M32_apply_executor_risk/T405_m32_milestone_review.md`.
+  - T405 is scoped to M32 milestone review.
+- Verification status:
+  - py_compile: passed.
+  - focused pytest: passed, `5 passed`.
+  - final py_compile: passed.
+  - final combined pytest: passed, `16 passed`.
+  - `git diff --check`: passed with CRLF warnings only.
+- Explicit non-actions:
+  - No apply executor, manual apply execution, memory store write, PersonaCard
+    mutation, PersonaVersionStore write, deletion executor, retrieval index
+    mutation, local server route, private data reader, source ingestion from
+    real logs, extraction, embedding, vector search, retrieval ranking,
+    similarity scoring, model-provider call, PersonaCard synthesis, final
+    reply generation, proactive candidate, scheduler, queue persistence,
+    webhook, token, platform adapter, outbound messaging, voice/avatar
+    runtime, media generation, package-manager dependency, or task-board edit
+    was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - Apply risk cards are synthetic and local-only.
+  - Approval decisions remain non-executable.
+  - Browser screenshot QA remains unavailable in this environment.
+  - No future apply executor exists.

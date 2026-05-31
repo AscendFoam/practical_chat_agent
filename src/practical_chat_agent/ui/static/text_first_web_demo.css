@@ -252,6 +252,10 @@ h2 {
   min-height: 168px;
 }
 
+.apply-risk-card {
+  border-left: 4px solid var(--warn);
+}
+
 .status-badges {
   display: flex;
   flex-wrap: wrap;
