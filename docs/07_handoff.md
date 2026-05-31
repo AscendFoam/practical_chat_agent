@@ -7613,3 +7613,61 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - Consent withdrawal cascades, de-identification scoring, persona growth patch
     schema, and memory retrieval/consolidation refresh remain for later M25
     tasks.
+
+## T361 Worker Completion Record
+
+- T361 is the Memory Architecture Design task.
+- Worker must not mark T361 as complete in `docs/04_task_board.md`; T361 awaits
+  adversarial memory-architecture, privacy, product-safety, and persona-safety
+  review and Captain judgment.
+- Files changed:
+  - `docs/research/memory_architecture_design.md`
+  - `docs/data_contracts/memory_architecture_contract.md`
+  - `docs/tasks/M25_memory_persona_growth/T362_persona_growth_policy.md`
+  - `docs/worker_summary/T361_worker_summary.md`
+  - `docs/07_handoff.md`
+- Architecture result:
+  - Defined canonical layers for working context, episodic event memory,
+    semantic/profile memory, procedural preference memory, relational memory,
+    persona self-memory, imagined continuity memory, audit memory, and
+    quarantine memory.
+  - Mapped the architecture to existing MemoryEvent v2, store, lifecycle,
+    consolidation, retrieval bundle, viewer, text-first chat memory, consent,
+    AIGC labeling, crisis/dependency, PersonaCard, and relationship contracts.
+  - Documented write, manage, and read paths without implementing runtime
+    behavior.
+  - Preserved factual, inferred, relational, procedural, and imagined memory
+    separation.
+  - Documented contradiction handling, forgetting modes, memory poisoning and
+    quarantine boundaries, persona-growth boundaries, distillation readiness,
+    synthetic fixtures, and residual risks.
+- Contract result:
+  - Created `docs/data_contracts/memory_architecture_contract.md`.
+  - Marked new names such as `MemoryCandidate`,
+    `MemoryContradictionCandidate`, `MemoryDeletionCascadePlan`,
+    `MemoryQuarantineRecord`, and `MemoryAuditEvent` as future contract
+    candidates, not implemented code.
+- T362 next task package:
+  - Created
+    `docs/tasks/M25_memory_persona_growth/T362_persona_growth_policy.md`.
+  - T362 is scoped to persona growth policy and growth patch contract docs.
+- Verification status:
+  - `git diff --check`: passed with Windows line-ending conversion warning for
+    `docs/07_handoff.md`.
+- Explicit non-actions:
+  - No code, tests, Browser rerun, backend route, model-provider call, final
+    reply generation, private data processing, persistence, voice/avatar
+    runtime, media generation, external network asset, package manager,
+    platform adapter, outbound messaging, screenshot artifact, or task-board
+    edit was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - T361 is architecture documentation only; no implementation tests exist for
+    the newly documented future candidate records.
+  - Persona growth patch policy, synthetic distillation input contracts,
+    deletion cascade details, quarantine records, and retrieval/consolidation
+    implementation tests remain future M25 work.
