@@ -9566,3 +9566,59 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - M31 remains a preview layer and will not mutate memory/persona state.
   - Future apply executor design remains high-risk and must be separately
     reviewed.
+
+## T397 Worker Completion Record
+
+- T397 is the Manual Apply Preview Records task.
+- Worker must not mark T397 complete in `docs/04_task_board.md`; T397 awaits
+  adversarial non-mutating record review for privacy, apply-safety, gate
+  coverage, rollback clarity, and documentation accuracy.
+- Files changed:
+  - `src/practical_chat_agent/services/manual_apply_preview.py`
+  - `tests/test_manual_apply_preview_records.py`
+  - `docs/data_contracts/manual_apply_preview_contract.md`
+  - `docs/tasks/M31_manual_apply_preview/T398_manual_apply_eligibility_gate.md`
+  - `docs/worker_summary/T397_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD record:
+  - RED:
+    `$env:PYTHONPATH='src'; pytest tests\test_manual_apply_preview_records.py -q -o cache_dir=artifacts\t397_pytest_cache --basetemp=artifacts\t397_pytest_basetemp`
+    failed with `6 failed` because `manual_apply_preview.py` did not exist.
+  - GREEN:
+    py_compile passed; focused tests passed with `6 passed`.
+- Implementation result:
+  - Added `ManualApplyPreviewGate`.
+  - Added `ManualApplyPreviewEffect`.
+  - Added `ManualApplyPreviewRecord.from_impact_preview`.
+  - Added validators that reject mutating flags and derive preview eligibility
+    from impact outcome, blockers, and gate satisfaction.
+- T398 next task package:
+  - Created
+    `docs/tasks/M31_manual_apply_preview/T398_manual_apply_eligibility_gate.md`.
+  - T398 is scoped to a deterministic non-mutating eligibility gate.
+- Verification status:
+  - py_compile: passed.
+  - focused pytest: passed, `6 passed`.
+  - final py_compile: passed.
+  - final pytest: passed, `6 passed`.
+  - `git diff --check`: passed with CRLF warnings only.
+- Explicit non-actions:
+  - No apply executor, memory store write, PersonaCard mutation,
+    PersonaVersionStore write, deletion executor, retrieval index mutation, UI
+    change, local server route, private data reader, source ingestion from
+    real logs, extraction, embedding, vector search, retrieval ranking,
+    similarity scoring, model-provider call, PersonaCard synthesis, final
+    reply generation, proactive candidate, scheduler, queue persistence,
+    webhook, token, platform adapter, outbound messaging, voice/avatar
+    runtime, media generation, package-manager dependency, or task-board edit
+    was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - Preview eligibility is not executable authority.
+  - T398 still needs a non-mutating eligibility gate.
+  - No UI displays these records yet.
+  - No future apply executor exists.
