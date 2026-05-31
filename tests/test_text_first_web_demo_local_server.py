@@ -101,7 +101,12 @@ def test_local_server_responses_have_no_private_provider_media_or_outbound_surfa
         "api_key",
         "generated_audio_path",
         "generated_video_path",
-        "send",
+        '"sends_messages": true',
+        '"calls_provider": true',
+        '"uses_private_source": true',
+        '"writes_runtime_store": true',
+        '"media_runtime_enabled": true',
+        "send_queue",
         "schedule",
         "delivery",
         "webhook",
@@ -127,4 +132,3 @@ def test_local_server_helper_exposes_no_model_provider_media_or_platform_methods
         "connect_platform",
     ):
         assert not hasattr(server, method_name)
-

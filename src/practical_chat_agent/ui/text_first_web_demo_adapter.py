@@ -110,6 +110,7 @@ class TextFirstWebDemoState(BaseModel):
     user_id: str = Field(..., min_length=1)
     integrated_scenario: dict[str, Any]
     trust_commercial: dict[str, Any]
+    companion_session: dict[str, Any]
     onboarding: dict[str, Any]
     persona: dict[str, Any]
     chat_memory: dict[str, Any]
@@ -245,6 +246,7 @@ class TextFirstWebDemoAdapter:
             user_id=user_id,
             integrated_scenario=self._integrated_scenario_payload(),
             trust_commercial=self._trust_commercial_payload(),
+            companion_session=self._companion_session_payload(),
             onboarding=_dump(initial_state),
             persona={
                 "safe_persona_state": _dump(safe_persona_state),
@@ -279,6 +281,173 @@ class TextFirstWebDemoAdapter:
             avatar=self._avatar_locked_state(user_id=user_id),
             review_workspace=self._review_workspace_payload(user_id=user_id),
         )
+
+    @staticmethod
+    def _companion_session_payload() -> dict[str, Any]:
+        return {
+            "schema_version": "local_companion_session_v1",
+            "session_title": "Synthetic evening check-in loop",
+            "session_summary": (
+                "Deterministic local session showing reviewed memory continuity, "
+                "persona cues, and review-only follow-up candidates."
+            ),
+            "persona_snapshot": {
+                "persona_id": "persona_synthetic",
+                "display_name": "Lin Qi",
+                "ai_identity_disclosure": "AI-generated synthetic companion.",
+                "stable_traits": [
+                    "calm",
+                    "concise",
+                    "dry humor",
+                    "independent boundaries",
+                ],
+                "real_person_claim": False,
+            },
+            "persona_cues": [
+                {
+                    "cue_id": "cue_001",
+                    "label": "Concise warmth",
+                    "safe_summary": "Reply briefly while staying warm.",
+                },
+                {
+                    "cue_id": "cue_002",
+                    "label": "Fiction boundary",
+                    "safe_summary": "Separate imagined companion content from real-world claims.",
+                },
+            ],
+            "memory_recalls": [
+                {
+                    "recall_id": "recall_001",
+                    "memory_kind": "factual",
+                    "truth_status": "evidence_backed",
+                    "reviewed_summary": "User prefers concise check-ins.",
+                    "source_label": "synthetic_reviewed_memory",
+                    "raw_source_available": False,
+                },
+                {
+                    "recall_id": "recall_002",
+                    "memory_kind": "imagined",
+                    "truth_status": "imagined",
+                    "reviewed_summary": "Fictional companion setting: a quiet bookstore while it rains.",
+                    "source_label": "synthetic_imagined_memory",
+                    "raw_source_available": False,
+                },
+            ],
+            "safety_notes": [
+                {
+                    "safety_note_id": "safety_001",
+                    "safe_summary": "Keep the reply low-pressure and concise.",
+                },
+                {
+                    "safety_note_id": "safety_002",
+                    "safe_summary": "Require review before any imagined life-stream draft is used.",
+                },
+            ],
+            "turns": [
+                {
+                    "turn_id": "turn_001",
+                    "speaker": "user",
+                    "safe_text": "Could you keep tonight short? I am tired but want a tiny plan for tomorrow.",
+                    "used_memory_recall_ids": [],
+                    "used_persona_cue_ids": [],
+                    "safety_note_ids": ["safety_001"],
+                    "review_trace": "Synthetic user turn; no source import.",
+                    "generated_by": "deterministic_synthetic_fixture",
+                },
+                {
+                    "turn_id": "turn_002",
+                    "speaker": "companion",
+                    "safe_text": (
+                        "Short version: water, one line for tomorrow, then stop. "
+                        "You usually like concise check-ins, so I will not crowd you."
+                    ),
+                    "used_memory_recall_ids": ["recall_001"],
+                    "used_persona_cue_ids": ["cue_001"],
+                    "safety_note_ids": ["safety_001"],
+                    "review_trace": "Uses reviewed preference memory and concise persona cue.",
+                    "generated_by": "deterministic_synthetic_fixture",
+                },
+                {
+                    "turn_id": "turn_003",
+                    "speaker": "user",
+                    "safe_text": "That helps. I also liked the rain bookstore mood from the fictional notes.",
+                    "used_memory_recall_ids": [],
+                    "used_persona_cue_ids": [],
+                    "safety_note_ids": ["safety_002"],
+                    "review_trace": "Synthetic user turn requesting imagined content boundary.",
+                    "generated_by": "deterministic_synthetic_fixture",
+                },
+                {
+                    "turn_id": "turn_004",
+                    "speaker": "companion",
+                    "safe_text": (
+                        "We can keep that as fiction: a quiet bookstore, rain outside, "
+                        "and no claim that it happened in your day."
+                    ),
+                    "used_memory_recall_ids": ["recall_002"],
+                    "used_persona_cue_ids": ["cue_002"],
+                    "safety_note_ids": ["safety_002"],
+                    "review_trace": "Uses imagined memory only as labeled fiction.",
+                    "generated_by": "deterministic_synthetic_fixture",
+                },
+            ],
+            "post_turn_candidates": [
+                {
+                    "candidate_id": "session_candidate_memory_001",
+                    "candidate_kind": "memory_candidate",
+                    "originating_turn_id": "turn_002",
+                    "safe_summary": "Review whether short evening planning should become a low-sensitivity preference.",
+                    "review_required": True,
+                    "preview_only": True,
+                    "changes_state": False,
+                    "automatic_apply": False,
+                    "sends_messages": False,
+                },
+                {
+                    "candidate_id": "session_candidate_persona_001",
+                    "candidate_kind": "persona_growth_patch",
+                    "originating_turn_id": "turn_002",
+                    "safe_summary": "Review a small persona bias toward concise evening replies.",
+                    "review_required": True,
+                    "preview_only": True,
+                    "changes_state": False,
+                    "automatic_apply": False,
+                    "sends_messages": False,
+                },
+                {
+                    "candidate_id": "session_candidate_proactive_001",
+                    "candidate_kind": "proactive_suggestion",
+                    "originating_turn_id": "turn_002",
+                    "safe_summary": "Review an in-app afternoon check-in idea; it is not sent.",
+                    "review_required": True,
+                    "preview_only": True,
+                    "changes_state": False,
+                    "automatic_apply": False,
+                    "sends_messages": False,
+                },
+                {
+                    "candidate_id": "session_candidate_life_001",
+                    "candidate_kind": "life_stream_draft",
+                    "originating_turn_id": "turn_004",
+                    "safe_summary": "Review an imagined rain-bookstore life-stream draft labeled as fiction.",
+                    "review_required": True,
+                    "preview_only": True,
+                    "changes_state": False,
+                    "automatic_apply": False,
+                    "sends_messages": False,
+                },
+            ],
+            "non_execution_flags": {
+                "local_only": True,
+                "synthetic_fixture": True,
+                "calls_provider": False,
+                "uses_private_source": False,
+                "writes_runtime_store": False,
+                "automatic_apply": False,
+                "sends_messages": False,
+                "media_runtime_enabled": False,
+            },
+        }
 
     @staticmethod
     def _integrated_scenario_payload() -> dict[str, Any]:

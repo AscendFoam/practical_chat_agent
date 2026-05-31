@@ -10624,3 +10624,60 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
 - Remaining risks:
   - M35 still needs code implementation starting with T418.
   - The session-loop UI remains future work until T419.
+
+## T418 Worker Completion Record
+
+- T418 is the Local Companion Session Simulator task.
+- Worker must not mark T418 complete in `docs/04_task_board.md`; T418 awaits
+  adversarial local session contract review for synthetic-only data,
+  believable companion continuity, review-candidate linkage, and no
+  provider/outbound/media surface expansion.
+- Files changed:
+  - `src/practical_chat_agent/ui/text_first_web_demo_adapter.py`
+  - `tests/test_local_companion_session_simulator.py`
+  - `tests/test_text_first_web_demo_local_server.py`
+  - `docs/data_contracts/local_companion_session_simulator_contract.md`
+  - `docs/tasks/M35_next_iteration/T419_static_companion_session_loop.md`
+  - `docs/worker_summary/T418_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD record:
+  - RED:
+    `$env:PYTHONPATH='src'; pytest tests\test_local_companion_session_simulator.py -q -o cache_dir=artifacts\t418_pytest_cache --basetemp=artifacts\t418_pytest_basetemp`
+    failed with `6 failed` because `companion_session` did not exist.
+  - GREEN:
+    focused tests passed with `6 passed`.
+- Implementation result:
+  - Added `companion_session` to `TextFirstWebDemoState`.
+  - Added deterministic synthetic session turns, persona cues, reviewed memory
+    recalls, safety notes, post-turn candidates, and explicit non-execution
+    flags.
+  - Narrowed a local server forbidden-surface regression to allow explicit
+    `sends_messages: false` flags while still blocking dangerous enabled
+    states and real send queues.
+- T419 next task package:
+  - Created
+    `docs/tasks/M35_next_iteration/T419_static_companion_session_loop.md`.
+  - T419 is scoped to rendering the companion session loop in the static web
+    demo and running Browser QA.
+- Verification status:
+  - py_compile: passed.
+  - focused pytest: passed, `6 passed`.
+  - final combined pytest: passed, `21 passed`.
+  - `git diff --check`: passed with CRLF warnings only.
+- Explicit non-actions:
+  - No static HTML/JS/CSS rendering, package dependencies, source readers,
+    model-provider calls, embeddings, vector search, semantic ranking,
+    similarity scoring, fine-tuning, runtime store writes, PersonaCard
+    synthesis, platform adapters, schedulers, queues, webhooks, tokens,
+    recipient ids, delivery state, outbound messaging, automatic outreach,
+    voice/avatar runtime, media generation, payment processing, or task-board
+    edit was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - The session loop is payload-only until T419 renders it.
+  - The payload is deterministic and synthetic; it does not prove model quality,
+    real distillation quality, or production runtime behavior.
