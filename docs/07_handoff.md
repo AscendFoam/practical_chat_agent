@@ -8758,3 +8758,74 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - Binding records are local review records only; no snapshot store exists
     yet.
   - T384 still needs local review workspace snapshot storage.
+
+## T384 Worker Completion Record
+
+- T384 is the Review Workspace Snapshot Store task.
+- Worker must not mark T384 as complete in `docs/04_task_board.md`; T384
+  awaits adversarial review workspace storage, path-safety, privacy, dry-run
+  safety, product-safety, and documentation-accuracy review.
+- Files changed:
+  - `src/practical_chat_agent/services/review_workspace_store.py`
+  - `tests/test_review_workspace_snapshot_store.py`
+  - `docs/data_contracts/review_workspace_snapshot_store_contract.md`
+  - `docs/tasks/M28_local_review_workspace/T385_review_decision_impact_preview.md`
+  - `docs/worker_summary/T384_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD record:
+  - RED:
+    `$env:PYTHONPATH='src'; pytest tests\test_review_workspace_snapshot_store.py -q -o cache_dir=artifacts\t384_pytest_cache --basetemp=artifacts\t384_pytest_basetemp`
+    failed with `5 failed` because
+    `practical_chat_agent.services.review_workspace_store` did not exist.
+  - GREEN:
+    the same focused test command passed with `5 passed` after implementing
+    `review_workspace_store.py`.
+- Implementation result:
+  - Added `ReviewWorkspaceSnapshotStore` for local JSON persistence of safe
+    `ReviewWorkspaceBundle` records.
+  - Added save/load helpers with Pydantic validation on read.
+  - Added deterministic listing sorted by bundle `created_at` and
+    `bundle_id`.
+  - Added filters by candidate kind, owner user id, persona id, priority band,
+    and blocker status.
+  - Added path-safety checks for absolute paths, traversal outside the store
+    root, and non-JSON snapshot names.
+  - Kept stored records limited to existing T383 safe bundle fields.
+- Contract result:
+  - Created `docs/data_contracts/review_workspace_snapshot_store_contract.md`.
+  - Documented store methods, stored fields, invariants, forbidden fields,
+    tests, verification, non-actions, and residual risks.
+- T385 next task package:
+  - Created
+    `docs/tasks/M28_local_review_workspace/T385_review_decision_impact_preview.md`.
+  - T385 is scoped to deterministic review decision impact previews without
+    applying decisions or mutating memory/persona state.
+- Verification status:
+  - `python -m py_compile src\practical_chat_agent\services\review_workspace_store.py`:
+    passed.
+  - focused pytest with review workspace snapshot store and binding tests:
+    passed, `14 passed`.
+  - `git diff --check`: passed with Windows line-ending conversion warning
+    for `docs/07_handoff.md`.
+- Explicit non-actions:
+  - No private data reader, source ingestion from real logs, extraction,
+    embedding, vector search, retrieval ranking, similarity scoring,
+    model-provider call, PersonaCard synthesis, final reply generation,
+    proactive candidate, route, CLI, scheduler, queue persistence, webhook,
+    token, platform adapter, outbound messaging, voice/avatar runtime, media
+    generation, Browser artifact, package-manager dependency, or task-board
+    edit was added.
+  - No review decision apply path, memory store mutation, PersonaCard
+    mutation, PersonaVersionStore write, deletion executor, retrieval
+    enablement, or review decision impact preview was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - Snapshot storage is local prototype persistence only.
+  - The store does not independently validate de-identification quality beyond
+    preserving T383 safe bundle fields.
+  - Review decisions are not previewed yet.
+  - T385 still needs deterministic review decision impact previews.
