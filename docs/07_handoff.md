@@ -8140,3 +8140,74 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
     authenticity.
   - T374 still needs to connect memory retrieval, consolidation, and
     explanation behavior across M26 candidate records.
+
+## T374 Worker Completion Record
+
+- T374 is the Memory Retrieval Explanation Integration task.
+- Worker must not mark T374 as complete in `docs/04_task_board.md`; T374 awaits
+  adversarial memory lifecycle, retrieval-safety, privacy, persona-safety,
+  distillation-safety, and product-safety review and Captain judgment.
+- Files changed:
+  - `src/practical_chat_agent/services/memory_retrieval_explanation.py`
+  - `tests/test_memory_retrieval_explanation_integration.py`
+  - `docs/data_contracts/memory_retrieval_explanation_integration_contract.md`
+  - `docs/tasks/M26_memory_persona_implementation/T375_m26_milestone_review.md`
+  - `docs/worker_summary/T374_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD record:
+  - RED:
+    `$env:PYTHONPATH='src'; pytest tests\test_memory_retrieval_explanation_integration.py -q -o cache_dir=artifacts\t374_pytest_cache --basetemp=artifacts\t374_pytest_basetemp`
+    failed with `14 failed` because
+    `practical_chat_agent.services.memory_retrieval_explanation` did not
+    exist.
+  - GREEN:
+    the same focused test command passed with `14 passed` after implementing
+    `memory_retrieval_explanation.py`.
+- Implementation result:
+  - Added local deterministic retrieval packaging and explanation helper logic
+    that emits `MemoryRetrievalBundle` plus `MemoryExplanationTrace` records.
+  - Added review-first helper creation for contradiction candidates,
+    supersession candidates, consent-withdrawal deletion cascade plans, and
+    persona-growth evidence bundles.
+  - Kept synthetic distillation feature candidates review-only.
+  - Added exclusion behavior for imagined memory in factual bundles, inactive
+    or superseded memory, review-required memory outside explicit review
+    inclusion, withdrawn-consent memory, and route-ineligible memory.
+- Contract result:
+  - Created
+    `docs/data_contracts/memory_retrieval_explanation_integration_contract.md`.
+  - Documented helper behavior, inclusion/exclusion reasons, governance
+    candidate boundaries, forbidden fields, verification, non-actions, and
+    residual risks.
+- T375 next task package:
+  - Created
+    `docs/tasks/M26_memory_persona_implementation/T375_m26_milestone_review.md`.
+  - T375 is scoped to adversarial M26 milestone review without private data,
+    code edits, provider calls, outbound messaging, voice/avatar runtime, media
+    generation, or real-person recreation.
+- Verification status:
+  - `python -m py_compile src\practical_chat_agent\services\memory_retrieval_explanation.py`:
+    passed.
+  - focused pytest with retrieval explanation, memory governance, persona
+    growth, synthetic distillation input, retrieval bundle, and text-first
+    memory prototype tests: passed, `72 passed`.
+  - `git diff --check`: passed with Windows line-ending conversion warning for
+    `docs/07_handoff.md`.
+- Explicit non-actions:
+  - No private data reader, source ingestion from real logs, extraction,
+    consolidation write, embedding, vector search, retrieval ranking,
+    similarity scoring, model-provider call, PersonaCard mutation, final reply
+    generation, proactive candidate, persistence expansion, route, CLI,
+    scheduler, queue, webhook, token, platform adapter, outbound messaging,
+    voice/avatar runtime, media generation, Browser artifact, package-manager
+    dependency, or task-board edit was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - Retrieval selection is deterministic rule-gating only; it is not semantic
+    search, ranking, or consolidation.
+  - T375 still needs adversarial M26 milestone review before M26 can be treated
+    as reviewed.
