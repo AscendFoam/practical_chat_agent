@@ -8068,3 +8068,75 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
     path or user-facing UI exists.
   - Synthetic distillation input records and retrieval/explanation integration
     remain future M26 work.
+
+## T373 Worker Completion Record
+
+- T373 is the Synthetic Distillation Input Models task.
+- Worker must not mark T373 as complete in `docs/04_task_board.md`; T373 awaits
+  adversarial privacy, de-identification, real-person likeness,
+  distillation-safety, persona-safety, and product-safety review and Captain
+  judgment.
+- Files changed:
+  - `src/practical_chat_agent/services/synthetic_distillation_input.py`
+  - `tests/test_synthetic_distillation_input_candidates.py`
+  - `docs/data_contracts/synthetic_distillation_input_implementation_contract.md`
+  - `docs/tasks/M26_memory_persona_implementation/T374_memory_retrieval_explanation_integration.md`
+  - `docs/worker_summary/T373_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD record:
+  - RED:
+    `$env:PYTHONPATH='src'; pytest tests\test_synthetic_distillation_input_candidates.py -q -o cache_dir=artifacts\t373_pytest_cache --basetemp=artifacts\t373_pytest_basetemp`
+    failed with `19 failed` because
+    `practical_chat_agent.services.synthetic_distillation_input` did not exist.
+  - GREEN:
+    the same focused test command passed with `19 passed` after implementing
+    `synthetic_distillation_input.py`.
+- Implementation result:
+  - Added local Pydantic records for synthetic distillation input manifests,
+    source segments, speaker aliases, consent refs, redaction refs, style
+    feature candidates, clone-risk decisions, and fictional persona synthesis
+    inputs.
+  - Kept records synthetic-only, alias-based, review-required, text-only, and
+    non-runtime.
+  - Added validation for `[SYNTHETIC]` markers, no raw private text, no private
+    paths/media references, no retained real identity, third-party
+    minimization, withdrawn consent blocking, voice/avatar consent blocking,
+    clone-risk blocking, abstract style labels, no retained source text, and
+    fictional persona input not runtime-ready.
+- Contract result:
+  - Created
+    `docs/data_contracts/synthetic_distillation_input_implementation_contract.md`.
+  - Documented implemented records, invariants, forbidden fields, verification,
+    non-actions, and residual risks.
+- T374 next task package:
+  - Created
+    `docs/tasks/M26_memory_persona_implementation/T374_memory_retrieval_explanation_integration.md`.
+  - T374 is scoped to implement local retrieval/consolidation/explanation
+    integration tests without private data, provider calls, runtime dialogue,
+    outbound messaging, voice/avatar runtime, media generation, or real-person
+    recreation.
+- Verification status:
+  - `python -m py_compile src\practical_chat_agent\services\synthetic_distillation_input.py`:
+    passed.
+  - focused pytest with synthetic distillation input, memory governance, and
+    persona growth tests: passed, `43 passed`.
+  - `git diff --check`: passed with Windows line-ending conversion warning for
+    `docs/07_handoff.md`.
+- Explicit non-actions:
+  - No private data reader, source ingestion from real logs, extraction,
+    embedding, vector search, retrieval ranking, similarity scoring,
+    model-provider call, PersonaCard synthesis, final reply generation,
+    proactive candidate, persistence expansion, route, CLI, scheduler, queue,
+    webhook, token, platform adapter, outbound messaging, voice/avatar runtime,
+    media generation, Browser artifact, package-manager dependency, or
+    task-board edit was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - These records do not prove real de-identification quality or source
+    authenticity.
+  - T374 still needs to connect memory retrieval, consolidation, and
+    explanation behavior across M26 candidate records.
