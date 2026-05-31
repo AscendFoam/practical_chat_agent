@@ -10060,3 +10060,60 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - T407 still needs the first local persona growth apply executor.
   - Future apply behavior remains high-risk and must stay local, explicit, and
     audited.
+
+## T407 Worker Completion Record
+
+- T407 is the Persona Growth Apply Executor task.
+- Worker must not mark T407 complete in `docs/04_task_board.md`; T407 awaits
+  adversarial local mutation review for final confirmation, stale-version
+  blocking, rollback evidence, auditability, privacy, and no platform/provider
+  surface expansion.
+- Files changed:
+  - `src/practical_chat_agent/services/persona_growth_apply_executor.py`
+  - `tests/test_persona_growth_apply_executor.py`
+  - `docs/data_contracts/persona_growth_apply_executor_contract.md`
+  - `docs/tasks/M33_controlled_apply_executor/T408_memory_lifecycle_apply_executor.md`
+  - `docs/worker_summary/T407_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD record:
+  - RED:
+    `$env:PYTHONPATH='src'; pytest tests\test_persona_growth_apply_executor.py -q -o cache_dir=artifacts\t407_pytest_cache --basetemp=artifacts\t407_pytest_basetemp`
+    failed with `6 failed` because `persona_growth_apply_executor.py` did not
+    exist.
+  - GREEN:
+    py_compile passed; focused tests passed with `6 passed`.
+- Implementation result:
+  - Added a local persona growth apply request and audit record.
+  - Added an executor that requires final confirmation, eligible manual apply,
+    ready apply approval, matching candidate ids, and source-version freshness.
+  - Applied reviewed dry-run field previews to a copied PersonaCard.
+  - Wrote exactly one new `PersonaVersionStore` record and returned rollback
+    target evidence.
+- T408 next task package:
+  - Created
+    `docs/tasks/M33_controlled_apply_executor/T408_memory_lifecycle_apply_executor.md`.
+  - T408 is scoped to local memory lifecycle apply.
+- Verification status:
+  - py_compile: passed.
+  - focused pytest: passed, `6 passed`.
+  - final py_compile: passed.
+  - final combined pytest: passed, `26 passed`.
+  - `git diff --check`: passed with CRLF warnings only.
+- Explicit non-actions:
+  - No memory lifecycle mutation, private data reader, source ingestion from
+    real logs, extraction, embedding, vector search, retrieval ranking,
+    similarity scoring, model-provider call, PersonaCard synthesis, final
+    reply generation, proactive candidate, scheduler, queue persistence,
+    webhook, token, platform adapter, outbound messaging, voice/avatar
+    runtime, media generation, package-manager dependency, or task-board edit
+    was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - Persona growth apply is local-only.
+  - Memory lifecycle apply is not implemented yet.
+  - No review workspace displays apply audit records yet.
+  - Automatic apply remains unauthorized.
