@@ -7207,3 +7207,46 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - T344 covers representative desktop/mobile visual QA only. Keyboard-only
     navigation, accessibility tooling, zoom levels, dark mode, localization,
     and extreme payload lengths remain untested.
+
+## T345 Worker Completion Record
+
+- T345 is the Web Demo Walkthrough task for M23.
+- Worker must not mark T345 as complete in `docs/04_task_board.md`; T345 awaits
+  adversarial product/safety UX and research-methods review and Captain
+  judgment.
+- Files changed:
+  - `docs/product/text_first_web_demo_walkthrough.md`
+  - `docs/research/text_first_web_demo_study_protocol_update.md`
+  - `docs/tasks/M23_integrated_text_first_web_demo/T346_m23_milestone_review.md`
+  - `docs/worker_summary/T345_worker_summary.md`
+  - `docs/07_handoff.md`
+- Implementation result:
+  - Added a guided reviewer walkthrough for the local static web demo.
+  - Added facilitator disclosure copy for AI-generated synthetic identity.
+  - Listed what the facilitator must not claim.
+  - Added scenario route, reviewer prompts, expected observations, issue
+    logging, stop conditions, and debrief copy.
+  - Added an internal supervised-review protocol update with reviewer
+    assumptions, materials, prompt bank, severity rubric, excluded validations,
+    and follow-up handling.
+- T346 next task package:
+  - Created
+    `docs/tasks/M23_integrated_text_first_web_demo/T346_m23_milestone_review.md`.
+  - T346 is scoped to M23 milestone review and M24 scope creation.
+- Verification status:
+  - `git diff --check`: passed with Windows line-ending conversion warnings.
+- Explicit non-actions:
+  - No frontend code, tests, backend routes, browser rerun, model-provider call,
+    final reply generation, private data processing, voice/avatar runtime,
+    media generation, external network asset, package manager, platform
+    adapter, outbound messaging, screenshot artifact, or task-board edit was
+    added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - T345 provides internal review protocol only. It does not run research,
+    validate user comprehension, or harden accessibility, backend serving,
+    generated-payload wiring, or production behavior.
