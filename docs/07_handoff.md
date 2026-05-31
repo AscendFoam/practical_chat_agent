@@ -9467,3 +9467,63 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
     environment.
   - T395 still needs a reproducible local visual QA fallback.
   - Manual apply preview remains unscoped until T396.
+
+## T395 Worker Completion Record
+
+- T395 is the Local Visual QA Fallback task.
+- Worker must not mark T395 complete in `docs/04_task_board.md`; T395 awaits
+  adversarial local visual QA fallback review for static inspectability,
+  privacy, non-apply safety, and documentation accuracy.
+- Files changed:
+  - `src/practical_chat_agent/ui/text_first_web_demo_static.py`
+  - `tests/test_review_workspace_visual_qa_fallback.py`
+  - `docs/data_contracts/review_workspace_visual_qa_fallback_contract.md`
+  - `docs/tasks/M30_review_workspace_hardening/T396_manual_apply_preview_scope.md`
+  - `docs/worker_summary/T395_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD record:
+  - RED:
+    `$env:PYTHONPATH='src'; pytest tests\test_review_workspace_visual_qa_fallback.py -q -o cache_dir=artifacts\t395_pytest_cache --basetemp=artifacts\t395_pytest_basetemp`
+    failed with `3 failed` because `TextFirstWebDemoStaticShell` did not
+    expose `build_review_workspace_qa_snapshot`.
+  - GREEN:
+    py_compile passed; visual QA fallback/static panel tests passed with
+    `9 passed`.
+- Implementation result:
+  - Added `TextFirstWebDemoStaticShell.build_review_workspace_qa_snapshot`.
+  - Snapshot verifies static review targets, adapter-backed review cards,
+    status tones, blocker text, safe export text, and action-control absence.
+  - Created the visual QA fallback contract.
+- T396 next task package:
+  - Created
+    `docs/tasks/M30_review_workspace_hardening/T396_manual_apply_preview_scope.md`.
+  - T396 is scoped to manual apply preview planning without mutation.
+- Verification status:
+  - py_compile: passed.
+  - focused visual QA/static pytest: passed, `9 passed`.
+  - final py_compile: passed.
+  - final pytest: passed, `9 passed`.
+  - `git diff --check`: passed with CRLF warnings only.
+- Explicit non-actions:
+  - No screenshot capture, browser automation, package install, local server
+    route, private data reader, source ingestion from real logs, extraction,
+    embedding, vector search, retrieval ranking, similarity scoring,
+    model-provider call, PersonaCard synthesis, final reply generation,
+    proactive candidate, scheduler, queue persistence, webhook, token,
+    platform adapter, outbound messaging, voice/avatar runtime, media
+    generation, package-manager dependency, or task-board edit was added.
+  - No review decision apply path, memory store mutation, PersonaCard
+    mutation, PersonaVersionStore write, deletion executor, retrieval
+    enablement, or provider-backed payload was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - Snapshot QA is structured local evidence, not rendered screenshot
+    evidence.
+  - It cannot catch CSS overlap, viewport framing, or real click behavior.
+  - Browser visual QA should still be performed when local navigation is
+    available.
+  - Manual apply preview remains unscoped until T396.
