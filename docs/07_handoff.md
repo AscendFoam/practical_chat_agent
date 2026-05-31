@@ -8163,6 +8163,11 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - GREEN:
     the same focused test command passed with `14 passed` after implementing
     `memory_retrieval_explanation.py`.
+  - T375 review-boundary regression:
+    `$env:PYTHONPATH='src'; pytest tests\test_memory_retrieval_explanation_integration.py -q -o cache_dir=artifacts\t375_fix_pytest_cache --basetemp=artifacts\t375_fix_pytest_basetemp`
+    first failed with `1 failed, 14 passed` because
+    `include_review_required=True` could force review-required memory into a
+    `factual_response` bundle; after the fix it passed with `15 passed`.
 - Implementation result:
   - Added local deterministic retrieval packaging and explanation helper logic
     that emits `MemoryRetrievalBundle` plus `MemoryExplanationTrace` records.
@@ -8173,6 +8178,8 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - Added exclusion behavior for imagined memory in factual bundles, inactive
     or superseded memory, review-required memory outside explicit review
     inclusion, withdrawn-consent memory, and route-ineligible memory.
+  - T375 review tightened review-required inclusion so it is allowed only for
+    `review_surface` with explicit inclusion.
 - Contract result:
   - Created
     `docs/data_contracts/memory_retrieval_explanation_integration_contract.md`.
@@ -8190,7 +8197,8 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
     passed.
   - focused pytest with retrieval explanation, memory governance, persona
     growth, synthetic distillation input, retrieval bundle, and text-first
-    memory prototype tests: passed, `72 passed`.
+    memory prototype tests: passed before T375 review-boundary fix, `72 passed`;
+    passed after the fix with `73 passed`.
   - `git diff --check`: passed with Windows line-ending conversion warning for
     `docs/07_handoff.md`.
 - Explicit non-actions:
@@ -8211,3 +8219,63 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
     search, ranking, or consolidation.
   - T375 still needs adversarial M26 milestone review before M26 can be treated
     as reviewed.
+
+## T375 Reviewer Completion Record
+
+- T375 is the M26 Milestone Review task.
+- Files changed:
+  - `docs/review/M26_review.md`
+  - `docs/worker_summary/T375_worker_summary.md`
+  - `docs/07_handoff.md`
+  - `src/practical_chat_agent/services/memory_retrieval_explanation.py`
+  - `tests/test_memory_retrieval_explanation_integration.py`
+  - `docs/data_contracts/memory_retrieval_explanation_integration_contract.md`
+  - `docs/worker_summary/T374_worker_summary.md`
+- Review result:
+  - Gate recommendation: `PASS_WITH_WARNINGS` for entering the next
+    conservative implementation milestone.
+  - M26 established local, deterministic, synthetic-only implementation
+    foundations for memory governance candidates, persona-growth candidates,
+    synthetic distillation input candidates, and retrieval/explanation
+    integration.
+- Fixed during review:
+  - Found that `include_review_required=True` could force review-required
+    memory into a `factual_response` bundle.
+  - Added regression coverage proving the issue, then changed
+    `MemoryRetrievalExplanationService` so review-required memory can be
+    included only for `review_surface` with explicit inclusion.
+  - Focused regression first failed with `1 failed, 14 passed`, then passed
+    with `15 passed` after the fix.
+- Review artifacts:
+  - Created `docs/review/M26_review.md`.
+  - Created `docs/worker_summary/T375_worker_summary.md`.
+  - Updated T374 contract/summary/handoff notes for the tightened
+    review-required retrieval boundary.
+- Verification status:
+  - `python -m py_compile src\practical_chat_agent\services\memory_retrieval_explanation.py`:
+    passed.
+  - T375 milestone pytest with memory governance, persona growth, synthetic
+    distillation input, and retrieval explanation tests: passed, `58 passed`.
+  - Expanded regression pytest with retrieval explanation, memory governance,
+    persona growth, synthetic distillation input, retrieval bundle, and
+    text-first memory prototype tests: passed, `73 passed`.
+  - `git diff --check`: passed with Windows line-ending conversion warnings
+    for modified files.
+- Explicit non-actions:
+  - No private data reader, source ingestion from real logs, extraction,
+    embedding, vector search, retrieval ranking service, similarity scoring,
+    model-provider call, final reply generation, proactive candidate,
+    persistence expansion, route, CLI, scheduler, queue, webhook, token,
+    platform adapter, outbound messaging, voice/avatar runtime, media
+    generation, Browser artifact, package-manager dependency, or task-board
+    edit was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - M26 remains candidate/review-only and does not include real-data import,
+    semantic retrieval, review UI, deletion execution, persona apply paths,
+    proactive outreach, voice/avatar runtime, media generation, platform
+    delivery, commercial packaging, or production persistence.

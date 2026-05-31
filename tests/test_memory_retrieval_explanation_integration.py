@@ -121,6 +121,19 @@ class TestRetrievalEligibilityAndExplanation:
         assert result.bundle.exclusion_reasons[event.event_id] == "review_required_memory_excluded"
         assert "review_required" in result.trace_by_memory_id(event.event_id).safety_warnings
 
+    def test_review_required_memory_cannot_be_forced_into_factual_response(self) -> None:
+        event = _factual(sensitivity="high")
+
+        result = _service().build_bundle(
+            [event],
+            purpose="factual_response",
+            query_summary="answer without sensitive review memory",
+            include_review_required=True,
+        )
+
+        assert result.bundle.selected_memory_ids == []
+        assert result.bundle.exclusion_reasons[event.event_id] == "review_required_memory_excluded"
+
     def test_withdrawn_consent_excludes_memory_and_creates_deletion_cascade_plan(self) -> None:
         event = _factual()
 

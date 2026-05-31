@@ -70,8 +70,8 @@ Methods:
 | `review_surface` | source event type context |
 
 `review_surface` can include review-required memory only when
-`include_review_required=true`; otherwise review-required memory is excluded
-with an explanation trace.
+`include_review_required=true`; other purposes exclude review-required memory
+even if that flag is set.
 
 ## Inclusion And Exclusion Rules
 
@@ -80,7 +80,8 @@ Included events:
 - must be allowed for the resolved retrieval context;
 - must not be withdrawn by the caller;
 - must not be `deleted`, `frozen`, `archived`, or `superseded`;
-- must not be review-required unless `include_review_required=true`;
+- must not be review-required unless the purpose is `review_surface` and
+  `include_review_required=true`;
 - must not be imagined memory in a `factual_response` bundle.
 
 Exclusion reasons:

@@ -213,7 +213,9 @@ class MemoryRetrievalExplanationService:
             return "imagined_memory_excluded_from_factual_response", ["imagined_memory"]
         if event.lifecycle_state in _EXCLUDED_LIFECYCLE_STATES:
             return f"{event.lifecycle_state}_memory_excluded", [event.lifecycle_state]
-        if event.retrieval_permission.review_required and not include_review_required:
+        if event.retrieval_permission.review_required and (
+            purpose != "review_surface" or not include_review_required
+        ):
             return "review_required_memory_excluded", ["review_required"]
         if not self._is_route_allowed(event, context, include_review_required=include_review_required):
             return "retrieval_permission_excluded", ["retrieval_permission"]

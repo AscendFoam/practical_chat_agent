@@ -51,7 +51,7 @@ $env:PYTHONPATH='src'
 pytest tests\test_memory_retrieval_explanation_integration.py -q -o cache_dir=artifacts\t374_pytest_cache --basetemp=artifacts\t374_pytest_basetemp
 ```
 
-Result: passed, `14 passed`.
+Result after T375 review-boundary fix: passed, `15 passed`.
 
 T374 verification:
 
@@ -67,7 +67,16 @@ $env:PYTHONPATH='src'
 pytest tests\test_memory_retrieval_explanation_integration.py tests\test_memory_governance_candidates.py tests\test_persona_growth_candidates.py tests\test_synthetic_distillation_input_candidates.py tests\test_memory_retrieval_bundle_schema.py tests\test_text_first_chat_memory_prototype.py -q -o cache_dir=artifacts\t374_pytest_cache --basetemp=artifacts\t374_pytest_basetemp
 ```
 
-Result: passed, `72 passed`.
+Result before T375 review-boundary fix: passed, `72 passed`.
+
+T375 review-boundary fix:
+
+- Added regression coverage proving `include_review_required=True` cannot force
+  review-required memory into `factual_response` bundles.
+- Updated `MemoryRetrievalExplanationService` so review-required memory can be
+  included only for `review_surface` with explicit review inclusion.
+- Focused regression verification passed with `15 passed`.
+- Expanded post-fix regression verification passed with `73 passed`.
 
 ```powershell
 git diff --check
