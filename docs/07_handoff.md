@@ -7520,3 +7520,43 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - Real manual keyboard traversal, arrow-key tab navigation, screen-reader,
     high-contrast, zoom, localization, RTL, and extreme-payload testing remain
     unverified.
+
+## T355 Worker Completion Record
+
+- T355 is the M24 Milestone Review task.
+- Worker must not mark T355 as complete in `docs/04_task_board.md`; T355 awaits
+  adversarial product/safety UX, privacy, memory-architecture, and
+  persona-safety review and Captain judgment.
+- Files changed:
+  - `docs/review/M24_review.md`
+  - `docs/tasks/M25_memory_persona_growth/T360_m25_scope.md`
+  - `docs/worker_summary/T355_worker_summary.md`
+  - `docs/07_handoff.md`
+- Review result:
+  - Added M24 gate recommendation: PASS_WITH_WARNINGS for entering M25 memory,
+    persona growth, and distillation planning.
+  - Consolidated T350 through T354 coverage.
+  - Listed implemented local server code, static UI assets, tests, product
+    docs, data contracts, QA docs, and worker summaries.
+  - Summarized T351/T353 verification and T354 Browser QA.
+  - Documented safety boundaries, explicit non-actions, residual risks, and M25
+    entry recommendation.
+- T360 next task package:
+  - Created `docs/tasks/M25_memory_persona_growth/T360_m25_scope.md`.
+  - T360 is scoped to M25 product scope and memory architecture design task
+    creation.
+- Verification status:
+  - `git diff --check`: passed with Windows line-ending conversion warnings.
+- Explicit non-actions:
+  - No code, tests, browser rerun, backend route, model-provider call, final
+    reply generation, private data processing, voice/avatar runtime, media
+    generation, external network asset, package manager, platform adapter,
+    outbound messaging, screenshot artifact, or task-board edit was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, or committed.
+- Remaining risks:
+  - M25 still needs scope, memory architecture, persona growth bounds, and
+    distillation consent/redaction planning before any private data handling.
