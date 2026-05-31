@@ -8279,3 +8279,44 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
     semantic retrieval, review UI, deletion execution, persona apply paths,
     proactive outreach, voice/avatar runtime, media generation, platform
     delivery, commercial packaging, or production persistence.
+
+## T376 Worker Completion Record
+
+- T376 is the M27 Review Queue And Dry-Run Apply Scope task.
+- Files changed:
+  - `docs/product/m27_review_queue_dry_run_apply_scope.md`
+  - `docs/tasks/M27_review_queue_dry_run_apply/T377_review_queue_candidate_models.md`
+  - `docs/worker_summary/T376_worker_summary.md`
+  - `docs/07_handoff.md`
+- Scope result:
+  - Created a conservative M27 milestone focused on local review queue records
+    and dry-run apply plans.
+  - Preserved M26 boundaries: no private data, provider calls, runtime
+    mutation, proactive outreach, platform delivery, voice/avatar runtime,
+    media generation, real-person recreation, launch claims, or
+    legal/clinical/regulatory claims.
+- T377 next task package:
+  - Created
+    `docs/tasks/M27_review_queue_dry_run_apply/T377_review_queue_candidate_models.md`.
+  - T377 is scoped to implement local review queue candidate records and tests
+    for M26 candidate families without applying decisions or mutating stores.
+- Verification status:
+  - `git diff --check`: passed with Windows line-ending conversion warning for
+    `docs/07_handoff.md`.
+- Explicit non-actions:
+  - No Python source code or tests were changed in T376.
+  - No private data reader, source ingestion from real logs, extraction,
+    embedding, vector search, retrieval ranking, similarity scoring,
+    model-provider call, final reply generation, proactive candidate,
+    persistence expansion, route, CLI, scheduler, queue, webhook, token,
+    platform adapter, outbound messaging, voice/avatar runtime, media
+    generation, Browser artifact, package-manager dependency, or task-board
+    edit was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, real user evidence, or regulator
+    acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - T377 still needs executable review queue records and tests.
+  - Dry-run apply planners remain future M27 work.
