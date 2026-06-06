@@ -167,3 +167,61 @@ Tests must fail if a risky execution flag is missing or set to an unsafe state.
 `tests/test_persona_distillation_workbench_payload.py` verifies the contract.
 `tests/test_text_first_web_demo_local_server.py` verifies the payload is present
 in served demo JSON without unsafe execution states.
+`tests/test_static_persona_distillation_workbench.py` verifies the static demo
+renders the workbench section, fallback payload, trait cards, blocked request
+cards, safety gates, and non-execution badges.
+
+## Static Rendering Anchors
+
+T425 renders the payload into these static DOM targets:
+
+- `#persona-workbench`;
+- `#workbench-title`;
+- `#workbench-schema`;
+- `#workbench-mode-list`;
+- `#workbench-input-list`;
+- `#workbench-evidence-list`;
+- `#workbench-trait-list`;
+- `#workbench-blocked-list`;
+- `#workbench-gate-list`;
+- `#workbench-non-execution-list`.
+
+The static UI must not render action controls for apply, clone, import, upload,
+record, connect, send, publish, media generation, or runtime enablement.
+
+## Review Workspace Linkage
+
+T426 links workbench outputs into the Review Workspace as
+`workbench_review_cards`.
+
+Trait candidate cards use:
+
+- `schema_version: review_workspace_persona_workbench_card_v1`;
+- `card_kind: persona_workbench_trait_review`;
+- `candidate_kind: persona_distillation_trait`;
+- `source_surface: persona_distillation_workbench`;
+- `filter_keys` including `distillation`;
+- `review_required: true`;
+- `preview_only: true`;
+- `changes_state: false`;
+- `mutation_allowed: false`;
+- `automatic_apply: false`;
+- `sends_messages: false`.
+
+Blocked request cards use:
+
+- `schema_version: review_workspace_persona_workbench_card_v1`;
+- `card_kind: persona_workbench_blocked_request`;
+- `source_surface: persona_distillation_workbench`;
+- `filter_keys` including `distillation` and `blocked`;
+- `blocked_status: blocked`;
+- `review_required: true`;
+- `preview_only: true`;
+- `changes_state: false`;
+- `mutation_allowed: false`;
+- `automatic_apply: false`;
+- `sends_messages: false`.
+
+The Review Workspace `distillation` filter count must match the number of
+workbench review cards. T426 expects 12 cards from the deterministic fixture: 9
+trait candidate cards and 3 blocked request cards.

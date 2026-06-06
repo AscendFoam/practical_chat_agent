@@ -10991,3 +10991,2433 @@ pytest temp root; the `artifacts/pytest_*` rerun passed.
   - T425 still needs static UI rendering.
   - Workbench candidates remain deterministic synthetic previews and do not
     feed PersonaCard, memory, review, or runtime stores.
+
+## T425 Worker Completion Record
+
+- T425 is the Persona Distillation Workbench UI task.
+- Worker must not mark T425 complete in `docs/04_task_board.md`; T425 awaits
+  review of the static workbench rendering, tests, Browser QA, and T426 task
+  package.
+- Files changed:
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.html`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.css`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.js`
+  - `tests/test_static_persona_distillation_workbench.py`
+  - `tests/test_text_first_web_demo_static.py`
+  - `tests/test_text_first_web_demo_state_switching.py`
+  - `docs/contracts/persona_distillation_workbench_payload.md`
+  - `docs/tasks/M36_next_iteration/T426_persona_workbench_review_linkage.md`
+  - `docs/worker_summary/T425_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED focused pytest failed with `4 failed, 9 passed` because the static
+    workbench section, fallback payload, renderer, and CSS classes were absent.
+  - GREEN focused pytest passed with `13 passed`.
+- Implementation result:
+  - Added a visible static persona workbench section.
+  - Added static fallback workbench data and `drawPersonaWorkbench`.
+  - Rendered modes, synthetic inputs, evidence refs, trait candidates, blocked
+    requests, safety gates, and non-execution badges.
+  - Added workbench CSS grids and card styles.
+  - Updated static safety tests for safe false adapter flags.
+  - Updated the contract doc with static rendering anchors.
+  - Created
+    `docs/tasks/M36_next_iteration/T426_persona_workbench_review_linkage.md`.
+- Browser QA:
+  - Passed through local static target at the available 642px viewport.
+  - Verified 4 mode cards, 4 synthetic input cards, 4 evidence cards, 9 trait
+    cards, 3 blocked request cards, 6 safety gate cards, 9 non-execution
+    labels, no forbidden action controls in the workbench, and no horizontal
+    overflow.
+- Verification status:
+  - final combined pytest: passed, `25 passed`.
+  - `node --check`: passed.
+  - `git diff --check`: passed with CRLF warnings only.
+- Explicit non-actions:
+  - No adapter payload changes, package dependencies, source readers,
+    model-provider calls, embeddings, vector search, semantic ranking,
+    similarity scoring, fine-tuning, runtime store writes, PersonaCard
+    synthesis, platform adapters, schedulers, queues, webhooks, tokens,
+    recipient ids, delivery state, outbound messaging, automatic outreach,
+    voice/avatar runtime, media generation, payment processing, or task-board
+    edit was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - T426 still needs review workspace linkage.
+  - Workbench UI remains local static rendering of deterministic synthetic
+    previews only.
+
+## T426 Worker Completion Record
+
+- T426 is the Persona Workbench Review Linkage task.
+- Worker must not mark T426 complete in `docs/04_task_board.md`; T426 awaits
+  review of adapter/static review linkage, tests, Browser QA, and T427 task
+  package.
+- Files changed:
+  - `src/practical_chat_agent/ui/text_first_web_demo_adapter.py`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.js`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.css`
+  - `tests/test_persona_workbench_review_linkage.py`
+  - `docs/contracts/persona_distillation_workbench_payload.md`
+  - `docs/tasks/M36_next_iteration/T427_persona_workbench_responsive_hardening.md`
+  - `docs/worker_summary/T426_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED focused pytest failed with `5 failed, 19 passed` because
+    `workbench_review_cards` were absent from adapter/static review surfaces.
+  - GREEN focused pytest passed with `24 passed`.
+- Implementation result:
+  - Added adapter `workbench_review_cards`.
+  - Added 9 preview-only trait review cards and 3 blocked request review cards.
+  - Updated Review Workspace `distillation` filter count to 12.
+  - Added static fallback derivation of workbench review cards.
+  - Updated review rendering with workbench-specific details.
+  - Added workbench review-card styling.
+  - Updated the contract doc with review linkage semantics.
+  - Created
+    `docs/tasks/M36_next_iteration/T427_persona_workbench_responsive_hardening.md`.
+- Browser QA:
+  - Passed through local static target at the available 642px viewport.
+  - Verified `Distillation (12)`, 12 persona workbench review cards, trait and
+    blocked request details, mutation false, automatic apply false, sends
+    messages false, no forbidden action controls in the review panel, and no
+    horizontal overflow.
+- Verification status:
+  - final focused pytest: passed, `24 passed`.
+  - `python -m py_compile`: passed.
+  - `node --check`: passed.
+  - `git diff --check`: passed with CRLF warnings only.
+- Explicit non-actions:
+  - No private data, package dependencies, source readers, model-provider
+    calls, embeddings, vector search, semantic ranking, similarity scoring,
+    fine-tuning, runtime store writes, PersonaCard synthesis, platform
+    adapters, schedulers, queues, webhooks, tokens, recipient ids, delivery
+    state, outbound messaging, automatic outreach, voice/avatar runtime, media
+    generation, payment processing, or task-board edit was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - T427 still needs responsive hardening.
+  - Workbench review cards remain local deterministic previews and do not apply
+    traits or write stores.
+
+## T427 Worker Completion Record
+
+- T427 is the Persona Workbench Responsive Hardening task.
+- Worker must not mark T427 complete in `docs/04_task_board.md`; T427 awaits
+  review of CSS hardening, tests, Browser QA, and T428 task package.
+- Files changed:
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.css`
+  - `tests/test_persona_workbench_responsive_hardening.py`
+  - `docs/tasks/M36_next_iteration/T428_m36_milestone_review.md`
+  - `docs/worker_summary/T427_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED focused pytest failed with `2 failed, 10 passed` because workbench and
+    review-card wrapping/mobile alignment rules were absent.
+  - GREEN focused pytest passed with `12 passed`.
+- Implementation result:
+  - Added CSS wrapping rules for workbench items, layout columns,
+    non-execution labels, trait card metadata, blocked card metadata,
+    workbench review card metadata, and evidence detail rows.
+  - Added mobile alignment rules for workbench section heads, non-execution
+    labels, and workbench review-card status badges.
+  - Added responsive CSS tests.
+  - Created `docs/tasks/M36_next_iteration/T428_m36_milestone_review.md`.
+- Browser QA:
+  - Passed through local static target at the available 642px viewport.
+  - Verified no horizontal overflow in the workbench section or Review
+    Workspace persona workbench cards, 12 workbench review cards visible, and
+    no forbidden action controls.
+- Verification status:
+  - final focused pytest: passed, `12 passed`.
+  - `node --check`: passed.
+  - `git diff --check`: passed with CRLF warnings only.
+- Explicit non-actions:
+  - No adapter payload changes, JavaScript behavior changes, HTML structure
+    changes, package dependencies, source readers, model-provider calls,
+    embeddings, vector search, semantic ranking, similarity scoring,
+    fine-tuning, runtime store writes, PersonaCard synthesis, platform
+    adapters, schedulers, queues, webhooks, tokens, recipient ids, delivery
+    state, outbound messaging, automatic outreach, voice/avatar runtime, media
+    generation, payment processing, or task-board edit was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - T428 still needs adversarial M36 milestone review.
+  - M36 remains a local synthetic workbench and review demo.
+
+## T428 Worker Completion Record
+
+- T428 is the M36 Milestone Review task.
+- Worker must not mark T428 complete in `docs/04_task_board.md`; T428 awaits
+  review of the M36 verdict and M37 scope handoff.
+- Files changed:
+  - `docs/review/M36_review.md`
+  - `docs/product/m37_next_iteration_scope.md`
+  - `docs/tasks/M37_next_iteration/T429_next_iteration_scope.md`
+  - `docs/worker_summary/T428_worker_summary.md`
+  - `docs/07_handoff.md`
+- Review result:
+  - M36 verdict is `PASS_WITH_WARNINGS`.
+  - No blocking defects were found in the reviewed M36 scope.
+  - Warnings are confined to deterministic/synthetic behavior, no real
+    private-record distillation, no model-provider reasoning, no persona apply,
+    and no runtime store writes.
+- M37 next milestone:
+  - Created `docs/product/m37_next_iteration_scope.md`.
+  - Created `docs/tasks/M37_next_iteration/T429_next_iteration_scope.md`.
+- Verification status:
+  - M36 focused pytest passed, `33 passed`.
+  - `python -m py_compile`: passed.
+  - `node --check`: passed.
+  - `git diff --check`: passed with CRLF warnings only.
+- Explicit non-actions:
+  - No code, tests, package dependencies, source readers, model-provider calls,
+    embeddings, vector search, semantic ranking, similarity scoring,
+    fine-tuning, runtime store writes, PersonaCard synthesis, platform
+    adapters, schedulers, queues, webhooks, tokens, recipient ids, delivery
+    state, outbound messaging, automatic outreach, voice/avatar runtime, media
+    generation, payment processing, or task-board edit was added by T428.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - M37 still needs scope refinement and implementation.
+  - Real private-chat distillation remains blocked until a later explicit
+    privacy, consent, source-handling, deidentification, and review milestone
+    exists.
+
+## T429 Worker Completion Record
+
+- T429 is the M37 Next Iteration Scope task.
+- Worker must not mark T429 complete in `docs/04_task_board.md`; T429 awaits
+  review of the refined M37 scope and T430 task package.
+- Files changed:
+  - `docs/product/m37_next_iteration_scope.md`
+  - `docs/tasks/M37_next_iteration/T430_persona_evolution_preview_payload.md`
+  - `docs/worker_summary/T429_worker_summary.md`
+  - `docs/07_handoff.md`
+- Scope result:
+  - Refined M37 into a concrete local persona evolution preview contract.
+  - Defined source workbench refs, persona snapshot before requirements, patch
+    candidate fields, required changed paths, risk labels, rollback notes,
+    blocked source exclusions, non-execution flags, later UI expectations, and
+    Browser QA expectations.
+- T430 next task package:
+  - Created
+    `docs/tasks/M37_next_iteration/T430_persona_evolution_preview_payload.md`.
+  - T430 is scoped to deterministic synthetic adapter payload, contract doc,
+    and tests only.
+- Verification status:
+  - `git diff --check`: passed with CRLF warnings only.
+- Explicit non-actions:
+  - No code, tests, package dependencies, source readers, model-provider calls,
+    embeddings, vector search, semantic ranking, similarity scoring,
+    fine-tuning, runtime store writes, PersonaCard synthesis, platform
+    adapters, schedulers, queues, webhooks, tokens, recipient ids, delivery
+    state, outbound messaging, automatic outreach, voice/avatar runtime, media
+    generation, payment processing, or task-board edit was added by T429.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - T430 still needs implementation and tests.
+  - Persona evolution remains preview-only; no persona store apply path is
+    authorized.
+
+## T430 Worker Completion Record
+
+- T430 is the Persona Evolution Preview Payload task.
+- Worker must not mark T430 complete in `docs/04_task_board.md`; T430 awaits
+  review of the adapter payload, contract tests, contract doc, and T431 task
+  package.
+- Files changed:
+  - `src/practical_chat_agent/ui/text_first_web_demo_adapter.py`
+  - `tests/test_persona_evolution_preview_payload.py`
+  - `tests/test_text_first_web_demo_local_server.py`
+  - `docs/contracts/persona_evolution_preview_payload.md`
+  - `docs/tasks/M37_next_iteration/T431_persona_evolution_preview_ui.md`
+  - `docs/worker_summary/T430_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED focused pytest failed with `8 failed, 11 passed` because
+    `persona_evolution_preview` was absent.
+  - GREEN focused pytest passed with `19 passed`.
+- Implementation result:
+  - Added `persona_evolution_preview` to `TextFirstWebDemoState`.
+  - Added deterministic local evolution preview payload with source workbench
+    refs, persona snapshot before, six preview-only patch candidates, risk
+    labels, rollback notes, blocked source exclusions, and non-execution flags.
+  - Added contract tests and local server JSON coverage.
+  - Added `docs/contracts/persona_evolution_preview_payload.md`.
+  - Created
+    `docs/tasks/M37_next_iteration/T431_persona_evolution_preview_ui.md`.
+- Verification status:
+  - final focused pytest: passed, `19 passed`.
+  - `python -m py_compile`: passed.
+  - `git diff --check`: passed with CRLF warnings only.
+- Explicit non-actions:
+  - No static UI rendering, package dependencies, source readers,
+    model-provider calls, embeddings, vector search, semantic ranking,
+    similarity scoring, fine-tuning, runtime store writes, PersonaCard
+    synthesis, platform adapters, schedulers, queues, webhooks, tokens,
+    recipient ids, delivery state, outbound messaging, automatic outreach,
+    voice/avatar runtime, media generation, payment processing, or task-board
+    edit was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - T431 still needs static UI rendering.
+  - Evolution preview candidates remain deterministic synthetic previews and do
+    not apply persona changes or write stores.
+
+## T431 Worker Completion Record
+
+- T431 is the Persona Evolution Preview UI task.
+- Worker must not mark T431 complete in `docs/04_task_board.md`; T431 awaits
+  review of the static section, fallback payload, renderer, CSS, and T432 task
+  package.
+- Files changed:
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.html`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.css`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.js`
+  - `tests/test_static_persona_evolution_preview.py`
+  - `docs/contracts/persona_evolution_preview_payload.md`
+  - `docs/tasks/M37_next_iteration/T432_persona_evolution_review_linkage.md`
+  - `docs/worker_summary/T431_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED focused pytest failed with `4 failed, 9 passed` because the static UI
+    lacked the evolution preview renderer, fallback payload, and CSS anchors.
+  - GREEN focused pytest passed with `13 passed`.
+- Implementation result:
+  - Added the `#persona-evolution` static section.
+  - Added deterministic static fallback state for `persona_evolution_preview`.
+  - Added `drawPersonaEvolutionPreview` plus patch, risk, rollback, exclusion,
+    and non-execution render helpers.
+  - Added responsive evolution preview CSS.
+  - Updated `docs/contracts/persona_evolution_preview_payload.md` with static
+    rendering anchors.
+  - Created
+    `docs/tasks/M37_next_iteration/T432_persona_evolution_review_linkage.md`.
+- Browser QA:
+  - Local static target:
+    `http://127.0.0.1:8781/text_first_web_demo.html`.
+  - At viewport `642x882`: evolution section visible, `6` patch cards, `5`
+    risk cards, `6` rollback cards, `3` exclusion cards, `12` non-execution
+    labels, `0` forbidden controls inside the section, no horizontal overflow
+    (`scrollWidth == clientWidth == 627`).
+  - Screenshot capture was attempted twice, but the browser screenshot call
+    timed out; DOM and layout metrics were captured successfully.
+- Verification status:
+  - final focused pytest: passed, `13 passed`.
+  - `node --check`: passed.
+- Explicit non-actions:
+  - No adapter payload changes, package dependencies, source readers,
+    model-provider calls, embeddings, vector search, semantic ranking,
+    similarity scoring, fine-tuning, runtime store writes, PersonaCard
+    synthesis, platform adapters, schedulers, queues, webhooks, tokens,
+    recipient ids, delivery state, outbound messaging, automatic outreach,
+    voice/avatar runtime, media generation, payment processing, or task-board
+    edit was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - T432 still needs Review Workspace linkage for evolution preview cards.
+  - Evolution preview remains deterministic and preview-only; it does not apply
+    persona changes or write stores.
+
+## T432 Worker Completion Record
+
+- T432 is the Persona Evolution Review Linkage task.
+- Worker must not mark T432 complete in `docs/04_task_board.md`; T432 awaits
+  review of adapter review cards, static fallback derivation, Review Workspace
+  rendering details, contract doc updates, and T433 task package.
+- Files changed:
+  - `src/practical_chat_agent/ui/text_first_web_demo_adapter.py`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.css`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.js`
+  - `tests/test_persona_evolution_review_linkage.py`
+  - `tests/test_text_first_web_demo_local_server.py`
+  - `docs/contracts/persona_evolution_preview_payload.md`
+  - `docs/tasks/M37_next_iteration/T433_persona_evolution_responsive_hardening.md`
+  - `docs/worker_summary/T432_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED focused pytest failed with `5 failed, 13 passed` because
+    `review_workspace.evolution_review_cards`, the Evolution filter, and
+    static review renderer details were absent.
+  - GREEN focused pytest passed with `18 passed`.
+- Implementation result:
+  - Added adapter-derived `review_workspace.evolution_review_cards`.
+  - Added `Evolution (20)` Review Workspace filter coverage.
+  - Added patch, risk, rollback, and blocked source exclusion card kinds.
+  - Added static fallback derivation via `attachPersonaEvolutionReviewCards`.
+  - Added Review Workspace details for changed field paths, before/after
+    summaries, risk mitigations, rollback metadata, and blocked source
+    exclusions.
+  - Added `.persona-evolution-review-card` styling and wrapping support.
+  - Updated local server JSON test and contract doc.
+  - Created
+    `docs/tasks/M37_next_iteration/T433_persona_evolution_responsive_hardening.md`.
+- Browser QA:
+  - Local static target:
+    `http://127.0.0.1:8782/text_first_web_demo.html`.
+  - At viewport `642x882` after switching to Review scenario: Review Workspace
+    visible, `Evolution (20)` filter visible, `20`
+    `.persona-evolution-review-card` cards, patch details visible, risk
+    mitigation visible, rollback metadata visible, blocked source exclusion
+    details visible, `0` forbidden controls in Review Workspace list, and no
+    horizontal overflow (`scrollWidth == clientWidth == 642`).
+  - Screenshot capture succeeded on a fresh browser tab.
+- Verification status:
+  - final focused pytest: passed, `18 passed`.
+  - local server/payload pytest: passed, `13 passed`.
+  - `python -m py_compile`: passed.
+  - `node --check`: passed.
+- Explicit non-actions:
+  - No package dependencies, source readers, model-provider calls, embeddings,
+    vector search, semantic ranking, similarity scoring, fine-tuning, runtime
+    store writes, PersonaCard synthesis, platform adapters, schedulers,
+    queues, webhooks, tokens, recipient ids, delivery state, outbound
+    messaging, automatic outreach, voice/avatar runtime, media generation,
+    payment processing, or task-board edit was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - T433 still needs responsive hardening for dense evolution preview and
+    review card layouts.
+  - Evolution review cards remain deterministic and preview-only; they do not
+    apply persona changes or write stores.
+
+## T433 Worker Completion Record
+
+- T433 is the Persona Evolution Responsive Hardening task.
+- Worker must not mark T433 complete in `docs/04_task_board.md`; T433 awaits
+  review of responsive CSS, static tests, Browser QA, and T434 task package.
+- Files changed:
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.css`
+  - `tests/test_persona_evolution_responsive_hardening.py`
+  - `docs/tasks/M37_next_iteration/T434_m37_milestone_review.md`
+  - `docs/worker_summary/T433_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED focused pytest failed with `3 failed, 18 passed` because evolution
+    cards, labels, and mobile rules lacked explicit long-text and
+    width-constraint selectors.
+  - GREEN focused pytest passed with `21 passed`.
+- Implementation result:
+  - Added explicit wrapping guards for evolution patch, risk, rollback,
+    exclusion, and Review Workspace card titles.
+  - Added stable width constraints for evolution preview lists and labels.
+  - Hardened `.persona-evolution-review-card` badge and detail rows.
+  - Extended mobile rules for source summary, snapshot, labels, status badges,
+    and review detail lists.
+  - Created
+    `docs/tasks/M37_next_iteration/T434_m37_milestone_review.md`.
+- Browser QA:
+  - Local static target:
+    `http://127.0.0.1:8783/text_first_web_demo.html`.
+  - At viewport `642x882`: persona evolution preview visible, no overflowing
+    nodes inside `#persona-evolution`, `0` forbidden controls inside
+    `#persona-evolution`, Review Workspace visible after switching to Review
+    scenario, `20` `.persona-evolution-review-card` cards, `20` evolution
+    badge rows, `30` evolution detail lists, no overflowing nodes inside
+    evolution review cards, `0` forbidden controls in Review Workspace list,
+    and no document horizontal overflow (`scrollWidth == clientWidth == 642`).
+  - Screenshot capture succeeded.
+- Verification status:
+  - final focused pytest: passed, `21 passed`.
+- Explicit non-actions:
+  - No JavaScript behavior changes, adapter payload changes, package
+    dependencies, source readers, model-provider calls, embeddings, vector
+    search, semantic ranking, similarity scoring, fine-tuning, runtime store
+    writes, PersonaCard synthesis, platform adapters, schedulers, queues,
+    webhooks, tokens, recipient ids, delivery state, outbound messaging,
+    automatic outreach, voice/avatar runtime, media generation, payment
+    processing, or task-board edit was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - T434 still needs M37 milestone review.
+  - Evolution remains local, deterministic, review-only, and non-executing.
+
+## T434 Worker Completion Record
+
+- T434 is the M37 Milestone Review task.
+- Files changed:
+  - `docs/review/M37_review.md`
+  - `docs/product/m38_next_iteration_scope.md`
+  - `docs/tasks/M38_next_iteration/T435_next_iteration_scope.md`
+  - `docs/worker_summary/T434_worker_summary.md`
+  - `docs/07_handoff.md`
+- Review result:
+  - Verdict: `PASS_WITH_WARNINGS`.
+  - No blocking defects were found in M37.
+  - M37 successfully shows deterministic, synthetic, preview-only persona
+    evolution with source workbench linkage, before snapshot, six patch
+    candidates, risk labels, rollback notes, blocked source exclusions, static
+    preview rendering, Review Workspace linkage, and responsive hardening.
+- Verification status:
+  - M37 combined pytest passed, `34 passed`.
+- Output:
+  - Created `docs/review/M37_review.md`.
+  - Created `docs/product/m38_next_iteration_scope.md`.
+  - Created
+    `docs/tasks/M38_next_iteration/T435_next_iteration_scope.md`.
+  - Recommended M38 as controlled persona version ledger and apply-readiness
+    preview.
+- Explicit non-actions:
+  - No product code, tests, package dependencies, source readers,
+    model-provider calls, embeddings, vector search, semantic ranking,
+    similarity scoring, fine-tuning, runtime store writes, PersonaCard
+    synthesis, platform adapters, schedulers, queues, webhooks, tokens,
+    recipient ids, delivery state, outbound messaging, automatic outreach,
+    voice/avatar runtime, media generation, payment processing, or task-board
+    edit was added by this review task.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - T435 still needs to refine M38 into a concrete payload implementation task.
+  - Real persona distillation and runtime apply remain future milestones.
+
+## T435 Worker Completion Record
+
+- T435 is the M38 Next Iteration Scope task.
+- Files changed:
+  - `docs/product/m38_next_iteration_scope.md`
+  - `docs/tasks/M38_next_iteration/T436_persona_version_draft_ledger_payload.md`
+  - `docs/worker_summary/T435_worker_summary.md`
+  - `docs/07_handoff.md`
+- Scope result:
+  - Refined M38 with a payload-first implementation entry.
+  - Defined T436 as the first concrete M38 code task:
+    `persona_version_draft_ledger` payload and contract tests.
+  - Scoped T436 to adapter payload and tests only.
+  - Required T436 coverage for source linkage to M37 evolution preview, draft
+    outcomes, conflict notes, rollback refs, non-execution flags, and served
+    JSON presence.
+- Verification status:
+  - `git diff --check`: passed with CRLF conversion warnings only.
+- Explicit non-actions:
+  - No product code, tests, package dependencies, source readers,
+    model-provider calls, embeddings, vector search, semantic ranking,
+    similarity scoring, fine-tuning, runtime store writes, PersonaCard
+    synthesis, platform adapters, schedulers, queues, webhooks, tokens,
+    recipient ids, delivery state, outbound messaging, automatic outreach,
+    voice/avatar runtime, media generation, payment processing, or task-board
+    edit was added by T435.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - T436 still needs implementation and tests.
+  - M38 remains documentation-only until the version draft ledger payload
+    lands.
+
+## T436 Worker Completion Record
+
+- T436 is the Persona Version Draft Ledger Payload task.
+- Worker must not mark T436 complete in `docs/04_task_board.md`; T436 awaits
+  review of the adapter payload, contract tests, contract doc, and T437 task
+  package.
+- Files changed:
+  - `src/practical_chat_agent/ui/text_first_web_demo_adapter.py`
+  - `tests/test_persona_version_draft_ledger_payload.py`
+  - `tests/test_text_first_web_demo_local_server.py`
+  - `docs/contracts/persona_version_draft_ledger_payload.md`
+  - `docs/tasks/M38_next_iteration/T437_persona_version_draft_ledger_ui.md`
+  - `docs/worker_summary/T436_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED focused pytest failed with `7 failed, 12 passed` because
+    `persona_version_draft_ledger` was absent.
+  - GREEN focused pytest passed with `19 passed`.
+- Implementation result:
+  - Added `persona_version_draft_ledger` to `TextFirstWebDemoState`.
+  - Added deterministic local version draft ledger payload with source M37
+    evolution preview ref, base persona snapshot ref,
+    accepted/deferred/rejected drafts, conflict notes, rollback ref index,
+    review outcome labels, preview-only apply policy, and non-execution flags.
+  - Added contract tests and local server JSON coverage.
+  - Added `docs/contracts/persona_version_draft_ledger_payload.md`.
+  - Created
+    `docs/tasks/M38_next_iteration/T437_persona_version_draft_ledger_ui.md`.
+- Verification status:
+  - final focused pytest: passed, `19 passed`.
+- Explicit non-actions:
+  - No static UI rendering, JavaScript/CSS edits, package dependencies, source
+    readers, model-provider calls, embeddings, vector search, semantic
+    ranking, similarity scoring, fine-tuning, runtime store writes,
+    PersonaCard synthesis, platform adapters, schedulers, queues, webhooks,
+    tokens, recipient ids, delivery state, outbound messaging, automatic
+    outreach, voice/avatar runtime, media generation, payment processing, or
+    task-board edit was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - T437 still needs static ledger rendering.
+  - Version drafts remain deterministic synthetic previews and do not apply
+    persona changes or write stores.
+
+## T437 Worker Completion Record
+
+- T437 is the Persona Version Draft Ledger UI task.
+- Worker must not mark T437 complete in `docs/04_task_board.md`; T437 awaits
+  review of the static section, fallback payload, renderer, CSS, and T438 task
+  package.
+- Files changed:
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.html`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.css`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.js`
+  - `tests/test_static_persona_version_draft_ledger.py`
+  - `docs/contracts/persona_version_draft_ledger_payload.md`
+  - `docs/tasks/M38_next_iteration/T438_persona_version_draft_review_linkage.md`
+  - `docs/worker_summary/T437_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED focused pytest failed with `4 failed, 9 passed` because the static UI
+    lacked the version ledger section, fallback payload, renderer, and CSS
+    classes.
+  - GREEN focused pytest passed with `13 passed`.
+- Implementation result:
+  - Added the `#persona-version-ledger` static section.
+  - Added deterministic static fallback state for
+    `persona_version_draft_ledger`.
+  - Added `drawPersonaVersionDraftLedger` plus draft, conflict, rollback,
+    outcome, and non-execution render helpers.
+  - Added responsive version ledger CSS.
+  - Updated `docs/contracts/persona_version_draft_ledger_payload.md` with
+    static rendering anchors.
+  - Created
+    `docs/tasks/M38_next_iteration/T438_persona_version_draft_review_linkage.md`.
+- Browser QA:
+  - Local static target:
+    `http://127.0.0.1:8784/text_first_web_demo.html`.
+  - At viewport `642x882`: version draft ledger section visible, `3` draft
+    cards, `5` conflict cards, `3` rollback cards, `3` outcome cards, `13`
+    non-execution labels, accepted/deferred/rejected outcomes visible,
+    conflict and rollback details visible, `0` forbidden controls inside the
+    section, no overflowing nodes inside the section, and no horizontal
+    overflow (`scrollWidth == clientWidth == 642`).
+  - Screenshot capture was attempted, but the browser screenshot call timed
+    out; DOM and layout metrics were captured successfully.
+- Verification status:
+  - final focused pytest: passed, `13 passed`.
+  - `node --check`: passed.
+- Explicit non-actions:
+  - No adapter payload changes, package dependencies, source readers,
+    model-provider calls, embeddings, vector search, semantic ranking,
+    similarity scoring, fine-tuning, runtime store writes, PersonaCard
+    synthesis, platform adapters, schedulers, queues, webhooks, tokens,
+    recipient ids, delivery state, outbound messaging, automatic outreach,
+    voice/avatar runtime, media generation, payment processing, or task-board
+    edit was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - T438 still needs Review Workspace linkage for version draft cards.
+  - Version drafts remain deterministic synthetic previews and do not apply
+    persona changes or write stores.
+
+## T438 Worker Completion Record
+
+- T438 is the Persona Version Draft Review Linkage task.
+- Worker must not mark T438 complete in `docs/04_task_board.md`; T438 awaits
+  review of adapter review cards, static fallback derivation, Review Workspace
+  rendering details, contract doc updates, and T439 task package.
+- Files changed:
+  - `src/practical_chat_agent/ui/text_first_web_demo_adapter.py`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.css`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.js`
+  - `tests/test_persona_version_draft_review_linkage.py`
+  - `tests/test_text_first_web_demo_local_server.py`
+  - `docs/contracts/persona_version_draft_ledger_payload.md`
+  - `docs/tasks/M38_next_iteration/T439_persona_version_draft_responsive_hardening.md`
+  - `docs/worker_summary/T438_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED focused pytest failed with `5 failed, 13 passed` because
+    `review_workspace.version_review_cards`, the Version filter, and static
+    review renderer details were absent.
+  - GREEN focused pytest passed with `18 passed`.
+- Implementation result:
+  - Added adapter-derived `review_workspace.version_review_cards`.
+  - Added `Version (14)` Review Workspace filter coverage.
+  - Added draft, conflict, rollback, and outcome card kinds.
+  - Added static fallback derivation via
+    `attachPersonaVersionDraftReviewCards`.
+  - Added Review Workspace details for draft outcomes, included/excluded patch
+    ids, conflict mitigations, rollback refs, and outcome labels.
+  - Added `.persona-version-review-card` styling and wrapping support.
+  - Updated local server JSON test and contract doc.
+  - Created
+    `docs/tasks/M38_next_iteration/T439_persona_version_draft_responsive_hardening.md`.
+- Browser QA:
+  - Local static target:
+    `http://127.0.0.1:8785/text_first_web_demo.html`.
+  - At viewport `642x882` after switching to Review scenario: Review Workspace
+    visible, `Version (14)` filter visible, `14`
+    `.persona-version-review-card` cards, draft details visible, conflict
+    mitigation visible, rollback metadata visible, outcome label details
+    visible, `0` forbidden controls in Review Workspace list, no overflowing
+    nodes inside version review cards, and no horizontal overflow
+    (`scrollWidth == clientWidth == 642`).
+  - Screenshot capture was attempted, but the browser screenshot call timed
+    out; DOM and layout metrics were captured successfully.
+- Verification status:
+  - final focused pytest: passed, `18 passed`.
+  - local server/payload pytest: passed, `12 passed`.
+  - `python -m py_compile`: passed.
+  - `node --check`: passed.
+- Explicit non-actions:
+  - No package dependencies, source readers, model-provider calls, embeddings,
+    vector search, semantic ranking, similarity scoring, fine-tuning, runtime
+    store writes, PersonaCard synthesis, platform adapters, schedulers,
+    queues, webhooks, tokens, recipient ids, delivery state, outbound
+    messaging, automatic outreach, voice/avatar runtime, media generation,
+    payment processing, or task-board edit was added.
+  - No legal advice, compliance completion, launch approval, app-store
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - T439 still needs responsive hardening for dense version ledger and review
+    card layouts.
+  - Version review cards remain deterministic and preview-only; they do not
+    apply persona changes or write stores.
+
+## T439 Worker Completion Record
+
+- T439 is the Persona Version Draft Responsive Hardening task.
+- Worker must not mark T439 complete in `docs/04_task_board.md`; T439 awaits
+  review of responsive CSS, static tests, Browser QA, and T440 task package.
+- Files changed:
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.css`
+  - `tests/test_persona_version_draft_responsive_hardening.py`
+  - `docs/tasks/M38_next_iteration/T440_m38_milestone_review.md`
+  - `docs/worker_summary/T439_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED focused pytest failed with `3 failed, 18 passed` because version
+    cards, labels, and mobile rules lacked explicit long-text and
+    width-constraint selectors.
+  - GREEN focused pytest passed with `21 passed`.
+- Implementation result:
+  - Added explicit wrapping guards for version draft, conflict, rollback,
+    outcome, and Review Workspace card titles.
+  - Added stable width constraints for version ledger lists and labels.
+  - Hardened `.persona-version-review-card` badge and detail rows.
+  - Extended mobile rules for version labels and review detail lists.
+  - Created `docs/tasks/M38_next_iteration/T440_m38_milestone_review.md`.
+- Browser QA:
+  - Local static target:
+    `http://127.0.0.1:8786/text_first_web_demo.html`.
+  - At viewport `642x882`: version draft ledger visible, no overflowing nodes
+    inside `#persona-version-ledger`, `0` forbidden controls inside
+    `#persona-version-ledger`, Review Workspace visible after switching to
+    Review scenario, `14` `.persona-version-review-card` cards, `14` version
+    badge rows, `29` version detail lists, no overflowing nodes inside version
+    review cards, `0` forbidden controls in Review Workspace list, and no
+    document horizontal overflow (`scrollWidth == clientWidth == 642`).
+  - Screenshot capture was attempted, but the browser screenshot call timed
+    out; DOM and layout metrics were captured successfully.
+- Verification status:
+  - final focused pytest: passed, `21 passed`.
+- Explicit non-actions:
+  - No JavaScript behavior changes, adapter payload changes, package
+    dependencies, source readers, model-provider calls, embeddings, vector
+    search, semantic ranking, similarity scoring, fine-tuning, runtime store
+    writes, PersonaCard synthesis, platform adapters, schedulers, queues,
+    webhooks, tokens, recipient ids, delivery state, outbound messaging,
+    automatic outreach, voice/avatar runtime, media generation, payment
+    processing, or task-board edit was added.
+  - No legal advice, compliance completion, app-store approval, launch
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - T440 still needs M38 milestone review.
+  - Version draft ledger remains local, deterministic, review-only, and
+    non-executing.
+
+## T440 Worker Completion Record
+
+- T440 is the M38 Milestone Review task.
+- Worker must not mark T440 complete in `docs/04_task_board.md`; T440 awaits
+  review of the milestone verdict, M39 scope, T441 task package, and handoff
+  record.
+- Files changed:
+  - `docs/review/M38_review.md`
+  - `docs/product/m39_next_iteration_scope.md`
+  - `docs/tasks/M39_next_iteration/T441_next_iteration_scope.md`
+  - `docs/worker_summary/T440_worker_summary.md`
+  - `docs/07_handoff.md`
+- Review result:
+  - Verdict: `PASS_WITH_WARNINGS`.
+  - M38 safely demonstrates a deterministic, synthetic, preview-only persona
+    version draft ledger with Review Workspace linkage and responsive
+    hardening.
+  - M38 does not perform real source ingestion, extraction, apply, rollback,
+    runtime mutation, provider calls, outbound messaging, or media runtime.
+- Verification status:
+  - M38 combined focused pytest passed with `33 passed`.
+- Outputs:
+  - Created `docs/review/M38_review.md`.
+  - Created `docs/product/m39_next_iteration_scope.md`.
+  - Created `docs/tasks/M39_next_iteration/T441_next_iteration_scope.md`.
+  - Recommended M39 as consent-gated source intake manifest work.
+- Explicit non-actions:
+  - No product code, tests, package dependencies, source readers,
+    model-provider calls, embeddings, vector search, semantic ranking,
+    similarity scoring, fine-tuning, runtime store writes, PersonaCard
+    synthesis, platform adapters, schedulers, queues, webhooks, tokens,
+    recipient ids, delivery state, outbound messaging, automatic outreach,
+    voice/avatar runtime, media generation, payment processing, or task-board
+    edit was added by this review task.
+  - No legal advice, compliance completion, launch approval, app-store
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - T441 still needs M39 scope refinement and the T442 payload task package.
+  - Real consented source intake and persona distillation remain future work.
+  - Version draft apply remains preview-only and non-executing.
+
+## T441 Worker Completion Record
+
+- T441 is the M39 Next Iteration Scope task.
+- Worker must not mark T441 complete in `docs/04_task_board.md`; T441 awaits
+  review of the M39 scope refinement, T442 task package, and handoff record.
+- Files changed:
+  - `docs/product/m39_next_iteration_scope.md`
+  - `docs/tasks/M39_next_iteration/T442_persona_source_intake_manifest_payload.md`
+  - `docs/worker_summary/T441_worker_summary.md`
+  - `docs/07_handoff.md`
+- Implementation result:
+  - Refined M39 with a payload-first implementation entry.
+  - Defined T442 as a payload-only source intake manifest task.
+  - Scoped T442 to adapter payload and tests only, with no UI rendering,
+    private data, provider calls, source readers, extraction, store writes,
+    automatic apply, outbound messaging, platform adapters, or media runtime.
+  - Required T442 coverage for synthetic source candidates, consent, declared
+    ownership, minimization, redaction profiles, blocked source categories,
+    extraction eligibility, review gates, non-execution flags, and served JSON
+    presence.
+- Verification status:
+  - `git diff --check` passed with CRLF conversion warnings only.
+- Explicit non-actions:
+  - No product code, tests, package dependencies, source readers,
+    model-provider calls, embeddings, vector search, semantic ranking,
+    similarity scoring, fine-tuning, runtime store writes, PersonaCard
+    synthesis, platform adapters, schedulers, queues, webhooks, tokens,
+    recipient ids, delivery state, outbound messaging, automatic outreach,
+    voice/avatar runtime, media generation, payment processing, or task-board
+    edit was added by T441.
+  - No legal advice, compliance completion, launch approval, app-store
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - T442 still needs implementation and tests.
+  - M39 remains documentation-only until the source intake manifest payload
+    lands.
+
+## T442 Worker Completion Record
+
+- T442 is the Persona Source Intake Manifest Payload task.
+- Worker must not mark T442 complete in `docs/04_task_board.md`; T442 awaits
+  review of adapter payload, tests, contract doc, T443 task package, and
+  handoff record.
+- Files changed:
+  - `src/practical_chat_agent/ui/text_first_web_demo_adapter.py`
+  - `tests/test_persona_source_intake_manifest_payload.py`
+  - `tests/test_text_first_web_demo_local_server.py`
+  - `docs/contracts/persona_source_intake_manifest_payload.md`
+  - `docs/tasks/M39_next_iteration/T443_persona_source_intake_manifest_ui.md`
+  - `docs/worker_summary/T442_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED focused pytest failed with `7 failed, 5 passed` because
+    `persona_source_intake_manifest` was not yet present in adapter state or
+    served demo JSON.
+  - GREEN focused pytest passed with `12 passed`.
+- Implementation result:
+  - Added `persona_source_intake_manifest` to `TextFirstWebDemoState`.
+  - Added a deterministic M39 manifest payload with five synthetic source
+    candidates, six policy gates, five blocked source categories, five
+    redaction profiles, preview-only non-ingesting apply policy, and safe
+    non-execution flags.
+  - Updated `/demo-state.json` coverage for the manifest.
+  - Created `docs/contracts/persona_source_intake_manifest_payload.md`.
+  - Created `docs/tasks/M39_next_iteration/T443_persona_source_intake_manifest_ui.md`.
+- Verification status:
+  - focused pytest passed with `12 passed`.
+  - `python -m py_compile src\practical_chat_agent\ui\text_first_web_demo_adapter.py`
+    passed.
+- Explicit non-actions:
+  - No static UI rendering, JavaScript, CSS, package dependencies, source
+    readers, model-provider calls, prompt execution, embeddings, vector search,
+    semantic ranking, similarity scoring, fine-tuning, runtime store writes,
+    PersonaCard synthesis, platform adapters, schedulers, queues, webhooks,
+    tokens, recipient ids, delivery state, outbound messaging, automatic
+    outreach, voice/avatar runtime, media generation, payment processing, or
+    task-board edit was added by T442.
+  - No real source import, file upload, archive read, private-source
+    retention, extraction, persona mutation, version-store write,
+    review-store write, or runtime ingestion was added.
+  - No legal advice, compliance completion, launch approval, app-store
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - T443 still needs static UI rendering for the manifest.
+  - Review Workspace source-intake linkage remains future work.
+  - Real consented source intake and persona distillation remain future work.
+
+## T443 Worker Completion Record
+
+- T443 is the Persona Source Intake Manifest UI task.
+- Worker must not mark T443 complete in `docs/04_task_board.md`; T443 awaits
+  review of static HTML/JS/CSS, tests, Browser QA, contract anchors, T444 task
+  package, and handoff record.
+- Files changed:
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.html`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.css`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.js`
+  - `tests/test_static_persona_source_intake_manifest.py`
+  - `docs/contracts/persona_source_intake_manifest_payload.md`
+  - `docs/tasks/M39_next_iteration/T444_persona_source_intake_review_linkage.md`
+  - `docs/worker_summary/T443_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED focused pytest failed with `4 failed, 9 passed` because static assets
+    did not expose the source intake manifest section, fallback data, renderer,
+    or CSS selectors.
+  - GREEN focused pytest passed with `13 passed`.
+- Implementation result:
+  - Added `#persona-source-intake` static rendering.
+  - Added source candidate, policy gate, blocked category, and redaction
+    profile cards.
+  - Added non-execution labels and responsive wrapping rules.
+  - Extended the manifest contract with static rendering anchors.
+  - Created `docs/tasks/M39_next_iteration/T444_persona_source_intake_review_linkage.md`.
+- Browser QA:
+  - Chrome headless/CDP loaded the static local HTML.
+  - At viewport `624x734`: source intake section visible, `5` candidate cards,
+    `6` gate cards, `5` blocked category cards, `5` redaction cards, `16`
+    non-execution labels, `0` forbidden controls, no document horizontal
+    overflow, and no overflowing nodes inside `#persona-source-intake`.
+  - Screenshots saved under `artifacts/`.
+- Verification status:
+  - focused pytest passed with `13 passed`.
+  - `node --check src\practical_chat_agent\ui\static\text_first_web_demo.js`
+    passed.
+- Explicit non-actions:
+  - No Python adapter payload changes, package dependencies, source readers,
+    model-provider calls, prompt execution, embeddings, vector search,
+    semantic ranking, similarity scoring, fine-tuning, runtime store writes,
+    PersonaCard synthesis, platform adapters, schedulers, queues, webhooks,
+    tokens, recipient ids, delivery state, outbound messaging, automatic
+    outreach, voice/avatar runtime, media generation, payment processing, or
+    task-board edit was added by T443.
+  - No real source import, file upload, archive read, private-source
+    retention, extraction, persona mutation, version-store write,
+    review-store write, or runtime ingestion was added.
+  - No legal advice, compliance completion, launch approval, app-store
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - T444 still needs Review Workspace source-intake linkage.
+  - Source intake remains local, deterministic, synthetic-only, and
+    non-ingesting.
+
+## T444 Worker Completion Record
+
+- T444 is the Persona Source Intake Review Linkage task.
+- Worker must not mark T444 complete in `docs/04_task_board.md`; T444 awaits
+  review of adapter review cards, static fallback linkage, tests, Browser QA,
+  T445 task package, and handoff record.
+- Files changed:
+  - `src/practical_chat_agent/ui/text_first_web_demo_adapter.py`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.js`
+  - `tests/test_persona_source_intake_review_linkage.py`
+  - `tests/test_text_first_web_demo_local_server.py`
+  - `docs/contracts/persona_source_intake_manifest_payload.md`
+  - `docs/tasks/M39_next_iteration/T445_persona_source_intake_responsive_hardening.md`
+  - `docs/worker_summary/T444_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED focused pytest failed with `6 failed, 20 passed` because
+    `review_workspace.source_intake_review_cards` and static fallback linkage
+    were not yet present.
+  - GREEN focused pytest passed with `26 passed`.
+- Implementation result:
+  - Added `review_workspace.source_intake_review_cards`.
+  - Added `Source (21)` Review Workspace filter tab.
+  - Added source candidate, policy gate, blocked category, and redaction
+    profile review cards.
+  - Added source-specific Review Workspace detail rendering and static
+    fallback linkage.
+  - Extended the manifest contract with Review Workspace linkage.
+  - Created `docs/tasks/M39_next_iteration/T445_persona_source_intake_responsive_hardening.md`.
+- Browser QA:
+  - Chrome headless/CDP loaded the static local HTML and switched to Review.
+  - Review panel visible, `Source (21)` filter visible, `21`
+    `.persona-source-review-card` cards, `7` source detail rows, `0`
+    forbidden controls in the Review Workspace list, no document horizontal
+    overflow, and no overflowing nodes inside source review cards.
+- Verification status:
+  - focused pytest passed with `26 passed`.
+  - `python -m py_compile src\practical_chat_agent\ui\text_first_web_demo_adapter.py`
+    passed.
+  - `node --check src\practical_chat_agent\ui\static\text_first_web_demo.js`
+    passed.
+- Explicit non-actions:
+  - No source readers, model-provider calls, prompt execution, embeddings,
+    vector search, semantic ranking, similarity scoring, fine-tuning, runtime
+    store writes, PersonaCard synthesis, platform adapters, schedulers, queues,
+    webhooks, tokens, recipient ids, delivery state, outbound messaging,
+    automatic outreach, voice/avatar runtime, media generation, payment
+    processing, or task-board edit was added by T444.
+  - No real source import, file upload, archive read, private-source
+    retention, extraction, persona mutation, version-store write,
+    review-store write, or runtime ingestion was added.
+  - No legal advice, compliance completion, launch approval, app-store
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - T445 still needs responsive hardening for long source ids and review
+    details.
+  - Source intake remains local, deterministic, synthetic-only, and
+    non-ingesting.
+
+## T445 Worker Completion Record
+
+- T445 is the Persona Source Intake Responsive Hardening task.
+- Worker must not mark T445 complete in `docs/04_task_board.md`; T445 awaits
+  review of responsive CSS, static tests, Browser QA, and T446 task package.
+- Files changed:
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.css`
+  - `tests/test_persona_source_intake_responsive_hardening.py`
+  - `docs/tasks/M39_next_iteration/T446_m39_milestone_review.md`
+  - `docs/worker_summary/T445_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED focused pytest failed with `2 failed, 20 passed` because
+    `.persona-source-review-card` wrapping and mobile selectors were not yet
+    explicit.
+  - GREEN focused pytest passed with `22 passed`.
+- Implementation result:
+  - Added explicit wrapping guards for source review cards.
+  - Added source review item-title, status-badge, detail-list, and meta-row
+    width constraints.
+  - Extended mobile rules for source review rows.
+  - Created `docs/tasks/M39_next_iteration/T446_m39_milestone_review.md`.
+- Browser QA:
+  - Chrome headless/CDP loaded the static local HTML and switched to Review.
+  - At viewport `624x734`: source intake section visible, `Source (21)`
+    filter visible, `21` manifest cards, `21` source review cards, `0`
+    forbidden controls across source intake and Review Workspace, no document
+    horizontal overflow, no overflowing nodes inside source intake, and no
+    overflowing nodes inside source review cards.
+- Verification status:
+  - focused pytest passed with `22 passed`.
+- Explicit non-actions:
+  - No JavaScript behavior changes, adapter payload changes, package
+    dependencies, source readers, model-provider calls, prompt execution,
+    embeddings, vector search, semantic ranking, similarity scoring,
+    fine-tuning, runtime store writes, PersonaCard synthesis, platform
+    adapters, schedulers, queues, webhooks, tokens, recipient ids, delivery
+    state, outbound messaging, automatic outreach, voice/avatar runtime, media
+    generation, payment processing, or task-board edit was added by T445.
+  - No real source import, file upload, archive read, private-source
+    retention, extraction, persona mutation, version-store write,
+    review-store write, or runtime ingestion was added.
+  - No legal advice, compliance completion, launch approval, app-store
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - T446 still needs M39 milestone review.
+  - Source intake remains local, deterministic, synthetic-only, and
+    non-ingesting.
+
+## T446 Worker Completion Record
+
+- T446 is the M39 Milestone Review task.
+- Worker must not mark T446 complete in `docs/04_task_board.md`; T446 awaits
+  review of the milestone verdict, M40 scope, T447 task package, and handoff
+  record.
+- Files changed:
+  - `docs/review/M39_review.md`
+  - `docs/product/m40_next_iteration_scope.md`
+  - `docs/tasks/M40_next_iteration/T447_next_iteration_scope.md`
+  - `docs/worker_summary/T446_worker_summary.md`
+  - `docs/07_handoff.md`
+- Review result:
+  - Verdict: `PASS_WITH_WARNINGS`.
+  - M39 safely demonstrates deterministic, synthetic, preview-only source
+    intake with Review Workspace linkage and responsive hardening.
+  - M39 does not perform real source ingestion, raw retention, extraction,
+    embedding, provider calls, apply, runtime mutation, outbound messaging, or
+    media runtime.
+- Verification status:
+  - M39 combined focused pytest passed with `34 passed`.
+- Outputs:
+  - Created `docs/review/M39_review.md`.
+  - Created `docs/product/m40_next_iteration_scope.md`.
+  - Created `docs/tasks/M40_next_iteration/T447_next_iteration_scope.md`.
+  - Recommended M40 as consented source evidence matrix preview work.
+- Explicit non-actions:
+  - No product code, tests, package dependencies, source readers,
+    model-provider calls, embeddings, vector search, semantic ranking,
+    similarity scoring, fine-tuning, runtime store writes, PersonaCard
+    synthesis, platform adapters, schedulers, queues, webhooks, tokens,
+    recipient ids, delivery state, outbound messaging, automatic outreach,
+    voice/avatar runtime, media generation, payment processing, or task-board
+    edit was added by this review task.
+  - No legal advice, compliance completion, launch approval, app-store
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - T447 still needs M40 scope refinement and T448 payload task packaging.
+  - Real persona distillation and source extraction remain future milestones.
+
+## T447 Worker Completion Record
+
+- T447 is the M40 Next Iteration Scope task.
+- Worker must not mark T447 complete in `docs/04_task_board.md`; T447 awaits
+  review of the M40 scope refinement, T448 task package, and handoff record.
+- Files changed:
+  - `docs/product/m40_next_iteration_scope.md`
+  - `docs/tasks/M40_next_iteration/T448_persona_source_evidence_matrix_payload.md`
+  - `docs/worker_summary/T447_worker_summary.md`
+  - `docs/07_handoff.md`
+- Implementation result:
+  - Refined M40 with a payload-first implementation entry.
+  - Defined T448 as a payload-only source evidence matrix task.
+  - Scoped T448 to adapter payload and tests only, with no UI rendering,
+    private data, provider calls, source readers, embeddings, real extraction,
+    store writes, automatic apply, outbound messaging, platform adapters, or
+    media runtime.
+  - Required T448 coverage for source linkage to M39 intake manifest, eligible
+    source ids, excluded source refs, evidence rows, trait hypotheses, quality
+    labels, review gate results, non-execution flags, and served JSON presence.
+- Verification status:
+  - `git diff --check` passed with CRLF conversion warnings only.
+- Explicit non-actions:
+  - No product code, tests, package dependencies, source readers,
+    model-provider calls, embeddings, vector search, semantic ranking,
+    similarity scoring, fine-tuning, runtime store writes, PersonaCard
+    synthesis, platform adapters, schedulers, queues, webhooks, tokens,
+    recipient ids, delivery state, outbound messaging, automatic outreach,
+    voice/avatar runtime, media generation, payment processing, or task-board
+    edit was added by T447.
+  - No legal advice, compliance completion, launch approval, app-store
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - T448 still needs implementation and tests.
+  - M40 remains documentation-only until the evidence matrix payload lands.
+
+## T448 Worker Completion Record
+
+- T448 is the Persona Source Evidence Matrix Payload task.
+- Worker must not mark T448 complete in `docs/04_task_board.md`; T448 awaits
+  review of adapter payload, tests, contract doc, T449 task package, and
+  handoff record.
+- Files changed:
+  - `src/practical_chat_agent/ui/text_first_web_demo_adapter.py`
+  - `tests/test_persona_source_evidence_matrix_payload.py`
+  - `tests/test_text_first_web_demo_local_server.py`
+  - `docs/contracts/persona_source_evidence_matrix_payload.md`
+  - `docs/tasks/M40_next_iteration/T449_persona_source_evidence_matrix_ui.md`
+  - `docs/worker_summary/T448_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED focused pytest failed with `8 failed, 11 passed` because
+    `persona_source_evidence_matrix` was not yet present in adapter state or
+    served demo JSON.
+  - GREEN focused pytest passed with `19 passed`.
+- Implementation result:
+  - Added `persona_source_evidence_matrix` to `TextFirstWebDemoState`.
+  - Added M39 source intake manifest linkage, eligible source ids, excluded
+    source refs, evidence rows, trait hypotheses, quality labels, review gate
+    results, preview-only non-extracting apply policy, and non-execution flags.
+  - Updated `/demo-state.json` coverage for the matrix.
+  - Created `docs/contracts/persona_source_evidence_matrix_payload.md`.
+  - Created `docs/tasks/M40_next_iteration/T449_persona_source_evidence_matrix_ui.md`.
+- Verification status:
+  - focused pytest passed with `19 passed`.
+  - `python -m py_compile src\practical_chat_agent\ui\text_first_web_demo_adapter.py`
+    passed.
+- Explicit non-actions:
+  - No static UI rendering, JavaScript, CSS, package dependencies, source
+    readers, model-provider calls, prompt execution, embeddings, vector
+    search, semantic ranking, similarity scoring, fine-tuning, runtime store
+    writes, PersonaCard synthesis, platform adapters, schedulers, queues,
+    webhooks, tokens, recipient ids, delivery state, outbound messaging,
+    automatic outreach, voice/avatar runtime, media generation, payment
+    processing, or task-board edit was added by T448.
+  - No real source import, file upload, archive read, private-source
+    retention, real extraction, persona mutation, version-store write,
+    review-store write, or runtime ingestion was added.
+  - No legal advice, compliance completion, launch approval, app-store
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - T449 still needs static UI rendering for the evidence matrix.
+  - Review Workspace evidence-matrix linkage remains future work.
+  - Real consented source extraction and persona distillation remain future
+    work.
+
+## T449 Worker Completion Record
+
+- T449 is the Persona Source Evidence Matrix UI task.
+- Worker must not mark T449 complete in `docs/04_task_board.md`; T449 awaits
+  review of static UI rendering, tests, contract anchors, T450 task package,
+  and handoff record.
+- Files changed:
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.html`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.css`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.js`
+  - `tests/test_static_persona_source_evidence_matrix.py`
+  - `docs/contracts/persona_source_evidence_matrix_payload.md`
+  - `docs/tasks/M40_next_iteration/T450_persona_source_evidence_review_linkage.md`
+  - `docs/worker_summary/T449_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED focused pytest failed with `4 failed, 9 passed` because the static
+    evidence matrix section, fallback payload, renderer, and CSS selectors were
+    not yet present.
+  - GREEN focused pytest passed with `13 passed`.
+- Implementation result:
+  - Added the static `#persona-source-evidence` section.
+  - Added static anchors for schema, non-execution labels, manifest summary,
+    eligible source ids, excluded source refs, evidence rows, trait
+    hypotheses, quality labels, and review gate results.
+  - Added fallback state and static renderers for
+    `persona_source_evidence_matrix`.
+  - Added CSS wrapping and mobile layout selectors for dense source evidence
+    content.
+  - Updated the evidence matrix contract with static rendering anchors.
+  - Created `docs/tasks/M40_next_iteration/T450_persona_source_evidence_review_linkage.md`.
+- Verification status:
+  - focused pytest passed with `13 passed`.
+  - `node --check src\practical_chat_agent\ui\static\text_first_web_demo.js`
+    passed.
+  - Browser QA could not be completed in this environment because Chrome/Edge
+    page target `Runtime` commands and `--dump-dom` timed out even though
+    browser target introspection worked with `--in-process-gpu`.
+- Explicit non-actions:
+  - No Python adapter payload changes, package dependencies, source readers,
+    model-provider calls, prompt execution, embeddings, vector search,
+    semantic ranking, similarity scoring, fine-tuning, runtime store writes,
+    PersonaCard synthesis, platform adapters, schedulers, queues, webhooks,
+    tokens, recipient ids, delivery state, outbound messaging, automatic
+    outreach, voice/avatar runtime, media generation, payment processing, or
+    task-board edits were added by T449.
+  - No real source import, file upload, archive read, private-source
+    retention, real extraction, persona mutation, version-store write,
+    review-store write, or runtime ingestion was added.
+  - No legal advice, compliance completion, launch approval, app-store
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - T450 still needs Review Workspace linkage for source evidence cards.
+  - Responsive hardening for Review Workspace evidence cards remains future
+    work.
+  - Real consented source extraction and persona distillation remain future
+    work.
+
+## T450 Worker Completion Record
+
+- T450 is the Persona Source Evidence Review Linkage task.
+- Worker must not mark T450 complete in `docs/04_task_board.md`; T450 awaits
+  review of adapter linkage, static fallback linkage, tests, contract update,
+  T451 task package, and handoff record.
+- Files changed:
+  - `src/practical_chat_agent/ui/text_first_web_demo_adapter.py`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.js`
+  - `tests/test_persona_source_evidence_review_linkage.py`
+  - `tests/test_text_first_web_demo_local_server.py`
+  - `tests/test_persona_source_intake_review_linkage.py`
+  - `docs/contracts/persona_source_evidence_matrix_payload.md`
+  - `docs/tasks/M40_next_iteration/T451_persona_source_evidence_responsive_hardening.md`
+  - `docs/worker_summary/T450_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED focused pytest failed with `5 failed, 22 passed` because
+    `source_evidence_review_cards` and static evidence review linkage were not
+    yet present.
+  - GREEN focused pytest passed with `27 passed`.
+- Implementation result:
+  - Added `review_workspace.source_evidence_review_cards`.
+  - Added deterministic evidence review cards for excluded source refs,
+    evidence rows, trait hypotheses, quality labels, and review gate results.
+  - Added `Evidence` filter tab and updated `Source` count to include source
+    intake plus evidence matrix cards.
+  - Updated static fallback linkage and Review Workspace rendering for source
+    evidence detail rows.
+  - Updated the evidence matrix contract with Review Workspace linkage.
+  - Created `docs/tasks/M40_next_iteration/T451_persona_source_evidence_responsive_hardening.md`.
+- Verification status:
+  - focused pytest passed with `27 passed`.
+  - `python -m py_compile src\practical_chat_agent\ui\text_first_web_demo_adapter.py`
+    passed.
+  - `node --check src\practical_chat_agent\ui\static\text_first_web_demo.js`
+    passed.
+  - `git diff --check` passed with CRLF conversion warnings only.
+- Explicit non-actions:
+  - No source readers, model-provider calls, prompt execution, embeddings,
+    vector search, semantic ranking, similarity scoring, fine-tuning, runtime
+    store writes, PersonaCard synthesis, platform adapters, schedulers,
+    queues, webhooks, tokens, recipient ids, delivery state, outbound
+    messaging, automatic outreach, voice/avatar runtime, media generation,
+    payment processing, or task-board edits were added by T450.
+  - No real source import, file upload, archive read, private-source
+    retention, real extraction, persona mutation, version-store write,
+    review-store write, or runtime ingestion was added.
+  - No legal advice, compliance completion, launch approval, app-store
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - T451 still needs responsive hardening for source evidence matrix and Review
+    Workspace evidence cards.
+  - M40 still needs milestone review after responsive hardening.
+  - Real consented source extraction and persona distillation remain future
+    work.
+
+## T451 Worker Completion Record
+
+- T451 is the Persona Source Evidence Responsive Hardening task.
+- Worker must not mark T451 complete in `docs/04_task_board.md`; T451 awaits
+  review of responsive CSS, static tests, T452 task package, and handoff
+  record.
+- Files changed:
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.css`
+  - `tests/test_persona_source_evidence_responsive_hardening.py`
+  - `docs/tasks/M40_next_iteration/T452_m40_milestone_review.md`
+  - `docs/worker_summary/T451_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED focused pytest failed with `2 failed, 20 passed` because
+    `.persona-source-evidence-review-card` wrapping and mobile selectors were
+    not yet explicit.
+  - GREEN focused pytest passed with `22 passed`.
+- Implementation result:
+  - Added explicit wrapping guards for Review Workspace source evidence cards.
+  - Added source evidence review item-title, status-badge, detail-list, and
+    meta-row width constraints.
+  - Extended mobile rules for source evidence review rows.
+  - Created `docs/tasks/M40_next_iteration/T452_m40_milestone_review.md`.
+- Verification status:
+  - focused pytest passed with `22 passed`.
+  - Browser QA was not completed because no callable in-app browser DOM
+    inspection tool was available in this turn.
+- Explicit non-actions:
+  - No JavaScript behavior changes, adapter payload changes, package
+    dependencies, source readers, model-provider calls, prompt execution,
+    embeddings, vector search, semantic ranking, similarity scoring,
+    fine-tuning, runtime store writes, PersonaCard synthesis, platform
+    adapters, schedulers, queues, webhooks, tokens, recipient ids, delivery
+    state, outbound messaging, automatic outreach, voice/avatar runtime, media
+    generation, payment processing, or task-board edits were added by T451.
+  - No real source import, file upload, archive read, private-source
+    retention, extraction, persona mutation, version-store write,
+    review-store write, or runtime ingestion was added.
+  - No legal advice, compliance completion, launch approval, app-store
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - T452 still needs M40 milestone review.
+  - Browser-level responsive QA remains outstanding for the T451 CSS
+    hardening.
+  - Real consented source extraction and persona distillation remain future
+    work.
+
+## T452 Worker Completion Record
+
+- T452 is the M40 Milestone Review task.
+- Worker must not mark T452 complete in `docs/04_task_board.md`; T452 awaits
+  review of the milestone verdict, M41 scope, T453 task package, and handoff
+  record.
+- Files changed:
+  - `docs/review/M40_review.md`
+  - `docs/product/m41_next_iteration_scope.md`
+  - `docs/tasks/M41_next_iteration/T453_next_iteration_scope.md`
+  - `docs/worker_summary/T452_worker_summary.md`
+  - `docs/07_handoff.md`
+- Review result:
+  - Verdict: `PASS_WITH_WARNINGS`.
+  - M40 safely demonstrates deterministic, synthetic, preview-only source
+    evidence matrix work with Review Workspace linkage and CSS/static
+    responsive hardening.
+  - M40 does not perform real source ingestion, raw retention, extraction,
+    embedding, provider calls, apply, runtime mutation, outbound messaging, or
+    media runtime.
+  - Warning: T451 browser-level responsive QA remains unclaimed.
+- Verification status:
+  - M40 combined focused pytest passed with `35 passed`.
+  - `python -m py_compile src\practical_chat_agent\ui\text_first_web_demo_adapter.py`
+    passed.
+  - `node --check src\practical_chat_agent\ui\static\text_first_web_demo.js`
+    passed.
+- Outputs:
+  - Created `docs/review/M40_review.md`.
+  - Created `docs/product/m41_next_iteration_scope.md`.
+  - Created `docs/tasks/M41_next_iteration/T453_next_iteration_scope.md`.
+  - Recommended M41 as local source-evidence-to-persona-proposal preview work.
+- Explicit non-actions:
+  - No product code, tests, package dependencies, source readers,
+    model-provider calls, embeddings, vector search, semantic ranking,
+    similarity scoring, fine-tuning, runtime store writes, PersonaCard
+    synthesis, platform adapters, schedulers, queues, webhooks, tokens,
+    recipient ids, delivery state, outbound messaging, automatic outreach,
+    voice/avatar runtime, media generation, payment processing, or task-board
+    edit was added by this review task.
+  - No legal advice, compliance completion, launch approval, app-store
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - T453 still needs M41 scope refinement and T454 task packaging.
+  - Real persona distillation and source extraction remain future milestones.
+
+## T453 Worker Completion Record
+
+- T453 is the M41 Next Iteration Scope task.
+- Worker must not mark T453 complete in `docs/04_task_board.md`; T453 awaits
+  review of the M41 scope refinement, T454 task package, and handoff record.
+- Files changed:
+  - `docs/product/m41_next_iteration_scope.md`
+  - `docs/tasks/M41_next_iteration/T454_source_evidence_persona_proposal_payload.md`
+  - `docs/worker_summary/T453_worker_summary.md`
+  - `docs/07_handoff.md`
+- Implementation result:
+  - Refined M41 with a payload-first implementation entry.
+  - Defined T454 as a payload-only source-evidence-to-persona-proposal task.
+  - Scoped T454 to adapter payload and tests only, with no UI rendering,
+    private data, source readers, provider calls, embeddings, real extraction,
+    store writes, automatic apply, outbound messaging, platform adapters, or
+    media runtime.
+  - Required T454 coverage for M40 evidence matrix linkage, required persona
+    field paths, proposal candidates, evidence refs, risk labels, rollback
+    notes, review gates, proposal outcomes, non-execution flags, and served
+    JSON presence.
+- Verification status:
+  - `git diff --check` passed with CRLF conversion warnings only.
+- Explicit non-actions:
+  - No product code, tests, package dependencies, source readers,
+    model-provider calls, embeddings, vector search, semantic ranking,
+    similarity scoring, fine-tuning, runtime store writes, PersonaCard
+    synthesis, platform adapters, schedulers, queues, webhooks, tokens,
+    recipient ids, delivery state, outbound messaging, automatic outreach,
+    voice/avatar runtime, media generation, payment processing, or task-board
+    edits were added by T453.
+  - No legal advice, compliance completion, launch approval, app-store
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - T454 still needs implementation and tests.
+  - M41 remains documentation-only until the proposal payload lands.
+
+## T454 Worker Completion Record
+
+- T454 is the Source Evidence Persona Proposal Payload task.
+- Worker must not mark T454 complete in `docs/04_task_board.md`; T454 awaits
+  review of the payload, contract tests, T455 task package, and handoff record.
+- Files changed:
+  - `src/practical_chat_agent/ui/text_first_web_demo_adapter.py`
+  - `tests/test_source_evidence_persona_proposal_payload.py`
+  - `docs/contracts/source_evidence_persona_proposal_payload.md`
+  - `docs/tasks/M41_next_iteration/T455_source_evidence_persona_proposal_ui.md`
+  - `docs/worker_summary/T454_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED focused pytest failed with `5 failed, 13 passed` because
+    `source_evidence_persona_proposal` was not present in adapter state or
+    served demo JSON.
+  - GREEN focused pytest passed with `18 passed`.
+- Implementation result:
+  - Added `source_evidence_persona_proposal` to `TextFirstWebDemoState`.
+  - Added deterministic M41 proposal payload generation from existing M40
+    source evidence matrix summaries.
+  - Added proposal candidates for `style.tone`, `style.pacing`,
+    `style.humor`, `relationship.boundary_style`, `memory.use_preference`,
+    and `growth.short_term_hint`.
+  - Linked proposal candidates to M40 trait hypothesis ids and evidence row
+    ids.
+  - Added proposal risk labels, rollback notes, review gate results, outcome
+    labels, preview-only apply policy, and non-execution flags.
+  - Created `docs/contracts/source_evidence_persona_proposal_payload.md`.
+  - Created
+    `docs/tasks/M41_next_iteration/T455_source_evidence_persona_proposal_ui.md`.
+- Verification status:
+  - focused pytest passed with `18 passed`.
+  - `python -m py_compile src\practical_chat_agent\ui\text_first_web_demo_adapter.py`
+    passed.
+  - `git diff --check` passed with CRLF conversion warnings only.
+- Explicit non-actions:
+  - No static UI rendering, JavaScript, CSS, package dependencies, source
+    readers, model-provider calls, prompt execution, embeddings, vector search,
+    semantic ranking, similarity scoring, fine-tuning, runtime store writes,
+    PersonaCard synthesis, platform adapters, schedulers, queues, webhooks,
+    tokens, recipient ids, delivery state, outbound messaging, automatic
+    outreach, voice/avatar runtime, media generation, payment processing, or
+    task-board edits were added by T454.
+  - No real source import, file upload, archive read, private-source
+    retention, real extraction, persona mutation, version-store write,
+    review-store write, memory-store write, runtime-store write, or runtime
+    ingestion was added.
+  - No legal advice, compliance completion, launch approval, app-store
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - T455 still needs static UI rendering for the proposal payload.
+  - T456 still needs Review Workspace linkage for proposal records.
+  - M41 still does not perform real consented source extraction or persona
+    apply.
+
+## T455 Worker Completion Record
+
+- T455 is the Source Evidence Persona Proposal UI task.
+- Worker must not mark T455 complete in `docs/04_task_board.md`; T455 awaits
+  review of the static rendering, tests, T456 task package, and handoff record.
+- Files changed:
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.html`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.css`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.js`
+  - `tests/test_static_source_evidence_persona_proposal.py`
+  - `docs/contracts/source_evidence_persona_proposal_payload.md`
+  - `docs/tasks/M41_next_iteration/T456_source_evidence_persona_proposal_review_linkage.md`
+  - `docs/worker_summary/T455_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED focused pytest failed with `4 failed, 9 passed` because the static
+    proposal section, fallback payload, renderer, and CSS selectors were not
+    yet present.
+  - GREEN focused pytest passed with `13 passed`.
+- Implementation result:
+  - Added static `#source-evidence-persona-proposal` section.
+  - Added static anchors for schema, non-execution labels, matrix summary,
+    proposal candidates, risk labels, rollback notes, review gates, and
+    outcome labels.
+  - Added JavaScript fallback state for `source_evidence_persona_proposal`.
+  - Added deterministic static rendering for proposal candidates, risk labels,
+    rollback notes, review gate results, outcome labels, and non-execution
+    labels.
+  - Added CSS wrapping and layout selectors for proposal ids, field paths,
+    evidence refs, rollback refs, and mobile layouts.
+  - Updated `docs/contracts/source_evidence_persona_proposal_payload.md` with
+    static rendering anchors.
+  - Created
+    `docs/tasks/M41_next_iteration/T456_source_evidence_persona_proposal_review_linkage.md`.
+- Verification status:
+  - focused pytest passed with `13 passed`.
+  - `node --check src\practical_chat_agent\ui\static\text_first_web_demo.js`
+    passed.
+  - `git diff --check` passed with CRLF conversion warnings only.
+  - Browser QA was not completed because no callable in-app browser DOM
+    inspection tool was exposed in this turn.
+- Explicit non-actions:
+  - No Python adapter payload changes, package dependencies, source readers,
+    model-provider calls, prompt execution, embeddings, vector search,
+    semantic ranking, similarity scoring, fine-tuning, runtime store writes,
+    PersonaCard synthesis, platform adapters, schedulers, queues, webhooks,
+    tokens, recipient ids, delivery state, outbound messaging, automatic
+    outreach, voice/avatar runtime, media generation, payment processing, or
+    task-board edits were added by T455.
+  - No real source import, file upload, archive read, private-source
+    retention, real extraction, persona mutation, version-store write,
+    review-store write, memory-store write, runtime-store write, or runtime
+    ingestion was added.
+  - No legal advice, compliance completion, launch approval, app-store
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - T456 still needs Review Workspace linkage for proposal records.
+  - T457 still needs responsive hardening and M41 milestone review packaging.
+  - M41 still does not perform real consented source extraction or persona
+    apply.
+
+## T456 Worker Completion Record
+
+- T456 is the Source Evidence Persona Proposal Review Linkage task.
+- Worker must not mark T456 complete in `docs/04_task_board.md`; T456 awaits
+  review of the Review Workspace linkage, tests, T457 task package, and
+  handoff record.
+- Files changed:
+  - `src/practical_chat_agent/ui/text_first_web_demo_adapter.py`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.js`
+  - `tests/test_source_evidence_persona_proposal_review_linkage.py`
+  - `docs/contracts/source_evidence_persona_proposal_payload.md`
+  - `docs/tasks/M41_next_iteration/T457_source_evidence_persona_proposal_responsive_hardening.md`
+  - `docs/worker_summary/T456_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED focused pytest failed with `5 failed, 20 passed` because
+    `review_workspace.source_proposal_review_cards`, the `Proposal` filter,
+    and static fallback linkage were not yet present.
+  - GREEN focused pytest passed with `25 passed`.
+- Implementation result:
+  - Added `review_workspace.source_proposal_review_cards`.
+  - Added deterministic proposal review cards for proposal candidates, risk
+    labels, rollback notes, review gate results, and outcome labels.
+  - Added `Proposal` filter tab.
+  - Updated static fallback linkage so direct static HTML exposes proposal
+    review cards.
+  - Updated Review Workspace rendering with proposal card class and detail
+    rows.
+  - Updated `docs/contracts/source_evidence_persona_proposal_payload.md` with
+    Review Workspace linkage.
+  - Created
+    `docs/tasks/M41_next_iteration/T457_source_evidence_persona_proposal_responsive_hardening.md`.
+- Verification status:
+  - focused pytest passed with `25 passed`.
+  - `python -m py_compile src\practical_chat_agent\ui\text_first_web_demo_adapter.py`
+    passed.
+  - `node --check src\practical_chat_agent\ui\static\text_first_web_demo.js`
+    passed.
+  - `git diff --check` passed with CRLF conversion warnings only.
+- Explicit non-actions:
+  - No CSS, HTML, package dependencies, source readers, model-provider calls,
+    prompt execution, embeddings, vector search, semantic ranking, similarity
+    scoring, fine-tuning, runtime store writes, PersonaCard synthesis,
+    platform adapters, schedulers, queues, webhooks, tokens, recipient ids,
+    delivery state, outbound messaging, automatic outreach, voice/avatar
+    runtime, media generation, payment processing, or task-board edits were
+    added by T456.
+  - No real source import, file upload, archive read, private-source
+    retention, real extraction, persona mutation, version-store write,
+    review-store write, memory-store write, runtime-store write, or runtime
+    ingestion was added.
+  - No legal advice, compliance completion, launch approval, app-store
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - T457 still needs responsive hardening for proposal UI and proposal review
+    cards.
+  - Browser-level responsive QA remains unclaimed because no callable in-app
+    browser DOM inspection tool was exposed in this turn.
+  - M41 still needs milestone review after responsive hardening.
+
+## T457 Worker Completion Record
+
+- T457 is the Source Evidence Persona Proposal Responsive Hardening task.
+- Worker must not mark T457 complete in `docs/04_task_board.md`; T457 awaits
+  review of responsive CSS, static tests, T458 task package, and handoff
+  record.
+- Files changed:
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.css`
+  - `tests/test_source_evidence_persona_proposal_responsive_hardening.py`
+  - `docs/tasks/M41_next_iteration/T458_m41_milestone_review.md`
+  - `docs/worker_summary/T457_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED focused pytest failed with `2 failed, 20 passed` because
+    `.source-proposal-review-card` wrapping and mobile selectors were not yet
+    explicit.
+  - GREEN focused pytest passed with `22 passed`.
+- Implementation result:
+  - Added explicit wrapping guards for Review Workspace source proposal cards.
+  - Added source proposal review item-title, status-badge, detail-list, and
+    meta-row width constraints.
+  - Extended mobile rules for source proposal review rows.
+  - Created `docs/tasks/M41_next_iteration/T458_m41_milestone_review.md`.
+- Verification status:
+  - focused pytest passed with `22 passed`.
+  - `git diff --check` passed with CRLF conversion warnings only.
+  - Browser QA was not completed because no callable in-app browser DOM
+    inspection tool was exposed in this turn.
+- Explicit non-actions:
+  - No adapter payload changes, JavaScript behavior changes, HTML structure
+    changes, package dependencies, source readers, model-provider calls,
+    prompt execution, embeddings, vector search, semantic ranking, similarity
+    scoring, fine-tuning, runtime store writes, PersonaCard synthesis,
+    platform adapters, schedulers, queues, webhooks, tokens, recipient ids,
+    delivery state, outbound messaging, automatic outreach, voice/avatar
+    runtime, media generation, payment processing, or task-board edits were
+    added by T457.
+  - No real source import, file upload, archive read, private-source
+    retention, real extraction, persona mutation, version-store write,
+    review-store write, memory-store write, runtime-store write, or runtime
+    ingestion was added.
+  - No legal advice, compliance completion, launch approval, app-store
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - T458 still needs M41 milestone review.
+  - Browser-level responsive QA remains unclaimed because no callable in-app
+    browser DOM inspection tool was exposed in this turn.
+  - M41 still does not perform real consented source extraction or persona
+    apply.
+
+## T458 Worker Completion Record
+
+- T458 is the M41 Milestone Review task.
+- Worker must not mark T458 complete in `docs/04_task_board.md`; T458 awaits
+  review of the milestone verdict, M42 scope, T459 task package, and handoff
+  record.
+- Files changed:
+  - `docs/review/M41_review.md`
+  - `docs/product/m42_next_iteration_scope.md`
+  - `docs/tasks/M42_next_iteration/T459_next_iteration_scope.md`
+  - `docs/worker_summary/T458_worker_summary.md`
+  - `docs/07_handoff.md`
+- Review result:
+  - Verdict: `PASS_WITH_WARNINGS`.
+  - M41 safely demonstrates deterministic, synthetic, preview-only
+    source-evidence-to-persona-proposal work with static UI rendering, Review
+    Workspace linkage, and responsive hardening.
+  - M41 does not perform real source ingestion, raw retention, extraction,
+    embedding, provider calls, persona apply, runtime mutation, outbound
+    messaging, platform adapter work, or media runtime.
+  - Warning: browser-level responsive QA remains unclaimed because no callable
+    in-app browser DOM inspection tool was exposed.
+- Verification status:
+  - M41 combined focused pytest passed with `33 passed`.
+  - `python -m py_compile src\practical_chat_agent\ui\text_first_web_demo_adapter.py`
+    passed.
+  - `node --check src\practical_chat_agent\ui\static\text_first_web_demo.js`
+    passed.
+  - `git diff --check` passed with CRLF conversion warnings only.
+- Outputs:
+  - Created `docs/review/M41_review.md`.
+  - Created `docs/product/m42_next_iteration_scope.md`.
+  - Created `docs/tasks/M42_next_iteration/T459_next_iteration_scope.md`.
+  - Recommended M42 as local proposal-to-persona-draft preview work.
+- Explicit non-actions:
+  - No product code, tests, static assets, package dependencies, source
+    readers, model-provider calls, embeddings, vector search, semantic
+    ranking, similarity scoring, fine-tuning, runtime store writes,
+    PersonaCard synthesis, platform adapters, schedulers, queues, webhooks,
+    tokens, recipient ids, delivery state, outbound messaging, automatic
+    outreach, voice/avatar runtime, media generation, payment processing, or
+    task-board edits were added by T458.
+  - No legal advice, compliance completion, launch approval, app-store
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - T459 still needs M42 scope refinement and T460 task packaging.
+  - Real persona distillation, source extraction, and persona apply remain
+    future milestones.
+
+## T459 Worker Completion Record
+
+- T459 is the M42 Next Iteration Scope task.
+- Worker must not mark T459 complete in `docs/04_task_board.md`; T459 awaits
+  review of the M42 scope refinement, T460 task package, and handoff record.
+- Files changed:
+  - `docs/product/m42_next_iteration_scope.md`
+  - `docs/tasks/M42_next_iteration/T460_source_proposal_persona_draft_payload.md`
+  - `docs/worker_summary/T459_worker_summary.md`
+  - `docs/07_handoff.md`
+- Implementation result:
+  - Refined M42 with a payload-first implementation entry.
+  - Defined T460 as a payload-only proposal-to-persona-draft task.
+  - Scoped T460 to adapter payload and tests only, with no UI rendering,
+    private data, source readers, provider calls, embeddings, real extraction,
+    store writes, automatic apply, outbound messaging, platform adapters, or
+    media runtime.
+  - Required T460 coverage for M41 proposal linkage, required persona field
+    paths, draft field changes, unchanged fields, conflict notes, rollback
+    refs, review gates, draft outcomes, non-execution flags, and served JSON
+    presence.
+- Verification status:
+  - `git diff --check` passed with CRLF conversion warnings only.
+- Explicit non-actions:
+  - No product code, tests, static assets, package dependencies, source
+    readers, model-provider calls, embeddings, vector search, semantic
+    ranking, similarity scoring, fine-tuning, runtime store writes,
+    PersonaCard synthesis, platform adapters, schedulers, queues, webhooks,
+    tokens, recipient ids, delivery state, outbound messaging, automatic
+    outreach, voice/avatar runtime, media generation, payment processing, or
+    task-board edits were added by T459.
+  - No legal advice, compliance completion, launch approval, app-store
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - T460 still needs implementation and tests.
+  - M42 remains documentation-only until the draft payload lands.
+
+## T460 Worker Completion Record
+
+- T460 is the Source Proposal Persona Draft Payload task.
+- Worker must not mark T460 complete in `docs/04_task_board.md`; T460 awaits
+  review of the payload, contract tests, T461 task package, and handoff record.
+- Files changed:
+  - `src/practical_chat_agent/ui/text_first_web_demo_adapter.py`
+  - `tests/test_source_proposal_persona_draft_payload.py`
+  - `docs/contracts/source_proposal_persona_draft_payload.md`
+  - `docs/tasks/M42_next_iteration/T461_source_proposal_persona_draft_ui.md`
+  - `docs/worker_summary/T460_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED focused pytest failed with `5 failed, 11 passed` because
+    `source_proposal_persona_draft` was not present in adapter state or served
+    demo JSON.
+  - GREEN focused pytest passed with `16 passed`.
+- Implementation result:
+  - Added `source_proposal_persona_draft` to `TextFirstWebDemoState`.
+  - Added deterministic M42 draft payload generation from existing M41
+    proposal candidates.
+  - Added draft field changes for `style.tone`, `style.pacing`,
+    `style.humor`, `relationship.boundary_style`, `memory.use_preference`,
+    and `growth.short_term_hint`.
+  - Linked draft field changes to M41 proposal ids, trait hypothesis ids, and
+    evidence row ids.
+  - Added unchanged field summaries, conflict notes, rollback refs, review
+    gate results, draft outcome labels, preview-only apply policy, and
+    non-execution flags.
+  - Created `docs/contracts/source_proposal_persona_draft_payload.md`.
+  - Created
+    `docs/tasks/M42_next_iteration/T461_source_proposal_persona_draft_ui.md`.
+- Verification status:
+  - focused pytest passed with `16 passed`.
+  - `python -m py_compile src\practical_chat_agent\ui\text_first_web_demo_adapter.py`
+    passed.
+  - `git diff --check` passed with CRLF conversion warnings only.
+- Explicit non-actions:
+  - No static UI rendering, JavaScript, CSS, package dependencies, source
+    readers, model-provider calls, prompt execution, embeddings, vector search,
+    semantic ranking, similarity scoring, fine-tuning, runtime store writes,
+    PersonaCard synthesis, platform adapters, schedulers, queues, webhooks,
+    tokens, recipient ids, delivery state, outbound messaging, automatic
+    outreach, voice/avatar runtime, media generation, payment processing, or
+    task-board edits were added by T460.
+  - No real source import, file upload, archive read, private-source
+    retention, real extraction, persona mutation, version-store write,
+    review-store write, memory-store write, runtime-store write, or runtime
+    ingestion was added.
+  - No legal advice, compliance completion, launch approval, app-store
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - T461 still needs static UI rendering for the draft payload.
+  - T462 still needs Review Workspace linkage for draft records.
+  - M42 still does not perform real consented source extraction or persona
+    apply.
+
+## T461 Worker Completion Record
+
+- T461 is the Source Proposal Persona Draft UI task.
+- Worker must not mark T461 complete in `docs/04_task_board.md`; T461 awaits
+  review of the static UI, contract anchors, T462 task package, and handoff
+  record.
+- Files changed:
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.html`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.css`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.js`
+  - `tests/test_static_source_proposal_persona_draft.py`
+  - `docs/contracts/source_proposal_persona_draft_payload.md`
+  - `docs/tasks/M42_next_iteration/T462_source_proposal_persona_draft_review_linkage.md`
+  - `docs/worker_summary/T461_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED focused pytest failed with `2 failed, 11 passed` because the JavaScript
+    fallback payload and `drawSourceProposalPersonaDraft` renderer were not yet
+    present.
+  - GREEN focused pytest passed with `13 passed`.
+- Implementation result:
+  - Added the static `#source-proposal-persona-draft` section and draft anchors.
+  - Added CSS layout, grid, wrapping, and mobile selectors for draft section
+    visibility.
+  - Added JavaScript fallback state for `source_proposal_persona_draft`.
+  - Added deterministic static rendering for source proposal linkage, base
+    persona snapshot, selected proposal ids, draft field changes, unchanged
+    fields, conflict notes, rollback refs, gates, outcomes, and non-execution
+    labels.
+  - Updated the draft payload contract with static rendering anchors.
+  - Created
+    `docs/tasks/M42_next_iteration/T462_source_proposal_persona_draft_review_linkage.md`.
+- Verification status:
+  - focused pytest passed with `13 passed`.
+  - `node --check src\practical_chat_agent\ui\static\text_first_web_demo.js`
+    passed.
+- Explicit non-actions:
+  - No Python adapter payload changes, package dependencies, source readers,
+    model-provider calls, prompt execution, embeddings, vector search,
+    semantic ranking, similarity scoring, fine-tuning, runtime store writes,
+    PersonaCard synthesis, platform adapters, schedulers, queues, webhooks,
+    tokens, recipient ids, delivery state, outbound messaging, automatic
+    outreach, voice/avatar runtime, media generation, payment processing, or
+    task-board edits were added by T461.
+  - No real source import, file upload, archive read, private-source
+    retention, real extraction, persona mutation, version-store write,
+    review-store write, memory-store write, runtime-store write, or runtime
+    ingestion was added.
+  - No legal advice, compliance completion, launch approval, app-store
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - T462 still needs Review Workspace linkage for draft records.
+  - T463 still needs responsive hardening for draft review cards.
+  - Browser-level responsive QA remains unclaimed because no callable in-app
+    browser DOM inspection tool was exposed in this turn.
+  - M42 still does not perform real consented source extraction or persona
+    apply.
+
+## T462 Worker Completion Record
+
+- T462 is the Source Proposal Persona Draft Review Linkage task.
+- Worker must not mark T462 complete in `docs/04_task_board.md`; T462 awaits
+  review of the Review Workspace linkage, contract update, T463 task package,
+  and handoff record.
+- Files changed:
+  - `src/practical_chat_agent/ui/text_first_web_demo_adapter.py`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.js`
+  - `tests/test_source_proposal_persona_draft_review_linkage.py`
+  - `docs/contracts/source_proposal_persona_draft_payload.md`
+  - `docs/tasks/M42_next_iteration/T463_source_proposal_persona_draft_responsive_hardening.md`
+  - `docs/worker_summary/T462_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED focused pytest failed with `5 failed, 20 passed` because
+    `review_workspace.source_draft_review_cards`, the `Draft` filter, and
+    static fallback linkage were not yet present.
+  - GREEN focused pytest passed with `25 passed`.
+- Implementation result:
+  - Added `review_workspace.source_draft_review_cards`.
+  - Added deterministic draft review cards for draft field changes, unchanged
+    fields, conflict notes, rollback refs, review gate results, and draft
+    outcome labels.
+  - Added `Draft` filter tab.
+  - Updated static fallback linkage so direct static HTML exposes draft review
+    cards.
+  - Updated Review Workspace rendering with draft card class and detail rows.
+  - Updated the draft payload contract with Review Workspace linkage.
+  - Created
+    `docs/tasks/M42_next_iteration/T463_source_proposal_persona_draft_responsive_hardening.md`.
+- Verification status:
+  - focused pytest passed with `25 passed`.
+  - `python -m py_compile src\practical_chat_agent\ui\text_first_web_demo_adapter.py`
+    passed.
+  - `node --check src\practical_chat_agent\ui\static\text_first_web_demo.js`
+    passed.
+- Explicit non-actions:
+  - No CSS, HTML, package dependencies, source readers, model-provider calls,
+    prompt execution, embeddings, vector search, semantic ranking, similarity
+    scoring, fine-tuning, runtime store writes, PersonaCard synthesis, platform
+    adapters, schedulers, queues, webhooks, tokens, recipient ids, delivery
+    state, outbound messaging, automatic outreach, voice/avatar runtime, media
+    generation, payment processing, or task-board edits were added by T462.
+  - No real source import, file upload, archive read, private-source
+    retention, real extraction, persona mutation, version-store write,
+    review-store write, memory-store write, runtime-store write, or runtime
+    ingestion was added.
+  - No legal advice, compliance completion, launch approval, app-store
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - T463 still needs responsive hardening for draft UI and draft review cards.
+  - Browser-level responsive QA remains unclaimed because no callable in-app
+    browser DOM inspection tool was exposed in this turn.
+  - M42 still does not perform real consented source extraction or persona
+    apply.
+
+## T463 Worker Completion Record
+
+- T463 is the Source Proposal Persona Draft Responsive Hardening task.
+- Worker must not mark T463 complete in `docs/04_task_board.md`; T463 awaits
+  review of the CSS/static hardening, T464 task package, and handoff record.
+- Files changed:
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.css`
+  - `tests/test_source_proposal_persona_draft_responsive_hardening.py`
+  - `docs/tasks/M42_next_iteration/T464_m42_milestone_review.md`
+  - `docs/worker_summary/T463_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED focused pytest failed with `3 failed, 19 passed` because
+    `.source-draft-layout > div`, `.source-draft-review-card`, and mobile
+    draft review selectors were not yet explicit.
+  - GREEN focused pytest passed with `22 passed`.
+- Implementation result:
+  - Added explicit wrapping guards for Review Workspace source draft cards.
+  - Added source draft review item-title, status-badge, detail-list, and
+    meta-row width constraints.
+  - Added source draft layout children and selected proposal rows to wrapping
+    guard groups.
+  - Extended mobile rules for source draft section, source draft grids, source
+    draft labels, and draft review rows.
+  - Created `docs/tasks/M42_next_iteration/T464_m42_milestone_review.md`.
+- Verification status:
+  - focused pytest passed with `22 passed`.
+- Explicit non-actions:
+  - No adapter payload changes, JavaScript behavior changes, HTML structure
+    changes, package dependencies, source readers, model-provider calls, prompt
+    execution, embeddings, vector search, semantic ranking, similarity
+    scoring, fine-tuning, runtime store writes, PersonaCard synthesis,
+    platform adapters, schedulers, queues, webhooks, tokens, recipient ids,
+    delivery state, outbound messaging, automatic outreach, voice/avatar
+    runtime, media generation, payment processing, or task-board edits were
+    added by T463.
+  - No real source import, file upload, archive read, private-source
+    retention, real extraction, persona mutation, version-store write,
+    review-store write, memory-store write, runtime-store write, or runtime
+    ingestion was added.
+  - No legal advice, compliance completion, launch approval, app-store
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - T464 still needs M42 milestone review.
+  - Browser-level responsive QA remains unclaimed because no callable in-app
+    browser DOM inspection tool was exposed in this turn.
+  - M42 still does not perform real consented source extraction or persona
+    apply.
+
+## T464 Worker Completion Record
+
+- T464 is the M42 Milestone Review task.
+- Worker must not mark T464 complete in `docs/04_task_board.md`; T464 awaits
+  review of the milestone review, M43 scope, T465 task package, and handoff
+  record.
+- Files changed:
+  - `docs/review/M42_review.md`
+  - `docs/product/m43_next_iteration_scope.md`
+  - `docs/tasks/M43_next_iteration/T465_next_iteration_scope.md`
+  - `docs/worker_summary/T464_worker_summary.md`
+  - `docs/07_handoff.md`
+- Review result:
+  - Verdict: `PASS_WITH_WARNINGS`.
+  - M42 safely demonstrates deterministic, synthetic, preview-only
+    proposal-to-persona-draft work with static UI rendering, Review Workspace
+    linkage, and responsive hardening.
+  - M42 does not perform real source ingestion, raw retention, extraction,
+    embedding, provider calls, persona apply, runtime mutation, outbound
+    messaging, platform adapter work, or media runtime.
+  - Browser-level responsive QA remains unclaimed because no callable in-app
+    browser DOM inspection tool was exposed.
+- Verification status:
+  - focused milestone pytest passed with `33 passed`.
+  - `python -m py_compile src\practical_chat_agent\ui\text_first_web_demo_adapter.py`
+    passed.
+  - `node --check src\practical_chat_agent\ui\static\text_first_web_demo.js`
+    passed.
+- Outputs:
+  - Created `docs/review/M42_review.md`.
+  - Created `docs/product/m43_next_iteration_scope.md`.
+  - Created `docs/tasks/M43_next_iteration/T465_next_iteration_scope.md`.
+  - Recommended M43 as local persona-draft apply-readiness preview work.
+- Explicit non-actions:
+  - No product code, tests, static assets, package dependencies, source
+    readers, model-provider calls, embeddings, vector search, semantic
+    ranking, similarity scoring, fine-tuning, runtime store writes,
+    PersonaCard synthesis, platform adapters, schedulers, queues, webhooks,
+    tokens, recipient ids, delivery state, outbound messaging, automatic
+    outreach, voice/avatar runtime, media generation, payment processing, or
+    task-board edits were added by T464.
+  - No legal advice, compliance completion, launch approval, app-store
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - T465 still needs M43 scope refinement and T466 task packaging.
+  - Real persona distillation, source extraction, and persona apply remain
+    future milestones.
+
+## T465 Worker Completion Record
+
+- T465 is the M43 Next Iteration Scope task.
+- Worker must not mark T465 complete in `docs/04_task_board.md`; T465 awaits
+  review of the M43 scope refinement, T466 task package, and handoff record.
+- Files changed:
+  - `docs/product/m43_next_iteration_scope.md`
+  - `docs/tasks/M43_next_iteration/T466_source_draft_apply_readiness_payload.md`
+  - `docs/worker_summary/T465_worker_summary.md`
+  - `docs/07_handoff.md`
+- Implementation result:
+  - Refined M43 with a payload-first implementation entry.
+  - Defined T466 as a payload-only persona-draft apply-readiness task.
+  - Scoped T466 to adapter payload and tests only, with no UI rendering,
+    private data, source readers, provider calls, embeddings, real extraction,
+    store writes, automatic apply, outbound messaging, platform adapters, or
+    media runtime.
+  - Required T466 coverage for M42 draft linkage, evaluated draft change ids,
+    field readiness records, blocked conditions, review gate refs, rollback
+    dependency refs, readiness outcomes, non-execution flags, and served JSON
+    presence.
+- Verification status:
+  - `git diff --check` passed with CRLF conversion warnings only.
+- Explicit non-actions:
+  - No product code, tests, static assets, package dependencies, source
+    readers, model-provider calls, embeddings, vector search, semantic
+    ranking, similarity scoring, fine-tuning, runtime store writes,
+    PersonaCard synthesis, platform adapters, schedulers, queues, webhooks,
+    tokens, recipient ids, delivery state, outbound messaging, automatic
+    outreach, voice/avatar runtime, media generation, payment processing, or
+    task-board edits were added by T465.
+  - No legal advice, compliance completion, launch approval, app-store
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - T466 still needs implementation and tests.
+  - M43 remains documentation-only until the apply-readiness payload lands.
+
+## T466 Worker Completion Record
+
+- T466 is the Source Draft Apply Readiness Payload task.
+- Worker must not mark T466 complete in `docs/04_task_board.md`; T466 awaits
+  review of the payload, contract tests, T467 task package, and handoff record.
+- Files changed:
+  - `src/practical_chat_agent/ui/text_first_web_demo_adapter.py`
+  - `tests/test_source_draft_apply_readiness_payload.py`
+  - `docs/contracts/source_draft_apply_readiness_payload.md`
+  - `docs/tasks/M43_next_iteration/T467_source_draft_apply_readiness_ui.md`
+  - `docs/worker_summary/T466_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED focused pytest failed with `5 failed, 11 passed` because
+    `source_draft_apply_readiness` was not present in adapter state or served
+    demo JSON.
+  - GREEN focused pytest passed with `16 passed`.
+- Implementation result:
+  - Added `source_draft_apply_readiness` to `TextFirstWebDemoState`.
+  - Added deterministic M43 apply-readiness payload generation from existing
+    M42 draft field changes.
+  - Added field readiness records for `style.tone`, `style.pacing`,
+    `style.humor`, `relationship.boundary_style`, `memory.use_preference`, and
+    `growth.short_term_hint`.
+  - Added readiness outcomes `blocked`, `needs_manual_review`, and
+    `ready_for_future_apply_design`.
+  - Added blocked condition records, required review gate refs, rollback
+    dependency refs, readiness outcome labels, preview-only apply policy, and
+    strict non-execution flags.
+  - Created `docs/contracts/source_draft_apply_readiness_payload.md`.
+  - Created
+    `docs/tasks/M43_next_iteration/T467_source_draft_apply_readiness_ui.md`.
+- Verification status:
+  - focused pytest passed with `16 passed`.
+  - `python -m py_compile src\practical_chat_agent\ui\text_first_web_demo_adapter.py`
+    passed.
+- Explicit non-actions:
+  - No static UI rendering, JavaScript, CSS, package dependencies, source
+    readers, model-provider calls, prompt execution, embeddings, vector search,
+    semantic ranking, similarity scoring, fine-tuning, runtime store writes,
+    PersonaCard synthesis, platform adapters, schedulers, queues, webhooks,
+    tokens, recipient ids, delivery state, outbound messaging, automatic
+    outreach, voice/avatar runtime, media generation, payment processing, or
+    task-board edits were added by T466.
+  - No real source import, file upload, archive read, private-source
+    retention, real extraction, persona mutation, version-store write,
+    review-store write, memory-store write, runtime-store write, or runtime
+    ingestion was added.
+  - No legal advice, compliance completion, launch approval, app-store
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - T467 still needs static UI rendering for the apply-readiness payload.
+  - T468 still needs Review Workspace linkage for readiness records.
+  - M43 still does not perform real consented source extraction or persona
+    apply.
+
+## T467 Worker Completion Record
+
+- T467 is the Source Draft Apply Readiness UI task.
+- Worker must not mark T467 complete in `docs/04_task_board.md`; T467 awaits
+  review of the static UI, contract anchors, T468 task package, and handoff
+  record.
+- Files changed:
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.html`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.css`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.js`
+  - `tests/test_static_source_draft_apply_readiness.py`
+  - `docs/contracts/source_draft_apply_readiness_payload.md`
+  - `docs/tasks/M43_next_iteration/T468_source_draft_apply_readiness_review_linkage.md`
+  - `docs/worker_summary/T467_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED focused pytest failed with `4 failed, 9 passed` because the static
+    readiness section, fallback payload, renderer, and CSS selectors were not
+    yet present.
+  - GREEN focused pytest passed with `13 passed`.
+- Implementation result:
+  - Added the static `#source-draft-apply-readiness` section and readiness
+    anchors.
+  - Added CSS layout, grid, wrapping, and mobile selectors for readiness
+    visibility.
+  - Added JavaScript fallback state for `source_draft_apply_readiness`.
+  - Added deterministic static rendering for field readiness records, blocked
+    conditions, review gates, rollback dependencies, outcome labels, and
+    non-execution labels.
+  - Updated the readiness payload contract with static rendering anchors.
+  - Created
+    `docs/tasks/M43_next_iteration/T468_source_draft_apply_readiness_review_linkage.md`.
+- Verification status:
+  - focused pytest passed with `13 passed`.
+  - `node --check src\practical_chat_agent\ui\static\text_first_web_demo.js`
+    passed.
+- Explicit non-actions:
+  - No Python adapter payload changes, package dependencies, source readers,
+    model-provider calls, prompt execution, embeddings, vector search,
+    semantic ranking, similarity scoring, fine-tuning, runtime store writes,
+    PersonaCard synthesis, platform adapters, schedulers, queues, webhooks,
+    tokens, recipient ids, delivery state, outbound messaging, automatic
+    outreach, voice/avatar runtime, media generation, payment processing, or
+    task-board edits were added by T467.
+  - No real source import, file upload, archive read, private-source
+    retention, real extraction, persona mutation, version-store write,
+    review-store write, memory-store write, runtime-store write, or runtime
+    ingestion was added.
+  - No legal advice, compliance completion, launch approval, app-store
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - T468 still needs Review Workspace linkage for apply-readiness records.
+  - T469 still needs responsive hardening for readiness review cards.
+  - M43 still does not perform real consented source extraction or persona
+    apply.
+
+## T468 Worker Completion Record
+
+- T468 is the Source Draft Apply Readiness Review Linkage task.
+- Worker must not mark T468 complete in `docs/04_task_board.md`; T468 awaits
+  review of readiness review cards, static fallback linkage, detail rows,
+  T469 task package, and handoff record.
+- Files changed:
+  - `src/practical_chat_agent/ui/text_first_web_demo_adapter.py`
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.js`
+  - `tests/test_source_draft_apply_readiness_review_linkage.py`
+  - `docs/contracts/source_draft_apply_readiness_payload.md`
+  - `docs/tasks/M43_next_iteration/T469_source_draft_apply_readiness_responsive_hardening.md`
+  - `docs/worker_summary/T468_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED focused pytest failed with `5 failed, 20 passed` because
+    `review_workspace.source_readiness_review_cards`, the `Readiness` filter,
+    and static fallback readiness review linkage were not yet present.
+  - GREEN focused pytest passed with `25 passed`.
+- Implementation result:
+  - Added served-state `source_readiness_review_cards`.
+  - Added field readiness, blocked condition, required gate, rollback
+    dependency, and outcome review cards.
+  - Added the `Readiness` Review Workspace filter.
+  - Added static fallback card derivation via
+    `attachSourceDraftApplyReadinessReviewCards` and
+    `sourceDraftApplyReadinessReviewCards`.
+  - Added readiness review detail rendering via
+    `appendSourceDraftApplyReadinessReviewDetails`.
+  - Updated the readiness contract with Review Workspace linkage requirements.
+  - Created
+    `docs/tasks/M43_next_iteration/T469_source_draft_apply_readiness_responsive_hardening.md`.
+- Verification status:
+  - focused pytest passed with `25 passed`.
+  - `python -m py_compile src\practical_chat_agent\ui\text_first_web_demo_adapter.py`
+    passed.
+  - `node --check src\practical_chat_agent\ui\static\text_first_web_demo.js`
+    passed.
+- Explicit non-actions:
+  - No source readers, model-provider calls, prompt execution, embeddings,
+    vector search, semantic ranking, similarity scoring, fine-tuning, runtime
+    store writes, PersonaCard synthesis, platform adapters, schedulers,
+    queues, webhooks, tokens, recipient ids, delivery state, outbound
+    messaging, automatic outreach, voice/avatar runtime, media generation,
+    payment processing, or task-board edits were added by T468.
+  - No real source import, file upload, archive read, private-source
+    retention, real extraction, persona mutation, version-store write,
+    review-store write, memory-store write, runtime-store write, or runtime
+    ingestion was added.
+  - No legal advice, compliance completion, launch approval, app-store
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - T469 still needs responsive hardening for readiness cards.
+  - T470 still needs M43 milestone review.
+  - M43 still does not perform real consented source extraction or persona
+    apply.
+
+## T469 Worker Completion Record
+
+- T469 is the Source Draft Apply Readiness Responsive Hardening task.
+- Worker must not mark T469 complete in `docs/04_task_board.md`; T469 awaits
+  review of readiness CSS hardening, T470 task package, and handoff record.
+- Files changed:
+  - `src/practical_chat_agent/ui/static/text_first_web_demo.css`
+  - `tests/test_source_draft_apply_readiness_responsive_hardening.py`
+  - `docs/tasks/M43_next_iteration/T470_m43_milestone_review.md`
+  - `docs/worker_summary/T469_worker_summary.md`
+  - `docs/07_handoff.md`
+- TDD evidence:
+  - RED focused pytest failed with `3 failed, 19 passed` because readiness
+    layout child selectors, readiness review card styles, and mobile readiness
+    review detail rules were missing.
+  - GREEN focused pytest passed with `22 passed`.
+- Implementation result:
+  - Added `.source-readiness-layout > div` wrapping constraints.
+  - Added readiness section list selectors for field records, blocked
+    conditions, gates, rollback dependencies, and outcomes.
+  - Added `.source-readiness-review-card` styles for card, title, status
+    badges, detail rows, and item metadata.
+  - Added mobile rules for readiness lists and readiness review cards.
+  - Created
+    `docs/tasks/M43_next_iteration/T470_m43_milestone_review.md`.
+- Verification status:
+  - focused pytest passed with `22 passed`.
+- Explicit non-actions:
+  - No adapter payload changes, JavaScript behavior changes, package
+    dependencies, source readers, model-provider calls, prompt execution,
+    embeddings, vector search, semantic ranking, similarity scoring,
+    fine-tuning, runtime store writes, PersonaCard synthesis, platform
+    adapters, schedulers, queues, webhooks, tokens, recipient ids, delivery
+    state, outbound messaging, automatic outreach, voice/avatar runtime, media
+    generation, payment processing, or task-board edits were added by T469.
+  - No real source import, file upload, archive read, private-source
+    retention, real extraction, persona mutation, version-store write,
+    review-store write, memory-store write, runtime-store write, or runtime
+    ingestion was added.
+  - No legal advice, compliance completion, launch approval, app-store
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - T470 still needs M43 milestone review.
+  - Browser-level responsive QA has not been claimed in T469.
+  - M43 still does not perform real consented source extraction or persona
+    apply.
+
+## T470 Worker Completion Record
+
+- T470 is the M43 Milestone Review task.
+- M43 review verdict: `PASS_WITH_WARNINGS`.
+- Files changed:
+  - `docs/review/M43_review.md`
+  - `docs/product/m44_next_iteration_scope.md`
+  - `docs/tasks/M44_next_iteration/T471_next_iteration_scope.md`
+  - `docs/worker_summary/T470_worker_summary.md`
+  - `docs/07_handoff.md`
+- Verification status:
+  - M43 focused pytest passed with `33 passed`.
+  - `python -m py_compile src\practical_chat_agent\ui\text_first_web_demo_adapter.py`
+    passed.
+  - `node --check src\practical_chat_agent\ui\static\text_first_web_demo.js`
+    passed.
+- Review result:
+  - M43 passes as a deterministic, local, synthetic, preview-only bridge from
+    M42 persona draft preview to reviewable apply-readiness preview.
+  - M43 adds `source_draft_apply_readiness`, static readiness UI,
+    `source_readiness_review_cards`, `Readiness` filter, and responsive
+    hardening for readiness cards.
+  - M43 does not authorize real source extraction, automatic persona mutation,
+    platform delivery, outbound messaging, or media runtime.
+- Next package:
+  - Created `docs/product/m44_next_iteration_scope.md`.
+  - Created
+    `docs/tasks/M44_next_iteration/T471_next_iteration_scope.md`.
+- Explicit non-actions:
+  - No code changes, tests, adapter payload changes, JavaScript behavior
+    changes, package dependencies, source readers, model-provider calls,
+    prompt execution, embeddings, vector search, semantic ranking, similarity
+    scoring, fine-tuning, runtime store writes, PersonaCard synthesis,
+    platform adapters, schedulers, queues, webhooks, tokens, recipient ids,
+    delivery state, outbound messaging, automatic outreach, voice/avatar
+    runtime, media generation, payment processing, or task-board edits were
+    added by T470.
+  - No real source import, file upload, archive read, private-source
+    retention, real extraction, persona mutation, version-store write,
+    review-store write, memory-store write, runtime-store write, or runtime
+    ingestion was added.
+  - No legal advice, compliance completion, launch approval, app-store
+    approval, user-study validation, pricing validation, clinical claims, real
+    user evidence, or regulator acceptance was claimed.
+  - No `private/chat_history/`, `private/distilled/`, or private artifact
+    content was read, quoted, summarized, transformed, or committed.
+- Remaining risks:
+  - Browser-level responsive QA has not been claimed for M43.
+  - M44 is only scoped; `source_draft_apply_plan_preview` is not implemented.
+  - The project still does not perform real consented source extraction,
+    PersonaCard mutation, platform delivery, outbound messaging, or media
+    runtime.

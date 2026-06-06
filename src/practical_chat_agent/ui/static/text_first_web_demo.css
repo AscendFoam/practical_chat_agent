@@ -268,8 +268,791 @@ h2 {
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
+.persona-workbench {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  margin-bottom: 16px;
+  min-width: 0;
+  padding: 18px;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.persona-evolution {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  margin-bottom: 16px;
+  min-width: 0;
+  padding: 18px;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.persona-version-ledger {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  margin-bottom: 16px;
+  min-width: 0;
+  padding: 18px;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.persona-source-intake {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  margin-bottom: 16px;
+  min-width: 0;
+  padding: 18px;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.persona-source-evidence {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  margin-bottom: 16px;
+  min-width: 0;
+  padding: 18px;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.source-evidence-persona-proposal {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  margin-bottom: 16px;
+  min-width: 0;
+  padding: 18px;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.source-proposal-persona-draft {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  margin-bottom: 16px;
+  min-width: 0;
+  padding: 18px;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.source-draft-apply-readiness {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  margin-bottom: 16px;
+  min-width: 0;
+  padding: 18px;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.workbench-layout {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 14px;
+  min-width: 0;
+}
+
+.evolution-layout {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 14px;
+  min-width: 0;
+}
+
+.version-ledger-layout {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 14px;
+  min-width: 0;
+}
+
+.source-intake-layout {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 14px;
+  min-width: 0;
+}
+
+.source-evidence-layout {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 14px;
+  min-width: 0;
+}
+
+.source-proposal-layout {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 14px;
+  min-width: 0;
+}
+
+.source-draft-layout {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 14px;
+  min-width: 0;
+}
+
+.source-readiness-layout {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 14px;
+  min-width: 0;
+}
+
+.workbench-section-head {
+  margin-top: 16px;
+}
+
+.evolution-section-head {
+  margin-top: 16px;
+}
+
+.version-ledger-section-head {
+  margin-top: 16px;
+}
+
+.source-intake-section-head {
+  margin-top: 16px;
+}
+
+.source-evidence-section-head {
+  margin-top: 16px;
+}
+
+.source-proposal-section-head {
+  margin-top: 16px;
+}
+
+.source-draft-section-head {
+  margin-top: 16px;
+}
+
+.source-readiness-section-head {
+  margin-top: 16px;
+}
+
+.workbench-trait-grid,
+.workbench-blocked-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.evolution-patch-grid,
+.evolution-risk-grid,
+.evolution-exclusion-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.version-draft-grid,
+.version-conflict-grid,
+.version-rollback-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.source-candidate-grid,
+.source-policy-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.source-evidence-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.source-proposal-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.source-draft-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.source-readiness-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+#evolution-patch-list {
+  max-width: 100%;
+  min-width: 0;
+}
+
+#evolution-risk-list {
+  max-width: 100%;
+  min-width: 0;
+}
+
+#evolution-rollback-list {
+  max-width: 100%;
+  min-width: 0;
+}
+
+#evolution-exclusion-list {
+  max-width: 100%;
+  min-width: 0;
+}
+
+#version-ledger-draft-list {
+  max-width: 100%;
+  min-width: 0;
+}
+
+#version-ledger-conflict-list {
+  max-width: 100%;
+  min-width: 0;
+}
+
+#version-ledger-rollback-list {
+  max-width: 100%;
+  min-width: 0;
+}
+
+#version-ledger-outcome-list {
+  max-width: 100%;
+  min-width: 0;
+}
+
+#source-intake-policy-summary {
+  max-width: 100%;
+  min-width: 0;
+}
+
+#source-intake-candidate-list {
+  max-width: 100%;
+  min-width: 0;
+}
+
+#source-intake-gate-list {
+  max-width: 100%;
+  min-width: 0;
+}
+
+#source-intake-blocked-list {
+  max-width: 100%;
+  min-width: 0;
+}
+
+#source-intake-redaction-list {
+  max-width: 100%;
+  min-width: 0;
+}
+
+#source-evidence-manifest-summary,
+#source-evidence-eligible-list,
+#source-evidence-excluded-list,
+#source-evidence-row-list,
+#source-evidence-trait-list,
+#source-evidence-quality-list,
+#source-evidence-gate-list {
+  max-width: 100%;
+  min-width: 0;
+}
+
+#source-proposal-matrix-summary,
+#source-proposal-non-execution-list,
+#source-proposal-candidate-list,
+#source-proposal-risk-list,
+#source-proposal-rollback-list,
+#source-proposal-gate-list,
+#source-proposal-outcome-list {
+  max-width: 100%;
+  min-width: 0;
+}
+
+#source-draft-proposal-summary,
+#source-draft-base-snapshot,
+#source-draft-selected-proposal-list,
+#source-draft-non-execution-list,
+#source-draft-field-change-list,
+#source-draft-unchanged-field-list,
+#source-draft-conflict-list,
+#source-draft-rollback-list,
+#source-draft-gate-list,
+#source-draft-outcome-list {
+  max-width: 100%;
+  min-width: 0;
+}
+
+#source-readiness-draft-summary,
+#source-readiness-apply-policy-summary,
+#source-readiness-evaluated-change-list,
+#source-readiness-non-execution-list,
+#source-readiness-field-record-list,
+#source-readiness-blocked-condition-list,
+#source-readiness-gate-ref-list,
+#source-readiness-rollback-list,
+#source-readiness-outcome-list {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.persona-evolution .label {
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.persona-version-ledger .label {
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.persona-source-intake .label {
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.persona-source-evidence .label {
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.source-evidence-persona-proposal .label {
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.source-proposal-persona-draft .label {
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.source-draft-apply-readiness .label {
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.workbench-trait-card,
+.workbench-blocked-card {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.evolution-patch-card,
+.evolution-risk-card,
+.evolution-rollback-card,
+.evolution-exclusion-card {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.workbench-trait-card {
+  border-left: 4px solid var(--accent);
+}
+
+.workbench-blocked-card {
+  border-left: 4px solid var(--danger);
+}
+
+.evolution-patch-card {
+  border-left: 4px solid #5a72c9;
+}
+
+.evolution-risk-card {
+  border-left: 4px solid var(--warn);
+}
+
+.evolution-rollback-card {
+  border-left: 4px solid #7b8794;
+}
+
+.evolution-exclusion-card {
+  border-left: 4px solid var(--danger);
+}
+
+.version-draft-card,
+.version-conflict-card,
+.version-rollback-card,
+.version-outcome-card {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.source-candidate-card,
+.source-gate-card,
+.source-blocked-card,
+.source-redaction-card {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.source-evidence-card,
+.source-excluded-card,
+.source-trait-card,
+.source-quality-card,
+.source-gate-result-card {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.source-proposal-card,
+.source-proposal-risk-card,
+.source-proposal-rollback-card,
+.source-proposal-gate-card,
+.source-proposal-outcome-card {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.source-draft-card,
+.source-draft-unchanged-card,
+.source-draft-conflict-card,
+.source-draft-rollback-card,
+.source-draft-gate-card,
+.source-draft-outcome-card {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.source-readiness-card,
+.source-readiness-condition-card,
+.source-readiness-gate-card,
+.source-readiness-rollback-card,
+.source-readiness-outcome-card {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.version-draft-card {
+  border-left: 4px solid #5a72c9;
+}
+
+.version-conflict-card {
+  border-left: 4px solid var(--warn);
+}
+
+.version-rollback-card {
+  border-left: 4px solid #7b8794;
+}
+
+.version-outcome-card {
+  border-left: 4px solid var(--accent);
+}
+
+.source-candidate-card {
+  border-left: 4px solid #5a72c9;
+}
+
+.source-gate-card {
+  border-left: 4px solid var(--accent);
+}
+
+.source-blocked-card {
+  border-left: 4px solid var(--danger);
+}
+
+.source-redaction-card {
+  border-left: 4px solid #7b8794;
+}
+
+.source-evidence-card {
+  border-left: 4px solid #5a72c9;
+}
+
+.source-excluded-card {
+  border-left: 4px solid var(--danger);
+}
+
+.source-trait-card {
+  border-left: 4px solid var(--accent);
+}
+
+.source-quality-card {
+  border-left: 4px solid var(--warn);
+}
+
+.source-gate-result-card {
+  border-left: 4px solid #7b8794;
+}
+
+.source-proposal-card {
+  border-left: 4px solid #4f7f6f;
+}
+
+.source-proposal-risk-card {
+  border-left: 4px solid var(--warn);
+}
+
+.source-proposal-rollback-card {
+  border-left: 4px solid #7b8794;
+}
+
+.source-proposal-gate-card {
+  border-left: 4px solid var(--accent);
+}
+
+.source-proposal-outcome-card {
+  border-left: 4px solid #5a72c9;
+}
+
+.source-draft-card {
+  border-left: 4px solid #4f7f6f;
+}
+
+.source-draft-unchanged-card {
+  border-left: 4px solid #7b8794;
+}
+
+.source-draft-conflict-card {
+  border-left: 4px solid var(--warn);
+}
+
+.source-draft-rollback-card {
+  border-left: 4px solid #7b8794;
+}
+
+.source-draft-gate-card {
+  border-left: 4px solid var(--accent);
+}
+
+.source-draft-outcome-card {
+  border-left: 4px solid #5a72c9;
+}
+
+.version-draft-card .item-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.version-conflict-card .item-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.version-rollback-card .item-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.version-outcome-card .item-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.source-candidate-card .item-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.source-gate-card .item-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.source-blocked-card .item-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.source-redaction-card .item-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.source-evidence-card .item-title,
+.source-excluded-card .item-title,
+.source-trait-card .item-title,
+.source-quality-card .item-title,
+.source-gate-result-card .item-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.source-proposal-card .item-title,
+.source-proposal-risk-card .item-title,
+.source-proposal-rollback-card .item-title,
+.source-proposal-gate-card .item-title,
+.source-proposal-outcome-card .item-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.source-draft-card .item-title,
+.source-draft-unchanged-card .item-title,
+.source-draft-conflict-card .item-title,
+.source-draft-rollback-card .item-title,
+.source-draft-gate-card .item-title,
+.source-draft-outcome-card .item-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.source-readiness-card .item-title,
+.source-readiness-condition-card .item-title,
+.source-readiness-gate-card .item-title,
+.source-readiness-rollback-card .item-title,
+.source-readiness-outcome-card .item-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.evolution-patch-card .item-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.evolution-risk-card .item-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.evolution-rollback-card .item-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.evolution-exclusion-card .item-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.persona-workbench .item,
+.persona-evolution .item,
+.persona-version-ledger .item,
+.persona-source-intake .item,
+.persona-source-evidence .item,
+.workbench-layout > div,
+.evolution-layout > div,
+.version-ledger-layout > div,
+.source-intake-layout > div,
+.source-evidence-layout > div,
+.source-draft-layout > div,
+.source-readiness-layout > div,
+.source-proposal-layout > div,
+#workbench-non-execution-list,
+#evolution-non-execution-list,
+#version-ledger-non-execution-list,
+#source-intake-non-execution-list,
+#source-evidence-non-execution-list,
+#source-proposal-non-execution-list,
+#source-draft-non-execution-list,
+#evolution-source-summary,
+#evolution-snapshot,
+#version-ledger-source-summary,
+#version-ledger-base-snapshot,
+#source-intake-policy-summary,
+#source-evidence-manifest-summary,
+#source-evidence-eligible-list,
+#source-proposal-matrix-summary,
+#source-draft-proposal-summary,
+#source-draft-base-snapshot,
+#source-draft-selected-proposal-list,
+#source-readiness-draft-summary,
+#source-readiness-apply-policy-summary,
+#source-readiness-evaluated-change-list,
+#source-readiness-field-record-list,
+#source-readiness-blocked-condition-list,
+#source-readiness-gate-ref-list,
+#source-readiness-rollback-list,
+#source-readiness-outcome-list,
+.workbench-trait-card .item-meta,
+.workbench-blocked-card .item-meta,
+.evolution-patch-card .item-meta,
+.evolution-risk-card .item-meta,
+.evolution-rollback-card .item-meta,
+.evolution-exclusion-card .item-meta,
+.version-draft-card .item-meta,
+.version-conflict-card .item-meta,
+.version-rollback-card .item-meta,
+.version-outcome-card .item-meta,
+.source-candidate-card .item-meta,
+.source-gate-card .item-meta,
+.source-blocked-card .item-meta,
+.source-redaction-card .item-meta,
+.source-evidence-card .item-meta,
+.source-excluded-card .item-meta,
+.source-trait-card .item-meta,
+.source-quality-card .item-meta,
+.source-gate-result-card .item-meta,
+.source-proposal-card .item-meta,
+.source-proposal-risk-card .item-meta,
+.source-proposal-rollback-card .item-meta,
+.source-proposal-gate-card .item-meta,
+.source-proposal-outcome-card .item-meta,
+.source-draft-card .item-meta,
+.source-draft-unchanged-card .item-meta,
+.source-draft-conflict-card .item-meta,
+.source-draft-rollback-card .item-meta,
+.source-draft-gate-card .item-meta,
+.source-draft-outcome-card .item-meta,
+.source-readiness-card .item-meta,
+.source-readiness-condition-card .item-meta,
+.source-readiness-gate-card .item-meta,
+.source-readiness-rollback-card .item-meta,
+.source-readiness-outcome-card .item-meta,
+.persona-workbench-review-card .item-meta,
+.persona-workbench-review-card .review-detail-list,
+.persona-evolution-review-card .item-meta,
+.persona-evolution-review-card .review-detail-list,
+.persona-version-review-card .item-meta,
+.persona-version-review-card .review-detail-list,
+.persona-source-review-card .item-meta,
+.persona-source-review-card .review-detail-list,
+.persona-source-evidence-review-card .item-meta,
+.persona-source-evidence-review-card .review-detail-list,
+.source-draft-review-card .item-meta,
+.source-draft-review-card .review-detail-list,
+.source-readiness-review-card .item-meta,
+.source-readiness-review-card .review-detail-list {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .session-turn-list .item,
 .session-candidate-review-card,
+.workbench-trait-card,
+.workbench-blocked-card,
+.evolution-patch-card,
+.evolution-risk-card,
+.evolution-rollback-card,
+.evolution-exclusion-card,
+.version-draft-card,
+.version-conflict-card,
+.version-rollback-card,
+.version-outcome-card,
+.source-candidate-card,
+.source-gate-card,
+.source-blocked-card,
+.source-redaction-card,
+.source-evidence-card,
+.source-excluded-card,
+.source-trait-card,
+.source-quality-card,
+.source-gate-result-card,
+.source-draft-review-card,
+.source-readiness-review-card,
 .review-card {
   min-width: 0;
   overflow-wrap: anywhere;
@@ -375,6 +1158,189 @@ h2 {
   border-left: 4px solid #6b7fd7;
 }
 
+.persona-workbench-review-card {
+  border-left: 4px solid var(--accent);
+}
+
+.persona-evolution-review-card {
+  border-left: 4px solid #5a72c9;
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.persona-evolution-review-card .item-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.persona-evolution-review-card .status-badges {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.persona-evolution-review-card .review-detail-list {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.persona-version-review-card {
+  border-left: 4px solid #5a72c9;
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.persona-version-review-card .item-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.persona-version-review-card .status-badges {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.persona-version-review-card .review-detail-list {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.persona-source-review-card {
+  border-left: 4px solid #5a72c9;
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.persona-source-review-card .item-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.persona-source-review-card .status-badges {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.persona-source-review-card .review-detail-list {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.persona-source-review-card .item-meta {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.persona-source-evidence-review-card {
+  border-left: 4px solid #5a72c9;
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.persona-source-evidence-review-card .item-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.persona-source-evidence-review-card .status-badges {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.persona-source-evidence-review-card .review-detail-list {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.persona-source-evidence-review-card .item-meta {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.source-proposal-review-card {
+  border-left: 4px solid #4f7f6f;
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.source-proposal-review-card .item-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.source-proposal-review-card .status-badges {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.source-proposal-review-card .review-detail-list {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.source-proposal-review-card .item-meta {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.source-draft-review-card {
+  border-left: 4px solid #6f6a3f;
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.source-draft-review-card .item-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.source-draft-review-card .status-badges {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.source-draft-review-card .review-detail-list {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.source-draft-review-card .item-meta {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.source-readiness-review-card {
+  border-left: 4px solid #4f7f6f;
+  max-width: 100%;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.source-readiness-review-card .item-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.source-readiness-review-card .status-badges {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.source-readiness-review-card .review-detail-list {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.source-readiness-review-card .item-meta {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .status-badges {
   display: flex;
   flex-wrap: wrap;
@@ -469,14 +1435,44 @@ h2 {
 
   .scenario-spine,
   .companion-session,
+  .persona-workbench,
+  .persona-evolution,
+  .persona-version-ledger,
+  .persona-source-intake,
+  .persona-source-evidence,
+  .source-evidence-persona-proposal,
+  .source-proposal-persona-draft,
+  .source-draft-apply-readiness,
   .trust-commercial {
     padding: 14px;
   }
 
   .session-layout,
+  .workbench-layout,
+  .evolution-layout,
+  .version-ledger-layout,
+  .source-intake-layout,
+  .source-evidence-layout,
   .scenario-promise-grid,
   .scenario-spine-grid,
   .session-candidate-grid,
+  .workbench-trait-grid,
+  .workbench-blocked-grid,
+  .evolution-patch-grid,
+  .evolution-risk-grid,
+  .evolution-exclusion-grid,
+  .version-draft-grid,
+  .version-conflict-grid,
+  .version-rollback-grid,
+  .source-candidate-grid,
+  .source-policy-grid,
+  .source-evidence-grid,
+  .source-proposal-layout,
+  .source-proposal-grid,
+  .source-draft-layout,
+  .source-draft-grid,
+  .source-readiness-layout,
+  .source-readiness-grid,
   .trust-commercial-grid,
   .review-grid {
     grid-template-columns: minmax(0, 1fr);
@@ -491,7 +1487,64 @@ h2 {
 
   .session-turn-head,
   .status-badges,
-  .session-chip-row {
+  .session-chip-row,
+  .workbench-section-head,
+  .evolution-section-head,
+  .version-ledger-section-head,
+  .source-intake-section-head,
+  .source-evidence-section-head,
+  .source-proposal-section-head,
+  .source-draft-section-head,
+  .source-readiness-section-head,
+  #workbench-non-execution-list,
+  #evolution-non-execution-list,
+  #version-ledger-non-execution-list,
+  #source-intake-non-execution-list,
+  #source-evidence-non-execution-list,
+  #source-proposal-non-execution-list,
+  #source-draft-non-execution-list,
+  #source-readiness-non-execution-list,
+  #evolution-source-summary,
+  #evolution-snapshot,
+  #version-ledger-source-summary,
+  #version-ledger-base-snapshot,
+  #source-intake-policy-summary,
+  #source-evidence-manifest-summary,
+  #source-evidence-eligible-list,
+  #source-proposal-matrix-summary,
+  #source-draft-proposal-summary,
+  #source-draft-base-snapshot,
+  #source-draft-selected-proposal-list,
+  #source-readiness-draft-summary,
+  #source-readiness-apply-policy-summary,
+  #source-readiness-evaluated-change-list,
+  #source-readiness-field-record-list,
+  #source-readiness-blocked-condition-list,
+  #source-readiness-gate-ref-list,
+  #source-readiness-rollback-list,
+  #source-readiness-outcome-list,
+  .persona-evolution .label,
+  .persona-version-ledger .label,
+  .persona-source-intake .label,
+  .persona-source-evidence .label,
+  .source-evidence-persona-proposal .label,
+  .source-proposal-persona-draft .label,
+  .source-draft-apply-readiness .label,
+  .persona-workbench-review-card .status-badges,
+  .persona-evolution-review-card .status-badges,
+  .persona-evolution-review-card .review-detail-list,
+  .persona-version-review-card .status-badges,
+  .persona-version-review-card .review-detail-list,
+  .persona-source-review-card .status-badges,
+  .persona-source-review-card .review-detail-list,
+  .persona-source-evidence-review-card .status-badges,
+  .persona-source-evidence-review-card .review-detail-list,
+  .source-proposal-review-card .status-badges,
+  .source-proposal-review-card .review-detail-list,
+  .source-draft-review-card .status-badges,
+  .source-draft-review-card .review-detail-list,
+  .source-readiness-review-card .status-badges,
+  .source-readiness-review-card .review-detail-list {
     align-items: flex-start;
   }
 }

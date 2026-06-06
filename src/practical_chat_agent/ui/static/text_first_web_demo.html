@@ -117,6 +117,355 @@
         <div id="session-candidate-list" class="item-list session-candidate-grid"></div>
       </section>
 
+      <section id="persona-workbench" class="persona-workbench" aria-label="Persona distillation workbench">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Persona workbench</p>
+            <h2 id="workbench-title">Synthetic persona distillation workbench</h2>
+          </div>
+          <span id="workbench-schema" class="tag">m36 workbench</span>
+        </div>
+        <div id="workbench-non-execution-list" class="label-row"></div>
+        <div class="workbench-layout">
+          <div>
+            <p class="eyebrow">Input modes</p>
+            <div id="workbench-mode-list" class="item-list"></div>
+          </div>
+          <div>
+            <p class="eyebrow">Synthetic inputs</p>
+            <div id="workbench-input-list" class="item-list"></div>
+          </div>
+        </div>
+        <div class="workbench-layout">
+          <div>
+            <p class="eyebrow">Evidence refs</p>
+            <div id="workbench-evidence-list" class="item-list"></div>
+          </div>
+          <div>
+            <p class="eyebrow">Safety gates</p>
+            <div id="workbench-gate-list" class="item-list"></div>
+          </div>
+        </div>
+        <div class="panel-head workbench-section-head">
+          <h3>Trait candidates</h3>
+          <span class="tag">needs review</span>
+        </div>
+        <div id="workbench-trait-list" class="item-list workbench-trait-grid"></div>
+        <div class="panel-head workbench-section-head">
+          <h3>Blocked requests</h3>
+          <span class="tag">blocked before synthesis</span>
+        </div>
+        <div id="workbench-blocked-list" class="item-list workbench-blocked-grid"></div>
+      </section>
+
+      <section id="persona-evolution" class="persona-evolution" aria-label="Persona evolution preview">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Persona evolution</p>
+            <h2 id="evolution-title">Synthetic persona evolution preview</h2>
+          </div>
+          <span id="evolution-schema" class="tag">m37 preview</span>
+        </div>
+        <div id="evolution-non-execution-list" class="label-row"></div>
+        <div class="evolution-layout">
+          <div>
+            <p class="eyebrow">Source workbench</p>
+            <div id="evolution-source-summary" class="notice review-summary"></div>
+          </div>
+          <div>
+            <p class="eyebrow">Snapshot before</p>
+            <div id="evolution-snapshot" class="notice review-summary"></div>
+          </div>
+        </div>
+        <div class="panel-head evolution-section-head">
+          <h3>Patch candidates</h3>
+          <span class="tag">preview only</span>
+        </div>
+        <div id="evolution-patch-list" class="item-list evolution-patch-grid"></div>
+        <div class="evolution-layout">
+          <div>
+            <p class="eyebrow">Risk labels</p>
+            <div id="evolution-risk-list" class="item-list evolution-risk-grid"></div>
+          </div>
+          <div>
+            <p class="eyebrow">Rollback notes</p>
+            <div id="evolution-rollback-list" class="item-list"></div>
+          </div>
+        </div>
+        <div class="panel-head evolution-section-head">
+          <h3>Blocked source exclusions</h3>
+          <span class="tag">excluded from patches</span>
+        </div>
+        <div id="evolution-exclusion-list" class="item-list evolution-exclusion-grid"></div>
+      </section>
+
+      <section id="persona-version-ledger" class="persona-version-ledger" aria-label="Persona version draft ledger">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Persona version ledger</p>
+            <h2 id="version-ledger-title">Synthetic persona version draft ledger</h2>
+          </div>
+          <span id="version-ledger-schema" class="tag">m38 ledger</span>
+        </div>
+        <div id="version-ledger-non-execution-list" class="label-row"></div>
+        <div class="version-ledger-layout">
+          <div>
+            <p class="eyebrow">Source evolution preview</p>
+            <div id="version-ledger-source-summary" class="notice review-summary"></div>
+          </div>
+          <div>
+            <p class="eyebrow">Base snapshot</p>
+            <div id="version-ledger-base-snapshot" class="notice review-summary"></div>
+          </div>
+        </div>
+        <div class="panel-head version-ledger-section-head">
+          <h3>Version drafts</h3>
+          <span class="tag">preview only</span>
+        </div>
+        <div id="version-ledger-draft-list" class="item-list version-draft-grid"></div>
+        <div class="version-ledger-layout">
+          <div>
+            <p class="eyebrow">Conflict notes</p>
+            <div id="version-ledger-conflict-list" class="item-list version-conflict-grid"></div>
+          </div>
+          <div>
+            <p class="eyebrow">Review outcomes</p>
+            <div id="version-ledger-outcome-list" class="item-list"></div>
+          </div>
+        </div>
+        <div class="panel-head version-ledger-section-head">
+          <h3>Rollback refs</h3>
+          <span class="tag">metadata only</span>
+        </div>
+        <div id="version-ledger-rollback-list" class="item-list version-rollback-grid"></div>
+      </section>
+
+      <section id="persona-source-intake" class="persona-source-intake" aria-label="Persona source intake manifest">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Source intake manifest</p>
+            <h2 id="source-intake-title">Synthetic persona source intake manifest</h2>
+          </div>
+          <span id="source-intake-schema" class="tag">m39 manifest</span>
+        </div>
+        <div id="source-intake-non-execution-list" class="label-row"></div>
+        <div id="source-intake-policy-summary" class="notice review-summary"></div>
+        <div class="panel-head source-intake-section-head">
+          <h3>Source candidates</h3>
+          <span class="tag">consent gated</span>
+        </div>
+        <div id="source-intake-candidate-list" class="item-list source-candidate-grid"></div>
+        <div class="source-intake-layout">
+          <div>
+            <p class="eyebrow">Policy gates</p>
+            <div id="source-intake-gate-list" class="item-list source-policy-grid"></div>
+          </div>
+          <div>
+            <p class="eyebrow">Blocked categories</p>
+            <div id="source-intake-blocked-list" class="item-list source-policy-grid"></div>
+          </div>
+        </div>
+        <div class="panel-head source-intake-section-head">
+          <h3>Redaction profiles</h3>
+          <span class="tag">summary only</span>
+        </div>
+        <div id="source-intake-redaction-list" class="item-list source-policy-grid"></div>
+      </section>
+
+      <section id="persona-source-evidence" class="persona-source-evidence" aria-label="Persona source evidence matrix">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Source evidence matrix</p>
+            <h2 id="source-evidence-title">Synthetic persona source evidence matrix</h2>
+          </div>
+          <span id="source-evidence-schema" class="tag">m40 matrix</span>
+        </div>
+        <div id="source-evidence-non-execution-list" class="label-row"></div>
+        <div class="source-evidence-layout">
+          <div>
+            <p class="eyebrow">Source manifest</p>
+            <div id="source-evidence-manifest-summary" class="notice review-summary"></div>
+          </div>
+          <div>
+            <p class="eyebrow">Eligible sources</p>
+            <div id="source-evidence-eligible-list" class="label-row"></div>
+          </div>
+        </div>
+        <div class="panel-head source-evidence-section-head">
+          <h3>Evidence rows</h3>
+          <span class="tag">review only</span>
+        </div>
+        <div id="source-evidence-row-list" class="item-list source-evidence-grid"></div>
+        <div class="panel-head source-evidence-section-head">
+          <h3>Trait hypotheses</h3>
+          <span class="tag">preview only</span>
+        </div>
+        <div id="source-evidence-trait-list" class="item-list source-evidence-grid"></div>
+        <div class="source-evidence-layout">
+          <div>
+            <p class="eyebrow">Excluded sources</p>
+            <div id="source-evidence-excluded-list" class="item-list source-evidence-grid"></div>
+          </div>
+          <div>
+            <p class="eyebrow">Quality labels</p>
+            <div id="source-evidence-quality-list" class="item-list source-evidence-grid"></div>
+          </div>
+        </div>
+        <div class="panel-head source-evidence-section-head">
+          <h3>Review gates</h3>
+          <span class="tag">non-extracting</span>
+        </div>
+        <div id="source-evidence-gate-list" class="item-list source-evidence-grid"></div>
+      </section>
+
+      <section id="source-evidence-persona-proposal" class="source-evidence-persona-proposal" aria-label="Source evidence persona proposal">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Persona proposal preview</p>
+            <h2 id="source-proposal-title">Synthetic source evidence persona proposal</h2>
+          </div>
+          <span id="source-proposal-schema" class="tag">m41 proposal</span>
+        </div>
+        <div id="source-proposal-non-execution-list" class="label-row"></div>
+        <div class="source-proposal-layout">
+          <div>
+            <p class="eyebrow">Source matrix</p>
+            <div id="source-proposal-matrix-summary" class="notice review-summary"></div>
+          </div>
+          <div>
+            <p class="eyebrow">Outcomes</p>
+            <div id="source-proposal-outcome-list" class="item-list source-proposal-grid"></div>
+          </div>
+        </div>
+        <div class="panel-head source-proposal-section-head">
+          <h3>Proposal candidates</h3>
+          <span class="tag">preview only</span>
+        </div>
+        <div id="source-proposal-candidate-list" class="item-list source-proposal-grid"></div>
+        <div class="source-proposal-layout">
+          <div>
+            <p class="eyebrow">Risk labels</p>
+            <div id="source-proposal-risk-list" class="item-list source-proposal-grid"></div>
+          </div>
+          <div>
+            <p class="eyebrow">Rollback notes</p>
+            <div id="source-proposal-rollback-list" class="item-list source-proposal-grid"></div>
+          </div>
+        </div>
+        <div class="panel-head source-proposal-section-head">
+          <h3>Review gates</h3>
+          <span class="tag">manual review</span>
+        </div>
+        <div id="source-proposal-gate-list" class="item-list source-proposal-grid"></div>
+      </section>
+
+      <section id="source-proposal-persona-draft" class="source-proposal-persona-draft" aria-label="Source proposal persona draft">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Persona draft preview</p>
+            <h2 id="source-draft-title">Synthetic proposal-linked persona draft</h2>
+          </div>
+          <span id="source-draft-schema" class="tag">m42 draft</span>
+        </div>
+        <div id="source-draft-non-execution-list" class="label-row"></div>
+        <div class="source-draft-layout">
+          <div>
+            <p class="eyebrow">Source proposal</p>
+            <div id="source-draft-proposal-summary" class="notice review-summary"></div>
+          </div>
+          <div>
+            <p class="eyebrow">Base snapshot</p>
+            <div id="source-draft-base-snapshot" class="notice review-summary"></div>
+          </div>
+        </div>
+        <div class="panel-head source-draft-section-head">
+          <h3>Selected proposals</h3>
+          <span class="tag">metadata only</span>
+        </div>
+        <div id="source-draft-selected-proposal-list" class="label-row"></div>
+        <div class="panel-head source-draft-section-head">
+          <h3>Draft field changes</h3>
+          <span class="tag">preview only</span>
+        </div>
+        <div id="source-draft-field-change-list" class="item-list source-draft-grid"></div>
+        <div class="source-draft-layout">
+          <div>
+            <p class="eyebrow">Unchanged fields</p>
+            <div id="source-draft-unchanged-field-list" class="item-list source-draft-grid"></div>
+          </div>
+          <div>
+            <p class="eyebrow">Conflict notes</p>
+            <div id="source-draft-conflict-list" class="item-list source-draft-grid"></div>
+          </div>
+        </div>
+        <div class="source-draft-layout">
+          <div>
+            <p class="eyebrow">Rollback refs</p>
+            <div id="source-draft-rollback-list" class="item-list source-draft-grid"></div>
+          </div>
+          <div>
+            <p class="eyebrow">Outcomes</p>
+            <div id="source-draft-outcome-list" class="item-list source-draft-grid"></div>
+          </div>
+        </div>
+        <div class="panel-head source-draft-section-head">
+          <h3>Review gates</h3>
+          <span class="tag">manual review</span>
+        </div>
+        <div id="source-draft-gate-list" class="item-list source-draft-grid"></div>
+      </section>
+
+      <section id="source-draft-apply-readiness" class="source-draft-apply-readiness" aria-label="Source draft apply readiness">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">Apply-readiness preview</p>
+            <h2 id="source-readiness-title">Synthetic source draft apply-readiness preview</h2>
+          </div>
+          <span id="source-readiness-schema" class="tag">m43 readiness</span>
+        </div>
+        <div id="source-readiness-non-execution-list" class="label-row"></div>
+        <div class="source-readiness-layout">
+          <div>
+            <p class="eyebrow">Source draft</p>
+            <div id="source-readiness-draft-summary" class="notice review-summary"></div>
+          </div>
+          <div>
+            <p class="eyebrow">Apply policy</p>
+            <div id="source-readiness-apply-policy-summary" class="notice review-summary"></div>
+          </div>
+        </div>
+        <div class="panel-head source-readiness-section-head">
+          <h3>Evaluated draft changes</h3>
+          <span class="tag">metadata only</span>
+        </div>
+        <div id="source-readiness-evaluated-change-list" class="label-row"></div>
+        <div class="panel-head source-readiness-section-head">
+          <h3>Field readiness records</h3>
+          <span class="tag">preview only</span>
+        </div>
+        <div id="source-readiness-field-record-list" class="item-list source-readiness-grid"></div>
+        <div class="source-readiness-layout">
+          <div>
+            <p class="eyebrow">Blocked conditions</p>
+            <div id="source-readiness-blocked-condition-list" class="item-list source-readiness-grid"></div>
+          </div>
+          <div>
+            <p class="eyebrow">Review gates</p>
+            <div id="source-readiness-gate-ref-list" class="item-list source-readiness-grid"></div>
+          </div>
+        </div>
+        <div class="source-readiness-layout">
+          <div>
+            <p class="eyebrow">Rollback dependencies</p>
+            <div id="source-readiness-rollback-list" class="item-list source-readiness-grid"></div>
+          </div>
+          <div>
+            <p class="eyebrow">Outcomes</p>
+            <div id="source-readiness-outcome-list" class="item-list source-readiness-grid"></div>
+          </div>
+        </div>
+      </section>
+
       <section id="chat-panel" class="panel is-active" data-panel="chat" role="tabpanel" aria-labelledby="tab-chat" aria-hidden="false">
         <div class="panel-head">
           <h2>Chat Review</h2>

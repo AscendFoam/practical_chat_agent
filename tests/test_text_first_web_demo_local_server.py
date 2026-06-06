@@ -69,6 +69,46 @@ def test_demo_state_json_route_returns_synthetic_review_payload() -> None:
         == "m36.persona_distillation_workbench.v1"
     )
     assert payload["persona_distillation_workbench"]["review_required"] is True
+    assert (
+        payload["persona_evolution_preview"]["schema_version"]
+        == "m37.persona_evolution_preview.v1"
+    )
+    assert payload["persona_evolution_preview"]["review_required"] is True
+    assert len(payload["review_workspace"]["evolution_review_cards"]) == 20
+    assert any(
+        tab["key"] == "evolution" and tab["count"] == 20
+        for tab in payload["review_workspace"]["filter_tabs"]
+    )
+    assert (
+        payload["persona_version_draft_ledger"]["schema_version"]
+        == "m38.persona_version_draft_ledger.v1"
+    )
+    assert payload["persona_version_draft_ledger"]["review_required"] is True
+    assert len(payload["review_workspace"]["version_review_cards"]) == 14
+    assert any(
+        tab["key"] == "version" and tab["count"] == 14
+        for tab in payload["review_workspace"]["filter_tabs"]
+    )
+    assert (
+        payload["persona_source_intake_manifest"]["schema_version"]
+        == "m39.persona_source_intake_manifest.v1"
+    )
+    assert payload["persona_source_intake_manifest"]["review_required"] is True
+    assert len(payload["review_workspace"]["source_intake_review_cards"]) == 21
+    assert any(
+        tab["key"] == "source" and tab["count"] >= 21
+        for tab in payload["review_workspace"]["filter_tabs"]
+    )
+    assert (
+        payload["persona_source_evidence_matrix"]["schema_version"]
+        == "m40.persona_source_evidence_matrix.v1"
+    )
+    assert payload["persona_source_evidence_matrix"]["review_required"] is True
+    assert len(payload["review_workspace"]["source_evidence_review_cards"]) == 22
+    assert any(
+        tab["key"] == "evidence" and tab["count"] == 22
+        for tab in payload["review_workspace"]["filter_tabs"]
+    )
 
 
 def test_unknown_paths_and_path_traversal_are_rejected() -> None:
